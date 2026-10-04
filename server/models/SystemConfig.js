@@ -16,7 +16,7 @@ const systemConfigSchema = new mongoose.Schema({
   },
   mongoUri: {
     type: String,
-    default: 'mongodb://127.0.0.1:27017/loyalqr'
+    default: () => process.env.MONGO_URI || ''
   },
   mongoPoolSize: {
     type: Number,

@@ -1,10 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const path = require('path');
 try {
-  require('dotenv').config();
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
 } catch (e) {
   // dotenv optional fallback
+}
+
+// Helper to sanitize & encode MongoDB Atlas URIs (e.g. handle '@' in passwords and query formatting)
+function formatMongoUri(rawUri) {
+  if (!rawUri) return '';
+  let uri = rawUri.trim();
+  // Normalize if appName query was placed before db name
+  uri = uri.replace(/\/\?appName=([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)/, '/$2?retryWrites=true&w=majority&appName=$1');
+  
+  const prefixMatch = uri.match(/^(mongodb(?:\+srv)?:\/\/)([^:]+):(.+)(@[^@]+)$/);
+  if (prefixMatch) {
+    const protocol = prefixMatch[1];
+    const user = prefixMatch[2];
+    const pass = prefixMatch[3];
+    const hostAndQuery = prefixMatch[4];
+    const encodedPass = encodeURIComponent(decodeURIComponent(pass));
+    uri = `${protocol}${user}:${encodedPass}${hostAndQuery}`;
+  }
+  return uri;
 }
 
 const { router: authRouter, ensureDemoMerchant } = require('./routes/authRoutes');
@@ -14,7 +34,7 @@ const adminRouter = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/beaurex';
+const MONGO_URI = formatMongoUri(process.env.MONGO_URI);
 
 // Middleware
 app.use(cors());
@@ -50,7 +70,6 @@ app.get('/api/public/plans', async (req, res) => {
 });
 
 // Serve frontend build if exists
-const path = require('path');
 const fs = require('fs');
 const clientDistPath = path.join(__dirname, '../client/dist');
 if (fs.existsSync(clientDistPath)) {
@@ -71,14 +90,19 @@ async function connectDB() {
   if (cachedDb) {
     return cachedDb;
   }
+  if (!MONGO_URI) {
+    console.warn('⚠️ MONGO_URI is not configured in .env');
+    return null;
+  }
   cachedDb = mongoose.connect(MONGO_URI, {
     serverSelectionTimeoutMS: 5000
   }).then((m) => {
-    console.log('✅ Connected to MongoDB at', MONGO_URI);
+    const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
+    console.log('✅ Connected to MongoDB Atlas at', safeUri);
     try { ensureDemoMerchant(); } catch (_) {}
     return m;
   }).catch((err) => {
-    console.warn('⚠️ MongoDB connection deferred (running in demo-ready mode):', err.message);
+    console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
     cachedDb = null;
   });
   return cachedDb;
