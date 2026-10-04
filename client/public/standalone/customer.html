@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoyalQR - Customer Rewards & Scratch Card</title>
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .crimson-gradient {
+            background: linear-gradient(145deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%);
+        }
+        .hero-dot-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+        }
+        .customer-step { display: none; }
+        .customer-step.active { display: block; }
+        #scratchCanvas {
+            touch-action: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-800 antialiased flex flex-col justify-between selection:bg-red-500 selection:text-white">
+
+    <!-- Top Mini Bar -->
+    <header class="bg-slate-950 border-b border-slate-800 text-white py-3 px-4 sticky top-0 z-50">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-2">
+                <div class="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center font-black text-white text-xs">Q</div>
+                <span class="font-black text-base tracking-tight">Loyal<span class="text-red-500">QR</span> Rewards</span>
+            </a>
+            <div class="flex items-center space-x-2">
+                <a href="merchant.html" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-2.5 py-1 rounded-md transition font-semibold">Store Panel</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Centered Smartphone Container -->
+    <main class="flex-1 flex items-center justify-center p-2 sm:p-4 my-2 sm:my-6">
+        <div class="w-full max-w-md bg-white rounded-3xl sm:rounded-[36px] shadow-2xl border-4 border-slate-800 overflow-hidden flex flex-col min-h-[680px]">
+            
+            <!-- Store Identification Bar -->
+            <div class="bg-slate-950 text-white p-4 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center font-black text-white text-sm shadow-md">
+                        ☕
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-black tracking-tight" id="storeNameHeader">Royal Sweets & Cafe</h1>
+                        <p class="text-[10px] text-emerald-400 font-bold flex items-center">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>
+                            Verified LoyalQR Counter
+                        </p>
+                    </div>
+                </div>
+                <button onclick="toggleWallet()" id="walletToggleBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center space-x-1 cursor-pointer">
+                    <span>🎁 Wallet</span>
+                    <span id="walletBadge" class="bg-amber-400 text-slate-950 text-[10px] font-black rounded-full px-1.5">1</span>
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div class="flex-1 p-5 sm:p-6 flex flex-col justify-between bg-slate-50">
+
+                <!-- ========================================== -->
+                <!-- STEP 1: CUSTOMER PHONE LOGIN / OTP -->
+                <!-- ========================================== -->
+                <div id="step-auth" class="customer-step active">
+                    <!-- Crimson Banner Card -->
+                    <div class="crimson-gradient hero-dot-pattern rounded-2xl p-5 text-white mb-6 shadow-md relative overflow-hidden">
+                        <div class="w-10 h-10 bg-white/20 backdrop-blur-xs rounded-xl flex items-center justify-center mb-3 text-xl">
+                            🎉
+                        </div>
+                        <h2 class="text-xl font-black tracking-tight mb-1">Claim In-Store Reward!</h2>
+                        <p class="text-xs text-red-100 font-medium leading-relaxed">
+                            Thank you for shopping at Royal Sweets & Cafe. Enter your mobile number to unlock your mystery scratch card!
+                        </p>
+                    </div>
+
+                    <!-- Auth Form -->
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+                        <h3 class="text-base font-extrabold text-slate-900 mb-1">Instant Phone Login</h3>
+                        <p class="text-xs text-slate-400 font-medium mb-4">No password needed. Verified via fast SMS OTP.</p>
+
+                        <form onsubmit="handleCustomerLogin(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Mobile Number</label>
+                                <div class="flex">
+                                    <span class="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-600 text-xs font-bold">
+                                        +91
+                                    </span>
+                                    <input type="tel" id="custMobile" required pattern="[6-9][0-9]{9}" value="9876543210" placeholder="10-digit mobile number" class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-red-600 text-slate-900 font-bold">
+                                </div>
+                            </div>
+
+                            <div id="custOtpWrap" class="hidden space-y-2">
+                                <label class="block text-xs font-bold uppercase text-slate-600">Enter OTP</label>
+                                <input type="text" id="custOtpInput" maxlength="6" value="738291" placeholder="6-digit OTP" class="w-full bg-slate-50 border-2 border-emerald-500 rounded-xl px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none">
+                                <p class="text-[11px] text-emerald-600 font-bold text-center">Auto-filled demonstration code (738291)</p>
+                            </div>
+
+                            <button type="submit" id="custSubmitBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2">
+                                <span>Get Scratch Card</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Privacy Guarantee -->
+                    <div class="mt-6 flex items-center justify-center space-x-2 text-[11px] text-slate-500 font-medium">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path></svg>
+                        <span>100% Spam Free • Phone details are never shared</span>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- STEP 2: HIGH-DOPAMINE SCRATCH CARD -->
+                <!-- ========================================== -->
+                <div id="step-scratch" class="customer-step text-center">
+                    
+                    <div class="mb-4">
+                        <span class="inline-block bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black uppercase px-3 py-1 rounded-full mb-1">
+                            ✨ Scratch To Reveal
+                        </span>
+                        <h2 class="text-xl font-black text-slate-900">Your Mystery Reward Is Ready!</h2>
+                        <p class="text-xs text-slate-500 font-medium">Use your finger or mouse to scratch the silver foil below</p>
+                    </div>
+
+                    <!-- Interactive Scratch Card Box -->
+                    <div class="relative w-[300px] h-[280px] mx-auto rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-900 select-none">
+                        
+                        <!-- Underlying Prize Card (Revealed after scratching) -->
+                        <div id="prizeCard" class="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 p-5 flex flex-col items-center justify-between text-slate-950">
+                            <div class="w-full flex justify-between items-center text-[10px] font-black uppercase tracking-wider text-amber-950/80">
+                                <span>🎉 Special Reward</span>
+                                <span>LoyalQR</span>
+                            </div>
+
+                            <div class="my-auto">
+                                <div class="w-14 h-14 bg-white/30 backdrop-blur-xs rounded-2xl flex items-center justify-center text-3xl mx-auto mb-2 shadow-sm">
+                                    🎁
+                                </div>
+                                <div class="text-2xl font-black tracking-tight leading-none text-slate-950">₹150 OFF</div>
+                                <div class="text-xs font-black uppercase tracking-wider mt-1 text-amber-950">On Next Order Above ₹500</div>
+                                <p class="text-[10px] text-amber-950/90 font-semibold mt-1">Valid across all bakery & cafe items</p>
+                            </div>
+
+                            <div class="w-full bg-slate-950 text-white rounded-xl py-1.5 px-3 flex items-center justify-between text-[11px] font-mono font-bold">
+                                <span>PIN: <strong class="text-amber-400">4821</strong></span>
+                                <span class="text-[10px] text-slate-300">Code: LQR-9821</span>
+                            </div>
+                        </div>
+
+                        <!-- Top HTML5 Canvas (Scratchable Foil Layer) -->
+                        <canvas id="scratchCanvas" width="300" height="280" class="absolute inset-0 z-10"></canvas>
+                    </div>
+
+                    <!-- Scratch Progress Indicator -->
+                    <div class="mt-4 flex items-center justify-center space-x-2 text-xs font-bold text-slate-500">
+                        <span>Revealed:</span>
+                        <span id="scratchPercent" class="text-red-600 font-extrabold">0%</span>
+                    </div>
+
+                    <div id="claimButtonArea" class="hidden mt-4">
+                        <button onclick="saveRewardToWallet()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 cursor-pointer text-sm animate-bounce">
+                            🎉 Save Voucher & View In-Store Code
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- STEP 3: UNLOCKED DIGITAL REWARD VOUCHER -->
+                <!-- ========================================== -->
+                <div id="step-voucher" class="customer-step">
+                    
+                    <div class="text-center mb-4">
+                        <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-2 text-lg font-bold">✓</div>
+                        <h2 class="text-xl font-black text-slate-900">Voucher Added To Wallet!</h2>
+                        <p class="text-xs text-slate-500 font-medium">Show this screen to the counter staff when paying</p>
+                    </div>
+
+                    <!-- Modern Voucher Card -->
+                    <div class="bg-white border-2 border-red-600 rounded-3xl p-5 shadow-xl relative overflow-hidden">
+                        <div class="absolute -top-10 -right-10 w-24 h-24 bg-red-100 rounded-full opacity-50 pointer-events-none"></div>
+
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="bg-red-50 text-red-600 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-md border border-red-200">Active Voucher</span>
+                                <h3 class="text-2xl font-black text-slate-900 mt-1">₹150 Flat Discount</h3>
+                                <p class="text-xs text-slate-500 font-medium">Applicable on bill of ₹500 or more</p>
+                            </div>
+                            <div class="w-10 h-10 bg-red-600 text-white rounded-xl flex items-center justify-center font-black text-lg">Q</div>
+                        </div>
+
+                        <!-- 4-Digit Counter Verification Code -->
+                        <div class="bg-slate-950 text-white rounded-2xl p-4 text-center my-4">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-widest block mb-1">Tell Cashier This 4-Digit PIN</span>
+                            <div class="text-3xl font-mono font-black text-amber-400 tracking-widest">4 8 2 1</div>
+                            <span class="text-[10px] text-slate-400 block mt-1">Single-use secure redemption token</span>
+                        </div>
+
+                        <!-- Validity Timer -->
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs">
+                            <div class="flex items-center space-x-2 text-emerald-800 font-bold">
+                                <span>⏱</span>
+                                <span>Expires in:</span>
+                            </div>
+                            <span class="font-mono font-black text-emerald-700">6 Days 23:59:12</span>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-slate-100 text-[11px] text-slate-400 text-center leading-relaxed">
+                            Valid exclusively at <strong>Royal Sweets & Cafe</strong> • Cannot be combined with other offers.
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button onclick="toggleWallet()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-xl transition text-xs cursor-pointer shadow-md">
+                            View All Saved Rewards in Wallet
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- STEP 4: CUSTOMER REWARDS WALLET -->
+                <!-- ========================================== -->
+                <div id="step-wallet" class="customer-step">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-xl font-black text-slate-900">Your Rewards Locker</h2>
+                            <p class="text-xs text-slate-500 font-medium">Saved discount vouchers across local stores</p>
+                        </div>
+                        <button onclick="showStep('step-voucher')" class="text-xs text-red-600 font-bold hover:underline cursor-pointer">
+                            ← Back
+                        </button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Active Card 1 -->
+                        <div class="bg-white border-2 border-emerald-500 rounded-2xl p-4 shadow-xs">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Active • 6 Days Left</span>
+                                <span class="font-mono font-bold text-xs text-slate-500">PIN: 4821</span>
+                            </div>
+                            <h4 class="font-black text-slate-900 text-base">₹150 OFF (Royal Sweets)</h4>
+                            <p class="text-xs text-slate-500">Min. order ₹500</p>
+                            <button onclick="showStep('step-voucher')" class="mt-2.5 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer">
+                                Redeem at Counter
+                            </button>
+                        </div>
+
+                        <!-- Past Redeemed Card 2 -->
+                        <div class="bg-slate-100 border border-slate-200 rounded-2xl p-4 opacity-75">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-black uppercase text-slate-500 bg-slate-200 px-2 py-0.5 rounded">Redeemed</span>
+                                <span class="text-[10px] text-slate-400">May 12, 2025</span>
+                            </div>
+                            <h4 class="font-bold text-slate-700 text-sm">Free Special Masala Chai</h4>
+                            <p class="text-xs text-slate-400">Claimed at counter</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Brand Bar -->
+            <div class="bg-slate-950 text-slate-400 py-3 px-4 text-center text-[10px] border-t border-slate-800 flex items-center justify-between">
+                <span>⚡ Powered by <strong>LoyalQR</strong></span>
+                <span>Protected by Customer Privacy Protocol</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-slate-400 text-xs py-4 text-center border-t border-slate-800">
+        <a href="index.html" class="hover:text-white transition font-medium">← Return to LoyalQR Home</a>
+    </footer>
+
+    <script>
+        let isScratchedEnough = false;
+
+        function showStep(stepId) {
+            document.querySelectorAll('.customer-step').forEach(el => el.classList.remove('active'));
+            document.getElementById(stepId).classList.add('active');
+            if(stepId === 'step-scratch') {
+                initScratchCard();
+            }
+        }
+
+        function toggleWallet() {
+            const wallet = document.getElementById('step-wallet');
+            if(wallet.classList.contains('active')) {
+                showStep('step-voucher');
+            } else {
+                showStep('step-wallet');
+            }
+        }
+
+        // Customer Login Simulation
+        function handleCustomerLogin(e) {
+            e.preventDefault();
+            const otpWrap = document.getElementById('custOtpWrap');
+            const submitBtn = document.getElementById('custSubmitBtn');
+
+            if(otpWrap.classList.contains('hidden')) {
+                otpWrap.classList.remove('hidden');
+                submitBtn.innerHTML = '<span>Verify OTP & Open Reward</span>';
+            } else {
+                showStep('step-scratch');
+            }
+        }
+
+        // HTML5 Canvas Scratch Engine
+        function initScratchCard() {
+            const canvas = document.getElementById('scratchCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Fill with metallic silver foil gradient
+            const grad = ctx.createLinearGradient(0, 0, width, height);
+            grad.addColorStop(0, '#94a3b8');
+            grad.addColorStop(0.3, '#cbd5e1');
+            grad.addColorStop(0.5, '#f1f5f9');
+            grad.addColorStop(0.7, '#cbd5e1');
+            grad.addColorStop(1, '#64748b');
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            // Add decorative pattern & text on foil
+            ctx.fillStyle = '#475569';
+            ctx.font = 'bold 16px Plus Jakarta Sans, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('✨ SCRATCH WITH FINGER ✨', width / 2, height / 2 - 15);
+            
+            ctx.font = 'bold 12px Plus Jakarta Sans, sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.fillText('Reveal Your Secret Store Reward', width / 2, height / 2 + 15);
+
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            function scratch(x, y) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 26, 0, Math.PI * 2);
+                ctx.fill();
+
+                checkScratchPercentage();
+            }
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) * (width / rect.width),
+                    y: (clientY - rect.top) * (height / rect.height)
+                };
+            }
+
+            // Mouse Events
+            canvas.onmousedown = (e) => {
+                isDrawing = true;
+                const pos = getPos(e);
+                scratch(pos.x, pos.y);
+            };
+            window.onmouseup = () => { isDrawing = false; };
+            canvas.onmousemove = (e) => {
+                if(!isDrawing) return;
+                const pos = getPos(e);
+                scratch(pos.x, pos.y);
+            };
+
+            // Touch Events
+            canvas.ontouchstart = (e) => {
+                isDrawing = true;
+                const pos = getPos(e);
+                scratch(pos.x, pos.y);
+            };
+            window.ontouchend = () => { isDrawing = false; };
+            canvas.ontouchmove = (e) => {
+                if(!isDrawing) return;
+                const pos = getPos(e);
+                scratch(pos.x, pos.y);
+            };
+
+            // Compute scratched pixels percentage
+            let throttleTimer = null;
+            function checkScratchPercentage() {
+                if(isScratchedEnough || throttleTimer) return;
+                throttleTimer = setTimeout(() => {
+                    throttleTimer = null;
+                    const imgData = ctx.getImageData(0, 0, width, height);
+                    const pixels = imgData.data;
+                    let transparentCount = 0;
+
+                    for(let i = 3; i < pixels.length; i += 4) {
+                        if(pixels[i] === 0) {
+                            transparentCount++;
+                        }
+                    }
+
+                    const pct = Math.round((transparentCount / (pixels.length / 4)) * 100);
+                    document.getElementById('scratchPercent').innerText = `${pct}%`;
+
+                    if(pct >= 40 && !isScratchedEnough) {
+                        isScratchedEnough = true;
+                        canvas.style.transition = 'opacity 0.6s ease';
+                        canvas.style.opacity = '0';
+                        setTimeout(() => {
+                            canvas.style.display = 'none';
+                        }, 600);
+
+                        // Trigger Dopamine Confetti Explosion!
+                        triggerCelebration();
+                        document.getElementById('claimButtonArea').classList.remove('hidden');
+                    }
+                }, 100);
+            }
+        }
+
+        function triggerCelebration() {
+            if(window.confetti) {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function saveRewardToWallet() {
+            showStep('step-voucher');
+        }
+
+        // Custom Store Name if set in session
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = sessionStorage.getItem('loyalqr_biz');
+            if(saved) {
+                document.getElementById('storeNameHeader').innerText = saved;
+            }
+        });
+    </script>
+</body>
+</html>

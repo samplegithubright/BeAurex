@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoyalQR - Merchant & Admin Portal</title>
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .crimson-gradient {
+            background: linear-gradient(145deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%);
+        }
+        .hero-dot-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+        }
+        .screen-view { display: none; }
+        .screen-view.active { display: flex; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 antialiased flex flex-col justify-between selection:bg-red-500 selection:text-white">
+
+    <!-- Top Navigation / Wireframe Screen Switcher Bar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <a href="index.html" class="flex items-center space-x-2 text-white hover:text-slate-200 transition">
+                    <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center font-black text-white text-base shadow-sm">Q</div>
+                    <span class="font-black text-lg tracking-tight">Loyal<span class="text-red-500">QR</span></span>
+                </a>
+                <span class="text-xs bg-slate-800 text-slate-400 font-bold px-2 py-0.5 rounded border border-slate-700">Admin & Merchant Panel</span>
+            </div>
+
+            <!-- Interactive Screen Navigation Pills -->
+            <div class="flex items-center space-x-1 sm:space-x-2 text-xs font-bold overflow-x-auto py-1">
+                <button onclick="switchScreen('screen-login')" id="btn-login" class="nav-tab px-3 py-1.5 rounded-lg bg-red-600 text-white transition cursor-pointer">
+                    1. Login <span class="hidden md:inline font-mono opacity-80">(ADM-001)</span>
+                </button>
+                <button onclick="switchScreen('screen-forgot')" id="btn-forgot" class="nav-tab px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+                    2. Forgot <span class="hidden md:inline font-mono opacity-80">(ADM-002)</span>
+                </button>
+                <button onclick="switchScreen('screen-otp')" id="btn-otp" class="nav-tab px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+                    3. OTP <span class="hidden md:inline font-mono opacity-80">(ADM-003)</span>
+                </button>
+                <button onclick="switchScreen('screen-newpass')" id="btn-newpass" class="nav-tab px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+                    4. New Pass <span class="hidden md:inline font-mono opacity-80">(ADM-004)</span>
+                </button>
+                <button onclick="switchScreen('screen-dashboard')" id="btn-dashboard" class="nav-tab px-3 py-1.5 rounded-lg bg-emerald-600 text-white transition cursor-pointer flex items-center space-x-1">
+                    <span>⚡ Merchant Hub</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-10">
+
+        <!-- ========================================== -->
+        <!-- SCREEN 1: ADMIN & MERCHANT LOGIN (ADM-AUTH-001) -->
+        <!-- ========================================== -->
+        <div id="screen-login" class="screen-view active w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex-col md:flex-row">
+            
+            <!-- Left Brand Panel -->
+            <div class="md:w-5/12 crimson-gradient hero-dot-pattern p-8 sm:p-10 text-white flex flex-col justify-between relative">
+                <div>
+                    <!-- LoyalQR Logo -->
+                    <div class="flex items-center space-x-2.5 mb-8">
+                        <div class="w-9 h-9 bg-white text-red-600 rounded-xl flex items-center justify-center font-black text-xl shadow-md">
+                            <span>Q</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xl font-black tracking-tight leading-none">Loyal<span class="text-red-200">QR</span></span>
+                            <span class="text-[10px] font-bold text-red-100 tracking-wider uppercase">Admin & Merchant Panel</span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-3">Welcome Back!</h2>
+                    <p class="text-red-100 text-xs sm:text-sm font-medium leading-relaxed mb-8">
+                        Sign in to your LoyalQR Admin Panel and manage your entire offline customer retention machine.
+                    </p>
+
+                    <!-- Feature Badges -->
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Secure & Reliable</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Enterprise-grade security to keep your store data safe and protected.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Real-time Insights</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Track daily counter scans, walk-ins, and repeat visits in real-time.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Complete Control</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Configure scratch card probabilities, vouchers, and counter validation.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Always Accessible</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Access your dashboard anytime, anywhere on mobile, tablet, or desktop.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 text-[11px] text-red-200/80 font-medium">
+                    © 2026 LoyalQR. All rights reserved.
+                </div>
+            </div>
+
+            <!-- Right Form Panel -->
+            <div class="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2.5 mb-6">
+                        <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-black text-sm">Q</div>
+                        <span class="text-base font-black text-slate-900">Loyal<span class="text-red-600">QR</span> Admin</span>
+                    </div>
+
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">Sign in to your account</h3>
+                    <p class="text-xs text-slate-500 font-medium mb-6">Enter your registered credentials to continue</p>
+
+                    <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                        <!-- Email Field -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Email Address</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"></path></svg>
+                                </span>
+                                <input type="email" id="loginEmail" required value="owner@royalsweets.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                            </div>
+                        </div>
+
+                        <!-- Mobile Field -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Mobile Number</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path></svg>
+                                </span>
+                                <input type="tel" id="loginMobile" required value="9876543210" pattern="[6-9][0-9]{9}" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                            </div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                                </span>
+                                <input type="password" id="loginPass" required value="LoyalQR@2026" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                                <button type="button" onclick="togglePasswordVisibility('loginPass', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox & Forgot Link -->
+                        <div class="flex items-center justify-between text-xs pt-1">
+                            <label class="flex items-center space-x-2 cursor-pointer text-slate-600 font-medium">
+                                <input type="checkbox" checked class="rounded border-slate-300 text-red-600 focus:ring-red-500">
+                                <span>Remember me</span>
+                            </label>
+                            <button type="button" onclick="switchScreen('screen-forgot')" class="text-red-600 font-bold hover:underline cursor-pointer">
+                                Forgot Password?
+                            </button>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2">
+                            <span>Login</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+                        </button>
+
+                        <div class="relative my-4 text-center">
+                            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+                            <span class="relative bg-white px-3 text-[11px] font-bold text-slate-400 uppercase">or</span>
+                        </div>
+
+                        <!-- Outlined Secondary Button -->
+                        <button type="button" onclick="switchScreen('screen-dashboard')" class="w-full bg-white hover:bg-red-50 text-red-600 border border-red-600 font-extrabold py-2.5 rounded-xl transition cursor-pointer text-sm flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"></path></svg>
+                            <span>Secure Admin Access</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-[11px] text-slate-400 text-center mt-6">
+                    By logging in, you agree to our <a href="#" class="text-slate-600 underline">Terms & Conditions</a> and <a href="#" class="text-slate-600 underline">Privacy Policy</a>.
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: FORGOT PASSWORD (ADM-AUTH-002) -->
+        <!-- ========================================== -->
+        <div id="screen-forgot" class="screen-view w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex-col md:flex-row">
+            
+            <!-- Left Hero -->
+            <div class="md:w-5/12 crimson-gradient hero-dot-pattern p-8 sm:p-10 text-white flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2.5 mb-8">
+                        <div class="w-9 h-9 bg-white text-red-600 rounded-xl flex items-center justify-center font-black text-xl shadow-md">Q</div>
+                        <span class="text-xl font-black tracking-tight leading-none">Loyal<span class="text-red-200">QR</span></span>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-3">Trouble Signing In?</h2>
+                    <p class="text-red-100 text-xs sm:text-sm font-medium leading-relaxed mb-8">
+                        No worries! Enter your registered email and mobile number. We'll send you a One Time Password (OTP) to securely reset your credentials.
+                    </p>
+
+                    <!-- Illustration Graphic Card -->
+                    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-center max-w-xs mx-auto shadow-inner">
+                        <div class="w-16 h-16 bg-red-500/40 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl">
+                            ✉️
+                        </div>
+                        <div class="text-xs font-bold text-white uppercase tracking-wider">SMS OTP Protocol</div>
+                        <p class="text-[11px] text-red-100 mt-1">10-minute temporary cryptographic verification token</p>
+                    </div>
+                </div>
+
+                <div class="pt-8 text-[11px] text-red-200/80 font-medium">
+                    © 2026 LoyalQR. All rights reserved.
+                </div>
+            </div>
+
+            <!-- Right Action Card -->
+            <div class="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between">
+                <div>
+                    <!-- Circular Icon Pill -->
+                    <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mb-6 shadow-xs border border-red-100">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                    </div>
+
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">Forgot Password</h3>
+                    <p class="text-xs text-slate-500 font-medium mb-6 leading-relaxed">
+                        Enter your registered email address and mobile number. We'll send you a One Time Password (OTP) to reset your password.
+                    </p>
+
+                    <form onsubmit="handleForgotSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Email Address</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"></path></svg>
+                                </span>
+                                <input type="email" id="forgotEmail" required placeholder="Enter your registered email address" value="owner@royalsweets.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Mobile Number</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"></path></svg>
+                                </span>
+                                <input type="tel" id="forgotMobile" required placeholder="Enter your registered mobile number" value="9876543210" pattern="[6-9][0-9]{9}" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2 mt-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"></path></svg>
+                            <span>Send OTP</span>
+                        </button>
+
+                        <button type="button" onclick="switchScreen('screen-login')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-2.5 rounded-xl transition cursor-pointer text-sm flex items-center justify-center space-x-2">
+                            <span>← Back to Login</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-[11px] text-slate-400 text-center mt-6">
+                    Facing issues receiving SMS? Contact <a href="#" class="text-red-600 font-semibold">Priority Helpdesk</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 3: VERIFY OTP (ADM-AUTH-003) -->
+        <!-- ========================================== -->
+        <div id="screen-otp" class="screen-view w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex-col md:flex-row">
+            
+            <!-- Left Hero -->
+            <div class="md:w-5/12 crimson-gradient hero-dot-pattern p-8 sm:p-10 text-white flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2.5 mb-8">
+                        <div class="w-9 h-9 bg-white text-red-600 rounded-xl flex items-center justify-center font-black text-xl shadow-md">Q</div>
+                        <span class="text-xl font-black tracking-tight leading-none">Loyal<span class="text-red-200">QR</span></span>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-3">Verify Your Identity</h2>
+                    <p class="text-red-100 text-xs sm:text-sm font-medium leading-relaxed mb-8">
+                        Enter the 6-digit OTP sent to your registered mobile number to confirm ownership.
+                    </p>
+
+                    <!-- Trust Points -->
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 mt-0.5">✓</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Secure & Reliable</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">We ensure the security of your account with 2FA OTP verification.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 mt-0.5">⏱</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Time Sensitive</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">OTP is valid for 10 minutes only for your security.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 mt-0.5">🛡</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Complete Control</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">You are in full control of your merchant account security.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 text-[11px] text-red-200/80 font-medium">
+                    © 2026 LoyalQR. All rights reserved.
+                </div>
+            </div>
+
+            <!-- Right Action Card -->
+            <div class="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mb-6 shadow-xs border border-red-100">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"></path></svg>
+                    </div>
+
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">Verify OTP</h3>
+                    <p class="text-xs text-slate-500 font-medium mb-6">
+                        We have sent a 6-digit OTP to <strong class="text-slate-800 font-bold" id="otpTargetDisplay">+91 98765 43210</strong>. Enter the OTP below to verify.
+                    </p>
+
+                    <form onsubmit="handleOtpSubmit(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-3 text-center sm:text-left">Enter 6-Digit OTP</label>
+                            
+                            <!-- 6 Individual OTP Boxes -->
+                            <div class="flex justify-center sm:justify-start space-x-2.5 sm:space-x-3">
+                                <input type="text" maxlength="1" class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs" value="4">
+                                <input type="text" maxlength="1" class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs" value="8">
+                                <input type="text" maxlength="1" class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs" value="2">
+                                <input type="text" maxlength="1" class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs" value="1">
+                                <input type="text" maxlength="1" class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs" value="9">
+                                <input type="text" maxlength="1" class="otp-box w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs" value="0">
+                            </div>
+                        </div>
+
+                        <!-- Resend Countdown -->
+                        <div class="text-xs text-slate-500 font-medium">
+                            Didn't receive the OTP? <button type="button" id="btnResend" onclick="resendOtpCountdown()" class="text-red-600 font-bold hover:underline cursor-pointer">Resend OTP (00:45)</button>
+                        </div>
+
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"></path></svg>
+                            <span>Verify OTP</span>
+                        </button>
+
+                        <button type="button" onclick="switchScreen('screen-forgot')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-2.5 rounded-xl transition cursor-pointer text-sm flex items-center justify-center space-x-2">
+                            <span>← Back to Forgot Password</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-[11px] text-slate-400 text-center mt-6">
+                    Secured by 256-Bit Encrypted Mobile Verification Channel
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 4: SET NEW PASSWORD (ADM-AUTH-004) -->
+        <!-- ========================================== -->
+        <div id="screen-newpass" class="screen-view w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex-col md:flex-row">
+            
+            <!-- Left Hero -->
+            <div class="md:w-5/12 crimson-gradient hero-dot-pattern p-8 sm:p-10 text-white flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center space-x-2.5 mb-8">
+                        <div class="w-9 h-9 bg-white text-red-600 rounded-xl flex items-center justify-center font-black text-xl shadow-md">Q</div>
+                        <span class="text-xl font-black tracking-tight leading-none">Loyal<span class="text-red-200">QR</span></span>
+                    </div>
+
+                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-3">Create New Password</h2>
+                    <p class="text-red-100 text-xs sm:text-sm font-medium leading-relaxed mb-8">
+                        Almost there! Set your new password to complete the password reset process.
+                    </p>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 mt-0.5">🔒</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Strong & Secure</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Use a strong password to keep your store account safe.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 mt-0.5">🛡</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Protected Account</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Your account is protected with advanced multi-layer encryption.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 mt-0.5">🔑</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-white">Complete Access</h4>
+                                <p class="text-xs text-red-100/90 leading-tight">Once done, you can immediately login with your new credentials.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 text-[11px] text-red-200/80 font-medium">
+                    © 2026 LoyalQR. All rights reserved.
+                </div>
+            </div>
+
+            <!-- Right Action Card -->
+            <div class="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 mb-6 shadow-xs border border-red-100">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"></path></svg>
+                    </div>
+
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">Set New Password</h3>
+                    <p class="text-xs text-slate-500 font-medium mb-6">Create a new strong password for your admin account.</p>
+
+                    <form onsubmit="handleNewPassSubmit(event)" class="space-y-4">
+                        <!-- New Password -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">New Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                                </span>
+                                <input type="password" id="newPassInput" oninput="checkPasswordStrength(this.value)" required placeholder="Enter new password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                                <button type="button" onclick="togglePasswordVisibility('newPassInput', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                            </div>
+
+                            <!-- Live Password Strength Meter -->
+                            <div class="mt-2 flex items-center justify-between text-[11px]">
+                                <div class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden mr-3">
+                                    <div id="strengthBar" class="h-full w-1/4 bg-red-500 transition-all duration-300"></div>
+                                </div>
+                                <span id="strengthText" class="font-bold text-red-600">Password Strength: Weak</span>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Confirm New Password</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                                </span>
+                                <input type="password" id="confirmPassInput" required placeholder="Confirm new password" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition">
+                                <button type="button" onclick="togglePasswordVisibility('confirmPassInput', this)" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Requirements Checklist -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5">
+                            <span class="block text-[11px] font-bold text-slate-700 uppercase mb-2">Password Requirements:</span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-slate-600 font-medium">
+                                <div id="req-len" class="flex items-center"><span class="text-slate-300 font-bold mr-1.5">○</span> Minimum 8 characters</div>
+                                <div id="req-lower" class="flex items-center"><span class="text-slate-300 font-bold mr-1.5">○</span> At least 1 lowercase letter</div>
+                                <div id="req-upper" class="flex items-center"><span class="text-slate-300 font-bold mr-1.5">○</span> At least 1 uppercase letter</div>
+                                <div id="req-special" class="flex items-center"><span class="text-slate-300 font-bold mr-1.5">○</span> At least 1 special character</div>
+                                <div id="req-num" class="flex items-center"><span class="text-slate-300 font-bold mr-1.5">○</span> At least 1 number</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2 mt-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"></path></svg>
+                            <span>Save New Password</span>
+                        </button>
+
+                        <button type="button" onclick="switchScreen('screen-login')" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-2.5 rounded-xl transition cursor-pointer text-sm flex items-center justify-center space-x-2">
+                            <span>← Back to Login</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="text-[11px] text-slate-400 text-center mt-6">
+                    Changes take effect across all logged in cash register & counter devices.
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 5: MERCHANT HUB / LIVE DASHBOARD PREVIEW -->
+        <!-- ========================================== -->
+        <div id="screen-dashboard" class="screen-view w-full max-w-6xl bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden flex-col p-6 sm:p-8">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-200/80 gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-red-600 text-white rounded-2xl flex items-center justify-center font-black text-2xl shadow-md">
+                        Q
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-2xl font-black text-slate-900" id="merchantStoreTitle">Royal Sweets & Cafe</h2>
+                            <span class="bg-red-50 text-red-600 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-red-200">2-Day Trial Active</span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium">Counter ID: LQR-DL-9821 • Terminal Status: Online</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <a href="customer.html" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-sm">
+                        <span>📱 Open Customer View</span>
+                    </a>
+                    <button onclick="switchScreen('screen-login')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2.5 rounded-xl transition">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Total Counter Scans</span>
+                    <div class="text-2xl font-black text-slate-900 mt-1">1,482</div>
+                    <span class="text-[11px] text-emerald-600 font-bold">↑ +24% this week</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Repeat Customer Rate</span>
+                    <div class="text-2xl font-black text-red-600 mt-1">42.8%</div>
+                    <span class="text-[11px] text-emerald-600 font-bold">↑ 3.2x vs traditional stores</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Active Unlocked Vouchers</span>
+                    <div class="text-2xl font-black text-slate-900 mt-1">319</div>
+                    <span class="text-[11px] text-amber-600 font-bold">⏳ In customers' digital wallets</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Redeemed At Counter</span>
+                    <div class="text-2xl font-black text-emerald-600 mt-1">542</div>
+                    <span class="text-[11px] text-slate-500 font-bold">₹1.84 Lakh repeat billing</span>
+                </div>
+            </div>
+
+            <!-- Main Interactive Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Counter Standee Preview Column -->
+                <div class="lg:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-3xl p-6 flex flex-col justify-between shadow-lg">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-extrabold uppercase tracking-wider text-red-400">Printable Acrylic Standee</span>
+                            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">Size: A5/A6</span>
+                        </div>
+
+                        <!-- Standee Mockup Card -->
+                        <div class="bg-white text-slate-900 rounded-2xl p-6 text-center border-4 border-red-600 shadow-2xl relative">
+                            <div class="flex items-center justify-center space-x-2 mb-2">
+                                <div class="w-6 h-6 bg-red-600 rounded-md flex items-center justify-center text-white font-black text-xs">Q</div>
+                                <span class="font-black text-sm tracking-tight">Royal Sweets & Cafe</span>
+                            </div>
+
+                            <div class="text-lg font-black text-slate-950 uppercase tracking-tight mt-2">
+                                Scan & Scratch To Win!
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-semibold mb-3">
+                                Get surprise rewards for your next visit!
+                            </p>
+
+                            <!-- QR Box -->
+                            <div class="w-40 h-40 mx-auto bg-slate-100 rounded-2xl p-2 border-2 border-slate-300 flex items-center justify-center shadow-inner">
+                                <svg class="w-36 h-36" viewBox="0 0 100 100" fill="currentColor">
+                                    <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 10h10v10H40zM50 20h10v10H50zM40 30h10v10H40zM20 40h10v10H20zM30 50h10v10H30zM10 50h10v10H10zM50 50h10v10H50zM60 40h10v10H60zM70 50h10v10H70zM80 40h10v10H80zM40 70h10v10H40zM50 80h10v10H50zM70 70h10v10H70zM80 80h10v10H80zM90 70h10v10H90z"/>
+                                </svg>
+                            </div>
+
+                            <div class="mt-3 text-[10px] font-black text-red-600 uppercase tracking-wider">
+                                ⚡ Camera Scan • No App Download Required
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 space-y-2">
+                        <button onclick="downloadStandeePDF()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl transition text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"></path></svg>
+                            <span>Download Print-Ready Standee (PDF)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fast Counter Terminal & Campaigns -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- Fast In-Store Counter Verification Box -->
+                    <div class="bg-rose-50/70 border-2 border-rose-200/90 rounded-3xl p-6">
+                        <div class="flex items-center space-x-2.5 mb-2">
+                            <span class="text-xl">⚡</span>
+                            <h3 class="text-lg font-black text-rose-950">Fast Counter Voucher Burn</h3>
+                        </div>
+                        <p class="text-xs text-rose-800 font-medium mb-4">
+                            When customer presents their scratched reward, enter their 4-digit PIN below to apply discount:
+                        </p>
+                        <form onsubmit="handleRedeemAtCounter(event)" class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="counterPinInput" maxlength="4" placeholder="4-Digit PIN (e.g. 4821)" required class="bg-white border-2 border-rose-300 rounded-xl px-4 py-2.5 text-center font-mono font-black text-lg tracking-widest text-slate-900 focus:outline-none focus:border-red-600 flex-1">
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-extrabold px-6 py-2.5 rounded-xl transition text-sm cursor-pointer shadow-md">
+                                Verify & Burn
+                            </button>
+                        </form>
+                        <div id="redemptionResult" class="hidden mt-3 p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-xs text-emerald-900 font-bold flex items-center space-x-2">
+                            <span>✅</span> <span>Voucher Valid! ₹150 discount applied. Customer visit recorded.</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Reward Rules Manager -->
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-black text-slate-900 text-lg">Active Scratch Card Rules</h3>
+                                <p class="text-xs text-slate-500 font-medium">Customer scratch probabilities & discount limits</p>
+                            </div>
+                            <button onclick="alert('Rule builder modal opened: configure minimum bill and reward weights.')" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl transition cursor-pointer">
+                                + Add Reward
+                            </button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-bold text-sm">1</span>
+                                    <div>
+                                        <div class="text-xs font-black text-slate-900">15% OFF On Next Dine-In Bill</div>
+                                        <div class="text-[11px] text-slate-500">Min. order ₹400 • Valid for 7 days</div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">70% Chance</span>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">2</span>
+                                    <div>
+                                        <div class="text-xs font-black text-slate-900">₹150 Flat Discount Voucher</div>
+                                        <div class="text-[11px] text-slate-500">Min. order ₹600 • Valid for 10 days</div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">25% Chance</span>
+                            </div>
+
+                            <div class="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">3</span>
+                                    <div>
+                                        <div class="text-xs font-black text-slate-900">Free Signature Dessert or Beverage</div>
+                                        <div class="text-[11px] text-slate-500">Any billing • Valid for 14 days</div>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">5% Jackpot</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200/80 py-4 text-center text-xs text-slate-400 font-medium">
+        LoyalQR Merchant Panel System • Compliant with Indian DPDP & DLT Security Standards
+    </footer>
+
+    <script>
+        // Screen Switcher Logic
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen-view').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            // Update Tab Active Classes
+            document.querySelectorAll('.nav-tab').forEach(b => {
+                b.classList.remove('bg-red-600', 'text-white');
+                if(!b.classList.contains('bg-emerald-600')) {
+                    b.classList.add('bg-slate-800', 'text-slate-300');
+                }
+            });
+
+            const activeBtnMap = {
+                'screen-login': 'btn-login',
+                'screen-forgot': 'btn-forgot',
+                'screen-otp': 'btn-otp',
+                'screen-newpass': 'btn-newpass',
+                'screen-dashboard': 'btn-dashboard'
+            };
+            const btn = document.getElementById(activeBtnMap[screenId]);
+            if(btn && !btn.classList.contains('bg-emerald-600')) {
+                btn.classList.remove('bg-slate-800', 'text-slate-300');
+                btn.classList.add('bg-red-600', 'text-white');
+            }
+        }
+
+        // Toggle Password Show/Hide
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if(input.type === 'password') {
+                input.type = 'text';
+                btn.innerHTML = `<svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path></svg>`;
+            } else {
+                input.type = 'password';
+                btn.innerHTML = `<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`;
+            }
+        }
+
+        // Live Password Strength Checker
+        function checkPasswordStrength(val) {
+            let score = 0;
+            const len = val.length >= 8;
+            const lower = /[a-z]/.test(val);
+            const upper = /[A-Z]/.test(val);
+            const num = /[0-9]/.test(val);
+            const special = /[!@#$%^&*]/.test(val);
+
+            updateReq('req-len', len);
+            updateReq('req-lower', lower);
+            updateReq('req-upper', upper);
+            updateReq('req-num', num);
+            updateReq('req-special', special);
+
+            if(len) score++;
+            if(lower) score++;
+            if(upper) score++;
+            if(num) score++;
+            if(special) score++;
+
+            const bar = document.getElementById('strengthBar');
+            const txt = document.getElementById('strengthText');
+
+            if(score <= 2) {
+                bar.className = 'h-full w-1/4 bg-red-500 transition-all duration-300';
+                txt.className = 'font-bold text-red-600';
+                txt.innerText = 'Password Strength: Weak';
+            } else if(score <= 4) {
+                bar.className = 'h-full w-3/4 bg-amber-500 transition-all duration-300';
+                txt.className = 'font-bold text-amber-600';
+                txt.innerText = 'Password Strength: Medium';
+            } else {
+                bar.className = 'h-full w-full bg-emerald-500 transition-all duration-300';
+                txt.className = 'font-bold text-emerald-600';
+                txt.innerText = 'Password Strength: Strong';
+            }
+        }
+
+        function updateReq(id, valid) {
+            const el = document.getElementById(id);
+            if(valid) {
+                el.innerHTML = `<span class="text-emerald-600 font-bold mr-1.5">✓</span> <span class="text-slate-900">${el.innerText.replace(/[○✓]/, '').trim()}</span>`;
+            } else {
+                el.innerHTML = `<span class="text-slate-300 font-bold mr-1.5">○</span> <span class="text-slate-500">${el.innerText.replace(/[○✓]/, '').trim()}</span>`;
+            }
+        }
+
+        // Form Handlers
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            switchScreen('screen-dashboard');
+        }
+
+        function handleForgotSubmit(e) {
+            e.preventDefault();
+            const mob = document.getElementById('forgotMobile').value;
+            document.getElementById('otpTargetDisplay').innerText = `+91 ${mob}`;
+            switchScreen('screen-otp');
+        }
+
+        function handleOtpSubmit(e) {
+            e.preventDefault();
+            switchScreen('screen-newpass');
+        }
+
+        function handleNewPassSubmit(e) {
+            e.preventDefault();
+            const p1 = document.getElementById('newPassInput').value;
+            const p2 = document.getElementById('confirmPassInput').value;
+            if(p1 !== p2) {
+                alert("Passwords do not match! Please verify.");
+                return;
+            }
+            alert("New password successfully updated! Returning to login screen.");
+            switchScreen('screen-login');
+        }
+
+        function resendOtpCountdown() {
+            let sec = 45;
+            const btn = document.getElementById('btnResend');
+            btn.disabled = true;
+            const timer = setInterval(() => {
+                sec--;
+                btn.innerText = `Resend OTP (00:${sec < 10 ? '0'+sec : sec})`;
+                if(sec <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.innerText = 'Resend OTP Now';
+                }
+            }, 1000);
+        }
+
+        // Counter Voucher Redemption Simulation
+        function handleRedeemAtCounter(e) {
+            e.preventDefault();
+            const pin = document.getElementById('counterPinInput').value;
+            const res = document.getElementById('redemptionResult');
+            res.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('counterPinInput').value = '';
+            }, 3000);
+        }
+
+        function downloadStandeePDF() {
+            alert("Generating Print-Ready Standee PDF...\n\nYour high-resolution vector standee template is downloaded for 5x7 inch acrylic counter stands.");
+        }
+
+        // Auto-advance OTP boxes
+        document.querySelectorAll('.otp-box').forEach((box, idx, arr) => {
+            box.addEventListener('input', (e) => {
+                if(e.target.value.length === 1 && idx < arr.length - 1) {
+                    arr[idx + 1].focus();
+                }
+            });
+            box.addEventListener('keydown', (e) => {
+                if(e.key === 'Backspace' && !e.target.value && idx > 0) {
+                    arr[idx - 1].focus();
+                }
+            });
+        });
+
+        // Initialize with custom business name if present
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = sessionStorage.getItem('loyalqr_biz');
+            if(saved) {
+                document.getElementById('merchantStoreTitle').innerText = saved;
+            }
+        });
+    </script>
+</body>
+</html>

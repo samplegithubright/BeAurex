@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoyalQR - Turn Every Visit Into A Repeat Customer</title>
+    <!-- Tailwind CSS v4 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        .crimson-gradient {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%);
+        }
+        .hero-dot-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-red-500 selection:text-white">
+
+    <!-- Top Trust Notification Bar -->
+    <div class="bg-slate-950 text-white text-center py-2.5 text-xs font-bold tracking-wide px-4 flex items-center justify-center space-x-2 border-b border-slate-800">
+        <span>🇮🇳 Trusted by Fast-Growing Businesses Across India</span>
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-500"></span>
+        <span class="hidden md:inline bg-red-600 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black tracking-wider animate-pulse shadow-xs">2-Day Free Trial Active</span>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center space-x-2.5 group">
+                <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shadow-md shadow-red-600/25 group-hover:scale-105 transition transform">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h3v3h-3v-3zM16.5 16.5h3v3h-3v-3zM13.5 19.5h3v.75h-3v-.75zM19.5 13.5h.75v3h-.75v-3z" />
+                    </svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-2xl font-black tracking-tight text-slate-900 leading-none">Loyal<span class="text-red-600">QR</span></span>
+                    <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">Retail Retention OS</span>
+                </div>
+            </a>
+            
+            <!-- Quick Links / Portals Navigation -->
+            <div class="hidden md:flex items-center space-x-6 text-sm font-bold text-slate-600">
+                <a href="#solutions" class="hover:text-red-600 transition">How It Works</a>
+                <a href="#pricing" class="hover:text-red-600 transition">Pricing Plans</a>
+                <a href="#faqs" class="hover:text-red-600 transition">FAQs</a>
+                <a href="customer.html" class="flex items-center space-x-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                    <span>📱 Customer Scan Demo</span>
+                </a>
+            </div>
+
+            <!-- Portals Dropdown / Action -->
+            <div class="flex items-center space-x-3 sm:space-x-4">
+                <div class="relative group">
+                    <button class="text-slate-700 hover:text-slate-900 font-bold text-sm sm:text-base cursor-pointer flex items-center space-x-1.5 px-3 py-2 rounded-xl hover:bg-slate-100 transition">
+                        <span>Sign In</span>
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl hidden group-hover:block z-50 p-2 transform origin-top-right transition-all">
+                        <a href="merchant.html" class="w-full text-left px-3.5 py-2.5 text-sm hover:bg-red-50 font-bold text-slate-800 rounded-xl block transition flex items-center space-x-2">
+                            <span class="w-7 h-7 bg-red-100 text-red-600 rounded-lg flex items-center justify-center text-xs">🏪</span>
+                            <div>
+                                <div class="font-extrabold text-slate-900">Store Owner Login</div>
+                                <div class="text-[11px] text-slate-500 font-normal">Manage rewards & scans</div>
+                            </div>
+                        </a>
+                        <a href="customer.html" class="w-full text-left px-3.5 py-2.5 text-sm hover:bg-slate-50 font-bold text-slate-800 rounded-xl block transition flex items-center space-x-2 mt-1">
+                            <span class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center text-xs">🎁</span>
+                            <div>
+                                <div class="font-extrabold text-slate-900">Customer Rewards</div>
+                                <div class="text-[11px] text-slate-500 font-normal">Check unlocked scratch cards</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <button onclick="toggleModal('signupModal')" class="bg-red-600 hover:bg-red-700 text-white font-black px-4 sm:px-5 py-2.5 rounded-xl shadow-md shadow-red-600/25 transition transform hover:-translate-y-0.5 cursor-pointer text-sm sm:text-base flex items-center space-x-1.5">
+                    <span>Start Free Trial</span>
+                    <span class="text-xs">⚡</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-16 text-center relative overflow-hidden">
+        <!-- Floating highlight badge -->
+        <div class="inline-flex items-center space-x-2 bg-red-50 border border-red-200/70 rounded-full px-4 py-1.5 mb-6 text-xs font-bold text-red-700">
+            <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+            <span>Zero App Install • Scans Instant on Mobile Browser</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.12] max-w-4xl mx-auto mb-6">
+            Turn Every Customer Visit Into A <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-700">Repeat Customer</span>
+        </h1>
+        
+        <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto mb-8 font-medium leading-relaxed">
+            A high-dopamine gamified retention engine that stops customer drop-off and converts first-time store visitors into lifelong regulars.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-3.5 max-w-md mx-auto mb-8">
+            <button onclick="toggleModal('signupModal')" class="w-full sm:w-auto flex-1 bg-red-600 hover:bg-red-700 text-white font-extrabold px-7 py-4 rounded-xl text-base shadow-xl shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2">
+                <span>Claim 2-Day Free Trial</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"></path></svg>
+            </button>
+            <a href="customer.html" class="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 font-extrabold px-6 py-3.5 rounded-xl text-base transition flex items-center justify-center space-x-2">
+                <span>🎮 Try Live Scratch Card</span>
+            </a>
+        </div>
+
+        <!-- Indian Merchant Pride Banner -->
+        <div class="max-w-2xl mx-auto bg-slate-100/90 border border-slate-200/80 rounded-2xl p-4 mb-16 shadow-2xs">
+            <p class="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed flex items-center justify-center space-x-2">
+                <span class="text-lg">🇮🇳</span>
+                <span>A Proudly Indian Platform built with love to empower retail counters, cafes, salons & supermarkets across INDIA.</span>
+            </p>
+        </div>
+
+        <!-- CORE STRENGTHS GRID -->
+        <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            <div class="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-200 transition group">
+                <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </div>
+                <h3 class="font-extrabold text-slate-900 text-lg mb-1.5">Zero Hidden Contracts</h3>
+                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">No credit card required to start. No auto-debits, zero hidden fees, and no forced renewal traps. You stay in 100% control.</p>
+            </div>
+            
+            <div class="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-200 transition group">
+                <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 002-2H4a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="font-extrabold text-slate-900 text-lg mb-1.5">Quick & Frictionless</h3>
+                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">Customers scan instantly via camera or Google Pay / PhonePe scanner. No app store downloads or boring 10-field paperwork.</p>
+            </div>
+
+            <div class="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-200 transition group">
+                <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-red-600 group-hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="font-extrabold text-slate-900 text-lg mb-1.5">100% Guarded Privacy</h3>
+                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">Customer numbers are secured in bank-grade isolated vaults. Zero spam calls, zero intrusive marketing, building pure local trust.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- CRITICAL PAIN POINTS & SOLUTIONS SECTION -->
+    <section id="solutions" class="bg-white py-24 border-y border-slate-200/80">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-xs font-black text-red-600 uppercase tracking-widest bg-red-50 px-3.5 py-1.5 rounded-full border border-red-100">The Reality Check</span>
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-950 mt-4 tracking-tight">Why Traditional Stores Lose Valued Customers</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-3 font-medium leading-relaxed">
+                    Without an automated repeat mechanism, customers naturally drift to online delivery apps.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                <!-- Pain Points Box -->
+                <div class="bg-rose-50/70 border-2 border-rose-200/80 rounded-3xl p-6 sm:p-9 flex flex-col justify-between shadow-xs">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="w-10 h-10 bg-rose-600 text-white rounded-xl flex items-center justify-center font-black text-lg shadow-sm">✕</div>
+                            <h3 class="text-rose-950 font-black text-2xl tracking-tight">The Retention Leak</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-white p-5 rounded-2xl border border-rose-100 shadow-2xs">
+                                <h4 class="font-bold text-rose-900 text-sm flex items-center"><span class="mr-2.5 text-base">⚠️</span> Lost After the Sale</h4>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-1 leading-relaxed">Most customers buy, pay via cash or UPI, and leave. You have zero reach to remind them to return next week.</p>
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-rose-100 shadow-2xs">
+                                <h4 class="font-bold text-rose-900 text-sm flex items-center"><span class="mr-2.5 text-base">⚠️</span> Profit-Bleeding Discounts</h4>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-1 leading-relaxed">Flat 10% or 15% discounts displayed on checkout counters permanently burn daily margins without building customer loyalty.</p>
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-rose-100 shadow-2xs">
+                                <h4 class="font-bold text-rose-900 text-sm flex items-center"><span class="mr-2.5 text-base">⚠️</span> Aggressive App Competition</h4>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-1 leading-relaxed">Mega online delivery apps spend crores on push notifications and cashback tricks to lure your neighborhood shoppers away.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Solutions Box -->
+                <div class="bg-emerald-50/70 border-2 border-emerald-200/80 rounded-3xl p-6 sm:p-9 flex flex-col justify-between shadow-xs">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-black text-lg shadow-sm">✓</div>
+                            <h3 class="text-emerald-950 font-black text-2xl tracking-tight">The LoyalQR Solution</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-2xs">
+                                <h4 class="font-bold text-emerald-900 text-sm flex items-center"><span class="mr-2.5 text-base">✨</span> Automated Dynamic Retention</h4>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-1 leading-relaxed">Customers scan the QR at your counter. It instantly unlocks an exciting reward specifically designed for their next visit.</p>
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-2xs">
+                                <h4 class="font-bold text-emerald-900 text-sm flex items-center"><span class="mr-2.5 text-base">✨</span> High-Dopamine Gamification</h4>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-1 leading-relaxed">Scratch card curiosity mechanics convert ordinary checkout into an interactive reward event that shoppers share with friends.</p>
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-2xs">
+                                <h4 class="font-bold text-emerald-900 text-sm flex items-center"><span class="mr-2.5 text-base">✨</span> 100% Privacy & Zero Spam</h4>
+                                <p class="text-slate-600 text-xs sm:text-sm mt-1 leading-relaxed">Complete data isolation with zero spam or robocalls. Customers feel safe, respected, and eager to scan repeatedly.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Setup Process -->
+    <section class="bg-slate-50 py-24 border-b border-slate-200/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-xs font-black text-red-600 uppercase tracking-widest bg-red-50 px-3.5 py-1.5 rounded-full border border-red-100">Simple Onboarding</span>
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-950 mt-4 tracking-tight">Setup in Just 3 Simple Steps</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-2">Get your counter retention engine running in less than 5 minutes.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white border border-slate-200/90 p-8 rounded-3xl text-center shadow-xs hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-red-600 text-white font-black text-lg rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md shadow-red-600/25">1</div>
+                    <h3 class="font-extrabold text-xl mb-2 text-slate-900">Register Your Business</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Create your merchant account in 2 minutes and activate your 2-day free unrestricted trial immediately.</p>
+                </div>
+                
+                <div class="bg-white border border-slate-200/90 p-8 rounded-3xl text-center shadow-xs hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-red-600 text-white font-black text-lg rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md shadow-red-600/25">2</div>
+                    <h3 class="font-extrabold text-xl mb-2 text-slate-900">Display Your Shop QR</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Download your custom high-res counter standee template from your dashboard, print it, and place it at checkout.</p>
+                </div>
+                
+                <div class="bg-white border border-slate-200/90 p-8 rounded-3xl text-center shadow-xs hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-red-600 text-white font-black text-lg rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md shadow-red-600/25">3</div>
+                    <h3 class="font-extrabold text-xl mb-2 text-slate-900">Watch Customers Return</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">Visitors scan and scratch for instant rewards, bringing them back directly to your shop instead of ordering online.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING PLANS SECTION -->
+    <section id="pricing" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 bg-slate-50">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-black text-red-600 uppercase tracking-widest bg-red-50 px-3.5 py-1.5 rounded-full border border-red-100">Fair & Transparent Pricing</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-slate-950 mt-4 mb-2 tracking-tight">Invest in Your Business Growth</h2>
+            <p class="text-slate-600 text-sm sm:text-base font-medium">Choose a timeline that works best for your expansion strategy. Zero hidden renewal traps.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
+            
+            <!-- Standard Plan -->
+            <div class="bg-white border border-slate-200/90 p-8 rounded-3xl shadow-xs hover:shadow-lg transition flex flex-col justify-between relative pt-10">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">Standard Plan</h3>
+                    <p class="text-xs text-slate-400 mt-1 font-medium">Perfect for local retail shops getting started</p>
+                    
+                    <div class="mt-6 mb-6 pb-6 border-b border-slate-100">
+                        <span class="text-sm font-bold text-slate-400 line-through tracking-wide block mb-1">₹36,000</span>
+                        <div class="text-4xl font-black text-slate-900 tracking-tight">₹24,000 <span class="text-sm font-semibold text-slate-500">/ Year</span></div>
+                        <div class="text-emerald-700 text-xs font-bold mt-2 flex items-center bg-emerald-50 px-2.5 py-1 rounded-md w-fit">
+                            <span>✨ Equivalent to ₹2,000 / month</span>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-3.5 text-slate-600 text-sm mb-8">
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Customer retention system</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Free account setup & onboarding</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Custom high-res QR standee</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Unlimited QR code scans</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-slate-400 font-bold mr-2">✓</span> Standard Customer Support</li>
+                    </ul>
+                </div>
+                <button onclick="toggleModal('signupModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-4 rounded-xl transition cursor-pointer text-sm tracking-wide shadow-md">Start 2-Day Trial</button>
+            </div>
+            
+            <!-- Professional Plan (MOST POPULAR HIGHLIGHTED) -->
+            <div class="bg-white border-2 border-red-600 p-8 rounded-3xl shadow-xl relative flex flex-col justify-between pt-12 transform lg:-translate-y-3">
+                <!-- Highlight Badge -->
+                <span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">Most Popular</span>
+                
+                <div>
+                    <h3 class="text-2xl font-black text-red-600 tracking-tight">Professional Plan</h3>
+                    <p class="text-xs text-slate-400 mt-1 font-medium">Accelerated conversion tools for scaling stores</p>
+                    
+                    <div class="mt-6 mb-6 pb-6 border-b border-slate-100">
+                        <span class="text-sm font-bold text-slate-400 line-through tracking-wide block mb-1">₹72,000</span>
+                        <div class="text-4xl font-black text-slate-900 tracking-tight">₹49,000 <span class="text-sm font-semibold text-slate-500">/ 3 Years</span></div>
+                        <div class="text-red-700 text-xs font-bold mt-2 flex items-center bg-red-50 px-2.5 py-1 rounded-md w-fit">
+                            <span>🔥 Only ₹1,361 / month</span>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-3.5 text-slate-600 text-sm mb-8">
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Customer retention system</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Free account setup & onboarding</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Branded acrylic standee download</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-emerald-600 font-bold mr-2">✓</span> Unlimited QR code scans</li>
+                        <li class="flex items-start text-xs sm:text-sm font-bold text-slate-900"><span class="text-emerald-600 mr-2">✓</span> Priority Support (Phone & WhatsApp)</li>
+                        <li class="flex items-start text-xs sm:text-sm font-bold text-slate-900"><span class="text-emerald-600 mr-2">✓</span> Free Feature Updates for 3 Years</li>
+                    </ul>
+                </div>
+                <button onclick="toggleModal('signupModal')" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-4 rounded-xl transition shadow-lg shadow-red-600/30 cursor-pointer text-sm tracking-wide">Start 2-Day Trial</button>
+            </div>
+
+            <!-- Legacy Plan (BEST VALUE HIGHLIGHTED) -->
+            <div class="bg-slate-950 border border-slate-800 p-8 rounded-3xl shadow-xl text-white relative flex flex-col justify-between pt-12">
+                <!-- Highlight Badge -->
+                <span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-amber-400 text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-wider border border-slate-700 shadow-md">Best Value</span>
+                
+                <div>
+                    <h3 class="text-2xl font-black text-white tracking-tight">Legacy Plan</h3>
+                    <p class="text-xs text-slate-400 mt-1 font-medium">Ultimate lifetime system configuration</p>
+                    
+                    <div class="mt-6 mb-6 pb-6 border-b border-slate-800">
+                        <span class="text-sm font-bold text-slate-500 line-through tracking-wide block mb-1">₹1,20,000</span>
+                        <div class="text-4xl font-black text-amber-400 tracking-tight">₹75,000</div>
+                        <div class="text-slate-300 text-[11px] font-bold uppercase tracking-wider mt-2 flex items-center space-x-2">
+                            <span class="bg-slate-800 text-emerald-400 px-2 py-0.5 rounded">One-Time Payment</span>
+                            <span class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded">No Renewals</span>
+                        </div>
+                    </div>
+                    
+                    <ul class="space-y-3.5 text-slate-300 text-sm mb-8">
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-amber-400 font-bold mr-2">✓</span> Lifetime customer retention OS</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-amber-400 font-bold mr-2">✓</span> Free white-glove setup</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-amber-400 font-bold mr-2">✓</span> Multi-store QR generator</li>
+                        <li class="flex items-start text-xs sm:text-sm"><span class="text-amber-400 font-bold mr-2">✓</span> Unlimited QR code scans forever</li>
+                        <li class="flex items-start text-xs sm:text-sm font-bold text-white"><span class="text-amber-400 mr-2">✓</span> Dedicated Relationship Manager</li>
+                        <li class="flex items-start text-xs sm:text-sm font-bold text-white"><span class="text-amber-400 mr-2">✓</span> All Future Platform Upgrades Included</li>
+                    </ul>
+                </div>
+                <button onclick="toggleModal('signupModal')" class="w-full bg-white hover:bg-slate-100 text-slate-950 font-extrabold py-4 rounded-xl transition cursor-pointer text-sm tracking-wide shadow-md">Start 2-Day Trial</button>
+            </div>
+            
+        </div>
+        
+        <p class="text-center text-sm text-emerald-700 font-black mt-12 flex items-center justify-center space-x-2">
+            <span>🎉</span>
+            <span>Enjoy any plan completely free for 2 days. No upfront payment or card details required.</span>
+        </p>
+    </section>
+
+    <!-- Support and FAQs -->
+    <section id="faqs" class="bg-white py-24 border-t border-slate-200/80">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <span class="text-xs font-black text-red-600 uppercase tracking-widest bg-red-50 px-3.5 py-1.5 rounded-full border border-red-100">Got Questions?</span>
+                <h2 class="text-3xl font-black text-slate-950 mt-4 tracking-tight">Frequently Asked Questions</h2>
+            </div>
+            <div class="space-y-4">
+                <details class="bg-slate-50 border border-slate-200/90 p-5 rounded-2xl group" open>
+                    <summary class="font-extrabold text-slate-900 cursor-pointer flex justify-between items-center text-base">
+                        <span>Will my business be charged automatically when the trial ends?</span>
+                        <span class="text-red-600 text-lg group-open:rotate-180 transition">▼</span>
+                    </summary>
+                    <p class="text-slate-600 text-sm leading-relaxed mt-3 pt-3 border-t border-slate-200/60">
+                        Absolutely not. We do not require credit card details and do not execute auto-debit charges. When you see real customer repeat traffic during your 2-day trial, you can manually select a plan from your merchant panel.
+                    </p>
+                </details>
+
+                <details class="bg-slate-50 border border-slate-200/90 p-5 rounded-2xl group">
+                    <summary class="font-extrabold text-slate-900 cursor-pointer flex justify-between items-center text-base">
+                        <span>Do customers need to download an application from the Play Store or App Store?</span>
+                        <span class="text-red-600 text-lg group-open:rotate-180 transition">▼</span>
+                    </summary>
+                    <p class="text-slate-600 text-sm leading-relaxed mt-3 pt-3 border-t border-slate-200/60">
+                        No app download is needed! Customers simply aim their camera or payment scanner at your counter QR code. The interactive scratch card opens in less than 2 seconds directly inside their mobile web browser.
+                    </p>
+                </details>
+
+                <details class="bg-slate-50 border border-slate-200/90 p-5 rounded-2xl group">
+                    <summary class="font-extrabold text-slate-900 cursor-pointer flex justify-between items-center text-base">
+                        <span>How is customer phone privacy protected?</span>
+                        <span class="text-red-600 text-lg group-open:rotate-180 transition">▼</span>
+                    </summary>
+                    <p class="text-slate-600 text-sm leading-relaxed mt-3 pt-3 border-t border-slate-200/60">
+                        We prioritize privacy above all. Customer data is encrypted and kept private to your store ecosystem. We never send promotional spam, sell numbers, or spam users with unsolicited commercial communications.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-10 shadow-xs grid grid-cols-1 md:grid-cols-5 gap-8">
+            <div class="md:col-span-2 space-y-4">
+                <span class="text-xs font-black text-red-600 uppercase tracking-widest bg-red-50 px-3 py-1 rounded-full">We Are Here To Help</span>
+                <h3 class="text-2xl font-black text-slate-900">Contact Us</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">Have questions about setting up counter QR standees or custom rewards? Message our activation desk.</p>
+                <div class="text-xs text-slate-600 space-y-2 pt-2">
+                    <p class="flex items-center space-x-2 font-bold"><span class="text-red-600">📧</span> <span>support@loyalqr.com</span></p>
+                    <p class="flex items-center space-x-2 font-bold"><span class="text-red-600">📍</span> <span>Delhi NCR & Mumbai, India</span></p>
+                    <p class="flex items-center space-x-2 font-bold"><span class="text-red-600">⚡</span> <span>Support Hours: 9:00 AM – 9:00 PM IST</span></p>
+                </div>
+            </div>
+            <form onsubmit="handleContactSubmit(event)" class="md:col-span-3 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input type="text" placeholder="Your Name" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                    <input type="tel" placeholder="Mobile Number" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                </div>
+                <input type="email" placeholder="Email Address" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                <textarea rows="3" placeholder="Tell us about your business & goals..." required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 text-slate-900"></textarea>
+                <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-xl transition text-sm cursor-pointer shadow-md">Send Inquiry</button>
+                <p id="contactFeedback" class="hidden text-xs text-emerald-600 font-bold text-center">Thank you! Our retention specialist will call you shortly.</p>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 text-slate-400 text-xs py-14 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+            <div class="flex items-center justify-center space-x-2">
+                <div class="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white font-black text-sm">Q</span>
+                </div>
+                <span class="text-lg font-black text-white">Loyal<span class="text-red-600">QR</span></span>
+            </div>
+            <div class="flex justify-center flex-wrap gap-6 font-semibold text-slate-300">
+                <a href="merchant.html" class="hover:text-white transition">Merchant Portal</a>
+                <a href="customer.html" class="hover:text-white transition">Customer Web App</a>
+                <button onclick="openLegalModal('Terms & Conditions', 'All merchant operations rules: Services are provided as-is with dedicated SLAs according to your tier plan. Merchants retain all rights to customer relationships.')" class="hover:text-white cursor-pointer">Terms & Conditions</button>
+                <button onclick="openLegalModal('Privacy Policy', 'Data security protocols: We adhere to India Digital Personal Data Protection standards. Customer records are encrypted in transit and at rest.')" class="hover:text-white cursor-pointer">Privacy Policy</button>
+            </div>
+            <p class="text-slate-500">© 2026 LoyalQR. Pure Value-Driven Offline Customer Retention Platform.</p>
+        </div>
+    </footer>
+
+    <!-- Modals Interface Blocks -->
+    <!-- Sign In Modal -->
+    <div id="loginModal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-8 relative shadow-2xl border border-slate-100">
+            <button onclick="toggleModal('loginModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer">&times;</button>
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+            </div>
+            <h3 id="loginModalTitle" class="text-2xl font-black text-slate-900 mb-1">Select Portal Login</h3>
+            <p id="loginModalSub" class="text-xs text-slate-500 mb-6">Choose how you want to sign in to LoyalQR</p>
+            
+            <div class="space-y-3">
+                <a href="merchant.html" class="flex items-center justify-between p-4 rounded-2xl border-2 border-red-600 bg-red-50/50 hover:bg-red-50 transition group">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🏪</span>
+                        <div>
+                            <div class="font-extrabold text-slate-900 text-sm group-hover:text-red-600">Store / Merchant Owner</div>
+                            <div class="text-[11px] text-slate-500 font-medium">Full dashboard, QR standees & analytics</div>
+                        </div>
+                    </div>
+                    <span class="text-red-600 font-bold text-lg">→</span>
+                </a>
+
+                <a href="customer.html" class="flex items-center justify-between p-4 rounded-2xl border border-slate-200 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50 transition group">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">🎁</span>
+                        <div>
+                            <div class="font-extrabold text-slate-900 text-sm">Customer Rewards Login</div>
+                            <div class="text-[11px] text-slate-500 font-medium">View your saved scratch cards & vouchers</div>
+                        </div>
+                    </div>
+                    <span class="text-slate-400 group-hover:text-slate-900 font-bold text-lg">→</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Free Trial / Registration Modal -->
+    <div id="signupModal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-8 relative shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleModal('signupModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer">&times;</button>
+            
+            <div class="inline-block bg-red-100 text-red-700 text-[10px] font-black uppercase px-2.5 py-1 rounded-full mb-3">Instant 2-Day Trial</div>
+            <h3 class="text-2xl font-black text-slate-900 mb-1">Create Account</h3>
+            <p class="text-xs text-slate-500 mb-5">Activate your loyalty engine and start generating repeat visits</p>
+            
+            <form onsubmit="handleSignupSubmit(event)" id="signupForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Register As</label>
+                    <select id="userRole" onchange="toggleMerchantFields()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-600 text-slate-900 font-semibold">
+                        <option value="MERCHANT">Store / Merchant Owner (Counter QR)</option>
+                        <option value="CUSTOMER">Normal User / Customer (Rewards)</option>
+                    </select>
+                </div>
+                <div id="businessNameField">
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Shop / Business Name</label>
+                    <input type="text" id="bizName" placeholder="e.g. Royal Sweets & Bakery" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Mobile Number (For Verification)</label>
+                    <input type="tel" id="userMobile" placeholder="10-digit mobile number" required pattern="[6-9][0-9]{9}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Email Address</label>
+                    <input type="email" id="userEmail" placeholder="yourname@business.com" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Create Password</label>
+                    <input type="password" id="userPass" placeholder="Min. 8 characters" required minlength="8" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-600 text-slate-900">
+                </div>
+                <button type="submit" id="btnSubmitSignup" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition mt-2 cursor-pointer text-sm">Activate 2-Day Free Trial</button>
+            </form>
+
+            <!-- OTP Verification Section -->
+            <div id="otpSection" class="hidden mt-6 pt-6 border-t border-slate-100 space-y-4">
+                <div class="text-center">
+                    <p class="text-xs text-emerald-700 font-bold">✨ Verification code sent to your mobile!</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Enter the 6-digit OTP below:</p>
+                </div>
+                <input type="text" id="otpInput" maxlength="6" placeholder="******" value="482190" class="text-center tracking-widest font-mono text-xl w-full bg-slate-50 border-2 border-emerald-400 rounded-xl px-4 py-2.5 text-slate-900 focus:outline-none focus:border-emerald-600">
+                <button onclick="verifyOTPAndRedirect()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-xl shadow-md transition cursor-pointer text-sm">Verify & Launch Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legal Documents Modal -->
+    <div id="legalModal" class="modal fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl p-8 relative shadow-2xl flex flex-col justify-between max-h-[80vh]">
+            <div>
+                <button onclick="toggleModal('legalModal')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer">&times;</button>
+                <h3 id="legalModalTitle" class="text-2xl font-black text-slate-900 mb-3">Legal Documentation</h3>
+                <div id="legalModalContent" class="text-slate-600 text-sm overflow-y-auto max-h-[50vh] pr-2 space-y-3 leading-relaxed">
+                    <!-- Dynamic legal content populated here -->
+                </div>
+            </div>
+            <button onclick="toggleModal('legalModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl mt-6 cursor-pointer text-sm">Close Window</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('active');
+        }
+
+        function openLoginModal(type) {
+            const title = document.getElementById('loginModalTitle');
+            const sub = document.getElementById('loginModalSub');
+            if(type === 'MERCHANT') {
+                window.location.href = 'merchant.html';
+                return;
+            } else if(type === 'CUSTOMER') {
+                window.location.href = 'customer.html';
+                return;
+            }
+            toggleModal('loginModal');
+        }
+
+        function toggleMerchantFields() {
+            const role = document.getElementById('userRole').value;
+            const field = document.getElementById('businessNameField');
+            const input = document.getElementById('bizName');
+            if(role === 'MERCHANT') {
+                field.classList.remove('hidden');
+                input.required = true;
+            } else {
+                field.classList.add('hidden');
+                input.required = false;
+            }
+        }
+
+        function handleSignupSubmit(e) {
+            e.preventDefault();
+            document.getElementById('otpSection').classList.remove('hidden');
+            document.getElementById('btnSubmitSignup').classList.add('hidden');
+        }
+
+        function verifyOTPAndRedirect() {
+            const role = document.getElementById('userRole').value;
+            const biz = document.getElementById('bizName').value || 'My Store';
+            sessionStorage.setItem('loyalqr_biz', biz);
+            toggleModal('signupModal');
+            if(role === 'MERCHANT') {
+                alert("Account created successfully! Launching your Merchant Store Dashboard...");
+                window.location.href = 'merchant.html#dashboard';
+            } else {
+                alert("Welcome to your Customer Rewards Locker!");
+                window.location.href = 'customer.html';
+            }
+        }
+
+        function openLegalModal(title, defaultContent) {
+            document.getElementById('legalModalTitle').innerText = title;
+            document.getElementById('legalModalContent').innerHTML = `
+                <p><strong>Effective Date:</strong> January 2026</p>
+                <p>${defaultContent}</p>
+                <p><strong>1. Merchant & User Governance:</strong> LoyalQR provides offline store gamification infrastructure under Indian commercial rules. No automatic debits or non-consensual tracking is practiced.</p>
+                <p><strong>2. Customer Privacy Protection:</strong> Phone numbers submitted for scratch cards are isolated in merchant-specific token vaults. We strictly prohibit external ad-network sharing or third-party resale.</p>
+                <p><strong>3. Vouchers & Redemption:</strong> All discount scratch cards generated by merchants are fulfilled directly at store counters per terms configured by the merchant.</p>
+            `;
+            toggleModal('legalModal');
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            document.getElementById('contactFeedback').classList.remove('hidden');
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>

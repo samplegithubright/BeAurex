@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  :root.dark {
+    color-scheme: dark;
+  }
+  html.dark, html.dark body {
+    background-color: #020617;
+    color: #f8fafc;
+  }
+  html.light, html.light body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+
+@layer utilities {
+  .crimson-gradient {
+    background-color: #991b1b;
+    background-image: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #881337 100%) !important;
+  }
+  
+  .hero-dot-pattern {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+}
+

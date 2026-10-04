@@ -1,0 +1,111 @@
+{
+  "razorpayKeyId": "rzp_live_9a8B7c6D5e4F3g",
+  "razorpayKeySecret": "sec_live_k8J7h6G5f4D3s2A1",
+  "razorpayMode": "LIVE",
+  "mongoUri": " mongodb://127.0.0.1:27017/beaurex",
+  "mongoStatus": "CONNECTED (Latency: 2ms)",
+  "smsProvider": "SMSCOUNTRY",
+  "smsApiKey": "sms_live_key_9182736450",
+  "smsSenderId": "BEAURE",
+  "cooldownHours": 12,
+  "enableGeofencing": true,
+  "maxOtpAttempts": 5,
+  "whatsappToken": "EAAQ...whatsapp_live_token",
+  "whatsappPhoneId": "109283746501928",
+  "whatsappBusinessId": "waba_9918273645",
+  "cashfreeAppId": "CF_app_live_883921",
+  "cashfreeSecret": "CF_sec_live_99482104",
+  "stripeKey": "pk_live_51PBeAurexPlatform",
+  "emailProvider": "RESEND",
+  "emailApiKey": "re_live_9a8B7c6D5e4F3g2H1",
+  "emailSenderAddress": "notifications@beaurex.com",
+  "googleMapsApiKey": "AIzaSyA_LiveGoogleMapsKey2026",
+  "cloudinaryCloudName": "beaurex-assets",
+  "cloudinaryApiKey": "817263549102837",
+  "cloudinaryApiSecret": "cld_sec_9918273645",
+  "geminiApiKey": "AIzaSyGeminiApiKeyLive2026",
+  "openaiApiKey": "sk-proj-liveOpenAiKeyBeAurex",
+  "customApiKeys": [
+    {
+      "id": "cak_1",
+      "name": "Shiprocket Logistics API",
+      "keyName": "SHIPROCKET_AUTH_TOKEN",
+      "keyValue": "sr_tok_live_7718294021",
+      "env": "Production",
+      "description": "Used for QR standee acrylic frame courier delivery tracking",
+      "createdAt": "2026-10-04T13:13:58.747Z",
+      "_id": "6ac25116aabba80e721b797c"
+    },
+    {
+      "id": "cak_2",
+      "name": "Zoho CRM Lead Sync",
+      "keyName": "ZOHO_CRM_CLIENT_SECRET",
+      "keyValue": "zh_sec_live_8829410382",
+      "env": "Production",
+      "description": "Auto-sync field agent merchant onboarding leads",
+      "createdAt": "2026-10-04T13:13:58.748Z",
+      "_id": "6ac25116aabba80e721b797d"
+    }
+  ],
+  "_id": "6ac25116aabba80e721b797b",
+  "mongoPoolSize": 20,
+  "plansConfig": [
+    {
+      "id": "plan_standard",
+      "name": "Standard Plan",
+      "price": 2400,
+      "period": "/ Year",
+      "trialDays": 2,
+      "features": [
+        "Customer retention system",
+        "Free account setup & acrylic config",
+        "Custom QR code standee generator",
+        "Unlimited customer QR scans",
+        "Standard Business Hours Support"
+      ],
+      "isPopular": false,
+      "isActive": true,
+      "_id": "6ac25116aabba80e721b797e"
+    },
+    {
+      "id": "plan_professional",
+      "name": "Professional Plan",
+      "price": 4900,
+      "period": "/ 3 Years",
+      "trialDays": 2,
+      "features": [
+        "Customer retention system",
+        "Free account setup & acrylic config",
+        "Custom QR code standee generator",
+        "Unlimited customer QR scans",
+        "Priority VIP Support",
+        "Free Continuous Feature Updates"
+      ],
+      "isPopular": true,
+      "isActive": true,
+      "_id": "6ac25116aabba80e721b797f"
+    },
+    {
+      "id": "plan_legacy",
+      "name": "Legacy Plan",
+      "price": 7500,
+      "period": "Lifetime",
+      "trialDays": 2,
+      "features": [
+        "Customer retention system",
+        "Free account setup & acrylic config",
+        "Unlimited customer QR scans",
+        "Priority VIP Support",
+        "Dedicated Relationship Manager",
+        "All Future Enterprise Upgrades"
+      ],
+      "isPopular": false,
+      "isActive": true,
+      "_id": "6ac25116aabba80e721b7980"
+    }
+  ],
+  "coupons": [],
+  "createdAt": "2026-10-04T13:13:58.753Z",
+  "updatedAt": "2026-10-04T13:43:50.975Z",
+  "__v": 0
+}
