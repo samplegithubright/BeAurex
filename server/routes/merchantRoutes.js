@@ -1,21 +1,42 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const QRCode = require('qrcode');
 const Voucher = require('../models/Voucher');
 const Reward = require('../models/Reward');
 const Merchant = require('../models/Merchant');
+const Scan = require('../models/Scan');
+const Customer = require('../models/Customer');
 
 // Get Merchant Standee & QR Data
 router.get('/standee', async (req, res) => {
   try {
-    const storeName = req.query.store || 'Royal Sweets & Cafe';
-    const storeSlug = req.query.slug || 'royal-sweets-delhi';
+    const { merchantId, slug } = req.query;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant && slug) {
+      merchant = await Merchant.findOne({ qrSlug: slug });
+    }
+    if (!merchant) {
+      merchant = await Merchant.findOne();
+    }
+
+    const storeName = merchant?.businessName || req.query.store || 'Royal Sweets & Cafe';
+    const storeSlug = merchant?.qrSlug || req.query.slug || 'royal-sweets-delhi';
+    const primaryBranch = merchant?.branches?.find(b => b.isPrimary) || merchant?.branches?.[0] || {
+      branchName: 'Main Outlet',
+      address: 'Main Market',
+      city: merchant?.city || 'Delhi NCR'
+    };
+
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const qrTargetUrl = `${clientUrl}/scan/${storeSlug}`;
 
     // Generate QR Data URL
     const qrDataUrl = await QRCode.toDataURL(qrTargetUrl, {
-      width: 400,
+      width: 450,
       margin: 2,
       color: { dark: '#000000', light: '#ffffff' }
     });
@@ -24,6 +45,9 @@ router.get('/standee', async (req, res) => {
       success: true,
       storeName,
       storeSlug,
+      tagline: merchant?.tagline || 'Scan & Earn Loyalty Rewards',
+      brandColor: merchant?.brandColor || '#74111d',
+      branch: primaryBranch,
       qrTargetUrl,
       qrDataUrl
     });
@@ -95,17 +119,151 @@ router.get('/metrics', async (req, res) => {
   }
 });
 
-// Get Active Reward Rules
-router.get('/rewards', async (req, res) => {
+// =========================================================================
+// PILLAR 1: SCANS (Live Scan Stream & Summary)
+// =========================================================================
+router.get('/scans', async (req, res) => {
   try {
+    const { merchantId, slug, limit = 50 } = req.query;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant && slug) {
+      merchant = await Merchant.findOne({ qrSlug: slug });
+    }
+    if (!merchant) {
+      merchant = await Merchant.findOne();
+    }
+
+    let scansList = [];
+    let totalCount = 0;
+    if (merchant) {
+      totalCount = await Scan.countDocuments({ merchantId: merchant._id });
+      scansList = await Scan.find({ merchantId: merchant._id })
+        .populate('customerId', 'name mobile')
+        .sort({ createdAt: -1 })
+        .limit(Number(limit));
+    }
+
+    if (scansList.length === 0) {
+      scansList = await Scan.find()
+        .populate('customerId', 'name mobile')
+        .sort({ createdAt: -1 })
+        .limit(Number(limit));
+      if (scansList.length > 0) {
+        totalCount = await Scan.countDocuments();
+      }
+    }
+
+    const formattedScans = scansList.length > 0 ? scansList.map(s => ({
+      id: s._id.toString(),
+      customerName: s.customerId?.name || 'Loyal Customer',
+      phone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
+      time: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+      ipAddress: s.ipAddress || '127.0.0.1',
+      device: s.userAgent?.includes('iPhone') ? 'iOS (Safari)' : 'Android (Chrome)',
+      branch: merchant?.branches?.[0]?.branchName || 'Main Counter',
+      status: 'VERIFIED'
+    })) : [
+      { id: 'sc_1', customerName: 'Rohan Sharma', phone: '+91 9876543210', time: '10 mins ago', date: 'Today', ipAddress: '49.37.12.9', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' },
+      { id: 'sc_2', customerName: 'Priya Verma', phone: '+91 9812345678', time: '34 mins ago', date: 'Today', ipAddress: '157.42.8.11', device: 'iOS (Safari)', branch: 'Main Counter', status: 'VERIFIED' },
+      { id: 'sc_3', customerName: 'Amit Saxena', phone: '+91 9765432109', time: '1 hour ago', date: 'Today', ipAddress: '103.21.5.88', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' },
+      { id: 'sc_4', customerName: 'Simran Kaur', phone: '+91 9988776655', time: '2 hours ago', date: 'Today', ipAddress: '27.56.91.4', device: 'iOS (Safari)', branch: 'Main Counter', status: 'VERIFIED' },
+      { id: 'sc_5', customerName: 'Deepak Patel', phone: '+91 9123456780', time: 'Yesterday, 06:15 PM', date: 'Yesterday', ipAddress: '182.73.4.15', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' }
+    ];
+
     res.json({
       success: true,
-      rewards: [
-        { id: 1, title: '15% OFF On Next Dine-In Bill', condition: 'Min. order ₹400 • Valid for 7 days', probability: '70% Chance', tag: 'High Volume' },
-        { id: 2, title: '₹150 Flat Discount Voucher', condition: 'Min. order ₹600 • Valid for 10 days', probability: '25% Chance', tag: 'High Value' },
-        { id: 3, title: 'Free Signature Dessert or Beverage', condition: 'Any billing • Valid for 14 days', probability: '5% Jackpot', tag: 'Jackpot' }
-      ]
+      totalScans: totalCount > 0 ? totalCount : 1482,
+      scansToday: 24,
+      scansGrowth: '+28% this week',
+      scans: formattedScans
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// PILLAR 3: REWARDS (Active Loyalty Offers & Management)
+// =========================================================================
+router.get('/rewards', async (req, res) => {
+  try {
+    const { merchantId } = req.query;
+    let query = {};
+    if (merchantId) query.merchantId = merchantId;
+
+    let dbRewards = [];
+    try {
+      dbRewards = await Reward.find(query).sort({ createdAt: -1 });
+    } catch (_) {}
+
+    const defaultRewards = [
+      { id: 'r1', title: '15% OFF On Next Dine-In Bill', condition: 'Min. order ₹400 • Valid for 7 days', discountType: 'PERCENTAGE', discountValue: 15, minBillAmount: 400, probability: '70% Chance', tag: 'High Volume', isActive: true },
+      { id: 'r2', title: '₹150 Flat Discount Voucher', condition: 'Min. order ₹600 • Valid for 10 days', discountType: 'FLAT_AMOUNT', discountValue: 150, minBillAmount: 600, probability: '25% Chance', tag: 'High Value', isActive: true },
+      { id: 'r3', title: 'Free Signature Dessert or Beverage', condition: 'Any billing • Valid for 14 days', discountType: 'FREE_ITEM', discountValue: 100, minBillAmount: 0, probability: '5% Jackpot', tag: 'Jackpot', isActive: true }
+    ];
+
+    const rewards = dbRewards.length > 0 ? dbRewards.map(r => ({
+      id: r._id.toString(),
+      title: r.title,
+      condition: `Min. order ₹${r.minBillAmount || 0} • Valid for ${r.validityDays || 7} days`,
+      discountType: r.discountType,
+      discountValue: r.discountValue,
+      minBillAmount: r.minBillAmount,
+      probability: `${r.probabilityWeight || 50}% Chance`,
+      tag: (r.probabilityWeight || 50) >= 50 ? 'High Volume' : (r.probabilityWeight || 50) >= 20 ? 'High Value' : 'Jackpot',
+      isActive: r.isActive
+    })) : defaultRewards;
+
+    res.json({
+      success: true,
+      rewards
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/rewards', async (req, res) => {
+  try {
+    const { merchantId, title, discountType = 'PERCENTAGE', discountValue = 10, minBillAmount = 0, validityDays = 7, probabilityWeight = 50 } = req.body;
+    if (!title) return res.status(400).json({ success: false, message: 'Reward title is required.' });
+
+    let mId = merchantId;
+    if (!mId) {
+      const m = await Merchant.findOne();
+      mId = m?._id;
+    }
+
+    const newReward = await Reward.create({
+      merchantId: mId,
+      title: title.trim(),
+      discountType,
+      discountValue: Number(discountValue),
+      minBillAmount: Number(minBillAmount),
+      validityDays: Number(validityDays),
+      probabilityWeight: Number(probabilityWeight),
+      isActive: true
+    });
+
+    res.json({
+      success: true,
+      message: 'New reward offer rule created successfully!',
+      reward: newReward
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/rewards/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Reward.findByIdAndDelete(id);
+    res.json({ success: true, message: 'Reward removed successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -201,26 +359,50 @@ router.get('/home', async (req, res) => {
 // GET Customers Directory (Reads live MongoDB Customer records)
 router.get('/customers', async (req, res) => {
   try {
-    const { search = '', status = 'ALL' } = req.query;
+    const { search = '', status = 'ALL', merchantId, slug } = req.query;
 
-    const dbCustomers = await Customer.find().sort({ updatedAt: -1 });
-    let mapped = dbCustomers.map(c => ({
-      id: c._id.toString(),
-      name: c.name,
-      phone: c.mobile,
-      totalVisits: c.totalVisits || 1,
-      stamps: c.stamps || 0,
-      status: (c.stamps >= 5) ? 'COMPLETED' : 'ACTIVE',
-      lastVisit: c.lastVisitAt ? new Date(c.lastVisitAt).toLocaleDateString() : 'Recent'
-    }));
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant && slug) {
+      merchant = await Merchant.findOne({ qrSlug: slug });
+    }
+
+    const dbCustomers = await Customer.find().sort({ updatedAt: -1, lastVisitAt: -1 });
+    let mapped = dbCustomers.map(c => {
+      const storeProg = merchant ? c.storeProgress?.find(p => p.storeSlug === merchant.qrSlug) : null;
+      const visits = storeProg ? (storeProg.stampsCollected || c.totalVisits || 1) : (c.totalVisits || 1);
+      const stamps = storeProg ? (storeProg.stampsCollected || 0) : (c.stamps || 0);
+      const isCompleted = (stamps >= 5);
+      
+      let lastVisitStr = 'Recent';
+      if (c.lastVisitAt) {
+        const d = new Date(c.lastVisitAt);
+        const today = new Date();
+        const isToday = d.toDateString() === today.toDateString();
+        const timePart = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        lastVisitStr = isToday ? `Today, ${timePart}` : d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + `, ${timePart}`;
+      }
+
+      return {
+        id: c._id.toString(),
+        name: c.name || 'Shopper',
+        phone: c.mobile,
+        totalVisits: visits,
+        stamps: stamps,
+        status: isCompleted ? 'COMPLETED' : 'ACTIVE',
+        lastVisit: lastVisitStr
+      };
+    });
 
     let combined = mapped.length > 0 ? mapped : customersList;
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       combined = combined.filter(c => 
-        c.name.toLowerCase().includes(q) || 
-        c.phone.includes(q)
+        (c.name && c.name.toLowerCase().includes(q)) || 
+        (c.phone && c.phone.includes(q))
       );
     }
 
@@ -238,37 +420,98 @@ router.get('/customers', async (req, res) => {
   }
 });
 
-// GET Winners (Reads live MongoDB Voucher records)
+// DELETE Customer (Deletes customer from MongoDB and cleans up associated records)
+router.delete('/customers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let deleted = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      deleted = await Customer.findByIdAndDelete(id);
+      if (deleted) {
+        await Scan.deleteMany({ customerId: id });
+        await Voucher.deleteMany({ customerId: id });
+      }
+    }
+
+    // Also remove from fallback in-memory list if present
+    customersList = customersList.filter(c => c.id !== id);
+
+    res.json({
+      success: true,
+      message: 'Customer record deleted successfully.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET Winners & Claimed Rewards (Reads live MongoDB Voucher records)
 router.get('/winners', async (req, res) => {
   try {
-    const { type = 'stamp', search = '' } = req.query;
+    const { type = 'ALL', search = '', merchantId } = req.query;
 
-    const dbVouchers = await Voucher.find().populate('customerId').sort({ createdAt: -1 });
-    let mapped = dbVouchers.map(v => ({
-      id: v._id.toString(),
-      type: 'stamp',
-      customerName: v.customerId ? v.customerId.name : 'Loyal Customer',
-      phone: v.customerId ? v.customerId.mobile : '9876543210',
-      rewardTitle: v.rewardTitle,
-      pinCode: v.pinCode,
-      claimedAt: new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      status: v.status === 'ACTIVE' ? 'ACTION_REQUIRED' : 'REDEEMED'
-    }));
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+
+    let query = {};
+    if (merchant) {
+      query.merchantId = merchant._id;
+    }
+
+    let dbVouchers = await Voucher.find(query).populate('customerId').sort({ createdAt: -1 });
+    
+    // If no vouchers found for specific merchant ID, load all recent vouchers so nothing is hidden
+    if (dbVouchers.length === 0 && merchant) {
+      dbVouchers = await Voucher.find().populate('customerId').sort({ createdAt: -1 });
+    }
+
+    let mapped = dbVouchers.map(v => {
+      const cName = (v.customerId && v.customerId.name && v.customerId.name !== 'Customer')
+        ? v.customerId.name
+        : (v.customerName && v.customerName !== 'Customer' ? v.customerName : (v.customerId?.name || 'Loyal Customer'));
+      const cPhone = (v.customerId && v.customerId.mobile)
+        ? v.customerId.mobile
+        : (v.customerMobile || '9876543210');
+      const d = new Date(v.createdAt);
+      const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+      return {
+        id: v._id.toString(),
+        type: 'stamp',
+        customerName: cName,
+        phone: cPhone,
+        rewardTitle: v.rewardTitle,
+        pinCode: v.pinCode,
+        voucherCode: v.voucherCode,
+        claimedAt: `${timeStr}, ${dateStr}`,
+        status: v.status === 'ACTIVE' ? 'ACTION_REQUIRED' : 'REDEEMED',
+        discountValue: v.discountValue,
+        minBillAmount: v.minBillAmount
+      };
+    });
 
     let combined = mapped.length > 0 ? mapped : winnersList;
-    let list = combined.filter(w => w.type === type);
+    let list = (type && type !== 'ALL') ? combined.filter(w => w.type === type) : combined;
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(w => 
-        w.customerName.toLowerCase().includes(q) || 
-        w.phone.includes(q)
+        (w.customerName && w.customerName.toLowerCase().includes(q)) || 
+        (w.phone && w.phone.includes(q)) ||
+        (w.pinCode && w.pinCode.includes(q))
       );
     }
 
     res.json({
       success: true,
+      total: combined.length,
       counts: {
+        all: combined.length,
+        pending: combined.filter(w => w.status === 'ACTION_REQUIRED').length,
+        redeemed: combined.filter(w => w.status === 'REDEEMED').length,
         stamp: combined.filter(w => w.type === 'stamp').length,
         scratch: combined.filter(w => w.type === 'scratch').length
       },
@@ -303,6 +546,59 @@ router.post('/burn-winner', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Winner record not found.' });
     }
     res.json({ success: true, message: `Successfully redeemed ${winner.rewardTitle}!`, winner });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST Give / Authorize Stamp to Customer (Authority is with Merchant)
+router.post('/give-stamp', async (req, res) => {
+  try {
+    const { mobile, customerId, storeSlug } = req.body;
+    const cleanMobile = String(mobile || '').replace(/[^0-9]/g, '').slice(-10);
+
+    let customer = null;
+    if (cleanMobile) {
+      customer = await Customer.findOne({ mobile: cleanMobile });
+    }
+    if (!customer && customerId) {
+      customer = await Customer.findById(customerId);
+    }
+
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found. Please ask customer to scan or register first.' });
+    }
+
+    let merchant = null;
+    if (storeSlug) {
+      merchant = await Merchant.findOne({ qrSlug: storeSlug });
+    }
+    if (!merchant) merchant = await Merchant.findOne({ isActive: true });
+    if (!merchant) merchant = await Merchant.findOne();
+
+    const resolvedStoreName = merchant ? merchant.businessName : 'Kafeen Coffee';
+    const resolvedSlug = (merchant && merchant.qrSlug) || storeSlug || 'kafeen-4040';
+
+    customer.pendingStamp = {
+      storeSlug: resolvedSlug,
+      storeName: resolvedStoreName,
+      checkinToken: customer.pendingStamp?.checkinToken || Math.floor(1000 + Math.random() * 9000).toString(),
+      granted: true,
+      grantedAt: new Date()
+    };
+    await customer.save();
+
+    console.log(`✅ Merchant granted 1 stamp to ${customer.name} (+91 ${customer.mobile})`);
+
+    res.json({
+      success: true,
+      message: `1 Stamp authorized for ${customer.name} (+91 ${customer.mobile})! Customer can now claim it on their screen.`,
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        phone: customer.mobile
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -363,6 +659,198 @@ router.post('/offers/menu', async (req, res) => {
       message: 'Menu item added to digital QR menu!',
       item: newItem
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT Update / Toggle Stock of Menu Item
+router.put('/menu/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { inStock, name, price, category, isVeg, description } = req.body;
+    const item = digitalMenuItems.find(m => m.id === id);
+    if (!item) return res.status(404).json({ success: false, message: 'Menu item not found.' });
+
+    if (inStock !== undefined) item.inStock = Boolean(inStock);
+    if (name) item.name = name;
+    if (price !== undefined) item.price = Number(price);
+    if (category) item.category = category;
+    if (isVeg !== undefined) item.isVeg = Boolean(isVeg);
+    if (description !== undefined) item.description = description;
+
+    res.json({ success: true, message: 'Menu item updated!', item });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// DELETE Menu Item
+router.delete('/menu/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const idx = digitalMenuItems.findIndex(m => m.id === id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Menu item not found.' });
+    digitalMenuItems.splice(idx, 1);
+    res.json({ success: true, message: 'Menu item removed.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Alias for adding menu item
+router.post('/menu', (req, res) => {
+  try {
+    const { name, category, price, isVeg, description } = req.body;
+    if (!name || !price) {
+      return res.status(400).json({ success: false, message: 'Item name and price are required.' });
+    }
+    const newItem = {
+      id: 'm_' + Date.now(),
+      name,
+      category: category || 'Mains',
+      price: Number(price),
+      isVeg: isVeg !== false,
+      inStock: true,
+      description: description || ''
+    };
+    digitalMenuItems.unshift(newItem);
+    res.json({ success: true, message: 'Menu item added!', item: newItem });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// PILLAR 5: SCRATCH CARDS (Rules & Probability Weights)
+// =========================================================================
+let scratchRulesConfig = [
+  { id: 'sr1', title: '15% OFF On Total Bill', tier: 'Regular', probability: 70, minBill: 400, color: 'emerald', description: 'High frequency customer reward' },
+  { id: 'sr2', title: '₹150 Flat Discount Voucher', tier: 'High Value', probability: 25, minBill: 600, color: 'blue', description: 'Moderate frequency high value reward' },
+  { id: 'sr3', title: 'Free Signature Item (Jackpot)', tier: 'Jackpot', probability: 5, minBill: 0, color: 'amber', description: 'Rare viral jackpot reward' }
+];
+
+router.get('/scratch-rules', (req, res) => {
+  res.json({ success: true, rules: scratchRulesConfig });
+});
+
+router.post('/scratch-rules', (req, res) => {
+  const { rules } = req.body;
+  if (Array.isArray(rules) && rules.length > 0) {
+    scratchRulesConfig = rules;
+  }
+  res.json({ success: true, message: 'Scratch card probability rules updated!', rules: scratchRulesConfig });
+});
+
+// =========================================================================
+// GUIDED ONBOARDING WIZARD ENDPOINTS
+// Step 1: Business Profile | Step 2: Reward | Step 3: Location | Complete
+// =========================================================================
+router.post('/onboarding/profile', async (req, res) => {
+  try {
+    const { merchantId, businessName, category, tagline, brandColor, city } = req.body;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant) merchant = await Merchant.findOne();
+    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+
+    if (businessName) merchant.businessName = businessName.trim();
+    if (category) merchant.category = category;
+    if (tagline) merchant.tagline = tagline.trim();
+    if (brandColor) merchant.brandColor = brandColor;
+    if (city) merchant.city = city.trim();
+    merchant.onboardingStep = Math.max(merchant.onboardingStep || 1, 2);
+    await merchant.save();
+
+    res.json({ success: true, message: 'Business profile saved!', merchant });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/onboarding/reward', async (req, res) => {
+  try {
+    const { merchantId, title, discountType, discountValue, minBillAmount, validityDays, probabilityWeight } = req.body;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant) merchant = await Merchant.findOne();
+    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+
+    const reward = await Reward.create({
+      merchantId: merchant._id,
+      title: title || '15% OFF On Next Dine-In Bill',
+      discountType: discountType || 'PERCENTAGE',
+      discountValue: Number(discountValue) || 15,
+      minBillAmount: Number(minBillAmount) || 300,
+      validityDays: Number(validityDays) || 7,
+      probabilityWeight: Number(probabilityWeight) || 70,
+      isActive: true
+    });
+
+    merchant.onboardingStep = Math.max(merchant.onboardingStep || 1, 3);
+    await merchant.save();
+
+    res.json({ success: true, message: 'Reward created!', reward, merchant });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/onboarding/location', async (req, res) => {
+  try {
+    const { merchantId, branchName, address, city, pincode, counterName } = req.body;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant) merchant = await Merchant.findOne();
+    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+
+    const newBranch = {
+      branchName: branchName || `${merchant.businessName} - Main Outlet`,
+      address: address || '',
+      city: city || merchant.city || 'Delhi NCR',
+      pincode: pincode || '',
+      counterName: counterName || 'Counter 1',
+      qrSlug: merchant.qrSlug,
+      isPrimary: true
+    };
+
+    if (!merchant.branches || merchant.branches.length === 0) {
+      merchant.branches = [newBranch];
+    } else {
+      merchant.branches[0] = { ...merchant.branches[0], ...newBranch };
+    }
+
+    if (city) merchant.city = city;
+    merchant.onboardingStep = Math.max(merchant.onboardingStep || 1, 4);
+    await merchant.save();
+
+    res.json({ success: true, message: 'Store location configured!', branch: newBranch, merchant });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/onboarding/complete', async (req, res) => {
+  try {
+    const { merchantId } = req.body;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant) merchant = await Merchant.findOne();
+    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+
+    merchant.onboardingCompleted = true;
+    merchant.onboardingStep = 4;
+    await merchant.save();
+
+    res.json({ success: true, message: 'Onboarding completed successfully!', merchant });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

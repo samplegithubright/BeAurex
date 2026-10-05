@@ -21,13 +21,34 @@
 
 @layer utilities {
   .crimson-gradient {
-    background-color: #991b1b;
-    background-image: linear-gradient(145deg, #dc2626 0%, #b91c1c 50%, #881337 100%) !important;
+    background-color: #8B0000;
+    background-image: linear-gradient(145deg, #9b0b15 0%, #8B0000 50%, #590104 100%) !important;
   }
   
+  .ruby-crimson-bg {
+    background-color: #8B0000;
+    background-image: linear-gradient(180deg, #940810 0%, #820309 60%, #690005 100%);
+  }
+
+  .ruby-glow {
+    box-shadow: 0 10px 30px -5px rgba(139, 0, 0, 0.45);
+  }
+
+  .ruby-glow-sm {
+    box-shadow: 0 4px 15px -2px rgba(139, 0, 0, 0.3);
+  }
+
   .hero-dot-pattern {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.5px, transparent 1.5px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px);
     background-size: 20px 20px;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-3d {
+    transform-style: preserve-3d;
   }
 }
 

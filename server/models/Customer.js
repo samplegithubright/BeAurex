@@ -110,6 +110,13 @@ const customerSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  pendingStamp: {
+    storeSlug: { type: String, default: null },
+    storeName: { type: String, default: null },
+    checkinToken: { type: String, default: null },
+    granted: { type: Boolean, default: false },
+    grantedAt: { type: Date, default: null }
+  },
   lastLoginAt: {
     type: Date,
     default: Date.now

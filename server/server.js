@@ -2,6 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+const dns = require('dns');
+
+// Use reliable Google & Cloudflare DNS to resolve Atlas shard CNAME records on all networks
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (_) {}
+
 try {
   require('dotenv').config({ path: path.join(__dirname, '.env') });
 } catch (e) {
@@ -31,6 +38,7 @@ const { router: authRouter, ensureDemoMerchant } = require('./routes/authRoutes'
 const merchantRouter = require('./routes/merchantRoutes');
 const customerRouter = require('./routes/customerRoutes');
 const adminRouter = require('./routes/adminRoutes');
+const paymentRouter = require('./routes/paymentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,6 +54,7 @@ app.use('/api/merchant', merchantRouter);
 app.use('/api/customer', customerRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/team', adminRouter);
+app.use('/api/payment', paymentRouter);
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -95,7 +104,8 @@ async function connectDB() {
     return null;
   }
   cachedDb = mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
+    serverSelectionTimeoutMS: 10000,
+    family: 4 // Force IPv4 to prevent Windows IPv6 resolution timeouts on Atlas
   }).then((m) => {
     const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
     console.log('✅ Connected to MongoDB Atlas at', safeUri);
@@ -104,6 +114,7 @@ async function connectDB() {
   }).catch((err) => {
     console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
     cachedDb = null;
+    return null;
   });
   return cachedDb;
 }

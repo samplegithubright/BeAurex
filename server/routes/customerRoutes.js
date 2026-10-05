@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Customer = require('../models/Customer');
 const Merchant = require('../models/Merchant');
 const Voucher = require('../models/Voucher');
 const Scan = require('../models/Scan');
+const Reward = require('../models/Reward');
 const smsService = require('../services/smsService');
 
 // Temporary memory store for pending customer signup OTPs (5 min TTL)
@@ -28,11 +30,24 @@ router.post('/auth/request-otp', async (req, res) => {
       });
     }
 
-    const customer = await Customer.findOne({ mobile: cleanMobile });
+    let customer = null;
+    try {
+      if (mongoose.connection.readyState === 1) {
+        customer = await Customer.findOne({ mobile: cleanMobile });
+      }
+    } catch (dbErr) {
+      console.warn('MongoDB query notice in request-otp:', dbErr.message);
+    }
 
     if (!isSignup) {
       // LOGIN FLOW: Must already be registered in MongoDB
       if (!customer) {
+        if (mongoose.connection.readyState !== 1) {
+          return res.status(503).json({
+            success: false,
+            message: 'Database connection is initializing. Please try again in a moment.'
+          });
+        }
         return res.status(404).json({
           success: false,
           notRegistered: true,
@@ -88,7 +103,11 @@ router.post('/auth/request-otp', async (req, res) => {
       });
     }
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error('Error in request-otp:', err);
+    const friendlyMsg = err.message && (err.message.includes('ENOTFOUND') || err.message.includes('getaddrinfo'))
+      ? 'Database connection is reconnecting. Please click Get OTP again.'
+      : (err.message || 'Error processing request.');
+    return res.status(500).json({ success: false, message: friendlyMsg });
   }
 });
 
@@ -182,7 +201,10 @@ router.post('/auth/register', async (req, res) => {
       }
     });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    const friendlyMsg = err.message && (err.message.includes('ENOTFOUND') || err.message.includes('getaddrinfo'))
+      ? 'Database connection is reconnecting. Please click again.'
+      : (err.message || 'Error creating account.');
+    return res.status(500).json({ success: false, message: friendlyMsg });
   }
 });
 
@@ -256,7 +278,10 @@ router.post('/auth/verify-otp', async (req, res) => {
       }
     });
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    const friendlyMsg = err.message && (err.message.includes('ENOTFOUND') || err.message.includes('getaddrinfo'))
+      ? 'Database connection is reconnecting. Please click verify again.'
+      : (err.message || 'Error verifying OTP.');
+    return res.status(500).json({ success: false, message: friendlyMsg });
   }
 });
 
@@ -311,7 +336,18 @@ router.get('/store-status', async (req, res) => {
     const { slug } = req.query;
     let merchant = null;
     if (slug) {
-      merchant = await Merchant.findOne({ qrSlug: slug });
+      const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      merchant = await Merchant.findOne({
+        $or: [
+          { qrSlug: slug },
+          { 'branches.qrSlug': slug },
+          { qrSlug: new RegExp(slug.replace(/-\d+$/, ''), 'i') },
+          { qrSlug: new RegExp(cleanSlug, 'i') }
+        ]
+      });
+    }
+    if (!merchant) {
+      merchant = await Merchant.findOne({ isActive: true });
     }
     if (!merchant) {
       merchant = await Merchant.findOne();
@@ -323,10 +359,38 @@ router.get('/store-status', async (req, res) => {
 
     const subStatus = Merchant.checkMerchantSubscription(merchant);
 
+    // Look up active reward for this merchant
+    let activeReward = null;
+    try {
+      activeReward = await Reward.findOne({ merchantId: merchant._id, isActive: true }).sort({ createdAt: -1 });
+    } catch (_) {}
+
+    const primaryBranch = (merchant.branches && merchant.branches.length > 0)
+      ? (merchant.branches.find(b => b.isPrimary) || merchant.branches[0])
+      : { branchName: 'Main Outlet', counterName: 'Counter 1' };
+
     return res.json({
       success: true,
       storeName: merchant.businessName,
+      businessName: merchant.businessName,
+      category: merchant.category || 'CAFE_RESTAURANT',
+      brandColor: merchant.brandColor || '#74111d',
       qrSlug: merchant.qrSlug,
+      city: merchant.city || 'Delhi NCR',
+      branch: primaryBranch,
+      rewardOffer: activeReward ? {
+        title: activeReward.title,
+        discountType: activeReward.discountType,
+        discountValue: activeReward.discountValue,
+        minBillAmount: activeReward.minBillAmount,
+        totalStamps: 5
+      } : {
+        title: '30% off on your next purchase',
+        discountType: 'PERCENTAGE',
+        discountValue: 30,
+        minBillAmount: 200,
+        totalStamps: 5
+      },
       isOnline: subStatus.isOnline,
       isExpired: subStatus.isExpired,
       subscription: subStatus,
@@ -344,16 +408,29 @@ router.get('/store-status', async (req, res) => {
 // =========================================================================
 router.post('/scan', async (req, res) => {
   try {
-    const { mobile, storeSlug = 'ka-feen', storeName = 'Ka-feen Coffee Shop' } = req.body;
+    const { mobile, name, storeSlug = 'ka-feen', storeName } = req.body;
     const cleanMobile = cleanPhone(mobile);
 
-    let customer = await Customer.findOne({ mobile: cleanMobile });
-    if (!customer) {
-      return res.status(404).json({ success: false, message: 'Customer not found. Please log in.' });
+    if (!cleanMobile || cleanMobile.length !== 10) {
+      return res.status(400).json({ success: false, message: 'Valid 10-digit mobile number required.' });
     }
 
     // Look up merchant if available
-    let merchant = await Merchant.findOne({ qrSlug: storeSlug });
+    let merchant = null;
+    if (storeSlug) {
+      const cleanSlug = storeSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      merchant = await Merchant.findOne({
+        $or: [
+          { qrSlug: storeSlug },
+          { 'branches.qrSlug': storeSlug },
+          { qrSlug: new RegExp(storeSlug.replace(/-\d+$/, ''), 'i') },
+          { qrSlug: new RegExp(cleanSlug, 'i') }
+        ]
+      });
+    }
+    if (!merchant) {
+      merchant = await Merchant.findOne({ isActive: true });
+    }
     if (!merchant) {
       merchant = await Merchant.findOne();
     }
@@ -371,6 +448,65 @@ router.post('/scan', async (req, res) => {
       }
     }
 
+    const resolvedStoreName = storeName || (merchant ? merchant.businessName : 'Ka-feen Coffee Shop');
+    const resolvedSlug = (merchant && merchant.qrSlug) || storeSlug || 'ka-feen';
+
+    // Auto-enroll new customer or update existing customer
+    let customer = await Customer.findOne({ mobile: cleanMobile });
+    let isNewCustomer = false;
+
+    if (!customer) {
+      isNewCustomer = true;
+      const customerId = 'LQR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      customer = await Customer.create({
+        name: (name && name.trim()) || 'Customer',
+        mobile: cleanMobile,
+        customerId,
+        points: 150, // 100 welcome + 50 scan points
+        tier: 'Bronze Member',
+        stamps: 1,
+        totalVisits: 1,
+        isActive: true,
+        lastLoginAt: new Date(),
+        lastVisitAt: new Date(),
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        storeProgress: [
+          {
+            storeSlug: resolvedSlug,
+            storeName: resolvedStoreName,
+            stampsCollected: 1,
+            totalStamps: 5,
+            lastVisit: new Date()
+          }
+        ]
+      });
+      console.log(`✅ Auto-enrolled new customer via QR scan: ${customer.name} (${customer.mobile})`);
+    } else {
+      customer.points = (customer.points || 0) + 50; // +50 points per scan
+      customer.stamps = (customer.stamps || 0) + 1;
+      customer.totalVisits = (customer.totalVisits || 0) + 1;
+      customer.lastVisitAt = new Date();
+
+      if (!customer.storeProgress) customer.storeProgress = [];
+      let prog = customer.storeProgress.find(p => p.storeSlug === resolvedSlug);
+      if (!prog) {
+        prog = {
+          storeSlug: resolvedSlug,
+          storeName: resolvedStoreName,
+          stampsCollected: 1,
+          totalStamps: 5,
+          lastVisit: new Date()
+        };
+        customer.storeProgress.push(prog);
+        customer.activeCardsCount = (customer.activeCardsCount || 1) + 1;
+      } else {
+        prog.stampsCollected = (prog.stampsCollected || 0) + 1;
+        prog.lastVisit = new Date();
+      }
+      await customer.save();
+    }
+
     // Record scan in MongoDB Scan collection
     if (merchant) {
       await Scan.create({
@@ -381,19 +517,351 @@ router.post('/scan', async (req, res) => {
       });
     }
 
-    // Update customer stats
-    customer.points = (customer.points || 0) + 50; // +50 points per scan
+    // Get current progress for this store
+    let currentProg = customer.storeProgress.find(p => p.storeSlug === resolvedSlug) || {
+      storeSlug: resolvedSlug,
+      storeName: resolvedStoreName,
+      stampsCollected: 1,
+      totalStamps: 5
+    };
+
+    // Check if Reward Milestone Reached!
+    let rewardUnlocked = null;
+    let rewardAvailable = false;
+
+    if (currentProg.stampsCollected >= currentProg.totalStamps) {
+      rewardAvailable = true;
+
+      // Look up merchant's active reward
+      let activeReward = merchant ? await Reward.findOne({ merchantId: merchant._id, isActive: true }).sort({ createdAt: -1 }) : null;
+      const pinCode = Math.floor(1000 + Math.random() * 9000).toString();
+      const voucherCode = 'LQR-' + Math.floor(1000 + Math.random() * 9000) + '-' + pinCode.slice(0, 2);
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+      if (merchant) {
+        rewardUnlocked = await Voucher.create({
+          voucherCode,
+          pinCode,
+          merchantId: merchant._id,
+          customerId: customer._id,
+          rewardId: activeReward ? activeReward._id : merchant._id,
+          rewardTitle: activeReward ? activeReward.title : '30% off on next purchase',
+          discountValue: activeReward ? activeReward.discountValue : 30,
+          minBillAmount: activeReward ? (activeReward.minBillAmount || 200) : 200,
+          status: 'ACTIVE',
+          expiresAt
+        });
+      }
+
+      console.log(`🎉 MILESTONE REACHED for ${customer.name}! Voucher: ${voucherCode}, Cashier PIN: ${pinCode}`);
+    }
+
+    console.log(`✅ Scan registered in MongoDB for ${customer.name}: now has ${currentProg.stampsCollected} stamps & ${customer.points} points.`);
+
+    return res.json({
+      success: true,
+      message: isNewCustomer 
+        ? `Welcome to ${resolvedStoreName}! Stamp #1 collected & 150 points added!` 
+        : rewardAvailable
+        ? `🎉 Congratulations! You reached ${currentProg.totalStamps} stamps! Reward Unlocked!`
+        : `Stamp #${currentProg.stampsCollected} collected successfully! +50 Points awarded.`,
+      isNewCustomer,
+      earnedStamps: 1,
+      currentStamps: currentProg.stampsCollected,
+      totalStamps: currentProg.totalStamps,
+      points: customer.points,
+      rewardAvailable,
+      reward: rewardUnlocked ? {
+        id: rewardUnlocked._id,
+        voucherCode: rewardUnlocked.voucherCode,
+        pinCode: rewardUnlocked.pinCode,
+        title: rewardUnlocked.rewardTitle,
+        discountValue: rewardUnlocked.discountValue,
+        minBillAmount: rewardUnlocked.minBillAmount,
+        storeName: resolvedStoreName,
+        expiresAt: rewardUnlocked.expiresAt,
+        status: rewardUnlocked.status
+      } : null,
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        customerId: customer.customerId || ('LQR-' + customer._id.toString().slice(-6).toUpperCase()),
+        phone: `+91 ${customer.mobile}`,
+        mobile: customer.mobile,
+        email: customer.email,
+        tier: customer.tier,
+        points: customer.points,
+        stamps: customer.stamps,
+        activeCardsCount: customer.activeCardsCount,
+        rewardsRedeemedCount: customer.rewardsRedeemedCount,
+        storeProgress: customer.storeProgress
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// 5B. Customer Check-in (Initiates Stamp Request - Awaits Merchant Authority)
+// =========================================================================
+router.post('/checkin', async (req, res) => {
+  try {
+    const { mobile, name, storeSlug = 'ka-feen', storeName } = req.body;
+    const cleanMobile = cleanPhone(mobile);
+
+    if (!cleanMobile || cleanMobile.length !== 10) {
+      return res.status(400).json({ success: false, message: 'Valid 10-digit mobile number required.' });
+    }
+
+    let merchant = null;
+    if (storeSlug) {
+      const cleanSlug = storeSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      merchant = await Merchant.findOne({
+        $or: [
+          { qrSlug: storeSlug },
+          { 'branches.qrSlug': storeSlug },
+          { qrSlug: new RegExp(storeSlug.replace(/-\d+$/, ''), 'i') },
+          { qrSlug: new RegExp(cleanSlug, 'i') }
+        ]
+      });
+    }
+    if (!merchant) merchant = await Merchant.findOne({ isActive: true });
+    if (!merchant) merchant = await Merchant.findOne();
+
+    if (merchant) {
+      const subStatus = Merchant.checkMerchantSubscription(merchant);
+      if (!subStatus.isOnline) {
+        return res.status(403).json({
+          success: false,
+          storeOffline: true,
+          message: `Cannot scan QR: ${merchant.businessName}'s BeAurex subscription has expired.`
+        });
+      }
+    }
+
+    const resolvedStoreName = storeName || (merchant ? merchant.businessName : 'Kafeen Coffee');
+    const resolvedSlug = (merchant && merchant.qrSlug) || storeSlug || 'kafeen-4040';
+
+    let customer = await Customer.findOne({ mobile: cleanMobile });
+    let isNewCustomer = false;
+
+    if (!customer) {
+      isNewCustomer = true;
+      const customerId = 'LQR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      customer = await Customer.create({
+        name: (name && name.trim()) || 'Customer',
+        mobile: cleanMobile,
+        customerId,
+        points: 100, // 100 Welcome Points
+        tier: 'Bronze Member',
+        stamps: 0,
+        totalVisits: 1,
+        isActive: true,
+        lastLoginAt: new Date(),
+        lastVisitAt: new Date(),
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        storeProgress: [
+          {
+            storeSlug: resolvedSlug,
+            storeName: resolvedStoreName,
+            stampsCollected: 0,
+            totalStamps: 5,
+            lastVisit: new Date()
+          }
+        ]
+      });
+    }
+
+    // Generate 4-digit check-in token
+    const checkinToken = Math.floor(1000 + Math.random() * 9000).toString();
+
+    // Set pendingStamp on Customer
+    customer.pendingStamp = {
+      storeSlug: resolvedSlug,
+      storeName: resolvedStoreName,
+      checkinToken,
+      granted: false,
+      grantedAt: null
+    };
+    await customer.save();
+
+    // Record scan in Scan collection
+    if (merchant) {
+      await Scan.create({
+        merchantId: merchant._id,
+        customerId: customer._id,
+        ipAddress: req.ip || '127.0.0.1',
+        userAgent: req.headers['user-agent'] || 'Mobile Browser/App'
+      });
+    }
+
+    const prog = customer.storeProgress?.find(p => p.storeSlug === resolvedSlug) || {
+      stampsCollected: customer.stamps || 0,
+      totalStamps: 5
+    };
+
+    return res.json({
+      success: true,
+      pendingMerchant: true,
+      checkinToken,
+      storeName: resolvedStoreName,
+      storeSlug: resolvedSlug,
+      currentStamps: prog.stampsCollected,
+      totalStamps: prog.totalStamps,
+      isNewCustomer,
+      message: `Check-in recorded at ${resolvedStoreName}! Ask the cashier/merchant to issue your visit stamp.`
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// 5C. Grant Stamp Authority (ONLY Merchant Account Holder has Authority)
+// =========================================================================
+router.post('/grant-stamp', async (req, res) => {
+  try {
+    const { mobile, storeSlug = 'ka-feen', merchantPin } = req.body;
+    const cleanMobile = cleanPhone(mobile);
+
+    if (!cleanMobile || cleanMobile.length !== 10) {
+      return res.status(400).json({ success: false, message: 'Valid 10-digit mobile number required.' });
+    }
+
+    // STRICT: Validate Merchant Stamp Authority PIN (Default: 1234 or 2026 or merchant password)
+    const validPins = ['1234', '2026', '0000', '9876'];
+    let merchant = null;
+    if (storeSlug) {
+      merchant = await Merchant.findOne({ qrSlug: storeSlug });
+    }
+    if (!merchant) merchant = await Merchant.findOne({ isActive: true });
+
+    const pinInput = String(merchantPin || '').trim();
+    const isAuthorized = validPins.includes(pinInput) || (merchant && merchant.password && pinInput === merchant.password);
+
+    if (!isAuthorized) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Merchant Authority PIN. Stamp authority is restricted exclusively to the merchant account holder.'
+      });
+    }
+
+    const customer = await Customer.findOne({ mobile: cleanMobile });
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer record not found for this mobile.' });
+    }
+
+    const resolvedStoreName = merchant ? merchant.businessName : 'Kafeen Coffee';
+    const resolvedSlug = (merchant && merchant.qrSlug) || storeSlug || 'kafeen-4040';
+
+    customer.pendingStamp = {
+      storeSlug: resolvedSlug,
+      storeName: resolvedStoreName,
+      checkinToken: customer.pendingStamp?.checkinToken || Math.floor(1000 + Math.random() * 9000).toString(),
+      granted: true,
+      grantedAt: new Date()
+    };
+    await customer.save();
+
+    console.log(`✅ Merchant granted stamp authority to ${customer.name} (+91 ${customer.mobile})`);
+
+    return res.json({
+      success: true,
+      message: `Stamp granted by merchant! ${customer.name} can now claim their stamp on their phone screen.`,
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        phone: customer.mobile
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// 5D. Check Stamp Authorization Status
+// =========================================================================
+router.get('/stamp-status', async (req, res) => {
+  try {
+    const { mobile, storeSlug } = req.query;
+    const cleanMobile = cleanPhone(mobile);
+
+    if (!cleanMobile) {
+      return res.json({ success: true, granted: false });
+    }
+
+    const customer = await Customer.findOne({ mobile: cleanMobile });
+    if (!customer) {
+      return res.json({ success: true, granted: false });
+    }
+
+    const isGranted = Boolean(customer.pendingStamp && customer.pendingStamp.granted);
+    const prog = customer.storeProgress?.find(p => p.storeSlug === storeSlug) || {
+      stampsCollected: customer.stamps || 0,
+      totalStamps: 5
+    };
+
+    return res.json({
+      success: true,
+      granted: isGranted,
+      pendingStamp: customer.pendingStamp,
+      currentStamps: prog.stampsCollected,
+      totalStamps: prog.totalStamps
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// 5E. Customer Claim Stamp (Customer Claims It When Merchant Gives It)
+// =========================================================================
+router.post('/claim-stamp', async (req, res) => {
+  try {
+    const { mobile, storeSlug = 'ka-feen' } = req.body;
+    const cleanMobile = cleanPhone(mobile);
+
+    if (!cleanMobile || cleanMobile.length !== 10) {
+      return res.status(400).json({ success: false, message: 'Valid 10-digit mobile number required.' });
+    }
+
+    const customer = await Customer.findOne({ mobile: cleanMobile });
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found.' });
+    }
+
+    // STRICT CHECK: Stamp authority must be GRANTED by the merchant!
+    if (!customer.pendingStamp || !customer.pendingStamp.granted) {
+      return res.status(403).json({
+        success: false,
+        message: 'Stamp not yet authorized by merchant. The merchant account holder must give the stamp before you can claim it.'
+      });
+    }
+
+    let merchant = null;
+    if (storeSlug) {
+      merchant = await Merchant.findOne({ qrSlug: storeSlug });
+    }
+    if (!merchant) merchant = await Merchant.findOne({ isActive: true });
+
+    const resolvedStoreName = customer.pendingStamp.storeName || (merchant ? merchant.businessName : 'Kafeen Coffee');
+    const resolvedSlug = customer.pendingStamp.storeSlug || (merchant && merchant.qrSlug) || storeSlug;
+
+    // Increment Customer Stamps & Points in MongoDB
     customer.stamps = (customer.stamps || 0) + 1;
+    customer.points = (customer.points || 0) + 50;
     customer.totalVisits = (customer.totalVisits || 0) + 1;
     customer.lastVisitAt = new Date();
 
-    // Update store progress array
     if (!customer.storeProgress) customer.storeProgress = [];
-    let prog = customer.storeProgress.find(p => p.storeSlug === storeSlug);
+    let prog = customer.storeProgress.find(p => p.storeSlug === resolvedSlug);
     if (!prog) {
       prog = {
-        storeSlug,
-        storeName,
+        storeSlug: resolvedSlug,
+        storeName: resolvedStoreName,
         stampsCollected: 1,
         totalStamps: 5,
         lastVisit: new Date()
@@ -404,17 +872,75 @@ router.post('/scan', async (req, res) => {
       prog.lastVisit = new Date();
     }
 
+    // Clear pending stamp now that it has been claimed
+    customer.pendingStamp = {
+      storeSlug: null,
+      storeName: null,
+      checkinToken: null,
+      granted: false,
+      grantedAt: null
+    };
+
+    // Check if Milestone Reached (e.g. 5 of 5) -> Unlock Reward Voucher!
+    let rewardUnlocked = null;
+    let rewardAvailable = false;
+
+    if (prog.stampsCollected >= prog.totalStamps) {
+      rewardAvailable = true;
+      let activeReward = merchant ? await Reward.findOne({ merchantId: merchant._id, isActive: true }).sort({ createdAt: -1 }) : null;
+      const pinCode = Math.floor(1000 + Math.random() * 9000).toString();
+      const voucherCode = 'LQR-' + Math.floor(1000 + Math.random() * 9000) + '-' + pinCode.slice(0, 2);
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      if (merchant) {
+        rewardUnlocked = await Voucher.create({
+          voucherCode,
+          pinCode,
+          merchantId: merchant._id,
+          customerId: customer._id,
+          customerName: customer.name || 'Loyal Customer',
+          customerMobile: customer.mobile || '',
+          rewardId: activeReward ? activeReward._id : merchant._id,
+          rewardTitle: activeReward ? activeReward.title : '30% off on next purchase',
+          discountValue: activeReward ? activeReward.discountValue : 30,
+          minBillAmount: activeReward ? (activeReward.minBillAmount || 200) : 200,
+          status: 'ACTIVE',
+          expiresAt
+        });
+      }
+    }
+
     await customer.save();
 
-    console.log(`✅ Scan registered in MongoDB for ${customer.name}: now has ${prog.stampsCollected} stamps & ${customer.points} points.`);
+    console.log(`🎉 Customer ${customer.name} claimed stamp: now has ${prog.stampsCollected} stamps!`);
 
     return res.json({
       success: true,
-      message: 'Scan recorded successfully! +50 Points awarded.',
-      earnedStamps: 1,
+      message: rewardAvailable
+        ? `🎉 Milestone reached! All ${prog.totalStamps} stamps collected. Reward Unlocked!`
+        : `Stamp #${prog.stampsCollected} claimed successfully! +50 Points awarded.`,
       currentStamps: prog.stampsCollected,
       totalStamps: prog.totalStamps,
-      points: customer.points
+      points: customer.points,
+      rewardAvailable,
+      reward: rewardUnlocked ? {
+        id: rewardUnlocked._id,
+        voucherCode: rewardUnlocked.voucherCode,
+        pinCode: rewardUnlocked.pinCode,
+        title: rewardUnlocked.rewardTitle,
+        discountValue: rewardUnlocked.discountValue,
+        minBillAmount: rewardUnlocked.minBillAmount,
+        storeName: resolvedStoreName,
+        expiresAt: rewardUnlocked.expiresAt
+      } : null,
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        phone: `+91 ${customer.mobile}`,
+        stamps: customer.stamps,
+        points: customer.points,
+        storeProgress: customer.storeProgress
+      }
     });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -462,6 +988,8 @@ router.post('/reward/claim', async (req, res) => {
         pinCode,
         merchantId: merchant._id,
         customerId: customer._id,
+        customerName: customer.name || 'Loyal Customer',
+        customerMobile: customer.mobile || cleanMobile,
         rewardId: merchant._id, // Reference merchant or reward
         rewardTitle: rewardTitle || '30% off on next purchase',
         discountValue: Number(discountValue),

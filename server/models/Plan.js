@@ -36,7 +36,7 @@ const planSchema = new mongoose.Schema({
   },
   trialDays: {
     type: Number,
-    default: 2
+    default: 3
   },
   scansLimit: {
     type: String,
@@ -48,7 +48,7 @@ const planSchema = new mongoose.Schema({
   },
   ctaText: {
     type: String,
-    default: 'Start 2-Day Trial'
+    default: 'Start 3-Day Free Trial'
   },
   isPopular: {
     type: Boolean,

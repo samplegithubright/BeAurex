@@ -45,6 +45,8 @@ export default function App() {
           <Route path="/merchant/dashboard" element={<MerchantDashboard />} />
           <Route path="/dashboard" element={<Navigate to="/merchant/dashboard" replace />} />
           <Route path="/customer" element={<CustomerExperience />} />
+          <Route path="/customer/login" element={<CustomerExperience initialAuthMode="signin" />} />
+          <Route path="/customer/signup" element={<CustomerExperience initialAuthMode="signup" />} />
           <Route path="/scan/:slug" element={<CustomerExperience />} />
 
           {/* Catch-all redirect to Home */}

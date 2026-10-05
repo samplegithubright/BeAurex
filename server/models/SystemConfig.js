@@ -56,9 +56,15 @@ const systemConfigSchema = new mongoose.Schema({
   cashfreeSecret: { type: String, default: 'CF_sec_live_99482104' },
   stripeKey: { type: String, default: 'pk_live_51PBeAurexPlatform' },
   // Email Service
-  emailProvider: { type: String, default: 'RESEND' },
-  emailApiKey: { type: String, default: 're_live_9a8B7c6D5e4F3g2H1' },
+  emailProvider: { type: String, default: 'SMTP' },
+  emailApiKey: { type: String, default: '' },
   emailSenderAddress: { type: String, default: 'notifications@beaurex.com' },
+  smtpHost: { type: String, default: '' },
+  smtpPort: { type: Number, default: 587 },
+  smtpUser: { type: String, default: '' },
+  smtpPass: { type: String, default: '' },
+  smtpSecure: { type: Boolean, default: false },
+  smtpFrom: { type: String, default: 'BeAurex Loyalty <notifications@beaurex.com>' },
   // Maps & Location
   googleMapsApiKey: { type: String, default: 'AIzaSyA_LiveGoogleMapsKey2026' },
   // Cloud Asset Storage

@@ -1,11 +1,11 @@
 {
-  "razorpayKeyId": "rzp_live_9a8B7c6D5e4F3g",
-  "razorpayKeySecret": "sec_live_k8J7h6G5f4D3s2A1",
+  "razorpayKeyId": "",
+  "razorpayKeySecret": "",
   "razorpayMode": "LIVE",
-  "mongoUri": "",
+  "mongoUri": "mongodb+srv://chandan:Chandan%40705@cluster0.im8vmoe.mongodb.net/beaurex?retryWrites=true&w=majority&appName=Cluster0",
   "mongoStatus": "CONNECTED (MongoDB Atlas Cluster)",
-  "smsProvider": "SMSCOUNTRY",
-  "smsApiKey": "sms_live_key_9182736450",
+  "smsProvider": "FAST2SMS",
+  "smsApiKey": "",
   "smsSenderId": "BEAURE",
   "cooldownHours": 12,
   "enableGeofencing": true,
@@ -65,7 +65,7 @@
       ],
       "isPopular": false,
       "isActive": true,
-      "_id": "6ac25116aabba80e721b797e"
+      "_id": "6ac25116aabba80e721b7976"
     },
     {
       "id": "plan_professional",
@@ -83,7 +83,7 @@
       ],
       "isPopular": true,
       "isActive": true,
-      "_id": "6ac25116aabba80e721b797f"
+      "_id": "6ac25116aabba80e721b7977"
     },
     {
       "id": "plan_legacy",
@@ -101,11 +101,13 @@
       ],
       "isPopular": false,
       "isActive": true,
-      "_id": "6ac25116aabba80e721b7980"
+      "_id": "6ac25116aabba80e721b7978"
     }
   ],
   "coupons": [],
   "createdAt": "2026-10-04T13:13:58.753Z",
-  "updatedAt": "2026-10-04T13:43:50.975Z",
-  "__v": 0
+  "updatedAt": "2026-10-05T09:20:35.859Z",
+  "__v": 0,
+  "smtpHost": "",
+  "smtpUser": ""
 }

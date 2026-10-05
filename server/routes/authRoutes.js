@@ -25,7 +25,18 @@ async function ensureDemoMerchant() {
         city: 'Delhi NCR',
         qrSlug: 'royal-sweets-delhi',
         subscriptionTier: 'TRIAL',
-        trialExpiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+        trialDays: 3,
+        trialExpiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        onboardingCompleted: true,
+        branches: [{
+          branchName: 'Main Outlet',
+          address: 'Connaught Place',
+          city: 'Delhi NCR',
+          pincode: '110001',
+          counterName: 'Counter 1',
+          qrSlug: 'royal-sweets-delhi',
+          isPrimary: true
+        }]
       });
       console.log('✅ Demo merchant seeded: owner@royalsweets.com / LoyalQR@2026');
     }
@@ -109,6 +120,11 @@ router.post('/login', async (req, res) => {
         qrSlug: merchant.qrSlug || 'royal-sweets-delhi',
         city: merchant.city || 'Delhi NCR',
         category: merchant.category || 'CAFE_RESTAURANT',
+        onboardingCompleted: merchant.onboardingCompleted !== undefined ? merchant.onboardingCompleted : true,
+        onboardingStep: merchant.onboardingStep || 1,
+        branches: merchant.branches || [],
+        trialDays: merchant.trialDays || 3,
+        trialExpiresAt: merchant.trialExpiresAt,
         isOnline: subStatus.isOnline,
         isExpired: subStatus.isExpired,
         subscriptionStatus: subStatus
@@ -249,6 +265,11 @@ router.post('/login-otp', async (req, res) => {
         qrSlug: merchant.qrSlug || ('store-' + cleanMobile.slice(-4)),
         city: merchant.city || 'Delhi NCR',
         category: merchant.category || 'CAFE_RESTAURANT',
+        onboardingCompleted: merchant.onboardingCompleted !== undefined ? merchant.onboardingCompleted : true,
+        onboardingStep: merchant.onboardingStep || 1,
+        branches: merchant.branches || [],
+        trialDays: merchant.trialDays || 3,
+        trialExpiresAt: merchant.trialExpiresAt,
         isOnline: subStatus.isOnline,
         isExpired: subStatus.isExpired,
         subscriptionStatus: subStatus
@@ -469,12 +490,26 @@ router.post('/register', async (req, res) => {
       businessName: businessName.trim(),
       category: category || 'CAFE_RESTAURANT',
       city: city || 'Delhi NCR',
-      email: cleanEmail || `store_${cleanMobile}@beaurex.com`,
+      email: cleanEmail || `store_${cleanMobile}@beaurex.in`,
       mobile: cleanMobile,
       password: hashedPassword,
       qrSlug,
       subscriptionTier: 'TRIAL',
-      trialExpiresAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
+      trialDays: 3,
+      trialExpiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      onboardingCompleted: false,
+      onboardingStep: 1,
+      branches: [
+        {
+          branchName: `${businessName.trim()} - Main Outlet`,
+          address: city || 'Main Market',
+          city: city || 'Delhi NCR',
+          pincode: '110001',
+          counterName: 'Billing Counter',
+          qrSlug,
+          isPrimary: true
+        }
+      ]
     });
 
     const merchantId = newMerchant._id.toString();
@@ -484,7 +519,7 @@ router.post('/register', async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Store account created successfully! 2-Day Free Trial activated.',
+      message: 'Business account created successfully! 3-Day Free Trial activated.',
       token,
       merchant: {
         id: merchantId,
@@ -494,7 +529,12 @@ router.post('/register', async (req, res) => {
         subscriptionTier: 'TRIAL',
         qrSlug: newMerchant.qrSlug,
         city: newMerchant.city,
-        category: newMerchant.category
+        category: newMerchant.category,
+        trialDays: 3,
+        trialExpiresAt: newMerchant.trialExpiresAt,
+        onboardingCompleted: false,
+        onboardingStep: 1,
+        branches: newMerchant.branches
       }
     });
   } catch (err) {

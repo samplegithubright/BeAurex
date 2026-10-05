@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import BrowserFrame from '../components/BrowserFrame';
 import { 
   Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, BarChart3, Sliders, Clock, 
-  Store, Sparkles, ArrowRight, Check, ArrowLeft, AlertCircle, MapPin, Tag
+  Store, Sparkles, ArrowRight, Check, ArrowLeft, AlertCircle, MapPin, Tag,
+  Shield, ShieldCheck, Users, QrCode, LogIn
 } from 'lucide-react';
 
 export default function AdminLogin() {
@@ -254,72 +255,70 @@ export default function AdminLogin() {
       purposeText="Allows store owners to sign up, log in via SMS OTP or Password, and access customer loyalty telemetry."
       userGoalText="Store owners manage standees, QR scans, customer points, active vouchers and store profile."
     >
-      {/* Left Split-Screen: Crimson Gradient Brand Panel */}
-      <div className="md:w-5/12 bg-gradient-to-br from-red-600 via-red-700 to-rose-950 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl">
+      {/* Left Split-Screen: Crimson Gradient Brand Panel (Exact Match to Reference Image 1) */}
+      <div className="md:w-5/12 bg-gradient-to-br from-[#7b0309] via-[#980008] to-[#5a0004] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl">
         <div className="absolute inset-0 hero-dot-pattern opacity-30 pointer-events-none" />
 
         <div className="relative z-10">
-          {/* BeAurex Logo */}
-          <Link to="/" className="flex items-center space-x-2.5 mb-8 group inline-flex">
-            <img 
-              src="/beaurex-icon.jpg" 
-              alt="BeAurex" 
-              className="w-10 h-10 rounded-xl object-cover shadow-md border border-white/20 group-hover:scale-105 transition transform"
-            />
+          {/* BeAurex Logo Emblem */}
+          <Link to="/" className="flex items-center space-x-3 mb-8 group inline-flex">
+            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-md group-hover:scale-105 transition transform">
+              <QrCode className="w-7 h-7 text-[#8B0000]" />
+            </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight leading-none text-white">Be<span className="text-red-200">Aurex</span></span>
-              <span className="text-[10px] font-bold text-red-100 uppercase tracking-wider">Store Owner Hub</span>
+              <span className="text-2xl font-black tracking-tight leading-none text-white">BeAurex</span>
+              <span className="text-[10px] font-bold text-red-200 uppercase tracking-widest mt-1">Admin Panel</span>
             </div>
           </Link>
 
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-3 text-white">
-            {authMode === 'signin' ? 'Welcome Back!' : 'Start Growing Today!'}
+            {authMode === 'signin' ? 'Welcome Back!' : 'Create Account'}
           </h2>
-          <p className="text-red-100 text-xs sm:text-sm font-medium leading-relaxed mb-8">
+          <p className="text-red-100/90 text-xs sm:text-sm font-medium leading-relaxed mb-9">
             {authMode === 'signin' 
-              ? 'Access your BeAurex store dashboard and manage your customer loyalty engine.'
-              : 'Create your store account in seconds and launch customer retention campaigns.'}
+              ? 'Sign in to your BeAurex Admin Panel and manage your entire platform.'
+              : 'Create your store account in seconds and manage customer loyalty.'}
           </p>
 
-          {/* Feature Badges */}
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
-                <CheckCircle2 className="w-4 h-4 text-white" />
+          {/* Feature Badges with White Circular Icons (Image 1) */}
+          <div className="space-y-5">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
+                <ShieldCheck className="w-5 h-5 text-[#8B0000]" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm text-white">Quick OTP & Password Login</h4>
-                <p className="text-xs text-red-100/90 leading-tight">Instant access via 1-click SMS OTP or email password.</p>
+                <h4 className="font-extrabold text-sm text-white">Secure & Reliable</h4>
+                <p className="text-xs text-red-100/80 leading-tight">Enterprise-grade security to keep your data safe and protected.</p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
-                <BarChart3 className="w-4 h-4 text-white" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
+                <BarChart3 className="w-5 h-5 text-[#8B0000]" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm text-white">Live Customer Scans & CRM</h4>
-                <p className="text-xs text-red-100/90 leading-tight">Track repeat visits and counter engagement in real-time.</p>
+                <h4 className="font-extrabold text-sm text-white">Real-time Insights</h4>
+                <p className="text-xs text-red-100/80 leading-tight">Track platform performance and growth in real-time.</p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
-                <Sliders className="w-4 h-4 text-white" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
+                <Users className="w-5 h-5 text-[#8B0000]" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm text-white">Interactive Scratch & Stamp Cards</h4>
-                <p className="text-xs text-red-100/90 leading-tight">Reward shoppers with custom discount vouchers & counter PINs.</p>
+                <h4 className="font-extrabold text-sm text-white">Complete Control</h4>
+                <p className="text-xs text-red-100/80 leading-tight">Manage merchants, customers, plans, rewards, claims and more.</p>
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-xs flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
-                <Clock className="w-4 h-4 text-white" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
+                <Clock className="w-5 h-5 text-[#8B0000]" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm text-white">2-Day Free Trial Included</h4>
-                <p className="text-xs text-red-100/90 leading-tight">Zero setup fee. Get started immediately on your counter.</p>
+                <h4 className="font-extrabold text-sm text-white">Always Accessible</h4>
+                <p className="text-xs text-red-100/80 leading-tight">Access your dashboard anytime, anywhere with secure login.</p>
               </div>
             </div>
           </div>
@@ -331,21 +330,24 @@ export default function AdminLogin() {
         </div>
       </div>
 
-      {/* Right Split-Screen: Clean White Auth Card */}
+      {/* Right Split-Screen: Clean White Auth Card (Exact Match to Reference Image 1) */}
       <div className="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between bg-white overflow-y-auto">
         <div>
           
-          {/* Header Switcher: Sign In vs Sign Up */}
+          {/* Header Switcher & Logo Badge */}
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
             <div className="flex items-center space-x-2.5">
-              <img 
-                src="/beaurex-icon.jpg" 
-                alt="BeAurex" 
-                className="w-8 h-8 rounded-lg object-cover shadow-xs"
-              />
-              <span className="text-base font-black text-slate-900 leading-none">
-                Be<span className="text-red-600">Aurex</span>
-              </span>
+              <div className="w-9 h-9 rounded-xl bg-[#8B0000] flex items-center justify-center p-1.5 shadow-xs">
+                <QrCode className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base font-black text-slate-900 leading-none">
+                  BeAurex
+                </span>
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
+                  Admin Panel
+                </span>
+              </div>
             </div>
 
             <div className="flex rounded-xl bg-slate-100 p-1">
@@ -365,7 +367,7 @@ export default function AdminLogin() {
                 onClick={() => { setAuthMode('signup'); setError(''); setSuccessMsg(''); }}
                 className={`px-3.5 py-1.5 text-xs font-black rounded-lg transition cursor-pointer ${
                   authMode === 'signup'
-                    ? 'bg-red-600 text-white shadow-sm'
+                    ? 'bg-[#8B0000] text-white shadow-sm'
                     : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
@@ -375,12 +377,12 @@ export default function AdminLogin() {
           </div>
 
           <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-1">
-            {authMode === 'signin' ? 'Sign in to Store Hub' : 'Create New Store Account'}
+            {authMode === 'signin' ? 'Sign in to your account' : 'Create New Account'}
           </h3>
-          <p className="text-xs text-slate-400 font-medium mb-6">
+          <p className="text-xs text-slate-500 font-medium mb-6">
             {authMode === 'signin' 
-              ? 'Choose your preferred login method to continue' 
-              : 'Sign up now and start your 2-day free loyalty trial'}
+              ? 'Enter your credentials to continue' 
+              : 'Sign up now and start your free loyalty trial'}
           </p>
 
           {error && (
@@ -398,24 +400,12 @@ export default function AdminLogin() {
           )}
 
           {/* ========================================================= */}
-          {/* VIEW A: SIGN IN (OTP vs Password) */}
+          {/* VIEW A: SIGN IN (Image 1 Numbered Badges 1, 2, 3, 4, 5, 7) */}
           {/* ========================================================= */}
           {authMode === 'signin' && (
             <div>
-              {/* Method Switcher: Phone OTP vs Password */}
+              {/* Method Switcher: Password vs Phone OTP */}
               <div className="flex rounded-xl bg-slate-100 p-1 mb-5">
-                <button
-                  type="button"
-                  onClick={() => { setSignInMethod('otp'); setError(''); }}
-                  className={`flex-1 py-2 text-xs font-extrabold rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer ${
-                    signInMethod === 'otp'
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Phone Number OTP</span>
-                </button>
                 <button
                   type="button"
                   onClick={() => { setSignInMethod('password'); setError(''); }}
@@ -428,9 +418,162 @@ export default function AdminLogin() {
                   <Lock className="w-3.5 h-3.5" />
                   <span>Password Login</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => { setSignInMethod('otp'); setError(''); }}
+                  className={`flex-1 py-2 text-xs font-extrabold rounded-lg transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                    signInMethod === 'otp'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>Mobile OTP Login</span>
+                </button>
               </div>
 
-              {/* METHOD 1: PHONE NUMBER + OTP */}
+              {/* METHOD 1: PASSWORD LOGIN (With Numbered Steps matching Image 1) */}
+              {signInMethod === 'password' && (
+                <form onSubmit={handlePasswordLogin} className="space-y-4">
+                  {/* Step 1: Email Address */}
+                  <div className="flex items-start space-x-3">
+                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0 mt-2">
+                      1
+                    </span>
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Enter your email address"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:bg-white transition"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Mobile Number */}
+                  <div className="flex items-start space-x-3">
+                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0 mt-2">
+                      2
+                    </span>
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Mobile Number
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="tel"
+                          value={mobile}
+                          onChange={(e) => setMobile(e.target.value)}
+                          placeholder="Enter your mobile number"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:bg-white transition"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Password */}
+                  <div className="flex items-start space-x-3">
+                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0 mt-2">
+                      3
+                    </span>
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter your password"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:bg-white transition"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4 text-[#8B0000]" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 4: Remember me & Forgot Password */}
+                  <div className="flex items-center space-x-3 pt-1">
+                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0">
+                      4
+                    </span>
+                    <div className="flex-1 flex items-center justify-between text-xs">
+                      <label className="flex items-center space-x-2 cursor-pointer text-slate-600 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="rounded border-slate-300 text-[#8B0000] focus:ring-[#8B0000]"
+                        />
+                        <span>Remember me</span>
+                      </label>
+                      <Link to="/admin/forgot-password" className="text-[#8B0000] font-bold hover:underline">
+                        Forgot Password?
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Step 5: Primary Login Button */}
+                  <div className="flex items-center space-x-3 pt-2">
+                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0">
+                      5
+                    </span>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold py-3 rounded-xl shadow-lg shadow-red-900/20 transition transform hover:-translate-y-0.5 cursor-pointer text-xs flex items-center justify-center space-x-2"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span>{loading ? 'Authenticating...' : 'Login'}</span>
+                    </button>
+                  </div>
+
+                  {/* Divider: or */}
+                  <div className="relative py-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-white px-3 text-slate-400 font-medium">or</span>
+                    </div>
+                  </div>
+
+                  {/* Step 7: Secure Admin Access Outline Button */}
+                  <div className="flex items-center space-x-3">
+                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0">
+                      7
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/admin')}
+                      className="flex-1 border-2 border-[#8B0000] hover:bg-red-50/60 text-[#8B0000] font-extrabold py-3 rounded-xl transition cursor-pointer text-xs flex items-center justify-center space-x-2 shadow-xs"
+                    >
+                      <Shield className="w-4 h-4 text-[#8B0000]" />
+                      <span>Secure Admin Access</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* METHOD 2: PHONE NUMBER + OTP */}
               {signInMethod === 'otp' && (
                 <div>
                   {!otpSent ? (
@@ -450,7 +593,7 @@ export default function AdminLogin() {
                             value={mobile}
                             onChange={(e) => setMobile(e.target.value)}
                             placeholder="Enter 10-digit mobile number"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-bold transition"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 font-bold transition"
                           />
                         </div>
                         <p className="text-[11px] text-slate-400 mt-1">
@@ -461,7 +604,7 @@ export default function AdminLogin() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
+                        className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-900/20 transition transform hover:-translate-y-0.5 cursor-pointer text-xs flex items-center justify-center space-x-2"
                       >
                         <span>{loading ? 'Sending OTP...' : 'Get Instant OTP'}</span>
                         <ArrowRight className="w-4 h-4" />
@@ -477,7 +620,7 @@ export default function AdminLogin() {
                         <button
                           type="button"
                           onClick={() => setOtpSent(false)}
-                          className="text-red-600 font-bold hover:underline cursor-pointer text-xs"
+                          className="text-[#8B0000] font-bold hover:underline cursor-pointer text-xs"
                         >
                           Change Number
                         </button>
@@ -501,7 +644,7 @@ export default function AdminLogin() {
                           value={otp}
                           onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
                           placeholder="••••••"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center text-lg font-mono font-black tracking-widest text-slate-900 focus:outline-none focus:border-red-600 focus:bg-white transition"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center text-lg font-mono font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#8B0000] focus:bg-white transition"
                         />
                       </div>
 
@@ -512,7 +655,7 @@ export default function AdminLogin() {
                           <button
                             type="button"
                             onClick={handleSendOtp}
-                            className="text-red-600 font-bold hover:underline cursor-pointer"
+                            className="text-[#8B0000] font-bold hover:underline cursor-pointer"
                           >
                             Resend Code
                           </button>
@@ -523,7 +666,7 @@ export default function AdminLogin() {
                       <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-xs flex items-center justify-center space-x-2"
                       >
                         <Check className="w-4 h-4" />
                         <span>{loading ? 'Verifying OTP...' : 'Verify OTP & Enter Dashboard'}</span>
@@ -533,81 +676,13 @@ export default function AdminLogin() {
                 </div>
               )}
 
-              {/* METHOD 2: EMAIL / MOBILE + PASSWORD */}
-              {signInMethod === 'password' && (
-                <form onSubmit={handlePasswordLogin} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center space-x-1.5">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Email or Mobile Number</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="owner@royalsweets.com or 9876543210"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center space-x-1.5">
-                      <Lock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Password</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your store password"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 pr-10 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4 text-red-600" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <label className="flex items-center space-x-2 cursor-pointer text-slate-600 font-medium">
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="rounded border-slate-300 text-red-600 focus:ring-red-500"
-                      />
-                      <span>Remember me</span>
-                    </label>
-                    <Link to="/admin/forgot-password" className="text-red-600 font-bold hover:underline">
-                      Forgot Password?
-                    </Link>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
-                  >
-                    <span>{loading ? 'Authenticating...' : 'Sign In with Password'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-              )}
-
               {/* Bottom Switch to Sign Up */}
               <div className="text-center text-xs text-slate-500 pt-5 mt-5 border-t border-slate-100">
                 Don't have a store account?{' '}
                 <button
                   type="button"
                   onClick={() => { setAuthMode('signup'); setError(''); }}
-                  className="text-red-600 font-extrabold hover:underline cursor-pointer"
+                  className="text-[#8B0000] font-extrabold hover:underline cursor-pointer"
                 >
                   Create Store Account (Free)
                 </button>

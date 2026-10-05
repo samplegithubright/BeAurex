@@ -17,7 +17,11 @@ export default {
           700: '#b91c1c',
           800: '#991b1b',
           900: '#7f1d1d',
-          crimson: '#c8102e'
+          crimson: '#8B0000',
+          ruby: '#9E000D',
+          dark: '#5E0005',
+          wine: '#470003',
+          accent: '#c8102e'
         }
       },
       fontFamily: {

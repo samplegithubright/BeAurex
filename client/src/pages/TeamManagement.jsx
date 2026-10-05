@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import ActionConfirmModal from '../components/ActionConfirmModal';
 import { 
   LayoutDashboard, Share2, Users, Layers, CreditCard, Copy, Check, CheckCircle2, 
   Download, ExternalLink, QrCode, Printer, Search, Phone, Mail, MapPin, Sparkles, 
@@ -11,6 +12,30 @@ import {
 export default function TeamManagement() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [agentProfileModalOpen, setAgentProfileModalOpen] = useState(false);
+
+  // Global Action Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: 'Permission Required',
+    message: '',
+    confirmText: 'Yes, Proceed',
+    cancelText: 'Cancel',
+    type: 'warning',
+    onConfirm: () => {}
+  });
+
+  const requestConfirm = ({ title, message, confirmText = 'Yes, Proceed', cancelText = 'Cancel', type = 'warning', onConfirm }) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      confirmText,
+      cancelText,
+      type,
+      onConfirm
+    });
+  };
+
   // 5 required tabs: 'dashboard', 'referral_details', 'customer_manager', 'marketing_kit', 'id_card'
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -504,63 +529,71 @@ export default function TeamManagement() {
       return;
     }
 
-    const now = new Date();
-    const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    requestConfirm({
+      title: 'Permission Required: Add Merchant Lead',
+      message: `Are you sure you want to add "${quickCustomerForm.name}" (+91 ${quickCustomerForm.phone}) to your CRM customer pipeline?`,
+      confirmText: 'Yes, Add Lead',
+      type: 'primary',
+      onConfirm: () => {
+        const now = new Date();
+        const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    const newCustomer = {
-      id: 'crm_' + Date.now(),
-      name: quickCustomerForm.name,
-      phone: quickCustomerForm.phone,
-      businessType: quickCustomerForm.businessType,
-      approachedFor: quickCustomerForm.approachedFor,
-      followupMethod: quickCustomerForm.followupMethod,
-      status: quickCustomerForm.status,
-      source: quickCustomerForm.source || 'Direct',
-      email: quickCustomerForm.email || '—',
-      companyName: quickCustomerForm.companyName || '—',
-      website: quickCustomerForm.website || '—',
-      address: quickCustomerForm.address || '—',
-      lastUpdated: formattedDate,
-      followups: [
-        {
-          id: 'f_' + Date.now(),
-          dateTime: formattedDate,
-          method: quickCustomerForm.followupMethod,
+        const newCustomer = {
+          id: 'crm_' + Date.now(),
+          name: quickCustomerForm.name,
+          phone: quickCustomerForm.phone,
+          businessType: quickCustomerForm.businessType,
+          approachedFor: quickCustomerForm.approachedFor,
+          followupMethod: quickCustomerForm.followupMethod,
           status: quickCustomerForm.status,
-          comments: `Quick Add Customer - Approached for ${quickCustomerForm.approachedFor}`
-        }
-      ]
-    };
+          source: quickCustomerForm.source || 'Direct',
+          email: quickCustomerForm.email || '—',
+          companyName: quickCustomerForm.companyName || '—',
+          website: quickCustomerForm.website || '—',
+          address: quickCustomerForm.address || '—',
+          lastUpdated: formattedDate,
+          followups: [
+            {
+              id: 'f_' + Date.now(),
+              dateTime: formattedDate,
+              method: quickCustomerForm.followupMethod,
+              status: quickCustomerForm.status,
+              comments: `Quick Add Customer - Approached for ${quickCustomerForm.approachedFor}`
+            }
+          ]
+        };
 
-    const updated = [newCustomer, ...crmCustomers];
-    setCrmCustomers(updated);
-    try {
-      localStorage.setItem(`beaurex_team_crm_${agentKey}`, JSON.stringify(updated));
-      localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updated));
-    } catch (e) {}
+        const updated = [newCustomer, ...crmCustomers];
+        setCrmCustomers(updated);
+        try {
+          localStorage.setItem(`beaurex_team_crm_${agentKey}`, JSON.stringify(updated));
+          localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updated));
+        } catch (e) {}
 
-    // Send to backend database
-    fetch('/api/admin/crm/customers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(quickCustomerForm)
-    }).catch(() => {});
+        // Send to backend database
+        fetch('/api/admin/crm/customers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(quickCustomerForm)
+        }).catch(() => {});
 
-    setShowAddCustomerModal(false);
-    setQuickCustomerForm({
-      name: '',
-      phone: '',
-      businessType: 'Retail',
-      approachedFor: 'MW Sales',
-      followupMethod: 'Call',
-      status: 'Followup required',
-      companyName: '',
-      website: '',
-      address: '',
-      email: '',
-      source: 'Direct'
+        setShowAddCustomerModal(false);
+        setQuickCustomerForm({
+          name: '',
+          phone: '',
+          businessType: 'Retail',
+          approachedFor: 'MW Sales',
+          followupMethod: 'Call',
+          status: 'Followup required',
+          companyName: '',
+          website: '',
+          address: '',
+          email: '',
+          source: 'Direct'
+        });
+        setShowAdditionalDetails(false);
+      }
     });
-    setShowAdditionalDetails(false);
   };
 
   // Open Followup Modal (Image 4)
@@ -581,47 +614,63 @@ export default function TeamManagement() {
     e.preventDefault();
     if (!selectedCustomerForFollowup) return;
 
-    const newFollowup = {
-      id: 'f_' + Date.now(),
-      dateTime: followupForm.dateTime || new Date().toLocaleString(),
-      method: followupForm.method,
-      status: followupForm.status,
-      comments: followupForm.comments || '—'
-    };
-
-    const updatedList = crmCustomers.map(c => {
-      if (c.id === selectedCustomerForFollowup.id) {
-        return {
-          ...c,
+    requestConfirm({
+      title: 'Permission Required: Log CRM Follow-up',
+      message: `Are you sure you want to record this ${followupForm.method} follow-up for "${selectedCustomerForFollowup.name}" with status "${followupForm.status}"?`,
+      confirmText: 'Yes, Save Follow-up',
+      type: 'primary',
+      onConfirm: () => {
+        const newFollowup = {
+          id: 'f_' + Date.now(),
+          dateTime: followupForm.dateTime || new Date().toLocaleString(),
+          method: followupForm.method,
           status: followupForm.status,
-          followupMethod: followupForm.method,
-          lastUpdated: newFollowup.dateTime,
-          followups: [newFollowup, ...(c.followups || [])]
+          comments: followupForm.comments || '—'
         };
+
+        const updatedList = crmCustomers.map(c => {
+          if (c.id === selectedCustomerForFollowup.id) {
+            return {
+              ...c,
+              status: followupForm.status,
+              followupMethod: followupForm.method,
+              lastUpdated: newFollowup.dateTime,
+              followups: [newFollowup, ...(c.followups || [])]
+            };
+          }
+          return c;
+        });
+
+        setCrmCustomers(updatedList);
+        try {
+          localStorage.setItem(`beaurex_team_crm_${agentKey}`, JSON.stringify(updatedList));
+          localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updatedList));
+        } catch (e) {}
+
+        fetch(`/api/admin/crm/customers/${selectedCustomerForFollowup.id}/followups`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(followupForm)
+        }).catch(() => {});
+
+        setSelectedCustomerForFollowup(null);
       }
-      return c;
     });
-
-    setCrmCustomers(updatedList);
-    try {
-      localStorage.setItem(`beaurex_team_crm_${agentKey}`, JSON.stringify(updatedList));
-      localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updatedList));
-    } catch (e) {}
-
-    fetch(`/api/admin/crm/customers/${selectedCustomerForFollowup.id}/followups`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(followupForm)
-    }).catch(() => {});
-
-    setSelectedCustomerForFollowup(null);
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('beaurex_team_auth');
-    sessionStorage.removeItem('beaurex_team_user');
-    sessionStorage.removeItem('beaurex_team_profile');
-    window.location.reload();
+    requestConfirm({
+      title: 'Permission Required: Log Out Agent Session',
+      message: 'Are you sure you want to log out of your Team Agent account session?',
+      confirmText: 'Yes, Log Out',
+      type: 'danger',
+      onConfirm: () => {
+        sessionStorage.removeItem('beaurex_team_auth');
+        sessionStorage.removeItem('beaurex_team_user');
+        sessionStorage.removeItem('beaurex_team_profile');
+        window.location.reload();
+      }
+    });
   };
 
   // 5 exact navigation tabs requested by user
@@ -941,7 +990,7 @@ export default function TeamManagement() {
         {/* ========================================================= */}
         {/* MAIN WORKSPACE CONTENT AREA (Only right side scrolls) */}
         {/* ========================================================= */}
-        <div className="flex-1 md:ml-72 flex flex-col min-w-0 h-screen overflow-y-auto">
+        <div className="flex-1 md:ml-72 flex flex-col min-w-0 min-h-0 h-full md:h-screen overflow-y-auto">
           
 
           {/* Main Content Area */}
@@ -1248,7 +1297,7 @@ export default function TeamManagement() {
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse">
+                      <table className="w-full min-w-[750px] text-left text-xs border-collapse">
                         <thead>
                           <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-bold">
                             <th className="py-3 px-4">Store & Owner</th>
@@ -1292,8 +1341,8 @@ export default function TeamManagement() {
 
                 {/* Modal: Onboard Store Referral */}
                 {showAddStoreModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-200">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-200 my-auto">
                       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                         <div className="flex items-center space-x-2.5">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#74111d] to-[#851421] text-white flex items-center justify-center shadow-xs">
@@ -1464,7 +1513,7 @@ export default function TeamManagement() {
                 {/* Customer Tracker Table (Matching Image 2 columns) */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                    <table className="w-full min-w-[1000px] text-left text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] font-bold select-none">
                           <th className="py-3 px-4 uppercase">Approached For</th>
@@ -1974,8 +2023,8 @@ export default function TeamManagement() {
                             <span>Previous Followups</span>
                           </div>
 
-                          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                            <table className="w-full text-left text-xs border-collapse">
+                          <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs">
+                            <table className="w-full min-w-[500px] text-left text-xs border-collapse">
                               <thead>
                                 <tr className="bg-red-600 text-white font-bold text-[11px]">
                                   <th className="py-2.5 px-3">Date & Time</th>
@@ -2324,13 +2373,13 @@ export default function TeamManagement() {
         {/* AGENT PROFILE MODAL */}
         {/* ========================================================= */}
         {agentProfileModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
             <div 
               className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
               onClick={() => setAgentProfileModalOpen(false)}
             />
 
-            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200 border border-slate-200">
+            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200 border border-slate-200 my-auto">
               
               {/* Top Bar */}
               <div className="p-4 border-b border-slate-100 flex items-center justify-between">
@@ -2417,6 +2466,18 @@ export default function TeamManagement() {
             </div>
           </div>
         )}
+
+        {/* Global Action Confirmation Modal */}
+        <ActionConfirmModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          cancelText={confirmModal.cancelText}
+          type={confirmModal.type}
+          onConfirm={confirmModal.onConfirm}
+          onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        />
 
       </div>
   );

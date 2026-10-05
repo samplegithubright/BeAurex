@@ -444,6 +444,52 @@ const systemStore = {
     }
 
     return memoryConfig.customApiKeys;
+  },
+
+  // Helper to determine if Razorpay has real user credentials configured
+  isRazorpayConfigured(cfg) {
+    const keyId = (cfg && cfg.razorpayKeyId) || process.env.RAZORPAY_KEY_ID || '';
+    const keySecret = (cfg && cfg.razorpayKeySecret) || process.env.RAZORPAY_KEY_SECRET || '';
+    const isDummy = keyId === 'rzp_live_9a8B7c6D5e4F3g' || keyId.startsWith('rzp_live_9a8B7c');
+    return Boolean(keyId && keySecret && !isDummy && keyId.length >= 10);
+  },
+
+  // Helper to determine if SMS gateway has real credentials configured
+  isSmsConfigured(cfg) {
+    const apiKey = (cfg && cfg.smsApiKey) || process.env.FAST2SMS_API_KEY || process.env.MSG91_AUTH_KEY || '';
+    const isDummy = apiKey === 'sms_live_key_9182736450';
+    const hasTwilio = Boolean(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN);
+    return Boolean((apiKey && !isDummy && apiKey.length >= 8) || hasTwilio);
+  },
+
+  // Helper to determine if SMTP has real credentials configured
+  isSmtpConfigured(cfg) {
+    const host = (cfg && cfg.smtpHost) || process.env.SMTP_HOST || '';
+    const user = (cfg && cfg.smtpUser) || process.env.SMTP_USER || '';
+    const emailKey = (cfg && cfg.emailApiKey) || process.env.RESEND_API_KEY || '';
+    const isDummyKey = emailKey === 're_live_9a8B7c6D5e4F3g2H1';
+    return Boolean((host && user) || (emailKey && !isDummyKey && emailKey.length >= 10));
+  },
+
+  // Gateway status summary for frontend checks
+  async getGatewayStatus() {
+    const cfg = await this.getConfig();
+    return {
+      razorpay: {
+        isConfigured: this.isRazorpayConfigured(cfg),
+        mode: cfg.razorpayMode || 'LIVE',
+        keyId: this.isRazorpayConfigured(cfg) ? cfg.razorpayKeyId : null
+      },
+      sms: {
+        isConfigured: this.isSmsConfigured(cfg),
+        provider: cfg.smsProvider || 'FAST2SMS'
+      },
+      smtp: {
+        isConfigured: this.isSmtpConfigured(cfg),
+        host: cfg.smtpHost || null,
+        provider: cfg.emailProvider || 'SMTP'
+      }
+    };
   }
 };
 

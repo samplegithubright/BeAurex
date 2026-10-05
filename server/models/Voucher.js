@@ -21,6 +21,14 @@ const voucherSchema = new mongoose.Schema({
     ref: 'Customer',
     required: true
   },
+  customerName: {
+    type: String,
+    default: 'Customer'
+  },
+  customerMobile: {
+    type: String,
+    default: ''
+  },
   rewardId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Reward',

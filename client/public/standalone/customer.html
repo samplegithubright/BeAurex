@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoyalQR - Customer Rewards & Scratch Card</title>
+    <title>BeAurex - Customer Rewards & Scratch Card</title>
     <!-- Tailwind CSS v4 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,7 +34,7 @@
         <div class="max-w-md mx-auto flex items-center justify-between">
             <a href="index.html" class="flex items-center space-x-2">
                 <div class="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center font-black text-white text-xs">Q</div>
-                <span class="font-black text-base tracking-tight">Loyal<span class="text-red-500">QR</span> Rewards</span>
+                <span class="font-black text-base tracking-tight">BeAurex Rewards</span>
             </a>
             <div class="flex items-center space-x-2">
                 <a href="merchant.html" class="text-xs text-slate-400 hover:text-white bg-slate-800 px-2.5 py-1 rounded-md transition font-semibold">Store Panel</a>
@@ -56,7 +56,7 @@
                         <h1 class="text-sm font-black tracking-tight" id="storeNameHeader">Royal Sweets & Cafe</h1>
                         <p class="text-[10px] text-emerald-400 font-bold flex items-center">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>
-                            Verified LoyalQR Counter
+                            Verified BeAurex Counter
                         </p>
                     </div>
                 </div>
@@ -140,7 +140,7 @@
                         <div id="prizeCard" class="absolute inset-0 bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 p-5 flex flex-col items-center justify-between text-slate-950">
                             <div class="w-full flex justify-between items-center text-[10px] font-black uppercase tracking-wider text-amber-950/80">
                                 <span>🎉 Special Reward</span>
-                                <span>LoyalQR</span>
+                                <span>BeAurex</span>
                             </div>
 
                             <div class="my-auto">
@@ -271,7 +271,7 @@
 
             <!-- Bottom Brand Bar -->
             <div class="bg-slate-950 text-slate-400 py-3 px-4 text-center text-[10px] border-t border-slate-800 flex items-center justify-between">
-                <span>⚡ Powered by <strong>LoyalQR</strong></span>
+                <span>⚡ Powered by <strong>BeAurex</strong></span>
                 <span>Protected by Customer Privacy Protocol</span>
             </div>
         </div>
@@ -279,7 +279,7 @@
 
     <!-- Footer -->
     <footer class="bg-slate-950 text-slate-400 text-xs py-4 text-center border-t border-slate-800">
-        <a href="index.html" class="hover:text-white transition font-medium">← Return to LoyalQR Home</a>
+        <a href="index.html" class="hover:text-white transition font-medium">← Return to BeAurex Home</a>
     </footer>
 
     <script>
@@ -444,7 +444,7 @@
 
         // Custom Store Name if set in session
         window.addEventListener('DOMContentLoaded', () => {
-            const saved = sessionStorage.getItem('loyalqr_biz');
+            const saved = sessionStorage.getItem('beaurex_biz');
             if(saved) {
                 document.getElementById('storeNameHeader').innerText = saved;
             }

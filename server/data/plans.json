@@ -23,9 +23,9 @@
     "showOnLandingPage": true,
     "isActive": true,
     "displayOrder": 1,
-    "__v": 0,
     "createdAt": "2026-10-04T13:13:58.716Z",
-    "updatedAt": "2026-10-04T13:13:58.716Z"
+    "updatedAt": "2026-10-04T13:13:58.716Z",
+    "__v": 0
   },
   {
     "_id": "6ac25116aabba80e721b7977",
@@ -52,9 +52,9 @@
     "showOnLandingPage": true,
     "isActive": true,
     "displayOrder": 2,
-    "__v": 0,
     "createdAt": "2026-10-04T13:13:58.717Z",
-    "updatedAt": "2026-10-04T13:13:58.717Z"
+    "updatedAt": "2026-10-04T13:13:58.717Z",
+    "__v": 0
   },
   {
     "_id": "6ac25116aabba80e721b7978",
@@ -81,8 +81,8 @@
     "showOnLandingPage": true,
     "isActive": true,
     "displayOrder": 3,
-    "__v": 0,
     "createdAt": "2026-10-04T13:13:58.717Z",
-    "updatedAt": "2026-10-04T13:13:58.717Z"
+    "updatedAt": "2026-10-04T13:13:58.717Z",
+    "__v": 0
   }
 ]

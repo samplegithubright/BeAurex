@@ -35,7 +35,7 @@ export default function BrowserFrame({ children }) {
 
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8 my-4 sm:my-8">
-        <div className="max-w-5xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col md:flex-row min-h-[580px]">
+        <div className="max-w-5xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col md:flex-row min-h-0 md:min-h-[580px]">
           {children}
         </div>
       </main>
