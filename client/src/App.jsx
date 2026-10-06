@@ -31,8 +31,12 @@ export default function App() {
           />
 
           {/* Admin & Merchant Auth Wireframe Screens */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/merchant/login" element={<AdminLogin />} />
+          <Route path="/admin/login" element={<AdminLogin initialMode="signin" />} />
+          <Route path="/merchant/login" element={<AdminLogin initialMode="signin" />} />
+          <Route path="/admin/signup" element={<AdminLogin initialMode="signup" />} />
+          <Route path="/merchant/signup" element={<AdminLogin initialMode="signup" />} />
+          <Route path="/signup" element={<AdminLogin initialMode="signup" />} />
+          <Route path="/merchant/register" element={<AdminLogin initialMode="signup" />} />
           <Route path="/admin/forgot-password" element={<ForgotPassword />} />
           <Route path="/merchant/forgot-password" element={<ForgotPassword />} />
           <Route path="/admin/verify-otp" element={<VerifyOtp />} />

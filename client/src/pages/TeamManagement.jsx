@@ -8,7 +8,7 @@ import {
   Store, Award, Plus, Calendar, AlertCircle, LogOut, User, Building2, Globe, Save,
   History, RotateCcw, MessageSquare, ChevronDown, ChevronUp, Camera, Upload, Trash2,
   Eye, Folder, Video, Play, File, Edit3, Image as ImageIcon, Briefcase, Megaphone, Handshake,
-  ArrowLeft, MoreVertical, Film, CheckCircle
+  ArrowLeft, MoreVertical, Film, CheckCircle, Gift
 } from 'lucide-react';
 
 export default function TeamManagement() {

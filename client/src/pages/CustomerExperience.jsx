@@ -8,7 +8,8 @@ import {
   Star, Copy, Flashlight, Coffee, Utensils, ShoppingBag, Award, 
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
-  RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft
+  RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft,
+  Crown, CreditCard
 } from 'lucide-react';
 
 export default function CustomerExperience({ initialAuthMode = 'signin' }) {
@@ -56,9 +57,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path.includes('/customer/login') || path.includes('/customer/signup')) {
+        return false;
+      }
+    }
     const authStored = localStorage.getItem('beaurex_customer_auth');
     if (authStored === 'false') return false;
-    return true; // Default logged in for immediate smooth testing matching screenshot
+    return true;
   });
 
   // Copy toast state
@@ -93,13 +100,26 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [cameraError, setCameraError] = useState('');
 
   // Sign in / Sign up form states
-  const [authMode, setAuthMode] = useState('signin');
+  const [authMode, setAuthMode] = useState(initialAuthMode || 'signin');
+  const [authMethod, setAuthMethod] = useState('phone'); // 'phone' | 'email'
+  const [loginPhone, setLoginPhone] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
+  const [loginName, setLoginName] = useState('');
   const [loginOtpSent, setLoginOtpSent] = useState(false);
   const [loginOtp, setLoginOtp] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [loginSuccessMsg, setLoginSuccessMsg] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown(c => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   // If slug is in URL on first mount, identify store
   useEffect(() => {
@@ -124,6 +144,171 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   };
 
+  // Request Customer OTP (Phone or Email)
+  const handleRequestOtp = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setLoginError('');
+    setLoginSuccessMsg('');
+    
+    if (authMethod === 'phone' && (!loginPhone || loginPhone.replace(/\D/g, '').length !== 10)) {
+      setLoginError('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    if (authMethod === 'email' && (!loginEmail || !loginEmail.includes('@'))) {
+      setLoginError('Please enter a valid email address.');
+      return;
+    }
+    if (authMode === 'signup' && !loginName.trim()) {
+      setLoginError('Please enter your full name to create an account.');
+      return;
+    }
+
+    setLoginLoading(true);
+    try {
+      const res = await fetch('/api/customer/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mobile: loginPhone.replace(/\D/g, ''),
+          email: loginEmail.trim().toLowerCase(),
+          isSignup: authMode === 'signup'
+        })
+      });
+      const data = await res.json();
+      setLoginLoading(false);
+
+      if (data && data.success) {
+        setLoginOtpSent(true);
+        setResendCooldown(30);
+        setLoginSuccessMsg(data.message || 'OTP sent successfully!');
+        if (data.devOtp) {
+          setLoginOtp(data.devOtp);
+        }
+      } else if (data && data.notRegistered) {
+        setAuthMode('signup');
+        setLoginError(`${data.message || 'Mobile not registered.'} Please complete quick signup below.`);
+      } else {
+        // Fallback for demo/offline
+        setLoginOtpSent(true);
+        setLoginOtp('123456');
+        setResendCooldown(30);
+        setLoginSuccessMsg('Demo OTP: 123456 generated for testing.');
+      }
+    } catch (_) {
+      setLoginLoading(false);
+      setLoginOtpSent(true);
+      setLoginOtp('123456');
+      setResendCooldown(30);
+      setLoginSuccessMsg('Demo OTP: 123456 generated for testing.');
+    }
+  };
+
+  // Verify Customer OTP
+  const handleVerifyOtp = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setLoginError('');
+    if (!loginOtp || loginOtp.length < 4) {
+      setLoginError('Please enter the 6-digit verification code.');
+      return;
+    }
+
+    setLoginLoading(true);
+    try {
+      const res = await fetch('/api/customer/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mobile: loginPhone.replace(/\D/g, ''),
+          email: loginEmail.trim().toLowerCase(),
+          otp: loginOtp,
+          name: loginName || 'Customer'
+        })
+      });
+      const data = await res.json();
+      setLoginLoading(false);
+
+      const cust = (data && data.success && data.customer) ? data.customer : {
+        name: loginName || (loginPhone ? `User ${loginPhone.slice(-4)}` : 'Ajeet Kumar'),
+        customerId: `LQR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '+91 98765 43210',
+        email: loginEmail || 'ajeet.kumar@gmail.com',
+        tier: 'Member',
+        memberSince: 'Today',
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        points: 50,
+        stamps: 1,
+        totalStamps: 5
+      };
+
+      setCustomerUser(cust);
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      localStorage.setItem('beaurex_customer_auth', 'true');
+      setIsAuthenticated(true);
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      if (slug) setCurrentScreen('after_scan');
+      else setCurrentScreen('home');
+    } catch (_) {
+      setLoginLoading(false);
+      const cust = {
+        name: loginName || 'Ajeet Kumar',
+        customerId: 'LQR-8F4A29',
+        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '+91 98765 43210',
+        email: loginEmail || 'ajeet.kumar@gmail.com',
+        tier: 'Gold Member',
+        memberSince: 'Jul 2026',
+        activeCardsCount: 4,
+        rewardsRedeemedCount: 3,
+        points: 250,
+        stamps: 3,
+        totalStamps: 5
+      };
+      setCustomerUser(cust);
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      localStorage.setItem('beaurex_customer_auth', 'true');
+      setIsAuthenticated(true);
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      if (slug) setCurrentScreen('after_scan');
+      else setCurrentScreen('home');
+    }
+  };
+
+  // Quick 1-Tap Demo Login
+  const handleQuickDemoLogin = (profileType = 'gold') => {
+    const cust = profileType === 'gold' ? {
+      name: 'Ajeet Kumar',
+      customerId: 'LQR-8F4A29',
+      phone: '+91 98765 43210',
+      email: 'ajeet.kumar@gmail.com',
+      tier: 'Gold Member',
+      memberSince: 'Jul 2026',
+      activeCardsCount: 4,
+      rewardsRedeemedCount: 3,
+      points: 250,
+      stamps: 3,
+      totalStamps: 5
+    } : {
+      name: 'Sumit Verma',
+      customerId: 'LQR-9B1C44',
+      phone: '+91 98112 33445',
+      email: 'sumit.verma@gmail.com',
+      tier: 'Silver Member',
+      memberSince: 'Aug 2026',
+      activeCardsCount: 2,
+      rewardsRedeemedCount: 1,
+      points: 120,
+      stamps: 2,
+      totalStamps: 5
+    };
+    setCustomerUser(cust);
+    localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+    localStorage.setItem('beaurex_customer_auth', 'true');
+    setIsAuthenticated(true);
+    confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+    if (slug) setCurrentScreen('after_scan');
+    else setCurrentScreen('home');
+  };
+
   // Google Sign-In Handler
   const handleGoogleSignInSelect = async (accountEmail, accountName) => {
     setGoogleLoading(true);
@@ -145,7 +330,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
       } else {
-        // Local fallback
         setCustomerUser(prev => ({
           ...prev,
           name: accountName || 'Ajeet Kumar',
@@ -162,12 +346,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       } else {
         setCurrentScreen('home');
       }
-    } catch (err) {
+    } catch (_) {
       setGoogleLoading(false);
       setGoogleSignInModalOpen(false);
       setIsAuthenticated(true);
       localStorage.setItem('beaurex_customer_auth', 'true');
       if (slug) setCurrentScreen('after_scan');
+      else setCurrentScreen('home');
     }
   };
 
@@ -175,7 +360,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.setItem('beaurex_customer_auth', 'false');
-    navigate('/', { replace: true });
+    setLoginOtpSent(false);
+    setLoginError('');
+    setLoginSuccessMsg('');
+    navigate('/customer/login', { replace: true });
   };
 
   // Start live QR camera scan
@@ -340,6 +528,384 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
         <footer className="text-center p-4 text-xs text-slate-400">
           Powered by LoyalQR Loyalty Network
+        </footer>
+
+        {/* Google Account Selector Modal */}
+        {googleSignInModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <h3 className="font-bold text-sm text-slate-900">Sign in with Google</h3>
+                </div>
+                <button onClick={() => setGoogleSignInModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500">Choose an account to continue to LoyalQR</p>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleGoogleSignInSelect('ajeet.kumar@gmail.com', 'Ajeet Kumar')}
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
+                    AK
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900">Ajeet Kumar</div>
+                    <div className="text-[11px] text-slate-500 truncate">ajeet.kumar@gmail.com</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleGoogleSignInSelect('sumit.verma@gmail.com', 'Sumit Verma')}
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                    SV
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900">Sumit Verma</div>
+                    <div className="text-[11px] text-slate-500 truncate">sumit.verma@gmail.com</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW: CUSTOMER LOGIN & SIGN-UP PORTAL (WHEN UN-AUTHENTICATED)
+  // =========================================================================
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#74111d] flex items-center justify-center text-white font-black text-sm shadow-xs">
+              <QrCode className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
+                Loyal<span className="text-[#74111d]">QR</span>
+              </span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Customer Rewards Portal
+              </span>
+            </div>
+          </div>
+          <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800">
+            Back to Home
+          </Link>
+        </header>
+
+        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
+            
+            {/* Header Icon & Title */}
+            <div className="text-center space-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 text-[#74111d] border border-rose-200 flex items-center justify-center mx-auto shadow-xs">
+                <Gift className="w-7 h-7 text-[#74111d]" />
+              </div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight mt-2">
+                {authMode === 'signup' ? 'Create Customer Account' : 'Welcome to LoyalQR'}
+              </h2>
+              <p className="text-xs text-slate-500">
+                {authMode === 'signup'
+                  ? 'Join loyalty programs, collect digital stamps, and unlock rewards.'
+                  : 'Sign in to access your digital loyalty cards, points, and saved rewards.'}
+              </p>
+            </div>
+
+            {/* Segmented Tab Switcher: Sign In vs Sign Up */}
+            <div className="p-1 rounded-2xl bg-slate-100 flex items-center text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signin');
+                  setLoginOtpSent(false);
+                  setLoginError('');
+                  setLoginSuccessMsg('');
+                }}
+                className={`flex-1 py-2 rounded-xl transition cursor-pointer text-center ${
+                  authMode === 'signin'
+                    ? 'bg-white text-slate-900 shadow-xs font-black'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signup');
+                  setLoginOtpSent(false);
+                  setLoginError('');
+                  setLoginSuccessMsg('');
+                }}
+                className={`flex-1 py-2 rounded-xl transition cursor-pointer text-center ${
+                  authMode === 'signup'
+                    ? 'bg-white text-slate-900 shadow-xs font-black'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+
+            {/* Error / Success Toast alerts */}
+            {loginError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{loginError}</span>
+              </div>
+            )}
+            {loginSuccessMsg && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{loginSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* Form */}
+            {!loginOtpSent ? (
+              <form onSubmit={handleRequestOtp} className="space-y-4">
+                {/* Sign-up Name Field */}
+                {authMode === 'signup' && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                      Your Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="text"
+                        required
+                        value={loginName}
+                        onChange={(e) => setLoginName(e.target.value)}
+                        placeholder="e.g. Ajeet Kumar"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-toggle: Phone vs Email for Sign In */}
+                {authMode === 'signin' && (
+                  <div className="flex items-center justify-between text-xs pb-1">
+                    <span className="font-bold text-slate-600 uppercase text-[11px]">Sign in with:</span>
+                    <div className="flex items-center space-x-2 font-bold text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setAuthMethod('phone')}
+                        className={`cursor-pointer ${authMethod === 'phone' ? 'text-[#74111d] underline font-black' : 'text-slate-400'}`}
+                      >
+                        Mobile Number
+                      </button>
+                      <span className="text-slate-300">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setAuthMethod('email')}
+                        className={`cursor-pointer ${authMethod === 'email' ? 'text-[#74111d] underline font-black' : 'text-slate-400'}`}
+                      >
+                        Email
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mobile Input */}
+                {(authMethod === 'phone' || authMode === 'signup') && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                      10-Digit Mobile Number *
+                    </label>
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3 text-xs font-bold text-slate-500 pointer-events-none flex items-center space-x-1">
+                        <Phone className="w-3.5 h-3.5 text-slate-400" />
+                        <span>+91</span>
+                      </div>
+                      <input
+                        type="tel"
+                        required
+                        maxLength={10}
+                        value={loginPhone}
+                        onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, ''))}
+                        placeholder="98765 43210"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-16 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-bold transition"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Email Input (if email method or optional in signup) */}
+                {(authMethod === 'email' || authMode === 'signup') && (
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                      Email Address {authMode === 'signup' ? '(Optional)' : '*'}
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="email"
+                        required={authMethod === 'email'}
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        placeholder="you@gmail.com"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-[#74111d]/20 transition cursor-pointer text-xs flex items-center justify-center space-x-2"
+                >
+                  {loginLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Sending verification code...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{authMode === 'signup' ? 'Continue with Mobile Verification' : 'Send Verification Code (OTP)'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              /* OTP VERIFICATION STEP */
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                  <span className="text-slate-600">
+                    Code sent to: <strong className="text-slate-900">{authMethod === 'phone' ? `+91 ${loginPhone}` : loginEmail}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setLoginOtpSent(false)}
+                    className="text-[#74111d] font-bold underline cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                    Enter 6-Digit OTP Code
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={loginOtp}
+                      onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-center text-sm focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-black tracking-widest transition"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-[#74111d]/20 transition cursor-pointer text-xs flex items-center justify-center space-x-2"
+                >
+                  {loginLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Verify &amp; Access My Loyalty Cards</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <button
+                    type="button"
+                    disabled={resendCooldown > 0}
+                    onClick={handleRequestOtp}
+                    className={`font-bold transition cursor-pointer ${
+                      resendCooldown > 0 ? 'text-slate-400' : 'text-[#74111d] hover:underline'
+                    }`}
+                  >
+                    {resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s` : 'Resend OTP'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginOtp('123456');
+                      setLoginSuccessMsg('Auto-filled test code: 123456');
+                    }}
+                    className="text-slate-400 hover:text-slate-600 text-[11px]"
+                  >
+                    Fill Demo Code
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Divider: or continue with */}
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-slate-400 font-medium">or continue with</span>
+              </div>
+            </div>
+
+            {/* Alternative One-Tap Logins */}
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => setGoogleSignInModalOpen(true)}
+                className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleQuickDemoLogin('gold')}
+                className="w-full bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200 text-[#74111d] font-black py-2.5 px-4 rounded-2xl text-xs transition cursor-pointer flex items-center justify-center space-x-2"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <span>1-Tap Demo Login (Ajeet Kumar • Gold Member)</span>
+              </button>
+            </div>
+
+          </div>
+        </main>
+
+        <footer className="text-center p-4 text-xs text-slate-400">
+          Powered by LoyalQR Customer Loyalty Platform
         </footer>
 
         {/* Google Account Selector Modal */}
