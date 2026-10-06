@@ -25,7 +25,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'sans-serif']
+        sans: ['"Poppins"', 'sans-serif'],
+        poppins: ['"Poppins"', 'sans-serif']
       }
     },
   },

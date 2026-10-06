@@ -23,11 +23,14 @@ export default function ForgotPassword() {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, mobile })
+        body: JSON.stringify({ email: email.trim().toLowerCase(), mobile: mobile.trim() })
       });
       const data = await res.json();
       if (data.success) {
-        sessionStorage.setItem('reset_mobile', data.mobile || mobile);
+        sessionStorage.setItem('reset_email', data.email || email.trim().toLowerCase());
+        if (data.mobile || mobile) {
+          sessionStorage.setItem('reset_mobile', data.mobile || mobile.trim());
+        }
         navigate('/admin/verify-otp');
       } else {
         setError(data.message || 'Store account not found.');
@@ -81,7 +84,7 @@ export default function ForgotPassword() {
                 <Lock className="w-5 h-5" />
               </div>
             </div>
-            <div className="text-xs font-black text-white uppercase tracking-wider">SMS OTP Protocol</div>
+            <div className="text-xs font-black text-white uppercase tracking-wider">Email OTP Protocol</div>
             <p className="text-[11px] text-red-100 mt-1">10-minute temporary verification token</p>
           </div>
         </div>
@@ -103,7 +106,7 @@ export default function ForgotPassword() {
             Forgot Password
           </h3>
           <p className="text-xs text-slate-500 font-medium mb-6 text-center sm:text-left leading-relaxed">
-            Enter your registered email address and mobile number. We'll send you a One Time Password (OTP) to reset your password.
+            Enter your registered email address. We'll send you a One Time Password (OTP) to reset your password.
           </p>
 
           {error && (
@@ -117,7 +120,7 @@ export default function ForgotPassword() {
             <div>
               <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center space-x-1.5">
                 <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                <span>Email Address</span>
+                <span>Registered Email Address</span>
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -134,11 +137,11 @@ export default function ForgotPassword() {
               </div>
             </div>
 
-            {/* Field 2: Mobile Number */}
+            {/* Field 2: Mobile Number (Optional) */}
             <div>
               <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center space-x-1.5">
-                <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                <span>Mobile Number</span>
+                <span className="w-4 h-4 rounded-full bg-slate-300 text-slate-700 text-[10px] flex items-center justify-center font-bold">2</span>
+                <span>Mobile Number <span className="text-slate-400 font-normal normal-case">(Optional)</span></span>
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -146,11 +149,9 @@ export default function ForgotPassword() {
                 </span>
                 <input
                   type="tel"
-                  required
-                  pattern="[6-9][0-9]{9}"
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  placeholder="Enter your registered mobile number"
+                  placeholder="Enter your mobile number (optional)"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition"
                 />
               </div>

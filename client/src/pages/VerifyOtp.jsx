@@ -6,6 +6,7 @@ import { ShieldCheck, ArrowLeft, Mail, CheckCircle2, Clock, Shield } from 'lucid
 export default function VerifyOtp() {
   const navigate = useNavigate();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [email, setEmail] = useState(() => sessionStorage.getItem('reset_email') || '');
   const [mobile, setMobile] = useState(() => sessionStorage.getItem('reset_mobile') || '');
   const [countdown, setCountdown] = useState(60);
   const [loading, setLoading] = useState(false);
@@ -13,8 +14,10 @@ export default function VerifyOtp() {
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    const saved = sessionStorage.getItem('reset_mobile');
-    if (saved) setMobile(saved);
+    const savedEmail = sessionStorage.getItem('reset_email');
+    if (savedEmail) setEmail(savedEmail);
+    const savedMobile = sessionStorage.getItem('reset_mobile');
+    if (savedMobile) setMobile(savedMobile);
 
     const timer = setInterval(() => {
       setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
@@ -54,10 +57,11 @@ export default function VerifyOtp() {
       const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, otp: entered })
+        body: JSON.stringify({ email, mobile, otp: entered })
       });
       const data = await res.json();
       if (data.success) {
+        if (data.resetToken) sessionStorage.setItem('reset_token', data.resetToken);
         navigate('/admin/set-password');
       } else {
         setError(data.message || 'Invalid or expired OTP code.');
@@ -155,7 +159,7 @@ export default function VerifyOtp() {
             Verify OTP
           </h3>
           <p className="text-xs text-slate-500 font-medium mb-6 text-center sm:text-left leading-relaxed">
-            We have sent a 6-digit OTP to <strong className="text-slate-800 font-bold">+91 {mobile}</strong>. Enter the OTP below to verify.
+            We have sent a 6-digit OTP to <strong className="text-slate-800 font-bold">{email || `+91 ${mobile}`}</strong>. Enter the OTP below to verify.
           </p>
 
           {error && (

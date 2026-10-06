@@ -8,6 +8,39 @@ const Merchant = require('../models/Merchant');
 const Scan = require('../models/Scan');
 const Customer = require('../models/Customer');
 
+// Get Merchant Dashboard Configured Features
+router.get('/features', async (req, res) => {
+  try {
+    const adminRoutes = require('./adminRoutes');
+    // Forward or return defaults
+    res.json({
+      success: true,
+      features: [
+        { id: 'home_overview', isVisible: true },
+        { id: 'home_qr_code', isVisible: true },
+        { id: 'home_plan_banner', isVisible: true },
+        { id: 'rewards_tab', isVisible: true },
+        { id: 'create_offer_tab', isVisible: true },
+        { id: 'customers_tab', isVisible: true },
+        { id: 'auto_approve_scans', isVisible: true },
+        { id: 'allow_multiple_scans', isVisible: true },
+        { id: 'allow_first_coin', isVisible: true },
+        { id: 'location_hours', isVisible: true },
+        { id: 'phone_email', isVisible: true },
+        { id: 'social_reviews', isVisible: true },
+        { id: 'owner_account', isVisible: true },
+        { id: 'tutorial_video', isVisible: true },
+        { id: 'download_app', isVisible: true },
+        { id: 'subscription_manage', isVisible: true },
+        { id: 'privacy_security', isVisible: true },
+        { id: 'help_support', isVisible: true }
+      ]
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Get Merchant Standee & QR Data
 router.get('/standee', async (req, res) => {
   try {
@@ -754,7 +787,20 @@ router.post('/onboarding/profile', async (req, res) => {
       try { merchant = await Merchant.findById(merchantId); } catch (_) {}
     }
     if (!merchant) merchant = await Merchant.findOne();
-    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+    if (!merchant) {
+      // Auto-create initial merchant document if none exists in MongoDB
+      const slug = String(businessName || 'my-store').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      merchant = await Merchant.create({
+        businessName: businessName ? businessName.trim() : 'Royal Sweets & Cafe',
+        category: category || 'CAFE_RESTAURANT',
+        qrSlug: slug || 'royal-sweets',
+        tagline: tagline ? tagline.trim() : 'Scan & Earn Loyalty Rewards',
+        brandColor: brandColor || '#74111d',
+        city: city ? city.trim() : 'Delhi NCR',
+        onboardingStep: 2
+      });
+      return res.json({ success: true, message: 'Business profile created!', merchant });
+    }
 
     if (businessName) merchant.businessName = businessName.trim();
     if (category) merchant.category = category;
@@ -778,7 +824,13 @@ router.post('/onboarding/reward', async (req, res) => {
       try { merchant = await Merchant.findById(merchantId); } catch (_) {}
     }
     if (!merchant) merchant = await Merchant.findOne();
-    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+    if (!merchant) {
+      merchant = await Merchant.create({
+        businessName: 'Royal Sweets & Cafe',
+        category: 'CAFE_RESTAURANT',
+        qrSlug: 'royal-sweets'
+      });
+    }
 
     const reward = await Reward.create({
       merchantId: merchant._id,
@@ -808,7 +860,13 @@ router.post('/onboarding/location', async (req, res) => {
       try { merchant = await Merchant.findById(merchantId); } catch (_) {}
     }
     if (!merchant) merchant = await Merchant.findOne();
-    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+    if (!merchant) {
+      merchant = await Merchant.create({
+        businessName: 'Royal Sweets & Cafe',
+        category: 'CAFE_RESTAURANT',
+        qrSlug: 'royal-sweets'
+      });
+    }
 
     const newBranch = {
       branchName: branchName || `${merchant.businessName} - Main Outlet`,
@@ -844,7 +902,13 @@ router.post('/onboarding/complete', async (req, res) => {
       try { merchant = await Merchant.findById(merchantId); } catch (_) {}
     }
     if (!merchant) merchant = await Merchant.findOne();
-    if (!merchant) return res.status(404).json({ success: false, message: 'Merchant not found.' });
+    if (!merchant) {
+      merchant = await Merchant.create({
+        businessName: 'Royal Sweets & Cafe',
+        category: 'CAFE_RESTAURANT',
+        qrSlug: 'royal-sweets'
+      });
+    }
 
     merchant.onboardingCompleted = true;
     merchant.onboardingStep = 4;

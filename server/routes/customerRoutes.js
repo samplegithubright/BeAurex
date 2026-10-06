@@ -6,7 +6,9 @@ const Merchant = require('../models/Merchant');
 const Voucher = require('../models/Voucher');
 const Scan = require('../models/Scan');
 const Reward = require('../models/Reward');
+const Otp = require('../models/Otp');
 const smsService = require('../services/smsService');
+const emailService = require('../services/emailService');
 
 // Temporary memory store for pending customer signup OTPs (5 min TTL)
 const pendingSignupOtps = new Map();
@@ -15,25 +17,30 @@ const pendingSignupOtps = new Map();
 const cleanPhone = (m) => String(m || '').replace(/[^0-9]/g, '').slice(-10);
 
 // =========================================================================
-// 1. Customer OTP Request (Login or Signup)
+// 1. Customer OTP Request (Login or Signup via Email or Mobile)
 // STRICT: Unregistered users cannot request login OTP; they must signup first.
 // =========================================================================
 router.post('/auth/request-otp', async (req, res) => {
   try {
-    const { mobile, isSignup } = req.body;
+    const { email, mobile, isSignup } = req.body;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
     const cleanMobile = cleanPhone(mobile);
 
-    if (!cleanMobile || cleanMobile.length !== 10) {
+    if (!cleanEmail && (!cleanMobile || cleanMobile.length !== 10)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Please provide a valid 10-digit mobile number.' 
+        message: 'Please provide a valid email address or 10-digit mobile number.' 
       });
     }
 
     let customer = null;
     try {
       if (mongoose.connection.readyState === 1) {
-        customer = await Customer.findOne({ mobile: cleanMobile });
+        if (cleanEmail) {
+          customer = await Customer.findOne({ email: cleanEmail });
+        } else if (cleanMobile) {
+          customer = await Customer.findOne({ mobile: cleanMobile });
+        }
       }
     } catch (dbErr) {
       console.warn('MongoDB query notice in request-otp:', dbErr.message);
@@ -48,10 +55,11 @@ router.post('/auth/request-otp', async (req, res) => {
             message: 'Database connection is initializing. Please try again in a moment.'
           });
         }
+        const identifier = cleanEmail || `+91 ${cleanMobile}`;
         return res.status(404).json({
           success: false,
           notRegistered: true,
-          message: `Mobile number +91 ${cleanMobile} is not registered. Please sign up first to join loyalty rewards.`
+          message: `${identifier} is not registered. Please sign up first to join loyalty rewards.`
         });
       }
 
@@ -64,43 +72,86 @@ router.post('/auth/request-otp', async (req, res) => {
         });
       }
 
-      // Generate dynamic OTP & store in Customer record in MongoDB
-      const otp = smsService.generateOtp();
+      // Generate dynamic OTP & store in Customer record in MongoDB + persistent Otp collection
+      const otp = emailService.generateOtp();
       customer.otp = otp;
-      customer.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+      customer.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
       await customer.save();
 
-      await smsService.sendOtp(cleanMobile, otp, 'customer login');
+      try {
+        await Otp.findOneAndUpdate(
+          { identifier: cleanEmail || customer.email || cleanMobile, purpose: 'customer_login' },
+          { otp, expiresAt: new Date(Date.now() + 10 * 60 * 1000) },
+          { upsert: true, new: true }
+        );
+      } catch (_) {}
 
-      return res.json({
-        success: true,
-        message: `OTP sent to +91 ${cleanMobile}. Valid for 5 minutes.`,
-        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
-      });
+      // Dispatch via Email if email is available (primary) or via SMS
+      if (cleanEmail || customer.email) {
+        const targetEmail = cleanEmail || customer.email;
+        await emailService.sendOtpEmail(targetEmail, otp, 'customer login');
+        return res.json({
+          success: true,
+          message: `OTP sent to ${targetEmail}. Valid for 5 minutes.`,
+          devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+        });
+      } else {
+        await smsService.sendOtp(cleanMobile, otp, 'customer login');
+        return res.json({
+          success: true,
+          message: `OTP sent to +91 ${cleanMobile}. Valid for 5 minutes.`,
+          devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+        });
+      }
     } else {
       // SIGNUP FLOW: Check if already exists
       if (customer) {
         return res.status(400).json({
           success: false,
           alreadyRegistered: true,
-          message: `Mobile number +91 ${cleanMobile} is already registered. Please switch to Sign In.`
+          message: `${cleanEmail || cleanMobile} is already registered. Please switch to Sign In.`
         });
       }
 
-      // Generate OTP and save to pending signups map with 5-min TTL
-      const otp = smsService.generateOtp();
-      pendingSignupOtps.set(cleanMobile, {
+      // Generate OTP and save to persistent DB Otp collection + memory
+      const otp = emailService.generateOtp();
+      const signupKey = cleanEmail || cleanMobile;
+      pendingSignupOtps.set(signupKey, {
         otp,
-        expires: Date.now() + 5 * 60 * 1000
+        email: cleanEmail,
+        mobile: cleanMobile,
+        expires: Date.now() + 10 * 60 * 1000
       });
 
-      await smsService.sendOtp(cleanMobile, otp, 'customer signup');
+      try {
+        await Otp.findOneAndUpdate(
+          { identifier: signupKey, purpose: 'customer_signup' },
+          { 
+            otp, 
+            metadata: { email: cleanEmail, mobile: cleanMobile },
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000) 
+          },
+          { upsert: true, new: true }
+        );
+      } catch (dbOtpErr) {
+        console.warn('DB OTP save notice:', dbOtpErr.message);
+      }
 
-      return res.json({
-        success: true,
-        message: `Verification code sent to +91 ${cleanMobile}. Valid for 5 minutes.`,
-        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
-      });
+      if (cleanEmail) {
+        await emailService.sendOtpEmail(cleanEmail, otp, 'customer signup');
+        return res.json({
+          success: true,
+          message: `Verification code sent to ${cleanEmail}. Valid for 5 minutes.`,
+          devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+        });
+      } else {
+        await smsService.sendOtp(cleanMobile, otp, 'customer signup');
+        return res.json({
+          success: true,
+          message: `Verification code sent to +91 ${cleanMobile}. Valid for 5 minutes.`,
+          devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+        });
+      }
     }
   } catch (err) {
     console.error('Error in request-otp:', err);
@@ -117,39 +168,73 @@ router.post('/auth/request-otp', async (req, res) => {
 router.post('/auth/register', async (req, res) => {
   try {
     const { name, mobile, email, otp } = req.body;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
     const cleanMobile = cleanPhone(mobile);
     const cleanOtp = String(otp || '').trim();
+    const signupKey = cleanEmail || cleanMobile;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: 'Please enter your full name.' });
     }
-    if (!cleanMobile || cleanMobile.length !== 10) {
-      return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number.' });
+    if (!cleanEmail) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
     }
     if (!cleanOtp) {
       return res.status(400).json({ success: false, message: 'Please enter the 6-digit OTP code.' });
     }
 
-    // Verify OTP from pending signups
-    const pending = pendingSignupOtps.get(cleanMobile);
-    if (!pending || pending.otp !== cleanOtp || pending.expires < Date.now()) {
+    // Verify OTP: Check MongoDB Otp first, fallback to in-memory pendingSignupOtps
+    let validOtp = false;
+    try {
+      const dbOtp = await Otp.findOne({
+        identifier: signupKey,
+        purpose: 'customer_signup'
+      });
+      if (dbOtp && dbOtp.otp === cleanOtp && dbOtp.expiresAt > new Date()) {
+        validOtp = true;
+        await Otp.deleteOne({ _id: dbOtp._id });
+      } else if (cleanMobile) {
+        const dbOtpMobile = await Otp.findOne({
+          identifier: cleanMobile,
+          purpose: 'customer_signup'
+        });
+        if (dbOtpMobile && dbOtpMobile.otp === cleanOtp && dbOtpMobile.expiresAt > new Date()) {
+          validOtp = true;
+          await Otp.deleteOne({ _id: dbOtpMobile._id });
+        }
+      }
+    } catch (dbErr) {
+      console.warn('DB OTP verification check notice:', dbErr.message);
+    }
+
+    if (!validOtp) {
+      const pending = pendingSignupOtps.get(signupKey) || (cleanMobile ? pendingSignupOtps.get(cleanMobile) : null);
+      if (pending && pending.otp === cleanOtp && pending.expires >= Date.now()) {
+        validOtp = true;
+      }
+    }
+
+    // In local non-production, check if any recent customer signup OTP matches
+    if (!validOtp && process.env.NODE_ENV !== 'production' && cleanOtp.length === 6) {
+      try {
+        const latestOtp = await Otp.findOne({ purpose: 'customer_signup' }).sort({ createdAt: -1 });
+        if (latestOtp && latestOtp.otp === cleanOtp) {
+          validOtp = true;
+          await Otp.deleteOne({ _id: latestOtp._id });
+        }
+      } catch (_) {}
+    }
+
+    if (!validOtp) {
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid or expired OTP. Please re-check the code or request a new one.' 
       });
     }
 
-    // Check if already created in DB in the meantime
-    let existing = await Customer.findOne({ mobile: cleanMobile });
-    if (existing) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Account already exists for this mobile number. Please log in.' 
-      });
-    }
-
     // Clear pending OTP
-    pendingSignupOtps.delete(cleanMobile);
+    pendingSignupOtps.delete(signupKey);
+    if (cleanMobile) pendingSignupOtps.delete(cleanMobile);
 
     // Generate unique Customer ID (e.g. LQR-8F4A29)
     const customerId = 'LQR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -157,8 +242,8 @@ router.post('/auth/register', async (req, res) => {
     // Create & save customer in MongoDB
     const newCustomer = await Customer.create({
       name: name.trim(),
-      mobile: cleanMobile,
-      email: email ? email.trim() : '',
+      mobile: cleanMobile || undefined,
+      email: cleanEmail || undefined,
       customerId,
       points: 100, // 100 Welcome Points
       tier: 'Bronze Member',
@@ -180,7 +265,7 @@ router.post('/auth/register', async (req, res) => {
       ]
     });
 
-    console.log(`✅ New Customer registered and saved to MongoDB: ${newCustomer.name} (${newCustomer.mobile})`);
+    console.log(`✅ New Customer registered and saved to MongoDB: ${newCustomer.name} (${newCustomer.email || newCustomer.mobile})`);
 
     return res.status(201).json({
       success: true,
@@ -189,9 +274,9 @@ router.post('/auth/register', async (req, res) => {
         id: newCustomer._id,
         name: newCustomer.name,
         customerId: newCustomer.customerId,
-        phone: `+91 ${newCustomer.mobile}`,
-        mobile: newCustomer.mobile,
-        email: newCustomer.email,
+        phone: newCustomer.mobile ? `+91 ${newCustomer.mobile}` : '',
+        mobile: newCustomer.mobile || '',
+        email: newCustomer.email || '',
         tier: newCustomer.tier,
         points: newCustomer.points,
         stamps: newCustomer.stamps,
@@ -209,28 +294,34 @@ router.post('/auth/register', async (req, res) => {
 });
 
 // =========================================================================
-// 3. Customer OTP Login (Validates against MongoDB)
+// 3. Customer OTP Login (Validates against MongoDB by Email or Mobile)
 // =========================================================================
 router.post('/auth/verify-otp', async (req, res) => {
   try {
-    const { mobile, otp } = req.body;
+    const { email, mobile, otp } = req.body;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
     const cleanMobile = cleanPhone(mobile);
     const cleanOtp = String(otp || '').trim();
 
-    if (!cleanMobile || cleanMobile.length !== 10) {
-      return res.status(400).json({ success: false, message: 'Valid 10-digit mobile number required.' });
+    if (!cleanEmail && (!cleanMobile || cleanMobile.length !== 10)) {
+      return res.status(400).json({ success: false, message: 'Valid email address is required.' });
     }
     if (!cleanOtp) {
       return res.status(400).json({ success: false, message: 'Please enter the 6-digit OTP code.' });
     }
 
-    const customer = await Customer.findOne({ mobile: cleanMobile });
+    let customer = null;
+    if (cleanEmail) {
+      customer = await Customer.findOne({ email: cleanEmail });
+    } else if (cleanMobile) {
+      customer = await Customer.findOne({ mobile: cleanMobile });
+    }
 
     if (!customer) {
       return res.status(404).json({
         success: false,
         notRegistered: true,
-        message: 'Account not found for this mobile number. Please sign up first.'
+        message: 'Account not found. Please sign up first.'
       });
     }
 
@@ -242,10 +333,35 @@ router.post('/auth/verify-otp', async (req, res) => {
       });
     }
 
-    if (!customer.otp || customer.otp !== cleanOtp || !customer.otpExpires || customer.otpExpires < new Date()) {
+    let validLoginOtp = Boolean(customer.otp && customer.otp === cleanOtp && customer.otpExpires && customer.otpExpires >= new Date());
+
+    if (!validLoginOtp) {
+      try {
+        const dbOtp = await Otp.findOne({
+          identifier: cleanEmail || customer.email || cleanMobile,
+          purpose: 'customer_login'
+        });
+        if (dbOtp && dbOtp.otp === cleanOtp && dbOtp.expiresAt > new Date()) {
+          validLoginOtp = true;
+          await Otp.deleteOne({ _id: dbOtp._id });
+        }
+      } catch (_) {}
+    }
+
+    if (!validLoginOtp && process.env.NODE_ENV !== 'production' && cleanOtp.length === 6) {
+      try {
+        const anyOtp = await Otp.findOne({ purpose: 'customer_login' }).sort({ createdAt: -1 });
+        if (anyOtp && anyOtp.otp === cleanOtp) {
+          validLoginOtp = true;
+          await Otp.deleteOne({ _id: anyOtp._id });
+        }
+      } catch (_) {}
+    }
+
+    if (!validLoginOtp) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired OTP. Please enter the OTP sent to your phone.'
+        message: 'Invalid or expired OTP. Please check your email inbox/spam folder and enter the 6-digit code.'
       });
     }
 
@@ -257,7 +373,7 @@ router.post('/auth/verify-otp', async (req, res) => {
     customer.lastLoginAt = new Date();
     await customer.save();
 
-    console.log(`✅ Customer logged in from MongoDB: ${customer.name} (${customer.mobile})`);
+    console.log(`✅ Customer logged in from MongoDB: ${customer.name} (${customer.email || customer.mobile})`);
 
     return res.json({
       success: true,
@@ -266,9 +382,9 @@ router.post('/auth/verify-otp', async (req, res) => {
         id: customer._id,
         name: customer.name,
         customerId: customer.customerId || ('LQR-' + customer._id.toString().slice(-6).toUpperCase()),
-        phone: `+91 ${customer.mobile}`,
-        mobile: customer.mobile,
-        email: customer.email,
+        phone: customer.mobile ? `+91 ${customer.mobile}` : '',
+        mobile: customer.mobile || '',
+        email: customer.email || '',
         tier: customer.tier || 'Gold Member',
         points: customer.points || 150,
         stamps: customer.stamps || 3,
@@ -286,18 +402,111 @@ router.post('/auth/verify-otp', async (req, res) => {
 });
 
 // =========================================================================
+// 3B. Customer Google Authentication (One-click Google Sign-in / Sign-up)
+// =========================================================================
+router.post('/auth/google', async (req, res) => {
+  try {
+    const { email, name, googleId, avatar } = req.body;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+
+    if (!cleanEmail) {
+      return res.status(400).json({ success: false, message: 'Valid Google email is required.' });
+    }
+
+    let customer = null;
+    if (mongoose.connection.readyState === 1) {
+      customer = await Customer.findOne({ 
+        $or: [
+          { email: cleanEmail },
+          ...(googleId ? [{ googleId }] : [])
+        ]
+      });
+    }
+
+    if (!customer) {
+      // New Customer via Google Sign In
+      const customerId = 'LQR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      customer = await Customer.create({
+        name: name ? name.trim() : cleanEmail.split('@')[0],
+        email: cleanEmail,
+        googleId: googleId || undefined,
+        avatar: avatar || '',
+        customerId,
+        points: 100, // 100 Welcome Points
+        tier: 'Bronze Member',
+        stamps: 0,
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        storeProgress: [
+          {
+            storeSlug: 'kafeen-4040',
+            storeName: 'Kafeen Coffee',
+            stampsCollected: 1,
+            totalStamps: 5,
+            lastVisit: new Date()
+          }
+        ]
+      });
+      console.log(`✅ New Customer registered via Google Sign-In: ${customer.name} (${customer.email})`);
+    } else {
+      // Update Google ID/avatar if not set
+      if (googleId && !customer.googleId) customer.googleId = googleId;
+      if (avatar && !customer.avatar) customer.avatar = avatar;
+      customer.lastLoginAt = new Date();
+      await customer.save();
+      console.log(`✅ Customer logged in via Google: ${customer.name} (${customer.email})`);
+    }
+
+    if (customer.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        suspended: true,
+        message: 'Account Suspended: Your customer account has been suspended by administration.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Google login successful',
+      customer: {
+        id: customer._id,
+        name: customer.name,
+        customerId: customer.customerId || ('LQR-' + customer._id.toString().slice(-6).toUpperCase()),
+        phone: customer.mobile ? `+91 ${customer.mobile}` : '',
+        mobile: customer.mobile || '',
+        email: customer.email,
+        avatar: customer.avatar || '',
+        tier: customer.tier || 'Bronze Member',
+        points: customer.points || 100,
+        stamps: customer.stamps || 0,
+        activeCardsCount: customer.activeCardsCount || 1,
+        rewardsRedeemedCount: customer.rewardsRedeemedCount || 0,
+        memberSince: customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Today'
+      }
+    });
+  } catch (err) {
+    console.error('Error in Google auth:', err);
+    return res.status(500).json({ success: false, message: err.message || 'Error processing Google sign-in.' });
+  }
+});
+
+// =========================================================================
 // 4. Customer Profile Fetch (from MongoDB)
 // =========================================================================
 router.get('/profile', async (req, res) => {
   try {
-    const { mobile } = req.query;
+    const { mobile, email } = req.query;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
     const cleanMobile = cleanPhone(mobile);
 
-    if (!cleanMobile) {
-      return res.status(400).json({ success: false, message: 'Mobile number required.' });
+    if (!cleanEmail && !cleanMobile) {
+      return res.status(400).json({ success: false, message: 'Email or Mobile number required.' });
     }
 
-    const customer = await Customer.findOne({ mobile: cleanMobile });
+    const customer = cleanEmail
+      ? await Customer.findOne({ email: cleanEmail })
+      : await Customer.findOne({ mobile: cleanMobile });
+
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer not found.' });
     }

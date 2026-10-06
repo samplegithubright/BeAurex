@@ -3,15 +3,26 @@ const mongoose = require('mongoose');
 const customerSchema = new mongoose.Schema({
   mobile: {
     type: String,
-    required: true,
-    unique: true,
-    trim: true
+    required: false,
+    trim: true,
+    sparse: true
   },
   name: {
     type: String,
     default: 'Valued Customer'
   },
   email: {
+    type: String,
+    default: '',
+    trim: true,
+    lowercase: true,
+    sparse: true
+  },
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  avatar: {
     type: String,
     default: ''
   },

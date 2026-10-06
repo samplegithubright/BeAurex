@@ -55,7 +55,8 @@ export default function SetNewPassword() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mobile: sessionStorage.getItem('reset_mobile') || '9876543210',
+          email: sessionStorage.getItem('reset_email') || '',
+          mobile: sessionStorage.getItem('reset_mobile') || '',
           newPassword
         })
       });

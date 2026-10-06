@@ -827,6 +827,265 @@ router.post('/permissions', async (req, res) => {
   }
 });
 
+// =========================================================================
+// 3C. MERCHANT DASHBOARD FEATURES MANAGEMENT (Show/Hide, Add, Update, Delete)
+// =========================================================================
+let merchantDashboardFeatures = [
+  {
+    id: 'home_overview',
+    name: 'Home Analytics & Overview Stats',
+    category: 'Home Dashboard',
+    description: 'Total scans, active customers, redemptions count, and repeat rate stats cards on the home screen.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'home_qr_code',
+    name: 'Store Counter QR Code & Standee Download',
+    category: 'Home Dashboard',
+    description: 'Dynamic QR code display with Download PNG and Print Standee triggers.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'home_plan_banner',
+    name: 'Pro Subscription Plan Status Banner',
+    category: 'Home Dashboard',
+    description: 'Active subscription status, validity date, and plan upgrade banner.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'rewards_tab',
+    name: 'Rewards & Redemption Approval (Tab)',
+    category: 'Navigation & Tabs',
+    description: 'Dedicated screen for reviewing customer stamp redemptions, pending approvals, and approved rewards.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'create_offer_tab',
+    name: 'Create Offer & Stamp Programs (Tab)',
+    category: 'Navigation & Tabs',
+    description: 'Creation screen to launch stamp programs (image, title, stamps required, expiry validity).',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'customers_tab',
+    name: 'Customers CRM & CSV Export (Tab)',
+    category: 'Navigation & Tabs',
+    description: 'Customer visits directory with search, date filters, and CSV export functionality.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'auto_approve_scans',
+    name: 'Auto Approve Scans Setting',
+    category: 'Profile & Settings',
+    description: 'Allows merchant to automatically approve customer visits without manual verification.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'allow_multiple_scans',
+    name: 'Allow Multiple Daily Scans Setting',
+    category: 'Profile & Settings',
+    description: 'Permits customers to scan and collect stamps multiple times within the same day.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'allow_first_coin',
+    name: 'Allow First Coin Without Approval Setting',
+    category: 'Profile & Settings',
+    description: 'First visit welcome stamp/coin is awarded automatically without merchant approval.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'location_hours',
+    name: 'Location & Operating Hours Editor',
+    category: 'Profile & Settings',
+    description: 'Store address, city, pin code, opening/closing timings editor in merchant profile.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'phone_email',
+    name: 'Phone & Email Contact Editor',
+    category: 'Profile & Settings',
+    description: 'Store contact number and email settings in merchant profile.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'social_reviews',
+    name: 'Social Links & Google Reviews',
+    category: 'Profile & Settings',
+    description: 'Instagram handle, website, and Google Review destination link management.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'owner_account',
+    name: 'Owner Account Details',
+    category: 'Profile & Settings',
+    description: 'Store owner identity, mobile, and password settings in profile.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'tutorial_video',
+    name: 'How to Use BeAurex (Tutorial)',
+    category: 'Education & Support',
+    description: 'Video onboarding walkthrough modal for merchants.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'download_app',
+    name: 'Download & Install PWA App',
+    category: 'Education & Support',
+    description: 'PWA device installation modal and download launcher.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'subscription_manage',
+    name: 'Subscription & Billing Portal',
+    category: 'Education & Support',
+    description: 'Tier upgrade and billing modal.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'privacy_security',
+    name: 'Privacy & Security Controls',
+    category: 'Education & Support',
+    description: 'Store data privacy policies and security management.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  },
+  {
+    id: 'help_support',
+    name: 'Help & Support Assistance',
+    category: 'Education & Support',
+    description: 'Merchant help desk, FAQs, and WhatsApp/Email support contacts.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
+  }
+];
+
+// GET all merchant dashboard features
+router.get('/merchant-features', async (req, res) => {
+  try {
+    res.json({ success: true, features: merchantDashboardFeatures });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST create or bulk update merchant dashboard features
+router.post('/merchant-features', async (req, res) => {
+  try {
+    const { features, newFeature } = req.body;
+    if (Array.isArray(features)) {
+      merchantDashboardFeatures = features;
+      return res.json({
+        success: true,
+        message: 'All merchant dashboard features updated successfully.',
+        features: merchantDashboardFeatures
+      });
+    }
+    if (newFeature && newFeature.name) {
+      const generatedId = newFeature.id || ('feat_' + Date.now().toString(36));
+      const createdFeature = {
+        id: generatedId,
+        name: newFeature.name.trim(),
+        category: newFeature.category || 'Custom Features',
+        description: newFeature.description || 'Custom merchant feature configured by Super Admin.',
+        isVisible: newFeature.isVisible !== undefined ? Boolean(newFeature.isVisible) : true,
+        minPlan: newFeature.minPlan || 'All Plans',
+        isCustom: true
+      };
+      merchantDashboardFeatures.push(createdFeature);
+      return res.status(201).json({
+        success: true,
+        message: `Feature "${createdFeature.name}" created successfully.`,
+        feature: createdFeature,
+        features: merchantDashboardFeatures
+      });
+    }
+    return res.status(400).json({ success: false, message: 'Invalid payload.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT update a merchant dashboard feature
+router.put('/merchant-features/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, category, description, isVisible, minPlan } = req.body;
+    const index = merchantDashboardFeatures.findIndex(f => f.id === id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, message: 'Feature not found.' });
+    }
+    if (name !== undefined) merchantDashboardFeatures[index].name = name;
+    if (category !== undefined) merchantDashboardFeatures[index].category = category;
+    if (description !== undefined) merchantDashboardFeatures[index].description = description;
+    if (isVisible !== undefined) merchantDashboardFeatures[index].isVisible = Boolean(isVisible);
+    if (minPlan !== undefined) merchantDashboardFeatures[index].minPlan = minPlan;
+
+    res.json({
+      success: true,
+      message: `Feature "${merchantDashboardFeatures[index].name}" updated successfully.`,
+      feature: merchantDashboardFeatures[index],
+      features: merchantDashboardFeatures
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// DELETE a merchant dashboard feature
+router.delete('/merchant-features/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const index = merchantDashboardFeatures.findIndex(f => f.id === id);
+    if (index === -1) {
+      return res.status(404).json({ success: false, message: 'Feature not found.' });
+    }
+    const removed = merchantDashboardFeatures.splice(index, 1);
+    res.json({
+      success: true,
+      message: `Feature "${removed[0].name}" deleted successfully.`,
+      features: merchantDashboardFeatures
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 router.get('/plans/history', async (req, res) => {
   try {
     res.json({ success: true, history: platformPlanHistory });

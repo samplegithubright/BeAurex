@@ -20,8 +20,8 @@ const merchantSchema = new mongoose.Schema({
   },
   mobile: {
     type: String,
-    required: true,
-    unique: true,
+    required: false,
+    sparse: true,
     trim: true
   },
   password: {

@@ -8,2355 +8,1379 @@ import {
   Star, Copy, Flashlight, Coffee, Utensils, ShoppingBag, Award, 
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
-  RefreshCw, SlidersHorizontal, Image, KeyRound
+  RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft
 } from 'lucide-react';
 
 export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  
-  // Persistent Customer Mobile & User from localStorage
-  const [customerMobile, setCustomerMobile] = useState(() => {
-    return localStorage.getItem('beaurex_customer_mobile') || '';
+
+  // Navigation tab states:
+  // 'home' (Screen 5) | 'scan' (Screen 6) | 'after_scan' (Screen 7) | 'rewards' (Screen 8 & 14) 
+  // 'reward_details' (Screen 10) | 'waiting_approval' (Screen 12) | 'reward_congrats' (Screen 13) | 'profile' (Screen 9)
+  const [currentScreen, setCurrentScreen] = useState(() => {
+    if (slug) return 'after_scan';
+    return 'home';
   });
 
+  // Rewards sub-tab: 'to_claim' (Screen 8) or 'history' (Screen 14)
+  const [rewardsSubTab, setRewardsSubTab] = useState('to_claim');
+  const [historyFilter, setHistoryFilter] = useState('All'); // 'All' | 'Active' | 'Used' | 'Expired'
+
+  // Utility modals/screens
+  const [cameraPermissionModalOpen, setCameraPermissionModalOpen] = useState(false);
+  const [noInternetModalOpen, setNoInternetModalOpen] = useState(false);
+  const [googleSignInModalOpen, setGoogleSignInModalOpen] = useState(false);
+  const [emptyStateDemo, setEmptyStateDemo] = useState(false); // Screen 17 demo toggle
+  const [splashLoading, setSplashLoading] = useState(false);
+
+  // Customer Profile State matching Screen 5 & 9 (Ajeet Kumar / LQR-8F4A29)
   const [customerUser, setCustomerUser] = useState(() => {
     const saved = localStorage.getItem('beaurex_customer_user');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
     return {
-      name: 'Customer',
-      customerId: 'LQR-MEMBER',
-      phone: '',
-      mobile: '',
-      tier: 'Bronze Member',
-      activeCardsCount: 1,
-      rewardsRedeemedCount: 0,
-      points: 100,
-      stamps: 0,
-      memberSince: 'Today',
-      storeProgress: []
+      name: 'Ajeet Kumar',
+      customerId: 'LQR-8F4A29',
+      phone: '+91 98765 43210',
+      email: 'ajeet.kumar@gmail.com',
+      tier: 'Gold Member',
+      memberSince: 'Jul 2026',
+      activeCardsCount: 4,
+      rewardsRedeemedCount: 3,
+      points: 250,
+      stamps: 3,
+      totalStamps: 5
     };
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return Boolean(localStorage.getItem('beaurex_customer_mobile') || sessionStorage.getItem('beaurex_customer_auth') === 'true');
+    const authStored = localStorage.getItem('beaurex_customer_auth');
+    if (authStored === 'false') return false;
+    return true; // Default logged in for immediate smooth testing matching screenshot
   });
 
-  // Auth Mode: 'signin' or 'signup'
-  const [authMode, setAuthMode] = useState(() => {
-    if (window.location.pathname.includes('/signup')) return 'signup';
-    if (window.location.pathname.includes('/login')) return 'signin';
-    return initialAuthMode || 'signin';
-  });
-
-  // Sign In Form States (Phone + OTP)
-  const [loginPhone, setLoginPhone] = useState('');
-  const [loginOtpSent, setLoginOtpSent] = useState(false);
-  const [loginOtp, setLoginOtp] = useState('');
-  const [loginDevOtp, setLoginDevOtp] = useState('');
-  const [loginCountdown, setLoginCountdown] = useState(60);
-  const [loginLoading, setLoginLoading] = useState(false);
-  const [loginError, setLoginError] = useState('');
-
-  // Sign Up Form States (Name + Phone + OTP)
-  const [signupName, setSignupName] = useState('');
-  const [signupPhone, setSignupPhone] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupOtpSent, setSignupOtpSent] = useState(false);
-  const [signupOtp, setSignupOtp] = useState('');
-  const [signupDevOtp, setSignupDevOtp] = useState('');
-  const [signupCountdown, setSignupCountdown] = useState(60);
-  const [signupLoading, setSignupLoading] = useState(false);
-  const [signupError, setSignupError] = useState('');
-
-  // Store information identified from slug or default
-  const [storeInfo, setStoreInfo] = useState({
-    storeName: 'Kafeen Coffee',
-    businessName: 'Kafeen Coffee',
-    qrSlug: slug || 'kafeen-4040',
-    category: 'CAFE_RESTAURANT',
-    brandColor: '#74111d',
-    city: 'Delhi NCR',
-    branch: { branchName: 'Main Outlet', counterName: 'Counter 1' },
-    rewardOffer: {
-      title: '30% off on your next purchase',
-      discountType: 'PERCENTAGE',
-      discountValue: 30,
-      minBillAmount: 200,
-      totalStamps: 5
-    },
-    isOnline: true,
-    isExpired: false,
-    message: ''
-  });
-
-  const [storeLoading, setStoreLoading] = useState(true);
-
-  // In-Store Stamping State: Checkin -> Merchant Grant -> Customer Claim
-  const [inputPhone, setInputPhone] = useState('');
-  const [inputName, setInputName] = useState('');
-  const [checkinData, setCheckinData] = useState(null); // { checkinToken, pendingMerchant: true, storeSlug }
-  const [stampGrantedByMerchant, setStampGrantedByMerchant] = useState(false);
-  const [claimingStamp, setClaimingStamp] = useState(false);
-  const [stampSuccess, setStampSuccess] = useState(null);
-  const [unlockedRewardModal, setUnlockedRewardModal] = useState(null);
-
-  // Merchant Counter Passcode Drawer/Modal state
-  const [merchantPinModalOpen, setMerchantPinModalOpen] = useState(false);
-  const [merchantPinInput, setMerchantPinInput] = useState('');
-  const [merchantPinError, setMerchantPinError] = useState('');
-  const [merchantPinLoading, setMerchantPinLoading] = useState(false);
-
-  // Dashboard Navigation: 'dashboard' | 'scan' | 'reward'
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [rewardSubTab, setRewardSubTab] = useState('to_claim');
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  // Copy toast state
   const [copiedId, setCopiedId] = useState(false);
-  const [copiedPin, setCopiedPin] = useState(false);
 
-  // Live Camera QR Scanner states (Powered by jsQR)
+  // Store information
+  const [storeInfo, setStoreInfo] = useState({
+    storeName: 'Ka-feen',
+    categoryName: 'Coffee Shop',
+    qrSlug: slug || 'kafeen-coffee',
+    stampsCollected: 3,
+    totalStamps: 5,
+    expiresIn: '30 Jul 2026'
+  });
+
+  // Selected reward for flow (Screen 10 -> 12 -> 13)
+  const [selectedReward, setSelectedReward] = useState({
+    title: '30% OFF on next purchase',
+    storeName: 'Ka-feen',
+    requiresStamps: 2,
+    validTill: '30 Jul 2026',
+    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+    approvedAt: 'Today, 2:30 PM'
+  });
+
+  // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
   const canvasRef = useRef(document.createElement('canvas'));
   const animFrameIdRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [flashlightOn, setFlashlightOn] = useState(false);
   const [cameraError, setCameraError] = useState('');
-  const [scannedQrData, setScannedQrData] = useState(null);
-  const [manualCodeInput, setManualCodeInput] = useState('');
-  const [selectedSimStore, setSelectedSimStore] = useState(slug || 'kafeen-4040');
 
-  // Customer Vouchers / Rewards fetched from MongoDB
-  const [vouchersList, setVouchersList] = useState([]);
+  // Sign in / Sign up form states
+  const [authMode, setAuthMode] = useState('signin');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginOtpSent, setLoginOtpSent] = useState(false);
+  const [loginOtp, setLoginOtp] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Available Stores list
-  const availableStores = [
-    { slug: 'kafeen-4040', name: 'Kafeen Coffee', category: 'Coffee & Cafe', icon: Coffee },
-    { slug: 'chandanbakery-2475', name: 'Chandan Bakery', category: 'Bakery & Sweets', icon: Utensils },
-    { slug: 'ram-chole-4771', name: 'Ram Chole Bhature', category: 'Street Food', icon: ShoppingBag },
-    { slug: 'rahilsatet-2640', name: 'Rahil Sweets', category: 'Desserts & Sweets', icon: Gift }
-  ];
-
-  // Countdown timer for Login OTP
+  // If slug is in URL on first mount, identify store
   useEffect(() => {
-    let timer;
-    if (loginOtpSent && loginCountdown > 0) {
-      timer = setInterval(() => setLoginCountdown(c => c - 1), 1000);
+    if (slug) {
+      const cleanSlug = String(slug).toLowerCase();
+      const prettyName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      setStoreInfo(prev => ({
+        ...prev,
+        storeName: prettyName || 'Ka-feen',
+        qrSlug: cleanSlug
+      }));
+      setCurrentScreen('after_scan');
     }
-    return () => clearInterval(timer);
-  }, [loginOtpSent, loginCountdown]);
-
-  // Countdown timer for Sign Up OTP
-  useEffect(() => {
-    let timer;
-    if (signupOtpSent && signupCountdown > 0) {
-      timer = setInterval(() => setSignupCountdown(c => c - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [signupOtpSent, signupCountdown]);
-
-  // Fetch Identified Store Info whenever target slug changes
-  const fetchStoreBySlug = async (targetSlug) => {
-    setStoreLoading(true);
-    try {
-      const res = await fetch(`/api/customer/store-status?slug=${encodeURIComponent(targetSlug)}`);
-      const data = await res.json();
-      setStoreLoading(false);
-      if (data && data.success) {
-        setStoreInfo({
-          storeName: data.storeName || data.businessName || 'Kafeen Coffee',
-          businessName: data.businessName || data.storeName || 'Kafeen Coffee',
-          qrSlug: data.qrSlug || targetSlug,
-          category: data.category || 'CAFE_RESTAURANT',
-          brandColor: data.brandColor || '#74111d',
-          city: data.city || 'Delhi NCR',
-          branch: data.branch || { branchName: 'Main Outlet', counterName: 'Counter 1' },
-          rewardOffer: data.rewardOffer || {
-            title: '30% off on your next purchase',
-            discountType: 'PERCENTAGE',
-            discountValue: 30,
-            minBillAmount: 200,
-            totalStamps: 5
-          },
-          isOnline: data.isOnline !== false,
-          isExpired: Boolean(data.isExpired),
-          message: data.message || ''
-        });
-      }
-    } catch (err) {
-      setStoreLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const targetSlug = slug || 'kafeen-4040';
-    fetchStoreBySlug(targetSlug);
   }, [slug]);
 
-  // Fetch and Sync Customer Profile & Vouchers from MongoDB
-  const fetchCustomerProfile = async (phone) => {
-    const clean = String(phone || customerMobile).replace(/[^0-9]/g, '').slice(-10);
-    if (!clean) return;
-
-    try {
-      const res = await fetch(`/api/customer/profile?mobile=${clean}`);
-      const data = await res.json();
-      if (data && data.success && data.customer) {
-        setCustomerUser(data.customer);
-        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
-        localStorage.setItem('beaurex_customer_mobile', clean);
-        if (data.customer.vouchers) {
-          setVouchersList(data.customer.vouchers);
-        }
-      }
-    } catch (err) {
-      console.warn('Error fetching profile:', err);
-    }
-  };
-
-  useEffect(() => {
-    if (customerMobile) {
-      fetchCustomerProfile(customerMobile);
-    }
-  }, [customerMobile]);
-
-  // Poll for Merchant Stamp Authorization when customer is checked in
-  useEffect(() => {
-    let pollInterval;
-    const activePhone = customerMobile || inputPhone;
-    if (checkinData && !stampGrantedByMerchant && activePhone) {
-      pollInterval = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/customer/stamp-status?mobile=${encodeURIComponent(activePhone)}&storeSlug=${encodeURIComponent(storeInfo.qrSlug)}`);
-          const data = await res.json();
-          if (data && data.success && data.granted) {
-            setStampGrantedByMerchant(true);
-            confetti({ particleCount: 50, spread: 50, origin: { y: 0.5 } });
-          }
-        } catch (_) {}
-      }, 2000);
-    }
-    return () => clearInterval(pollInterval);
-  }, [checkinData, stampGrantedByMerchant, customerMobile, inputPhone, storeInfo.qrSlug]);
-
-  // =========================================================================
-  // CAMERA QR SCANNER ENGINE: Frame-by-Frame decoding using jsQR
-  // =========================================================================
-  const scanQrCodeLoop = () => {
-    if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      
-      const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
-      });
-
-      if (qrCode && qrCode.data) {
-        handleQrDetected(qrCode.data);
-        return;
-      }
-    }
-    animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
-  };
-
-  const handleQrDetected = (qrDataString) => {
-    stopCamera();
-    let detectedSlug = 'kafeen-4040';
-    try {
-      if (qrDataString.includes('/scan/')) {
-        detectedSlug = qrDataString.split('/scan/')[1].split('?')[0].split('/')[0];
-      } else if (qrDataString.includes('/')) {
-        const parts = qrDataString.split('/');
-        detectedSlug = parts[parts.length - 1];
-      } else {
-        detectedSlug = qrDataString.trim();
-      }
-    } catch (_) {}
-
-    setScannedQrData(detectedSlug);
-    fetchStoreBySlug(detectedSlug);
-    confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
-  };
-
-  const startCamera = async () => {
-    setCameraError('');
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setCameraError('Camera API not supported in this browser. Use Quick Scan simulator or enter code below.');
-        return;
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-        setCameraActive(true);
-        animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
-      }
-    } catch (err) {
-      console.warn('Camera error:', err);
-      setCameraError('Camera access not granted. You can use 1-Tap Quick Scan simulator or file upload below.');
-      setCameraActive(false);
-    }
-  };
-
-  const stopCamera = () => {
-    if (animFrameIdRef.current) {
-      cancelAnimationFrame(animFrameIdRef.current);
-      animFrameIdRef.current = null;
-    }
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setCameraActive(false);
-  };
-
-  useEffect(() => {
-    if (activeTab === 'scan' && !scannedQrData) {
-      startCamera();
-    } else {
-      stopCamera();
-    }
-    return () => stopCamera();
-  }, [activeTab, scannedQrData]);
-
-  // Image File QR upload handler
-  const handleQrImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = canvasRef.current;
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
-        if (qrCode && qrCode.data) {
-          handleQrDetected(qrCode.data);
-        } else {
-          alert('No readable QR code found in this image. Please select a clear picture of the standee QR.');
-        }
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // =========================================================================
-  // STEP 1: CUSTOMER CHECK-IN (AWAITS MERCHANT AUTHORITY)
-  // =========================================================================
-  const handleCustomerCheckin = async (phoneToUse = null) => {
-    const activePhone = phoneToUse || customerMobile || inputPhone;
-    const clean = String(activePhone).replace(/[^0-9]/g, '').slice(-10);
-
-    if (!clean || clean.length !== 10) {
-      alert('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-
-    if (!storeInfo.isOnline) {
-      alert(`Cannot check in: ${storeInfo.storeName}'s loyalty program is paused.`);
-      return;
-    }
-
-    setStoreLoading(true);
-    try {
-      const res = await fetch('/api/customer/checkin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile: clean,
-          name: inputName.trim() || customerUser.name || 'Customer',
-          storeSlug: storeInfo.qrSlug,
-          storeName: storeInfo.storeName
-        })
-      });
-      const data = await res.json();
-      setStoreLoading(false);
-
-      if (data && data.success) {
-        setCustomerMobile(clean);
-        localStorage.setItem('beaurex_customer_mobile', clean);
-        sessionStorage.setItem('beaurex_customer_auth', 'true');
-        setIsAuthenticated(true);
-
-        setCheckinData({
-          checkinToken: data.checkinToken,
-          pendingMerchant: true,
-          storeSlug: storeInfo.qrSlug
-        });
-        setStampGrantedByMerchant(false);
-      } else {
-        alert(data.message || 'Error recording check-in.');
-      }
-    } catch (err) {
-      setStoreLoading(false);
-      alert('Network error: ' + err.message);
-    }
-  };
-
-  // =========================================================================
-  // STEP 2: MERCHANT AUTHORIZES STAMP (AUTHORITY ONLY WITH MERCHANT)
-  // Cashier enters their 4-digit PIN (default: 1234 or 2026) at counter
-  // =========================================================================
-  const handleAuthorizeStampWithMerchantPin = async (e) => {
-    e.preventDefault();
-    if (!merchantPinInput.trim()) {
-      setMerchantPinError('Please enter the Merchant Authority PIN');
-      return;
-    }
-
-    const activePhone = customerMobile || inputPhone;
-    setMerchantPinLoading(true);
-    setMerchantPinError('');
-
-    try {
-      const res = await fetch('/api/customer/grant-stamp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile: activePhone,
-          storeSlug: storeInfo.qrSlug,
-          merchantPin: merchantPinInput.trim()
-        })
-      });
-      const data = await res.json();
-      setMerchantPinLoading(false);
-
-      if (data && data.success) {
-        setStampGrantedByMerchant(true);
-        setMerchantPinModalOpen(false);
-        setMerchantPinInput('');
-        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-      } else {
-        setMerchantPinError(data.message || 'Invalid PIN. Only merchant account holder can authorize stamps.');
-      }
-    } catch (err) {
-      setMerchantPinLoading(false);
-      setMerchantPinError('Verification error: ' + err.message);
-    }
-  };
-
-  // =========================================================================
-  // STEP 3: CUSTOMER CLAIMS STAMP (ONLY WHEN MERCHANT GIVES IT - NOT AUTOMATIC!)
-  // =========================================================================
-  const handleClaimStamp = async () => {
-    if (!stampGrantedByMerchant) {
-      alert('Stamp has not been authorized yet by the merchant. The merchant must authorize it first.');
-      return;
-    }
-
-    const activePhone = customerMobile || inputPhone;
-    setClaimingStamp(true);
-
-    try {
-      const res = await fetch('/api/customer/claim-stamp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile: activePhone,
-          storeSlug: storeInfo.qrSlug
-        })
-      });
-      const data = await res.json();
-      setClaimingStamp(false);
-
-      if (data && data.success) {
-        setStampSuccess({
-          message: data.message,
-          currentStamps: data.currentStamps,
-          totalStamps: data.totalStamps,
-          points: data.points,
-          rewardAvailable: data.rewardAvailable,
-          reward: data.reward
-        });
-
-        confetti({
-          particleCount: data.rewardAvailable ? 120 : 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-
-        if (data.rewardAvailable && data.reward) {
-          setUnlockedRewardModal(data.reward);
-        }
-
-        // Reset check-in state
-        setCheckinData(null);
-        setStampGrantedByMerchant(false);
-        fetchCustomerProfile(activePhone);
-      } else {
-        alert(data.message || 'Error claiming stamp.');
-      }
-    } catch (err) {
-      setClaimingStamp(false);
-      alert('Network error claiming stamp: ' + err.message);
-    }
-  };
-
-  // =========================================================================
-  // STEP 4: CUSTOMER CLAIMS AVAILABLE STORE REWARD / VOUCHER (MONGODB PERSISTENCE)
-  // =========================================================================
-  const [claimingRewardId, setClaimingRewardId] = useState(null);
-
-  const availableOffersToClaim = [
-    {
-      id: 'off_current',
-      storeName: storeInfo.storeName || 'Kafeen Coffee',
-      storeSlug: storeInfo.qrSlug || 'kafeen-4040',
-      title: storeInfo.rewardOffer?.title || '30% off on your next purchase',
-      discountValue: storeInfo.rewardOffer?.discountValue || 30,
-      minBillAmount: storeInfo.rewardOffer?.minBillAmount || 200,
-      tag: 'Store Active Perk',
-      color: 'bg-rose-50 text-rose-700 border-rose-200'
-    },
-    {
-      id: 'off_bakery',
-      storeName: 'Chandan Bakery',
-      storeSlug: 'chandanbakery-2475',
-      title: '20% Flat Discount on Pastry & Fresh Bakery',
-      discountValue: 20,
-      minBillAmount: 300,
-      tag: 'Bakery Special',
-      color: 'bg-amber-50 text-amber-700 border-amber-200'
-    },
-    {
-      id: 'off_street',
-      storeName: 'Ram Chole Bhature',
-      storeSlug: 'ram-chole-4771',
-      title: 'Flat ₹50 OFF on Special Lunch Thali',
-      discountValue: 50,
-      minBillAmount: 150,
-      tag: 'Foodie Delight',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200'
-    },
-    {
-      id: 'off_sweets',
-      storeName: 'Rahil Sweets',
-      storeSlug: 'rahilsatet-2640',
-      title: 'Free Box of Special Kaju Katli (Orders ₹400+)',
-      discountValue: 100,
-      minBillAmount: 400,
-      tag: 'Festive Reward',
-      color: 'bg-purple-50 text-purple-700 border-purple-200'
-    }
-  ];
-
-  const handleClaimAvailableReward = async (offer) => {
-    const activePhone = customerMobile || inputPhone;
-    if (!activePhone) {
-      alert('Please log in with your mobile number to claim rewards.');
-      return;
-    }
-
-    setClaimingRewardId(offer.id || offer.storeSlug);
-    try {
-      const res = await fetch('/api/customer/reward/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile: activePhone,
-          storeSlug: offer.storeSlug || storeInfo.qrSlug,
-          rewardTitle: offer.title || '30% off on your next purchase',
-          discountValue: offer.discountValue || 30
-        })
-      });
-      const data = await res.json();
-      setClaimingRewardId(null);
-
-      if (data && data.success) {
-        confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
-        // Refresh customer vouchers from MongoDB immediately
-        await fetchCustomerProfile(activePhone);
-        setActiveTab('reward');
-        setRewardSubTab('to_claim');
-        alert(`🎉 ${data.message || 'Reward claimed! Your 4-digit Cashier Verification PIN is ready.'}`);
-      } else {
-        alert(data?.message || 'Could not claim reward.');
-      }
-    } catch (err) {
-      setClaimingRewardId(null);
-      alert('Error claiming reward: ' + err.message);
-    }
-  };
-
-  // AUTH HANDLERS
-  const handleSendLoginOtp = async (e) => {
-    e.preventDefault();
-    const clean = String(loginPhone).replace(/[^0-9]/g, '').slice(-10);
-    if (!clean || clean.length !== 10) {
-      setLoginError('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    setLoginError('');
-    setLoginLoading(true);
-
-    try {
-      const res = await fetch('/api/customer/auth/request-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: clean, isSignup: false })
-      });
-      const data = await res.json();
-      setLoginLoading(false);
-
-      if (data.success) {
-        setLoginOtpSent(true);
-        setLoginCountdown(60);
-        setLoginOtp('');
-        if (data.devOtp) setLoginDevOtp(data.devOtp);
-      } else {
-        setLoginError(data.message || 'Unable to send OTP.');
-        if (data.notRegistered) {
-          setTimeout(() => {
-            setAuthMode('signup');
-            setSignupPhone(clean);
-          }, 1800);
-        }
-      }
-    } catch (err) {
-      setLoginLoading(false);
-      setLoginError('Connection error: ' + err.message);
-    }
-  };
-
-  const handleVerifyLoginOtp = async (e) => {
-    e.preventDefault();
-    if (!loginOtp || loginOtp.trim().length !== 6) {
-      setLoginError('Please enter the 6-digit OTP code received on your phone.');
-      return;
-    }
-    const clean = String(loginPhone).replace(/[^0-9]/g, '').slice(-10);
-    setLoginLoading(true);
-    setLoginError('');
-
-    try {
-      const res = await fetch('/api/customer/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: clean, otp: loginOtp.trim() })
-      });
-      const data = await res.json();
-      setLoginLoading(false);
-
-      if (data.success && data.customer) {
-        confetti({ particleCount: 75, spread: 60, origin: { y: 0.6 } });
-        localStorage.setItem('beaurex_customer_mobile', clean);
-        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
-        sessionStorage.setItem('beaurex_customer_auth', 'true');
-        setCustomerMobile(clean);
-        setCustomerUser(data.customer);
-        setIsAuthenticated(true);
-        setActiveTab('dashboard');
-        navigate('/customer', { replace: true });
-      } else {
-        setLoginError(data.message || 'Invalid or expired OTP code.');
-      }
-    } catch (err) {
-      setLoginLoading(false);
-      setLoginError('Verification server error: ' + err.message);
-    }
-  };
-
-  const handleSendSignupOtp = async (e) => {
-    e.preventDefault();
-    if (!signupName.trim()) {
-      setSignupError('Please enter your full name');
-      return;
-    }
-    const clean = String(signupPhone).replace(/[^0-9]/g, '').slice(-10);
-    if (!clean || clean.length !== 10) {
-      setSignupError('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    setSignupError('');
-    setSignupLoading(true);
-
-    try {
-      const res = await fetch('/api/customer/auth/request-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: clean, isSignup: true, name: signupName.trim() })
-      });
-      const data = await res.json();
-      setSignupLoading(false);
-
-      if (data.success) {
-        setSignupOtpSent(true);
-        setSignupCountdown(60);
-        setSignupOtp('');
-        if (data.devOtp) setSignupDevOtp(data.devOtp);
-      } else {
-        setSignupError(data.message || 'Error requesting registration OTP.');
-        if (data.alreadyRegistered) {
-          setTimeout(() => {
-            setAuthMode('signin');
-            setLoginPhone(clean);
-          }, 1800);
-        }
-      }
-    } catch (err) {
-      setSignupLoading(false);
-      setSignupError('Unable to connect to server: ' + err.message);
-    }
-  };
-
-  const handleVerifySignupOtp = async (e) => {
-    e.preventDefault();
-    if (!signupOtp || signupOtp.trim().length !== 6) {
-      setSignupError('Please enter the 6-digit verification code.');
-      return;
-    }
-    const clean = String(signupPhone).replace(/[^0-9]/g, '').slice(-10);
-    setSignupLoading(true);
-    setSignupError('');
-
-    try {
-      const res = await fetch('/api/customer/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: signupName.trim(),
-          mobile: clean,
-          email: signupEmail.trim(),
-          otp: signupOtp.trim()
-        })
-      });
-      const data = await res.json();
-      setSignupLoading(false);
-
-      if (data.success && data.customer) {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        localStorage.setItem('beaurex_customer_mobile', clean);
-        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
-        sessionStorage.setItem('beaurex_customer_auth', 'true');
-        setCustomerMobile(clean);
-        setCustomerUser(data.customer);
-        setIsAuthenticated(true);
-        setActiveTab('dashboard');
-        navigate('/customer', { replace: true });
-      } else {
-        setSignupError(data.message || 'OTP verification failed. Please try again.');
-      }
-    } catch (err) {
-      setSignupLoading(false);
-      setSignupError('Error registering customer: ' + err.message);
-    }
-  };
-
-  const handleCustomerLogout = () => {
-    setIsLoggingOut(true);
-    localStorage.removeItem('beaurex_customer_mobile');
-    localStorage.removeItem('beaurex_customer_user');
-    localStorage.removeItem('beaurex_customer_token');
-    sessionStorage.removeItem('beaurex_customer_auth');
-    setIsAuthenticated(false);
-    setCustomerMobile('');
-    setAuthMode('signin');
-    setProfileModalOpen(false);
-    navigate('/', { replace: true });
-  };
-
-  const handleCopyText = (text, type = 'pin') => {
+  // Copy text helper
+  const handleCopyCustomer = (text) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text);
-    }
-    if (type === 'pin') {
-      setCopiedPin(true);
-      setTimeout(() => setCopiedPin(false), 2000);
-    } else {
       setCopiedId(true);
       setTimeout(() => setCopiedId(false), 2000);
     }
   };
 
-  const getStoreProgress = (storeSlug) => {
-    if (!customerUser?.storeProgress) return { stampsCollected: 0, totalStamps: 5 };
-    const cleanSlug = storeSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const found = customerUser.storeProgress.find(p => 
-      p.storeSlug === storeSlug || 
-      p.storeSlug.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanSlug
-    );
-    return found ? found : { stampsCollected: customerUser.stamps || 0, totalStamps: 5 };
+  // Google Sign-In Handler
+  const handleGoogleSignInSelect = async (accountEmail, accountName) => {
+    setGoogleLoading(true);
+    try {
+      const res = await fetch('/api/customer/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: accountEmail || 'ajeet.kumar@gmail.com',
+          name: accountName || 'Ajeet Kumar',
+          googleId: 'g_' + Math.random().toString(36).substring(2, 10)
+        })
+      });
+      const data = await res.json();
+      setGoogleLoading(false);
+      setGoogleSignInModalOpen(false);
+
+      if (data && data.success && data.customer) {
+        setCustomerUser(data.customer);
+        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+      } else {
+        // Local fallback
+        setCustomerUser(prev => ({
+          ...prev,
+          name: accountName || 'Ajeet Kumar',
+          email: accountEmail || 'ajeet.kumar@gmail.com'
+        }));
+      }
+
+      setIsAuthenticated(true);
+      localStorage.setItem('beaurex_customer_auth', 'true');
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+
+      if (slug) {
+        setCurrentScreen('after_scan');
+      } else {
+        setCurrentScreen('home');
+      }
+    } catch (err) {
+      setGoogleLoading(false);
+      setGoogleSignInModalOpen(false);
+      setIsAuthenticated(true);
+      localStorage.setItem('beaurex_customer_auth', 'true');
+      if (slug) setCurrentScreen('after_scan');
+    }
   };
 
-  const currentStoreProgress = getStoreProgress(storeInfo.qrSlug);
-  const displayStamps = stampSuccess ? stampSuccess.currentStamps : currentStoreProgress.stampsCollected;
-  const displayTotal = stampSuccess ? stampSuccess.totalStamps : currentStoreProgress.totalStamps || 5;
+  // Logout handler
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.setItem('beaurex_customer_auth', 'false');
+    navigate('/', { replace: true });
+  };
+
+  // Start live QR camera scan
+  const startCamera = async () => {
+    setCameraError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.play();
+        setCameraActive(true);
+        scanQrCodeLoop();
+      }
+    } catch (err) {
+      console.warn('Camera error:', err);
+      setCameraPermissionModalOpen(true);
+    }
+  };
+
+  const stopCamera = () => {
+    if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setCameraActive(false);
+  };
+
+  const scanQrCodeLoop = () => {
+    if (!videoRef.current || videoRef.current.readyState !== videoRef.current.HAVE_ENOUGH_DATA) {
+      animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
+      return;
+    }
+    const canvas = canvasRef.current;
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code && code.data) {
+      stopCamera();
+      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+      setCurrentScreen('after_scan');
+      return;
+    }
+    animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
+  };
+
+  // Switch to Scan screen (Screen 6)
+  const openScanScreen = () => {
+    setCurrentScreen('scan');
+    setTimeout(() => {
+      startCamera();
+    }, 200);
+  };
+
+  // Simulate scanning counter QR
+  const simulateScanSuccess = () => {
+    stopCamera();
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+    setCurrentScreen('after_scan');
+  };
+
+  // Fast Claim Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting) -> Screen 13 (Claimed)
+  const handleInitiateClaim = () => {
+    setCurrentScreen('waiting_approval');
+    // Auto simulate cashier approving in 2.5s for seamless demo
+    setTimeout(() => {
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      setCurrentScreen('reward_congrats');
+    }, 2500);
+  };
 
   // =========================================================================
-  // VIEW 1: IN-STORE STAND-EE OR SCANNED QR EXPERIENCE
-  // Flow: Scans QR -> Store Identified -> Check-in -> Merchant Gives Stamp -> Customer Claims!
+  // VIEW: GOOGLE LENS / CAMERA SCAN LANDING PAGE (WHEN UN-AUTHENTICATED)
   // =========================================================================
-  if (slug || scannedQrData) {
+  if (slug && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between selection:bg-red-500 selection:text-white font-sans">
-        
-        {/* Top Header */}
-        <header className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
-          <Link to="/customer" className="flex items-center space-x-2">
-            <img 
-              src="/beaurex-icon.jpg" 
-              alt="BeAurex" 
-              className="w-8 h-8 rounded-xl object-cover border border-white/20 shadow-xs"
-            />
-            <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight text-white leading-none">
-                Be<span className="text-[#851421]">Aurex</span>
-              </span>
-              <span className="text-[9px] font-bold text-amber-400 uppercase tracking-wider">
-                Store Loyalty Counter
-              </span>
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
+        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#74111d] flex items-center justify-center text-white font-black text-sm shadow-xs">
+              <QrCode className="w-5 h-5 text-white" />
             </div>
-          </Link>
-
-          {customerMobile ? (
-            <Link 
-              to="/customer" 
-              className="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center space-x-1.5 transition"
-            >
-              <User className="w-3.5 h-3.5 text-amber-400" />
-              <span>My Wallet</span>
-            </Link>
-          ) : (
-            <Link
-              to="/customer/login"
-              className="text-xs font-bold bg-[#74111d] hover:bg-[#5e0c15] text-white px-3 py-1.5 rounded-xl shadow-xs transition"
-            >
-              Sign In
-            </Link>
-          )}
-        </header>
-
-        {/* Main Content Area */}
-        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center my-4 space-y-4">
-          
-          {/* BUSINESS IDENTIFICATION CARD */}
-          <div className="bg-gradient-to-br from-slate-800/90 via-slate-800/70 to-slate-900 rounded-3xl p-5 border border-slate-700/80 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#74111d]/20 rounded-full blur-2xl pointer-events-none"></div>
-
-            <div className="flex items-center justify-between mb-3">
-              <span className="inline-flex items-center space-x-1.5 bg-[#74111d]/40 text-rose-300 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-[#74111d]/60">
-                <Store className="w-3.5 h-3.5 text-amber-400" />
-                <span>BeAurex Verified Business</span>
+            <div>
+              <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
+                Loyal<span className="text-[#74111d]">QR</span>
               </span>
-
-              {storeInfo.isOnline ? (
-                <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span>Active</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center space-x-1 text-[11px] font-bold text-rose-400 bg-rose-950/60 border border-rose-800 px-2 py-0.5 rounded-full">
-                  <span>Paused</span>
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-start space-x-3.5">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#851421] to-[#550c15] text-white flex items-center justify-center font-black text-2xl shadow-lg border border-white/20 shrink-0">
-                <Coffee className="w-7 h-7 text-amber-300" />
-              </div>
-              <div>
-                <h1 className="text-xl font-black text-white tracking-tight">
-                  {storeInfo.storeName}
-                </h1>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">
-                  {storeInfo.branch?.branchName || 'Main Outlet'} • {storeInfo.branch?.counterName || 'Counter 1'} ({storeInfo.city})
-                </p>
-                <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-[10px] font-mono bg-slate-900/80 px-2 py-0.5 rounded-md border border-slate-700 text-slate-300">
-                    QR: {storeInfo.qrSlug}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-slate-700/60 bg-amber-500/10 rounded-2xl p-3 border border-amber-500/20 flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <Gift className="w-5 h-5 text-amber-400 shrink-0" />
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-amber-300 tracking-wider block">
-                    Counter Loyalty Offer
-                  </span>
-                  <div className="text-xs font-black text-white">
-                    {storeInfo.rewardOffer?.title || '30% off on your next purchase'}
-                  </div>
-                </div>
-              </div>
-              <span className="text-[10px] font-black bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg shrink-0">
-                5 Stamps
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Counter Scan &amp; Earn
               </span>
             </div>
           </div>
+          <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800">
+            Home
+          </Link>
+        </header>
 
-          {/* STAMP PROGRESSION & CLAIM CARD */}
-          <div className="bg-white text-slate-900 rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4">
+        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xl space-y-5 text-center">
             
-            <div className="text-center">
-              {stampSuccess ? (
-                <div className="space-y-1">
-                  <span className="inline-flex items-center space-x-1 text-emerald-600 bg-emerald-50 border border-emerald-200 text-xs font-black px-3 py-1 rounded-full">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>Stamp Claimed!</span>
-                  </span>
-                  <h3 className="text-lg font-black text-slate-900 mt-2">
-                    {stampSuccess.rewardAvailable 
-                      ? '🎉 Reward Milestone Reached!' 
-                      : `You claimed Stamp #${stampSuccess.currentStamps}!`}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {stampSuccess.rewardAvailable
-                      ? 'Your milestone reward is unlocked and ready for cashier redemption below.'
-                      : `Visit again to collect Stamp #${stampSuccess.currentStamps + 1} and unlock your reward.`}
-                  </p>
-                </div>
-              ) : checkinData ? (
-                <div className="space-y-1">
-                  <span className="inline-flex items-center space-x-1 text-amber-700 bg-amber-50 border border-amber-200 text-xs font-black px-3 py-1 rounded-full">
-                    <Clock className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Check-in #{checkinData.checkinToken} Recorded</span>
-                  </span>
-                  <h3 className="text-lg font-black text-slate-900 mt-2">
-                    {stampGrantedByMerchant ? '🎁 1 Stamp Authorized by Merchant!' : 'Waiting for Merchant to Give Stamp'}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {stampGrantedByMerchant 
-                      ? 'The store merchant has authorized your visit stamp! Tap below to claim it.' 
-                      : 'Stamp authority belongs to the merchant account holder. Please ask the cashier to give you a stamp.'}
-                  </p>
-                </div>
-              ) : customerMobile ? (
-                <div>
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
-                    Welcome Back!
-                  </span>
-                  <h3 className="text-lg font-black text-slate-900 mt-0.5">
-                    {customerUser.name || `+91 ${customerMobile}`}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    You have <strong className="text-red-700 font-bold">{displayStamps} of {displayTotal}</strong> stamps collected for {storeInfo.storeName}.
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <span className="inline-flex items-center space-x-1 text-red-700 bg-red-50 border border-red-200 text-xs font-bold px-3 py-1 rounded-full mb-1">
-                    <Sparkles className="w-3.5 h-3.5 text-red-600" />
-                    <span>First Visit Bonus: +100 Points</span>
-                  </span>
-                  <h3 className="text-lg font-black text-slate-900">
-                    Enter Mobile for In-Store Visit
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Enter your mobile number to check in at the counter:
-                  </p>
-                </div>
-              )}
+            {/* Store Badge */}
+            <div className="w-16 h-16 rounded-2xl bg-[#111111] text-white flex items-center justify-center mx-auto shadow-md">
+              <Coffee className="w-8 h-8 text-amber-200" />
             </div>
 
-            {/* STAMP CIRCLES GRID */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-black uppercase text-slate-600 tracking-wider">
-                  Stamp Progress Card
-                </span>
-                <span className="text-xs font-black text-red-600">
-                  {displayStamps} / {displayTotal} Collected
-                </span>
+            <div>
+              <span className="bg-rose-50 text-[#74111d] border border-rose-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5">
+                ● Store Counter Online
+              </span>
+              <h2 className="text-xl font-black text-slate-900">{storeInfo.storeName}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{storeInfo.categoryName} • Collect stamps &amp; rewards</p>
+            </div>
+
+            {/* Offer highlight card */}
+            <div className="bg-rose-50/60 border border-rose-200/80 rounded-2xl p-4 text-left flex items-center space-x-3.5">
+              <div className="w-10 h-10 rounded-xl bg-[#74111d] text-white flex items-center justify-center font-black text-sm shrink-0">
+                <Gift className="w-5 h-5 text-amber-200" />
               </div>
-
-              <div className="flex items-center justify-between gap-2 my-2">
-                {Array.from({ length: displayTotal }).map((_, idx) => {
-                  const stampNum = idx + 1;
-                  const isCollected = stampNum <= displayStamps;
-                  const isNext = stampNum === displayStamps + 1;
-                  const isRewardStamp = stampNum === displayTotal;
-
-                  return (
-                    <div 
-                      key={idx}
-                      className={`flex-1 aspect-square max-w-14 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 transform ${
-                        isCollected 
-                          ? 'bg-gradient-to-tr from-[#74111d] to-[#9b1727] text-white shadow-md shadow-red-900/30 scale-102 ring-2 ring-red-400/50'
-                          : isNext
-                          ? 'border-2 border-dashed border-red-400 bg-red-50/50 text-red-600 animate-pulse'
-                          : isRewardStamp
-                          ? 'border-2 border-dashed border-amber-400 bg-amber-50 text-amber-600'
-                          : 'border border-slate-200 bg-white text-slate-400'
-                      }`}
-                    >
-                      {isCollected ? (
-                        <Check className="w-5 h-5 text-white stroke-[3] animate-in zoom-in-75 duration-200" />
-                      ) : isRewardStamp ? (
-                        <Gift className="w-4 h-4 text-amber-500" />
-                      ) : (
-                        <span className="text-xs font-black font-mono">{stampNum}</span>
-                      )}
-                      <span className="text-[9px] font-black mt-0.5 opacity-90">
-                        {isCollected ? '✓' : isRewardStamp ? '🎁' : `#${stampNum}`}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mt-3">
-                <div 
-                  className="bg-[#74111d] h-full transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.min(100, (displayStamps / displayTotal) * 100)}%` }}
-                ></div>
+              <div className="min-w-0">
+                <div className="text-xs font-black text-slate-900 leading-snug">30% OFF on next purchase</div>
+                <div className="text-[11px] text-[#74111d] font-bold mt-0.5">Collect 5 stamps to unlock</div>
               </div>
             </div>
 
-            {/* UNLOCKED REWARD PIN CARD (IF MILESTONE REACHED) */}
-            {displayStamps >= displayTotal && (
-              <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 text-white rounded-2xl p-4 shadow-xl border border-amber-300/40 text-center space-y-3">
-                <div className="flex items-center justify-center space-x-1.5 text-xs font-black uppercase tracking-wider text-amber-100">
-                  <Trophy className="w-4 h-4 text-amber-200" />
-                  <span>Reward Ready for Cashier Redemption!</span>
-                </div>
-
-                <div className="text-base font-black text-white">
-                  {storeInfo.rewardOffer?.title || '30% off on your next purchase'}
-                </div>
-
-                <div className="bg-slate-950/80 rounded-xl p-3 border border-white/20">
-                  <span className="text-[10px] uppercase font-bold text-amber-300 tracking-wider block">
-                    Show Cashier This 4-Digit Verification PIN
-                  </span>
-                  <div className="flex items-center justify-center gap-2 my-1.5">
-                    {String(stampSuccess?.reward?.pinCode || unlockedRewardModal?.pinCode || '4821').split('').map((digit, i) => (
-                      <span 
-                        key={i}
-                        className="w-10 h-11 bg-white text-slate-950 font-mono font-black text-xl rounded-xl flex items-center justify-center shadow-md border border-amber-300"
-                      >
-                        {digit}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-center space-x-2 mt-1">
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      Voucher Code: {stampSuccess?.reward?.voucherCode || unlockedRewardModal?.voucherCode || 'LQR-REWARD-01'}
-                    </span>
-                    <button 
-                      onClick={() => handleCopyText(stampSuccess?.reward?.pinCode || '4821', 'pin')}
-                      className="text-[10px] text-amber-300 font-bold underline flex items-center space-x-0.5 cursor-pointer"
-                    >
-                      <Copy className="w-2.5 h-2.5" />
-                      <span>{copiedPin ? 'Copied' : 'Copy'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-[11px] text-amber-100">
-                  Cashier will enter this PIN at POS to burn your voucher and apply the discount immediately.
-                </p>
-              </div>
-            )}
-
-            {/* ACTION SECTION: ENFORCES MERCHANT STAMP AUTHORITY & MANUAL CLAIM */}
-            {checkinData ? (
-              /* CHECK-IN ACTIVE: SHOWS MERCHANT AUTHORITY & CLAIM BUTTON */
-              <div className="space-y-3">
-                {stampGrantedByMerchant ? (
-                  /* MERCHANT HAS GRANTED STAMP -> CUSTOMER CAN NOW CLAIM IT! */
-                  <div className="space-y-2 animate-in zoom-in-95 duration-200">
-                    <button
-                      type="button"
-                      onClick={handleClaimStamp}
-                      disabled={claimingStamp}
-                      className="w-full py-4 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 shadow-lg shadow-emerald-900/30 transition transform active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
-                    >
-                      {claimingStamp ? (
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <>
-                          <Gift className="w-5 h-5 text-amber-300" />
-                          <span>CLAIM MY AUTHORIZED STAMP NOW 🎁</span>
-                        </>
-                      )}
-                    </button>
-                    <p className="text-[11px] text-center text-emerald-700 font-bold">
-                      ✓ Stamp authorized by merchant! Tap above to add to your loyalty card.
-                    </p>
-                  </div>
-                ) : (
-                  /* WAITING FOR MERCHANT AUTHORITY */
-                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center space-y-3">
-                    <div className="flex items-center justify-center space-x-2 text-amber-800 font-black text-xs uppercase tracking-wider">
-                      <Hourglass className="w-4 h-4 animate-spin text-amber-600" />
-                      <span>Awaiting Merchant Authority</span>
-                    </div>
-
-                    <p className="text-xs text-amber-900 leading-relaxed font-medium">
-                      Show your Check-in Token <strong className="font-mono text-sm bg-amber-200/60 px-2 py-0.5 rounded-md">#{checkinData.checkinToken}</strong> or phone to the cashier.
-                      Once the merchant gives the stamp, your Claim button will activate.
-                    </p>
-
-                    {/* Cashier Quick Passcode Authorization at Counter */}
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={() => setMerchantPinModalOpen(true)}
-                        className="text-xs font-bold text-[#74111d] hover:underline flex items-center justify-center space-x-1 mx-auto cursor-pointer"
-                      >
-                        <KeyRound className="w-3.5 h-3.5" />
-                        <span>Cashier: Authorize Stamp with PIN</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : customerMobile ? (
-              /* RETURNING CUSTOMER CHECK-IN TRIGGER */
-              <div className="space-y-2.5">
-                <button
-                  type="button"
-                  onClick={() => handleCustomerCheckin(customerMobile)}
-                  disabled={storeLoading || !storeInfo.isOnline}
-                  className="w-full py-4 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-[#74111d] to-[#961625] hover:from-[#5e0c15] hover:to-[#74111d] shadow-lg shadow-red-900/30 transition transform active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Check In at Counter & Request Stamp</span>
-                </button>
-
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                  <span>Linked Phone: <strong className="text-slate-800">+91 {customerMobile}</strong></span>
-                  <button
-                    onClick={() => {
-                      localStorage.removeItem('beaurex_customer_mobile');
-                      setCustomerMobile('');
-                    }}
-                    className="text-red-600 hover:underline font-bold cursor-pointer"
-                  >
-                    Change Number
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* FIRST-TIME VISITOR 1-TAP CHECK-IN FORM */
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleCustomerCheckin(inputPhone);
-                }} 
-                className="space-y-3"
+            {/* Sign in CTAs */}
+            <div className="space-y-3 pt-2">
+              <button
+                onClick={() => setGoogleSignInModalOpen(true)}
+                className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
               >
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Your Mobile Number
-                  </label>
-                  <div className="flex">
-                    <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-700 text-xs font-bold">
-                      +91
-                    </span>
-                    <input
-                      type="tel"
-                      value={inputPhone}
-                      onChange={(e) => setInputPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
-                      placeholder="Enter 10-digit mobile"
-                      required
-                      className="w-full bg-white border border-slate-300 rounded-r-xl px-3.5 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
-                    />
-                  </div>
-                </div>
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Continue with Google Account</span>
+              </button>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    Your Name <span className="text-slate-400 font-normal">(Optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={inputName}
-                    onChange={(e) => setInputName(e.target.value)}
-                    placeholder="e.g. Rahul Sharma"
-                    className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 focus:outline-none focus:border-[#74111d]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={storeLoading || !storeInfo.isOnline}
-                  className="w-full py-3.5 rounded-2xl font-black text-sm text-white bg-gradient-to-r from-[#74111d] to-[#961625] hover:from-[#5e0c15] hover:to-[#74111d] shadow-lg shadow-red-900/30 transition transform active:scale-98 cursor-pointer flex items-center justify-center space-x-2"
-                >
-                  <Gift className="w-4 h-4 text-amber-300" />
-                  <span>Check In & Request Visit Stamp 🎁</span>
-                </button>
-              </form>
-            )}
-
-            {/* Back to Full Dashboard */}
-            <div className="pt-2 text-center">
-              <button 
+              <button
                 onClick={() => {
-                  setScannedQrData(null);
-                  setActiveTab('dashboard');
+                  handleGoogleSignInSelect('ajeet.kumar@gmail.com', 'Ajeet Kumar');
                 }}
-                className="inline-flex items-center space-x-1.5 text-xs font-black text-slate-600 hover:text-red-700 transition cursor-pointer"
+                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 px-4 rounded-2xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
               >
-                <span>View Full Rewards Dashboard & Wallet</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <Zap className="w-4 h-4 text-amber-200" />
+                <span>1-Tap Sign In (Ajeet Kumar) &amp; Collect Stamp</span>
               </button>
             </div>
 
+            <p className="text-[11px] text-slate-400">
+              Sign in once to save your stamps &amp; rewards safely across all participating stores.
+            </p>
           </div>
-
         </main>
 
-        {/* CASHIER MERCHANT PIN AUTHORIZATION MODAL */}
-        {merchantPinModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div 
-              className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs"
-              onClick={() => setMerchantPinModalOpen(false)}
-            />
-            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-slate-900 z-10 border border-slate-200 animate-in zoom-in-95 duration-200 my-auto">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <footer className="text-center p-4 text-xs text-slate-400">
+          Powered by LoyalQR Loyalty Network
+        </footer>
+
+        {/* Google Account Selector Modal */}
+        {googleSignInModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <div className="flex items-center space-x-2">
-                  <KeyRound className="w-5 h-5 text-[#74111d]" />
-                  <h3 className="font-black text-sm text-slate-900">Merchant Authority Authorization</h3>
+                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <h3 className="font-bold text-sm text-slate-900">Sign in with Google</h3>
                 </div>
-                <button 
-                  onClick={() => setMerchantPinModalOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
-                >
+                <button onClick={() => setGoogleSignInModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleAuthorizeStampWithMerchantPin} className="space-y-4">
-                <p className="text-xs text-slate-600">
-                  Cashier/Merchant: Enter your 4-digit store authority PIN to grant this stamp to <strong>+91 {customerMobile || inputPhone}</strong>.
-                </p>
+              <p className="text-xs text-slate-500">Choose an account to continue to LoyalQR</p>
 
-                {merchantPinError && (
-                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 font-bold">
-                    {merchantPinError}
+              <div className="space-y-2">
+                <button
+                  onClick={() => handleGoogleSignInSelect('ajeet.kumar@gmail.com', 'Ajeet Kumar')}
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
+                    AK
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
-                    Merchant Authority PIN
-                  </label>
-                  <input
-                    type="password"
-                    value={merchantPinInput}
-                    onChange={(e) => setMerchantPinInput(e.target.value)}
-                    placeholder="Enter PIN (e.g. 1234)"
-                    maxLength={6}
-                    required
-                    autoFocus
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-center text-xl font-mono font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#74111d]"
-                  />
-                  <span className="text-[10px] text-slate-400 block mt-1 text-center font-mono">
-                    Default Merchant PIN: 1234
-                  </span>
-                </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900">Ajeet Kumar</div>
+                    <div className="text-[11px] text-slate-500 truncate">ajeet.kumar@gmail.com</div>
+                  </div>
+                </button>
 
                 <button
-                  type="submit"
-                  disabled={merchantPinLoading}
-                  className="w-full py-3 bg-[#74111d] hover:bg-[#5e0c15] text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center justify-center space-x-2"
+                  onClick={() => handleGoogleSignInSelect('sumit.verma@gmail.com', 'Sumit Verma')}
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
                 >
-                  {merchantPinLoading ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Authorize 1 Stamp for Customer</span>
-                    </>
-                  )}
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
+                    SV
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900">Sumit Verma</div>
+                    <div className="text-[11px] text-slate-500 truncate">sumit.verma@gmail.com</div>
+                  </div>
                 </button>
-              </form>
+              </div>
             </div>
           </div>
         )}
-
-        <footer className="text-center p-3 text-slate-500 text-[11px]">
-          Powered by <strong className="text-slate-400">BeAurex In-Store Loyalty</strong> • Scan • Merchant Authority • Customer Claim
-        </footer>
-
-      </div>
-    );
-  }
-
-  // If logging out or unauthenticated on /customer dashboard route, immediately navigate to landing page
-  if (isLoggingOut) {
-    return <Navigate to="/" replace />;
-  }
-
-  // When customer is on /customer without being logged in and not on explicit login/signup/scan routes:
-  if (!isAuthenticated && !window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup') && !slug) {
-    return <Navigate to="/" replace />;
-  }
-
-  // =========================================================================
-  // VIEW 2: DEDICATED CUSTOMER LOGIN & SIGN UP PAGE (WITH OTP SIGNIN)
-  // When customer accesses /customer/login or /customer/signup
-  // =========================================================================
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex flex-col justify-between selection:bg-red-500 selection:text-white font-sans">
-        
-        <header className="px-6 py-4 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2.5">
-            <img 
-              src="/beaurex-icon.jpg" 
-              alt="BeAurex" 
-              className="w-9 h-9 rounded-xl object-cover shadow-sm border border-white/20"
-            />
-            <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tight leading-none text-white">
-                Be<span className="text-[#851421]">Aurex</span>
-              </span>
-              <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider mt-0.5">
-                Customer Rewards Club
-              </span>
-            </div>
-          </Link>
-
-          <Link
-            to="/"
-            className="text-xs font-bold text-slate-300 hover:text-white flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Return to Home</span>
-          </Link>
-        </header>
-
-        <div className="flex-1 flex items-center justify-center p-4 sm:p-6 my-6">
-          <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
-            
-            <div className="bg-gradient-to-r from-[#6b0f1a] via-[#851421] to-[#5c0d16] p-6 sm:p-8 text-white relative">
-              <div className="absolute top-4 right-4 w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-xs flex items-center justify-center border border-white/20">
-                <Gift className="w-5 h-5 text-amber-300" />
-              </div>
-              <span className="inline-flex items-center space-x-1 bg-white/20 backdrop-blur-xs text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full mb-2 border border-white/20">
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                <span>Loyalty & Counter Stamps</span>
-              </span>
-              <h2 className="text-2xl font-black tracking-tight">
-                {authMode === 'signin' ? 'Customer Rewards Login' : 'Join Customer Rewards Club'}
-              </h2>
-              <p className="text-xs text-red-100 font-medium mt-1 leading-relaxed">
-                {authMode === 'signin' 
-                  ? 'Access your digital stamps, unlocked rewards, and counter vouchers.'
-                  : 'Register in seconds to collect stamps and unlock instant in-store rewards!'}
-              </p>
-            </div>
-
-            <div className="p-6 sm:p-8">
-              <div className="flex rounded-xl bg-slate-100 p-1 mb-5">
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('signin'); setLoginError(''); setSignupError(''); }}
-                  className={`flex-1 py-2 text-xs font-black rounded-lg transition cursor-pointer ${
-                    authMode === 'signin'
-                      ? 'bg-white text-slate-900 shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Sign In (OTP)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('signup'); setLoginError(''); setSignupError(''); }}
-                  className={`flex-1 py-2 text-xs font-black rounded-lg transition cursor-pointer ${
-                    authMode === 'signup'
-                      ? 'bg-[#74111d] text-white shadow-sm'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  Join Free (Sign Up)
-                </button>
-              </div>
-
-              {loginError && authMode === 'signin' && (
-                <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>{loginError}</span>
-                </div>
-              )}
-              {signupError && authMode === 'signup' && (
-                <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>{signupError}</span>
-                </div>
-              )}
-
-              {authMode === 'signin' && (
-                <div>
-                  {!loginOtpSent ? (
-                    <form onSubmit={handleSendLoginOtp} className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                          Mobile Number
-                        </label>
-                        <div className="flex">
-                          <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-700 text-xs font-bold">
-                            +91
-                          </span>
-                          <input
-                            type="tel"
-                            value={loginPhone}
-                            onChange={(e) => setLoginPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
-                            placeholder="Enter 10-digit mobile"
-                            required
-                            className="w-full bg-white border border-slate-200 rounded-r-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={loginLoading}
-                        className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl text-xs transition shadow-md shadow-red-900/20 cursor-pointer flex items-center justify-center space-x-1.5"
-                      >
-                        {loginLoading ? (
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <span>Send Login OTP</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleVerifyLoginOtp} className="space-y-4">
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
-                        <div>
-                          <span className="text-slate-500 font-medium">OTP sent to:</span>
-                          <div className="font-bold text-slate-900">+91 {loginPhone}</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { setLoginOtpSent(false); setLoginError(''); }}
-                          className="text-red-700 hover:underline font-bold text-xs"
-                        >
-                          Change
-                        </button>
-                      </div>
-
-                      {loginDevOtp && (
-                        <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between">
-                          <span>Demo/Test Code: <strong className="font-mono text-sm">{loginDevOtp}</strong></span>
-                          <button
-                            type="button"
-                            onClick={() => setLoginOtp(loginDevOtp)}
-                            className="text-[11px] bg-amber-200 hover:bg-amber-300 px-2 py-0.5 rounded-lg font-bold"
-                          >
-                            Auto-fill
-                          </button>
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                          6-Digit OTP Code
-                        </label>
-                        <input
-                          type="text"
-                          value={loginOtp}
-                          onChange={(e) => setLoginOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                          placeholder="e.g. 123456"
-                          maxLength={6}
-                          required
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-3 text-center text-lg font-mono font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#74111d]"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={loginLoading}
-                        className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl text-xs transition shadow-md shadow-red-900/20 cursor-pointer flex items-center justify-center space-x-1.5"
-                      >
-                        {loginLoading ? (
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Verify OTP & Open Dashboard</span>
-                          </>
-                        )}
-                      </button>
-
-                      <div className="text-center text-xs text-slate-500">
-                        {loginCountdown > 0 ? (
-                          <span>Resend OTP in <strong>{loginCountdown}s</strong></span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handleSendLoginOtp}
-                            className="text-red-700 hover:underline font-bold cursor-pointer"
-                          >
-                            Resend OTP Code
-                          </button>
-                        )}
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {authMode === 'signup' && (
-                <div>
-                  {!signupOtpSent ? (
-                    <form onSubmit={handleSendSignupOtp} className="space-y-3.5">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
-                          Full Name
-                        </label>
-                        <input
-                          type="text"
-                          value={signupName}
-                          onChange={(e) => setSignupName(e.target.value)}
-                          placeholder="e.g. Ananya Sharma"
-                          required
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
-                          Mobile Number
-                        </label>
-                        <div className="flex">
-                          <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-700 text-xs font-bold">
-                            +91
-                          </span>
-                          <input
-                            type="tel"
-                            value={signupPhone}
-                            onChange={(e) => setSignupPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 10))}
-                            placeholder="Enter 10-digit mobile"
-                            required
-                            className="w-full bg-white border border-slate-200 rounded-r-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-600 mb-1">
-                          Email <span className="text-slate-400 font-normal">(Optional)</span>
-                        </label>
-                        <input
-                          type="email"
-                          value={signupEmail}
-                          onChange={(e) => setSignupEmail(e.target.value)}
-                          placeholder="e.g. ananya@gmail.com"
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#74111d]"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={signupLoading}
-                        className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl text-xs transition shadow-md shadow-red-900/20 cursor-pointer flex items-center justify-center space-x-1.5"
-                      >
-                        {signupLoading ? (
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <span>Send Verification Code</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  ) : (
-                    <form onSubmit={handleVerifySignupOtp} className="space-y-4">
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between text-xs">
-                        <div>
-                          <span className="text-slate-500 font-medium">Code sent to:</span>
-                          <div className="font-bold text-slate-900">+91 {signupPhone}</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { setSignupOtpSent(false); setSignupError(''); }}
-                          className="text-red-700 hover:underline font-bold text-xs"
-                        >
-                          Change
-                        </button>
-                      </div>
-
-                      {signupDevOtp && (
-                        <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-between">
-                          <span>Demo/Test Code: <strong className="font-mono text-sm">{signupDevOtp}</strong></span>
-                          <button
-                            type="button"
-                            onClick={() => setSignupOtp(signupDevOtp)}
-                            className="text-[11px] bg-amber-200 hover:bg-amber-300 px-2 py-0.5 rounded-lg font-bold"
-                          >
-                            Auto-fill
-                          </button>
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                          6-Digit Verification Code
-                        </label>
-                        <input
-                          type="text"
-                          value={signupOtp}
-                          onChange={(e) => setSignupOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                          placeholder="e.g. 123456"
-                          maxLength={6}
-                          required
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-3 text-center text-lg font-mono font-black tracking-widest text-slate-900 focus:outline-none focus:border-[#74111d]"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={signupLoading}
-                        className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl text-xs transition shadow-md shadow-red-900/20 cursor-pointer flex items-center justify-center space-x-1.5"
-                      >
-                        {signupLoading ? (
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Gift className="w-4 h-4 text-amber-300" />
-                            <span>Verify & Create Account 🎁</span>
-                          </>
-                        )}
-                      </button>
-
-                      <div className="text-center text-xs text-slate-500">
-                        {signupCountdown > 0 ? (
-                          <span>Resend in <strong>{signupCountdown}s</strong></span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handleSendSignupOtp}
-                            className="text-red-700 hover:underline font-bold cursor-pointer"
-                          >
-                            Resend Code
-                          </button>
-                        )}
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-
-            </div>
-
-          </div>
-        </div>
-
-        <footer className="text-center p-4 text-slate-500 text-xs">
-          © 2026 BeAurex Loyalty Portal • Fast SMS OTP Authentication
-        </footer>
-
       </div>
     );
   }
 
   // =========================================================================
-  // VIEW 3: FULL CUSTOMER DASHBOARD & WALLET (/customer)
-  // Contains 3 Tabs: Home (Dashboard), Scan (QR Camera & Simulator), Rewards (PINs)
+  // MAIN APP CONTAINER (Screens 5, 6, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col justify-between selection:bg-red-500 selection:text-white pb-20 md:pb-6 font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white pb-20">
       
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs">
-        <Link to="/" className="flex items-center space-x-2.5">
-          <img 
-            src="/beaurex-icon.jpg" 
-            alt="BeAurex" 
-            className="w-9 h-9 rounded-xl object-cover shadow-xs border border-slate-200"
-          />
-          <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight leading-none text-slate-900">
-              Be<span className="text-[#851421]">Aurex</span>
-            </span>
-            <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider mt-0.5">
-              Customer Loyalty & Rewards
-            </span>
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 16: SPLASH SCREEN (Batch 5) */}
+      {/* ------------------------------------------------------------------- */}
+      {splashLoading && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+          <div className="w-20 h-20 rounded-3xl bg-[#74111d] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/30 mb-5">
+            <QrCode className="w-10 h-10" />
           </div>
-        </Link>
-
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          <button
-            onClick={() => {
-              setScannedQrData('kafeen-4040');
-              fetchStoreBySlug('kafeen-4040');
-            }}
-            className="hidden sm:inline-flex items-center space-x-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl border border-slate-200 transition cursor-pointer"
-            title="Test Counter Standee Scan"
-          >
-            <Store className="w-3.5 h-3.5 text-red-600" />
-            <span>Counter Standee View</span>
-          </button>
-
-          <button
-            onClick={() => setProfileModalOpen(true)}
-            className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-full pl-1.5 pr-3 py-1 transition cursor-pointer"
-          >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#74111d] to-[#9e1627] text-white flex items-center justify-center font-black text-xs shadow-xs">
-              {(customerUser.name || 'C').charAt(0)}
-            </div>
-            <span className="text-xs font-bold text-slate-700 max-w-[90px] truncate">
-              {customerUser.name || (customerMobile ? `+91 ${customerMobile.slice(-4)}` : 'Guest')}
-            </span>
-          </button>
-
-          <button
-            onClick={handleCustomerLogout}
-            className="flex items-center space-x-1 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 px-2.5 py-1.5 rounded-xl transition cursor-pointer text-xs font-bold"
-            title="Log Out to Landing Page"
-          >
-            <LogOut className="w-3.5 h-3.5 text-rose-600" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            Loyal<span className="text-[#74111d]">QR</span>
+          </h1>
+          <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
+            Collect. Scan. Earn.
+          </p>
+          <div className="mt-8 flex flex-col items-center space-y-2">
+            <RefreshCw className="w-5 h-5 text-[#74111d] animate-spin" />
+            <span className="text-xs text-slate-400 font-medium">Loading...</span>
+          </div>
         </div>
-      </header>
+      )}
 
-      {/* Main Tab Content */}
-      <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 pb-28 sm:pb-32">
-        
-        {/* ========================================================= */}
-        {/* TAB 1: HOME (CUSTOMER METRICS & LOYALTY STAMP CARDS) */}
-        {/* ========================================================= */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-5 animate-in fade-in duration-150">
-            
-            <div className="bg-gradient-to-r from-[#660f1a] via-[#851421] to-[#550c15] text-white rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 18: NO INTERNET CONNECTION (Batch 5) */}
+      {/* ------------------------------------------------------------------- */}
+      {noInternetModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center space-y-4 shadow-2xl border border-slate-200">
+            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-700 relative">
+              <WifiOff className="w-8 h-8 text-slate-600" />
+              <div className="absolute top-2 right-2 w-4 h-4 bg-rose-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                ✕
+              </div>
+            </div>
+            <h3 className="text-lg font-black text-slate-900">No Internet Connection</h3>
+            <p className="text-xs text-slate-500">Please check your connection and try again.</p>
+            <button
+              onClick={() => setNoInternetModalOpen(false)}
+              className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry</span>
+            </button>
+          </div>
+        </div>
+      )}
 
-              <div className="flex items-start justify-between relative z-10">
-                <div>
-                  <span className="inline-flex items-center space-x-1 bg-white/20 backdrop-blur-xs text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full mb-2 border border-white/20">
-                    <Sparkles className="w-3 h-3 text-amber-300" />
-                    <span>{customerUser.tier || 'Bronze Member'}</span>
-                  </span>
-                  <h2 className="text-2xl font-black tracking-tight">
-                    Welcome, {customerUser.name || (customerMobile ? `+91 ${customerMobile}` : 'Shopper')}!
-                  </h2>
-                  <p className="text-xs text-red-100 font-medium mt-1">
-                    Collect stamps at your favorite stores and unlock instant discounts.
-                  </p>
-                </div>
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 17: CAMERA PERMISSION (Batch 5) */}
+      {/* ------------------------------------------------------------------- */}
+      {cameraPermissionModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-8 text-center space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
+            <div className="w-20 h-16 rounded-2xl bg-slate-800 text-white flex items-center justify-center mx-auto shadow-md relative">
+              <Camera className="w-8 h-8 text-slate-200" />
+              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full"></div>
+            </div>
+            <h3 className="text-lg font-black text-slate-900">Allow Camera Access</h3>
+            <p className="text-xs text-slate-500">Camera access is required to scan business QR codes.</p>
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => {
+                  setCameraPermissionModalOpen(false);
+                  startCamera();
+                }}
+                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Allow Camera</span>
+              </button>
+              <button
+                onClick={() => {
+                  setCameraPermissionModalOpen(false);
+                  simulateScanSuccess();
+                }}
+                className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs transition cursor-pointer"
+              >
+                Not Now (Simulate Scan)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-                <div className="bg-white/10 backdrop-blur-xs p-3 rounded-2xl border border-white/20 text-center shrink-0">
-                  <span className="text-[10px] uppercase font-bold text-amber-300 block">Balance</span>
-                  <div className="text-xl font-black font-mono mt-0.5">
-                    {customerUser.points || 150} <span className="text-xs font-normal">pts</span>
-                  </div>
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 5: HOME (Batch 2) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'home' && (
+        <div className="space-y-4 max-w-md w-full mx-auto">
+          
+          {/* Top Crimson Header */}
+          <div className="bg-[#74111d] text-white p-6 rounded-b-[36px] shadow-lg relative overflow-hidden">
+            <div className="flex items-start justify-between">
+              <div>
+                <span className="text-xs text-rose-200 font-medium block">Good Evening,</span>
+                <h1 className="text-xl font-black tracking-tight text-white">{customerUser.name}</h1>
+                <div className="flex items-center space-x-1.5 mt-0.5 text-xs text-rose-200/90 font-mono">
+                  <span>Customer ID: {customerUser.customerId}</span>
+                  <button 
+                    onClick={() => handleCopyCustomer(customerUser.customerId)}
+                    title="Copy ID"
+                    className="p-1 hover:text-white transition cursor-pointer"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  {copiedId && <span className="text-[10px] text-amber-300 font-sans font-bold">Copied!</span>}
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-white/20 flex items-center justify-between">
-                <span className="text-xs text-red-200">
-                  Standing at a store counter?
-                </span>
+              {/* Profile Avatar Trigger */}
+              <button
+                onClick={() => setCurrentScreen('profile')}
+                className="w-10 h-10 rounded-full border-2 border-white/60 bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
+                title="View Profile"
+              >
+                <User className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Gold Member Card */}
+            <div className="mt-5 bg-gradient-to-r from-[#941c2b] to-[#600e18] border border-rose-300/30 rounded-2xl p-4 shadow-sm flex items-center space-x-3.5">
+              <div className="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-300 flex items-center justify-center shrink-0">
+                <Crown className="w-5 h-5 fill-amber-300 text-amber-300" />
+              </div>
+              <div>
+                <h4 className="text-sm font-black text-amber-200 tracking-tight leading-tight">{customerUser.tier}</h4>
+                <p className="text-[11px] text-rose-200/80 font-medium">Member Since • {customerUser.memberSince}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 space-y-4">
+            
+            {/* Summary Metrics Row (Active Cards & Redeemed) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div className="text-[11px] text-slate-500 font-bold leading-tight">Active<br />Loyalty Cards</div>
+                <div className="text-2xl font-black text-slate-900 mt-1">{customerUser.activeCardsCount}</div>
+              </div>
+
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+                  <Gift className="w-4 h-4" />
+                </div>
+                <div className="text-[11px] text-slate-500 font-bold leading-tight">Rewards<br />Redeemed</div>
+                <div className="text-2xl font-black text-slate-900 mt-1">{customerUser.rewardsRedeemedCount}</div>
+              </div>
+            </div>
+
+            {/* Empty State Toggle (for Screen 17 demonstration) */}
+            {emptyStateDemo ? (
+              /* ------------------------------------------------------------- */
+              /* SCREEN 17: EMPTY STATE (Batch 3 & Batch 5) */
+              /* ------------------------------------------------------------- */
+              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-xs">
+                <div className="w-24 h-24 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
+                  <ShoppingBag className="w-12 h-12 text-rose-300 stroke-[1.5]" />
+                </div>
+                <h3 className="text-base font-black text-slate-900">No Loyalty Cards Yet</h3>
+                <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                  You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting stamps and earn exciting rewards!
+                </p>
                 <button
-                  onClick={() => { setActiveTab('scan'); }}
-                  className="bg-white text-slate-900 hover:bg-slate-100 font-black text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer"
+                  onClick={openScanScreen}
+                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-6 rounded-2xl text-xs transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
                 >
-                  <QrCode className="w-3.5 h-3.5 text-red-600" />
-                  <span>Scan Standee QR</span>
+                  <QrCode className="w-4 h-4" />
+                  <span>Scan QR Code</span>
+                </button>
+                <button
+                  onClick={() => setEmptyStateDemo(false)}
+                  className="text-[11px] text-slate-400 hover:text-slate-600 underline block mx-auto cursor-pointer"
+                >
+                  Show Active Loyalty Cards
                 </button>
               </div>
-            </div>
-
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                    Active Cards
-                  </span>
-                  <div className="text-2xl font-black text-slate-900 mt-0.5">
-                    {customerUser.storeProgress?.length || 1}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
-                  <Store className="w-5 h-5" />
-                </div>
-              </div>
-
-              <div 
-                onClick={() => { setActiveTab('reward'); setRewardSubTab('to_claim'); }}
-                className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between cursor-pointer hover:border-amber-400 transition"
-                title="View your unlocked vouchers"
-              >
-                <div>
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                    Unlocked Rewards
-                  </span>
-                  <div className="text-2xl font-black text-slate-900 mt-0.5">
-                    {vouchersList.filter(v => v.status === 'ACTIVE').length}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-                  <Gift className="w-5 h-5" />
-                </div>
-              </div>
-            </div>
-
-            {/* ACTIVE LOYALTY CARDS */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-black text-slate-900 tracking-tight">
-                  Continue Collecting Stamps
-                </h3>
-                <span className="text-xs font-bold text-slate-500">
-                  Tap card to check in
-                </span>
-              </div>
-
-              <div className="space-y-3.5">
-                {availableStores.map((store) => {
-                  const prog = getStoreProgress(store.slug);
-                  const isUnlocked = prog.stampsCollected >= (prog.totalStamps || 5);
-                  const StoreIcon = store.icon;
-
-                  return (
-                    <div 
-                      key={store.slug}
-                      className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-700 flex items-center justify-center font-bold border border-red-100">
-                            <StoreIcon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black text-slate-900">
-                              {store.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-500 font-medium">
-                              {prog.stampsCollected} of {prog.totalStamps || 5} Stamps Collected
-                            </p>
-                          </div>
-                        </div>
-
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                          {isUnlocked ? 'Milestone Complete 🎉' : `${(prog.totalStamps || 5) - prog.stampsCollected} more to reward`}
-                        </span>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 my-2">
-                        <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                          {Array.from({ length: prog.totalStamps || 5 }).map((_, idx) => {
-                            const isCollected = idx < prog.stampsCollected;
-                            const isRewardStamp = idx === (prog.totalStamps || 5) - 1;
-
-                            return (
-                              <div
-                                key={idx}
-                                className={`flex-1 aspect-square max-w-12 rounded-xl flex items-center justify-center transition ${
-                                  isCollected
-                                    ? 'bg-[#74111d] text-white shadow-xs'
-                                    : isRewardStamp
-                                    ? 'border-2 border-dashed border-amber-300 bg-amber-50 text-amber-500'
-                                    : 'border border-slate-200 bg-white text-slate-400'
-                                }`}
-                              >
-                                {isCollected ? (
-                                  <Check className="w-4 h-4 stroke-[3]" />
-                                ) : isRewardStamp ? (
-                                  <Gift className="w-3.5 h-3.5" />
-                                ) : (
-                                  <span className="text-[11px] font-bold font-mono">{idx + 1}</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
-                        <div className="text-xs">
-                          <span className="text-slate-500 font-medium">Reward: </span>
-                          <span className="font-black text-slate-900 bg-red-50 text-red-700 px-2 py-0.5 rounded-md border border-red-100">
-                            30% OFF Order
-                          </span>
-                        </div>
-
-                        <button
-                          onClick={() => {
-                            if (isUnlocked) {
-                              handleClaimAvailableReward({
-                                id: 'milestone_' + store.slug,
-                                storeName: store.name,
-                                storeSlug: store.slug,
-                                title: `${store.name} Milestone Reward (Unlocked)`,
-                                discountValue: 30
-                              });
-                            } else {
-                              setScannedQrData(store.slug);
-                              fetchStoreBySlug(store.slug);
-                              setActiveTab('scan');
-                            }
-                          }}
-                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center space-x-1 shadow-xs cursor-pointer"
-                        >
-                          {isUnlocked ? <Gift className="w-3.5 h-3.5 text-amber-300" /> : <QrCode className="w-3.5 h-3.5" />}
-                          <span>{isUnlocked ? 'Claim Reward 🎁' : 'Check In at Store'}</span>
-                        </button>
-                      </div>
-
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* TAB 2: SCAN (REAL CAMERA QR DECODER & STAND-EE SIMULATOR) */}
-        {/* Powered by live jsQR video frame decoding! */}
-        {/* ========================================================= */}
-        {activeTab === 'scan' && (
-          <div className="max-w-md mx-auto space-y-4 animate-in fade-in duration-150">
-            
-            <div className="text-center">
-              <h2 className="text-xl font-black text-slate-900">
-                Scan Store QR Standee
-              </h2>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Point your camera at any store's counter standee to decode & check in
-              </p>
-            </div>
-
-            {/* REAL CAMERA VIEWFINDER WITH jsQR */}
-            <div className="relative w-full aspect-square max-w-[320px] mx-auto bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-900 flex flex-col items-center justify-between p-4">
-              
-              <div className="w-full flex justify-between items-center text-white/80 text-[10px] font-mono z-10">
-                <span className="flex items-center space-x-1.5">
-                  <span className={`w-2 h-2 rounded-full ${cameraActive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
-                  <span>{cameraActive ? 'jsQR SCANNING LIVE' : 'CAMERA READY'}</span>
-                </span>
-                <span>BEAUREX 2.0</span>
-              </div>
-
-              {/* Video Element */}
-              <video 
-                ref={videoRef}
-                playsInline
-                muted
-                className={`absolute inset-0 w-full h-full object-cover ${cameraActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-              />
-
-              {/* Viewfinder Target Brackets */}
-              <div className="relative w-48 h-48 border-2 border-dashed border-red-500/80 rounded-2xl flex items-center justify-center overflow-hidden my-auto z-10">
-                <div className="absolute top-0 left-0 w-5 h-5 border-t-3 border-l-3 border-red-500"></div>
-                <div className="absolute top-0 right-0 w-5 h-5 border-t-3 border-r-3 border-red-500"></div>
-                <div className="absolute bottom-0 left-0 w-5 h-5 border-b-3 border-l-3 border-red-500"></div>
-                <div className="absolute bottom-0 right-0 w-5 h-5 border-b-3 border-r-3 border-red-500"></div>
-
-                <QrCode className="w-20 h-20 text-white/30" />
-                <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-lg shadow-red-500 animate-bounce"></div>
-              </div>
-
-              <div className="text-white/80 text-xs text-center z-10 font-medium">
-                <span>Hold steady — QR decodes automatically in frame</span>
-              </div>
-
-            </div>
-
-            {cameraError && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-800 text-center font-medium">
-                {cameraError}
-              </div>
-            )}
-
-            {/* SCAN ALTERNATIVES: IMAGE UPLOAD & CODE ENTRY */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black uppercase text-slate-700 tracking-wider">
-                  Scan Options & Standee Selector
-                </span>
-                <label className="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1 rounded-xl cursor-pointer flex items-center space-x-1 border border-slate-200">
-                  <Image className="w-3.5 h-3.5 text-red-600" />
-                  <span>Upload QR Photo</span>
-                  <input type="file" accept="image/*" onChange={handleQrImageUpload} className="hidden" />
-                </label>
-              </div>
-
-              {/* Store Selector */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">
-                  Or Pick a Store to Check In
-                </label>
-                <div className="flex space-x-2">
-                  <select
-                    value={selectedSimStore}
-                    onChange={(e) => setSelectedSimStore(e.target.value)}
-                    className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#74111d]"
-                  >
-                    {availableStores.map(s => (
-                      <option key={s.slug} value={s.slug}>
-                        {s.name} ({s.category})
-                      </option>
-                    ))}
-                  </select>
+            ) : (
+              /* Continue Collecting Section */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-slate-900">Continue Collecting</h3>
                   <button
-                    type="button"
-                    onClick={() => {
-                      setScannedQrData(selectedSimStore);
-                      fetchStoreBySlug(selectedSimStore);
-                    }}
-                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer"
+                    onClick={() => setEmptyStateDemo(true)}
+                    className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
                   >
-                    Open
+                    View Empty State
                   </button>
                 </div>
-              </div>
 
-              {/* Manual Code / Slug Input */}
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (manualCodeInput.trim()) {
-                    handleQrDetected(manualCodeInput.trim());
-                  }
-                }}
-                className="pt-2 border-t border-slate-100 flex space-x-2"
-              >
-                <input
-                  type="text"
-                  value={manualCodeInput}
-                  onChange={(e) => setManualCodeInput(e.target.value)}
-                  placeholder="Enter store slug (e.g. kafeen-4040)"
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
-                />
-                <button
-                  type="submit"
-                  className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
-                >
-                  Go
-                </button>
-              </form>
-
-            </div>
-
-          </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* TAB 3: REWARDS (UNLOCKED CASHIER PINs & VOUCHERS) */}
-        {/* ========================================================= */}
-        {activeTab === 'reward' && (
-          <div className="space-y-4 animate-in fade-in duration-150">
-            
-            <div>
-              <h2 className="text-xl font-black text-slate-900">
-                My Rewards & Vouchers
-              </h2>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Show the 4-digit PIN to the cashier at the counter to redeem your discount
-              </p>
-            </div>
-
-            <div className="flex rounded-2xl bg-slate-200 p-1">
-              <button
-                type="button"
-                onClick={() => setRewardSubTab('to_claim')}
-                className={`flex-1 py-2 text-xs font-black rounded-xl transition cursor-pointer ${
-                  rewardSubTab === 'to_claim'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Active Rewards ({vouchersList.filter(v => v.status === 'ACTIVE').length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setRewardSubTab('history')}
-                className={`flex-1 py-2 text-xs font-black rounded-xl transition cursor-pointer ${
-                  rewardSubTab === 'history'
-                    ? 'bg-white text-slate-900 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Redeemed History ({vouchersList.filter(v => v.status === 'REDEEMED').length})
-              </button>
-            </div>
-
-            {rewardSubTab === 'to_claim' && (
-              <div className="space-y-4">
-                {/* Active Vouchers from MongoDB */}
-                {vouchersList.filter(v => v.status === 'ACTIVE').length > 0 ? (
-                  <div className="space-y-3.5">
-                    {vouchersList.filter(v => v.status === 'ACTIVE').map((voucher) => (
-                      <div 
-                        key={voucher._id}
-                        className="bg-white border-2 border-emerald-500/20 rounded-3xl p-5 shadow-xs space-y-3 hover:border-emerald-500/40 transition"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-sm shrink-0">
-                              <Gift className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                                {voucher.storeName || 'Store Reward'}
-                              </span>
-                              <h4 className="text-base font-black text-slate-900 leading-snug">
-                                {voucher.rewardTitle}
-                              </h4>
-                              <p className="text-xs text-slate-500 mt-0.5">
-                                Min. order ₹{voucher.minBillAmount || 200} • Valid for 7 days
-                              </p>
-                            </div>
-                          </div>
-
-                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black px-2.5 py-1 rounded-full uppercase">
-                            Ready to Burn
-                          </span>
-                        </div>
-
-                        <div className="bg-slate-900 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-xs">
-                          <div>
-                            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
-                              Cashier Verification PIN
-                            </span>
-                            <div className="flex items-center space-x-1.5 mt-1 font-mono font-black text-lg text-amber-300">
-                              {String(voucher.pinCode || '4821').split('').map((d, i) => (
-                                <span key={i} className="bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700">
-                                  {d}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="text-right">
-                            <span className="text-[10px] font-mono text-slate-400 block">
-                              {voucher.voucherCode || 'LQR-VOUCHER'}
-                            </span>
-                            <button
-                              onClick={() => handleCopyText(voucher.pinCode || '4821', 'pin')}
-                              className="mt-1 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-1 rounded-xl border border-slate-700 transition flex items-center space-x-1 cursor-pointer"
-                            >
-                              <Copy className="w-3 h-3 text-amber-400" />
-                              <span>{copiedPin ? 'Copied' : 'Copy PIN'}</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="text-[11px] text-slate-500 bg-slate-50 rounded-xl p-2.5 text-center font-medium">
-                          Show this 4-digit PIN to the cashier at billing counter to apply your discount.
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-white border border-slate-200 rounded-3xl p-6 text-center space-y-2 shadow-xs">
-                    <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-100">
-                      <Gift className="w-6 h-6" />
-                    </div>
-                    <h4 className="text-sm font-black text-slate-900">No active vouchers right now</h4>
-                    <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                      Claim an available store reward below or collect stamps at checkout to unlock rewards!
-                    </p>
-                  </div>
-                )}
-
-                {/* Available Store Rewards to Claim */}
-                <div className="pt-2 space-y-3">
+                {/* Card 1: Ka-feen Coffee Shop */}
+                <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 transition">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-black text-slate-900 flex items-center space-x-1.5">
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>Available Rewards to Claim</span>
-                    </h3>
-                    <span className="text-[11px] font-bold text-slate-400">1-Tap Claim</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-11 h-11 rounded-2xl bg-[#111111] text-white flex items-center justify-center shadow-xs">
+                        <Coffee className="w-5 h-5 text-amber-200" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
+                      </div>
+                    </div>
+                    <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
+                      2 more stamps
+                    </span>
                   </div>
 
-                  <div className="space-y-2.5">
-                    {availableOffersToClaim.map((offer) => (
-                      <div
-                        key={offer.id}
-                        className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between gap-3 hover:border-slate-300 transition"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">
-                              {offer.storeName}
-                            </span>
-                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${offer.color}`}>
-                              {offer.tag}
-                            </span>
-                          </div>
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate mt-0.5">
-                            {offer.title}
-                          </h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5">
-                            Min. order ₹{offer.minBillAmount} • Instant 4-digit Cashier PIN
-                          </p>
+                  {/* Stamp Indicators */}
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1.5">
+                      {[1, 2, 3].map((n) => (
+                        <div key={n} className="w-7 h-7 rounded-full bg-[#74111d] flex items-center justify-center text-white text-xs shadow-xs">
+                          <Star className="w-3.5 h-3.5 fill-white text-white" />
                         </div>
+                      ))}
+                      {[4, 5].map((n) => (
+                        <div key={n} className="w-7 h-7 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300 text-xs">
+                          ○
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
+                  </div>
 
-                        <button
-                          onClick={() => handleClaimAvailableReward(offer)}
-                          disabled={claimingRewardId === (offer.id || offer.storeSlug)}
-                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 shadow-xs shrink-0 cursor-pointer disabled:opacity-50"
-                        >
-                          <Gift className="w-3.5 h-3.5 text-amber-300" />
-                          <span>{claimingRewardId === (offer.id || offer.storeSlug) ? 'Claiming...' : 'Claim Reward 🎁'}</span>
-                        </button>
+                  {/* Next Unlock Banner */}
+                  <div 
+                    onClick={() => {
+                      setSelectedReward({
+                        title: '30% OFF on next purchase',
+                        storeName: 'Ka-feen',
+                        requiresStamps: 2,
+                        validTill: '30 Jul 2026',
+                        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+                        approvedAt: 'Today, 2:30 PM'
+                      });
+                      setCurrentScreen('reward_details');
+                    }}
+                    className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-rose-100/50 transition"
+                  >
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
+                        <Gift className="w-3.5 h-3.5 text-amber-200" />
                       </div>
-                    ))}
+                      <div>
+                        <div className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</div>
+                        <div className="text-[10px] text-slate-500 font-medium">Collect 2 more stamps to unlock</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#74111d]" />
+                  </div>
+                </div>
+
+                {/* Card 2: Brew House */}
+                <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
+                        <Utensils className="w-5 h-5 text-amber-200" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro</p>
+                      </div>
+                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
+                      Reward Ready 🎉
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1.5">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <div key={n} className="w-7 h-7 rounded-full bg-[#0e5c36] flex items-center justify-center text-white text-xs shadow-xs">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
                   </div>
                 </div>
 
               </div>
             )}
 
-            {rewardSubTab === 'history' && (
-              <div className="space-y-3">
-                {vouchersList.filter(v => v.status === 'REDEEMED').length > 0 ? (
-                  vouchersList.filter(v => v.status === 'REDEEMED').map((item) => (
-                    <div key={item._id} className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900">{item.rewardTitle}</h4>
-                        <p className="text-xs text-slate-500">Redeemed at counter</p>
-                      </div>
-                      <span className="bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-1 rounded-full">
-                        Redeemed
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center bg-white border border-slate-200 rounded-3xl">
-                    <Gift className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <h5 className="text-sm font-bold text-slate-700">No past redemptions yet</h5>
-                    <p className="text-xs text-slate-400 mt-0.5">Collect stamps at the counter to unlock your first reward.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
           </div>
-        )}
+        </div>
+      )}
 
-      </main>
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 6: SCAN QR CODE (Batch 2) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'scan' && (
+        <div className="fixed inset-0 z-50 bg-black text-white flex flex-col justify-between">
+          {/* Top Bar with Close, Title, Flashlight */}
+          <div className="p-4 sm:p-6 flex items-center justify-between">
+            <button
+              onClick={() => {
+                stopCamera();
+                setCurrentScreen('home');
+              }}
+              className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center cursor-pointer hover:bg-white/30"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-sm font-bold text-white tracking-wide">Scan QR Code</h2>
+            <button
+              onClick={() => setFlashlightOn(!flashlightOn)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition ${
+                flashlightOn ? 'bg-amber-400 text-slate-950' : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+            >
+              <Zap className="w-5 h-5" />
+            </button>
+          </div>
 
-      {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <nav className="fixed bottom-0 left-0 right-0 sm:max-w-md sm:mx-auto sm:bottom-3 sm:rounded-2xl sm:border sm:border-slate-200/80 sm:shadow-xl z-40 bg-white border-t border-slate-200 px-6 py-2 flex items-center justify-around shadow-2xl">
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center justify-center py-1 px-3 transition cursor-pointer ${
-            activeTab === 'dashboard' ? 'text-red-700 font-black' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Home className="w-5 h-5" />
-          <span className="text-[11px] font-black mt-1">Home</span>
-        </button>
+          {/* Subtitle */}
+          <div className="text-center px-6">
+            <p className="text-xs text-white/80 font-medium">
+              Position the QR code within the frame to collect stamp
+            </p>
+          </div>
 
-        <button
-          onClick={() => setActiveTab('scan')}
-          className="-mt-7 w-14 h-14 rounded-full bg-gradient-to-tr from-[#74111d] to-[#9b1727] text-white flex items-center justify-center shadow-xl shadow-red-900/40 border-4 border-white active:scale-95 transition transform cursor-pointer"
-          aria-label="Scan Counter QR"
-        >
-          <QrCode className="w-6 h-6 stroke-[2.5]" />
-        </button>
+          {/* Viewfinder box with red corner markers */}
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl overflow-hidden flex items-center justify-center bg-slate-900/40 border-2 border-white/20">
+              <video
+                ref={videoRef}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
 
-        <button
-          onClick={() => setActiveTab('reward')}
-          className={`flex flex-col items-center justify-center py-1 px-3 transition cursor-pointer ${
-            activeTab === 'reward' ? 'text-red-700 font-black' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Gift className="w-5 h-5" />
-          <span className="text-[11px] font-black mt-1">Rewards</span>
-        </button>
-      </nav>
+              {/* Red viewfinder corners */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-red-600 rounded-tl-xl pointer-events-none"></div>
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-red-600 rounded-tr-xl pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-red-600 rounded-bl-xl pointer-events-none"></div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-red-600 rounded-br-xl pointer-events-none"></div>
 
-      {/* PROFILE DETAILS & LOGOUT MODAL */}
-      {profileModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div 
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
-            onClick={() => setProfileModalOpen(false)}
-          />
-
-          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-10 border border-slate-200 my-auto">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-sm font-black text-slate-900">
-                Customer Profile
-              </h3>
-              <button 
-                onClick={() => setProfileModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {/* Center scan line animation */}
+              <div className="w-full h-0.5 bg-red-500 shadow-lg shadow-red-500/80 animate-pulse pointer-events-none"></div>
             </div>
+          </div>
 
-            <div className="p-6 text-center border-b border-slate-100">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#74111d] to-[#9e1627] text-white font-black text-xl flex items-center justify-center mx-auto mb-2 shadow-md">
-                {(customerUser.name || 'C').charAt(0)}
-              </div>
-              <h4 className="text-lg font-black text-slate-900">
-                {customerUser.name || 'Shopper'}
-              </h4>
-              <span className="inline-flex items-center space-x-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-0.5 rounded-full mt-1">
-                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                <span>{customerUser.tier || 'Bronze Member'}</span>
-              </span>
+          {/* Bottom Actions: Fallback simulate scan */}
+          <div className="p-6 text-center space-y-3">
+            <button
+              onClick={simulateScanSuccess}
+              className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-6 rounded-2xl text-xs transition shadow-lg shadow-[#74111d]/50 cursor-pointer flex items-center justify-center space-x-2"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Simulate Counter Scan (Ka-feen)</span>
+            </button>
+          </div>
+        </div>
+      )}
 
-              <div className="mt-4 bg-slate-50 rounded-xl p-2.5 flex items-center justify-between border border-slate-200">
-                <div className="text-left">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Customer ID</span>
-                  <span className="font-mono font-black text-slate-900 text-sm">
-                    {customerUser.customerId || 'LQR-MEMBER'}
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 7: AFTER SCAN (Batch 2) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'after_scan' && (
+        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-3">
+          {/* Top Bar with Back Arrow & Store info */}
+          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200">
+            <button
+              onClick={() => setCurrentScreen('home')}
+              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+              <Coffee className="w-4 h-4 text-amber-200" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+            </div>
+          </div>
+
+          {/* Stamp Earned Card */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 text-center shadow-xs space-y-3">
+            <h3 className="text-sm font-black text-slate-900">You earned 1 stamp!</h3>
+            <p className="text-xs text-slate-500">3 of 5 stamps collected</p>
+            <div className="flex items-center justify-center space-x-2 py-1">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="w-8 h-8 rounded-full bg-[#74111d] flex items-center justify-center text-white text-xs shadow-xs">
+                  <Star className="w-4 h-4 fill-white text-white" />
+                </div>
+              ))}
+              {[4, 5].map((n) => (
+                <div key={n} className="w-8 h-8 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300 text-xs">
+                  ○
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Available Rewards Section */}
+          <div className="space-y-3 pt-1">
+            <h3 className="text-sm font-black text-slate-900">Available Rewards</h3>
+
+            {/* Reward 1: 30% OFF (Achieved) */}
+            <div 
+              onClick={() => {
+                setSelectedReward({
+                  title: '30% off on next purchase',
+                  storeName: 'Ka-feen',
+                  requiresStamps: 2,
+                  validTill: '30 Jul 2026',
+                  image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+                  approvedAt: 'Today, 2:30 PM'
+                });
+                setCurrentScreen('reward_details');
+              }}
+              className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+            >
+              <img
+                src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
+                alt="30% OFF"
+                className="w-16 h-16 rounded-2xl object-cover shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</h4>
+                  <span className="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase">
+                    ACHIEVED
                   </span>
                 </div>
-                <button
-                  onClick={() => handleCopyText(customerUser.customerId || 'LQR-MEMBER', 'id')}
-                  className="bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-200 transition cursor-pointer flex items-center space-x-1"
-                >
-                  <Copy className="w-3 h-3" />
-                  <span>{copiedId ? 'Copied' : 'Copy'}</span>
-                </button>
+                <p className="text-[11px] text-[#74111d] font-bold mt-1">2 STAMPS • Ready to claim! 🎉</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
               </div>
             </div>
 
-            <div className="p-4 space-y-2 text-xs border-b border-slate-100">
-              <div className="flex justify-between py-1">
-                <span className="text-slate-500 font-medium">Mobile:</span>
-                <span className="font-bold text-slate-900">+91 {customerMobile || 'Not set'}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-slate-500 font-medium">Reward Points:</span>
-                <span className="font-black text-red-700">{customerUser.points || 150} pts</span>
+            {/* Reward 2: 50% discount */}
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs flex items-center space-x-3.5 opacity-80">
+              <img
+                src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
+                alt="50% discount"
+                className="w-16 h-16 rounded-2xl object-cover shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-black text-slate-900 leading-tight">50% discount</h4>
+                <p className="text-[11px] text-slate-600 font-bold mt-1">5 STAMPS • Collect 2 more</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
               </div>
             </div>
 
-            <div className="p-4 bg-white">
-              <button
-                onClick={handleCustomerLogout}
-                className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-black py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Log Out of Rewards</span>
-              </button>
+            {/* Reward 3: Free Coffee */}
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs flex items-center space-x-3.5 opacity-80">
+              <img
+                src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
+                alt="Free Coffee"
+                className="w-16 h-16 rounded-2xl object-cover shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-black text-slate-900 leading-tight">Free Coffee</h4>
+                <p className="text-[11px] text-slate-600 font-bold mt-1">3 STAMPS • Collect 1 more</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Batch 2 & 3) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'rewards' && (
+        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-4">
+          {/* Top Bar with My Rewards title & Profile avatar */}
+          <div className="flex items-center justify-between pb-1">
+            <h2 className="text-lg font-black text-slate-900 tracking-tight">My Rewards</h2>
+            <button
+              onClick={() => setCurrentScreen('profile')}
+              className="w-8 h-8 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 cursor-pointer"
+            >
+              <User className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Segmented Tab Control: To Claim vs History (2) */}
+          <div className="border-b border-slate-200 flex">
+            <button
+              onClick={() => setRewardsSubTab('to_claim')}
+              className={`flex-1 pb-2.5 text-xs font-black transition cursor-pointer relative ${
+                rewardsSubTab === 'to_claim' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              <span>To Claim</span>
+              {rewardsSubTab === 'to_claim' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#74111d] rounded-full"></div>
+              )}
+            </button>
+
+            <button
+              onClick={() => setRewardsSubTab('history')}
+              className={`flex-1 pb-2.5 text-xs font-black transition cursor-pointer relative flex items-center justify-center space-x-1.5 ${
+                rewardsSubTab === 'history' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-700'
+              }`}
+            >
+              <span>History</span>
+              <span className="w-4 h-4 rounded-full bg-[#74111d] text-white text-[9px] font-bold flex items-center justify-center">
+                2
+              </span>
+              {rewardsSubTab === 'history' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#74111d] rounded-full"></div>
+              )}
+            </button>
+          </div>
+
+          {/* TAB 1: TO CLAIM (Screen 8) */}
+          {rewardsSubTab === 'to_claim' && (
+            <div className="space-y-4 pt-6">
+              {/* Empty state matching Screen 8 */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-8 text-center space-y-4 shadow-xs">
+                <div className="w-20 h-20 rounded-3xl bg-amber-50 flex items-center justify-center mx-auto text-amber-500 shadow-xs border border-amber-100">
+                  <Gift className="w-10 h-10 text-amber-600" />
+                </div>
+                <h3 className="text-base font-black text-slate-900">No Rewards Yet</h3>
+                <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                  Collect more stamps from your favourite businesses to earn exciting rewards!
+                </p>
+                <button
+                  onClick={() => setCurrentScreen('home')}
+                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 px-6 rounded-2xl text-xs transition cursor-pointer mx-auto shadow-md"
+                >
+                  Explore Businesses
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: REWARD HISTORY (Screen 14) */}
+          {rewardsSubTab === 'history' && (
+            <div className="space-y-3.5 pt-1">
+              {/* Filter pills: All, Active, Used, Expired */}
+              <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+                {['All', 'Active', 'Used', 'Expired'].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setHistoryFilter(f)}
+                    className={`py-1.5 px-4 rounded-full text-xs font-bold transition cursor-pointer ${
+                      historyFilter === f
+                        ? 'bg-[#74111d] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+
+              {/* History Cards */}
+              <div className="space-y-3">
+                {/* Card 1: Used 30% */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3 hover:border-slate-300 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <img
+                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
+                        alt="30% off"
+                        className="w-12 h-12 rounded-xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-black text-slate-900 truncate">30% off on next purchase</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Ka-feen</p>
+                      </div>
+                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Used
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <div>
+                      <span className="text-slate-400 block text-[9px]">Claimed on</span>
+                      <span>20 May 2026</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[9px]">Used on</span>
+                      <span>20 May 2026</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+
+                {/* Card 2: Expired Coffee */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <img
+                        src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
+                        alt="Free Coffee"
+                        className="w-12 h-12 rounded-xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-black text-slate-900 truncate">Free Coffee</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Ka-feen</p>
+                      </div>
+                    </div>
+                    <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-slate-200">
+                      Expired
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <div>
+                      <span className="text-slate-400 block text-[9px]">Claimed on</span>
+                      <span>12 Apr 2026</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[9px]">Expired on</span>
+                      <span>10 Apr 2026</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+
+                {/* Card 3: Active Buy 1 Get 1 */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <img
+                        src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
+                        alt="Buy 1 Get 1"
+                        className="w-12 h-12 rounded-xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-black text-slate-900 truncate">Buy 1 Get 1 Free</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">Brew House</p>
+                      </div>
+                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Active
+                    </span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <div>
+                      <span className="text-slate-400 block text-[9px]">Claimed on</span>
+                      <span>15 Jul 2026</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[9px]">Valid till</span>
+                      <span>15 Aug 2026</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 10: REWARD DETAILS (Batch 3) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'reward_details' && (
+        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-3">
+          {/* Top Bar with Back Arrow & Store info */}
+          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200">
+            <button
+              onClick={() => setCurrentScreen('after_scan')}
+              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+              <Coffee className="w-4 h-4 text-amber-200" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+            </div>
+          </div>
+
+          {/* Reward Details Card */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
+            <img
+              src={selectedReward.image}
+              alt={selectedReward.title}
+              className="w-full h-44 object-cover"
+            />
+            <div className="p-5 space-y-4">
+              <div>
+                <h3 className="text-base font-black text-slate-900">{selectedReward.title}</h3>
+                <span className="bg-rose-50 text-rose-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full mt-1.5 inline-block border border-rose-100">
+                  Requires 2 Stamps
+                </span>
+              </div>
+
+              {/* Progress */}
+              <div className="pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
+                  <span>Your Progress</span>
+                  <span>3 / 5 Stamps</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="w-8 h-8 rounded-full bg-[#74111d] flex items-center justify-center text-white text-xs shadow-xs">
+                      <Coffee className="w-4 h-4 text-amber-200" />
+                    </div>
+                  ))}
+                  {[4, 5].map((n) => (
+                    <div key={n} className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-xs">
+                      ○
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Validity */}
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 pt-2 border-t border-slate-100">
+                <span className="flex items-center space-x-1.5 text-slate-500">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span>Valid Till</span>
+                </span>
+                <span className="text-[#74111d]">{selectedReward.validTill}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Claim Button */}
+          <button
+            onClick={handleInitiateClaim}
+            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs transition shadow-lg shadow-[#74111d]/20 cursor-pointer"
+          >
+            Claim Now
+          </button>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 12: WAITING FOR APPROVAL (Batch 3) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'waiting_approval' && (
+        <div className="space-y-6 max-w-md w-full mx-auto px-4 pt-3 text-center">
+          {/* Top Bar */}
+          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200 text-left">
+            <button
+              onClick={() => setCurrentScreen('reward_details')}
+              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+              <Coffee className="w-4 h-4 text-amber-200" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+            </div>
+          </div>
+
+          {/* Hourglass Ring Loader */}
+          <div className="pt-4 flex flex-col items-center">
+            <div className="w-24 h-24 rounded-full border-4 border-rose-100 border-t-[#74111d] flex items-center justify-center animate-spin">
+              <Hourglass className="w-8 h-8 text-[#74111d]" />
+            </div>
+
+            <h3 className="text-lg font-black text-slate-900 mt-5">Waiting for Approval</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-xs">
+              Your request is being reviewed by the merchant.
+            </p>
+          </div>
+
+          {/* Large Customer ID Card */}
+          <div className="bg-rose-50/60 border border-rose-200/80 rounded-3xl p-6 text-center space-y-2">
+            <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-500 font-bold uppercase tracking-wider">
+              <CreditCard className="w-4 h-4 text-[#74111d]" />
+              <span>Customer ID</span>
+            </div>
+            <div className="text-2xl font-black font-mono text-[#74111d] tracking-widest">
+              {customerUser.customerId}
+            </div>
+            <p className="text-[11px] text-slate-500 font-medium pt-1">
+              Please share your Customer ID with the cashier.
+            </p>
+          </div>
+
+          {/* Instant Sim Button */}
+          <button
+            onClick={() => {
+              confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+              setCurrentScreen('reward_congrats');
+            }}
+            className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
+          >
+            [Simulate Instant Approval]
+          </button>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 13: CONGRATULATIONS / REWARD CLAIMED (Batch 3) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'reward_congrats' && (
+        <div className="space-y-5 max-w-md w-full mx-auto px-4 pt-3 text-center">
+          {/* Top Bar */}
+          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200 text-left">
+            <button
+              onClick={() => setCurrentScreen('home')}
+              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+              <Coffee className="w-4 h-4 text-amber-200" />
+            </div>
+            <div>
+              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
+              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+            </div>
+          </div>
+
+          {/* Green Checkmark Circle & Congratulations */}
+          <div className="pt-2 flex flex-col items-center">
+            <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+              <Check className="w-10 h-10 stroke-[3]" />
+            </div>
+            <h3 className="text-xl font-black text-emerald-600 mt-4">Reward Claimed!</h3>
+            <p className="text-xs font-bold text-slate-600 mt-1">Enjoy your reward 🎉</p>
+          </div>
+
+          {/* Voucher Summary Card */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs text-left space-y-3">
+            <div className="flex items-center space-x-3">
+              <img
+                src={selectedReward.image}
+                alt={selectedReward.title}
+                className="w-14 h-14 rounded-2xl object-cover shrink-0"
+              />
+              <div className="min-w-0">
+                <h4 className="text-xs font-black text-slate-900 leading-snug">{selectedReward.title}</h4>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Ka-feen Coffee</p>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-600">
+              <span className="flex items-center space-x-1.5 text-slate-400">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Approved On</span>
+              </span>
+              <span>20 May 2026, 11:45 AM</span>
+            </div>
+          </div>
+
+          {/* Done CTA */}
+          <button
+            onClick={() => setCurrentScreen('home')}
+            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs transition shadow-lg shadow-[#74111d]/20 cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
+      {/* SCREEN 9: PROFILE (Batch 2) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen === 'profile' && (
+        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-4">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between pb-1">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentScreen('home')}
+                className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer -ml-2"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <h2 className="text-lg font-black text-slate-900 tracking-tight">Profile</h2>
+            </div>
+            <div className="w-8 h-8 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center">
+              <User className="w-4 h-4" />
+            </div>
+          </div>
+
+          {/* User Profile Card */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs flex items-center space-x-4">
+            <div className="w-14 h-14 rounded-full bg-rose-100 text-[#74111d] font-black text-lg flex items-center justify-center shrink-0">
+              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-black text-slate-900 leading-tight">{customerUser.name}</h3>
+              <div className="flex items-center space-x-1.5 mt-0.5 text-xs text-slate-500 font-mono">
+                <span>Customer ID: {customerUser.customerId}</span>
+                <button
+                  onClick={() => handleCopyCustomer(customerUser.customerId)}
+                  className="hover:text-slate-900 cursor-pointer"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+                {copiedId && <span className="text-[10px] text-emerald-600 font-sans font-bold">Copied!</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Details List */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-2 shadow-xs divide-y divide-slate-100">
+            <div className="flex items-center space-x-3.5 p-3.5">
+              <Phone className="w-4 h-4 text-slate-400" />
+              <span className="text-xs font-bold text-slate-800">{customerUser.phone}</span>
+            </div>
+            <div className="flex items-center space-x-3.5 p-3.5">
+              <Mail className="w-4 h-4 text-slate-400" />
+              <span className="text-xs font-bold text-slate-800">{customerUser.email}</span>
+            </div>
+          </div>
+
+          {/* Settings / Policies Navigation Rows */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-2 shadow-xs divide-y divide-slate-100">
+            <div className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition">
+              <div className="flex items-center space-x-3.5">
+                <ShieldCheck className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-bold text-slate-800">Privacy Policy</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <div className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition">
+              <div className="flex items-center space-x-3.5">
+                <FileText className="w-4 h-4 text-slate-400" />
+                <span className="text-xs font-bold text-slate-800">Terms &amp; Conditions</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400" />
+            </div>
+
+            <div 
+              onClick={handleLogout}
+              className="flex items-center justify-between p-3.5 hover:bg-rose-50/50 rounded-2xl cursor-pointer transition"
+            >
+              <div className="flex items-center space-x-3.5 text-rose-600">
+                <LogOut className="w-4 h-4" />
+                <span className="text-xs font-black">Logout</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-rose-600" />
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
+      {/* PERSISTENT BOTTOM NAVIGATION BAR (Screens 5, 7, 8, 9) */}
+      {/* ------------------------------------------------------------------- */}
+      {currentScreen !== 'scan' && (
+        <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white border-t border-slate-200/90 px-8 py-2 flex items-center justify-around shadow-2xl">
+          {/* Home Tab */}
+          <button
+            onClick={() => setCurrentScreen('home')}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentScreen === 'home' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-[10px] font-black mt-1">Home</span>
+          </button>
+
+          {/* Center Floating Red Scan Button */}
+          <button
+            onClick={openScanScreen}
+            className="-mt-7 w-14 h-14 rounded-full bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
+            aria-label="Scan QR Code"
+          >
+            <QrCode className="w-6 h-6 stroke-[2.5]" />
+          </button>
+
+          {/* Rewards Tab */}
+          <button
+            onClick={() => {
+              setRewardsSubTab('to_claim');
+              setCurrentScreen('rewards');
+            }}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+              currentScreen === 'rewards' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Gift className="w-5 h-5" />
+            <span className="text-[10px] font-black mt-1">Rewards</span>
+          </button>
+        </nav>
       )}
 
     </div>

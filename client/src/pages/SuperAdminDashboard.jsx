@@ -10,7 +10,10 @@ import {
   Menu, X, UserCheck, UserPlus, Download, Trash2, Tag, Percent, Plus, Gift,
   Clock, Sparkles, Filter, RotateCcw, MessageSquare, Globe, Mail, Code, User, Building2,
   Share2, Copy, Phone, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, FileText, Ban, Zap,
-  Bell, Palette, QrCode, History, Sliders, ToggleLeft, ToggleRight, CheckSquare, Square, Award
+  Bell, Palette, QrCode, History, Sliders, ToggleLeft, ToggleRight, CheckSquare, Square, Award, Edit3,
+  Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  List, ListOrdered, Indent, Outdent, Link2, Image as ImageIcon, Table as TableIcon, MoreHorizontal,
+  Send, TrendingUp, Info, ArrowLeft
 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
@@ -43,13 +46,13 @@ export default function SuperAdminDashboard() {
 
   // Merchants Billing & Subscriptions State (Matching Image 1: Trial Merchants 7, Pending Payment 0, Today Onboarding 0)
   const [merchants, setMerchants] = useState([
-    { id: 'm1', businessName: 'Royal Sweets & Cafe', category: 'CAFE_RESTAURANT', email: 'owner@royalsweets.com', mobile: '9876543210', city: 'Delhi NCR', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '12 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm2', businessName: 'Gourmet Organic Supermarket', category: 'GROCERY', email: 'admin@gourmetorganic.in', mobile: '9811223399', city: 'Bengaluru', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '14 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm3', businessName: 'Glamour Salon & Spa', category: 'SALON_SPA', email: 'support@glamourspa.in', mobile: '9899001122', city: 'Mumbai', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '15 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm4', businessName: 'Urban Fitness Studio', category: 'OTHER', email: 'contact@urbanfitness.com', mobile: '9711223344', city: 'Pune', subscriptionTier: 'Basic Plan', plan: 'Basic Plan', planValidTill: '01 Nov 2026', paymentDate: '01 Oct 2026', paymentAmount: '₹999', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm5', businessName: 'Spice Junction Biryani', category: 'CAFE_RESTAURANT', email: 'spice@junction.com', mobile: '9844556611', city: 'Hyderabad', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '10 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: true, dealDetails: { dealTitle: 'Special Trial Deal', dealAmount: 499 } },
-    { id: 'm6', businessName: 'Chai Chaska Bar', category: 'CAFE_RESTAURANT', email: 'chai@chaska.in', mobile: '9812345678', city: 'Gurugram', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '09 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm7', businessName: 'Bakers Point Delhi', category: 'CAFE_RESTAURANT', email: 'bakers@point.in', mobile: '9877001122', city: 'Delhi', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '11 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: true, dealDetails: { dealTitle: '', dealAmount: 0 } }
+    { id: 'm1', businessName: 'Royal Sweets & Cafe', category: 'CAFE_RESTAURANT', email: 'owner@royalsweets.com', mobile: '9876543210', city: 'Delhi NCR', subscriptionTier: 'Standard Plan', plan: 'Standard Plan', planValidTill: '24 May 2026', paymentDate: '24 May 2025', paymentAmount: '₹ 24,000', totalPayment: '₹ 24,000', dateTime: 'May 24, 2025 11:20 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
+    { id: 'm2', businessName: 'Gourmet Organic Supermarket', category: 'GROCERY', email: 'admin@gourmetorganic.in', mobile: '9811223399', city: 'Bengaluru', subscriptionTier: 'Professional Plan', plan: 'Professional Plan', planValidTill: '24 May 2028', paymentDate: '24 May 2025', paymentAmount: '₹ 49,000', totalPayment: '₹ 49,000', dateTime: 'May 24, 2025 10:45 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
+    { id: 'm3', businessName: 'Glamour Salon & Spa', category: 'SALON_SPA', email: 'support@glamourspa.in', mobile: '9899001122', city: 'Mumbai', subscriptionTier: 'Legacy Plan', plan: 'Legacy Plan', planValidTill: 'Lifetime', paymentDate: '24 May 2025', paymentAmount: '₹ 75,000', totalPayment: '₹ 75,000', dateTime: 'May 24, 2025 09:30 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
+    { id: 'm4', businessName: 'Urban Fitness Studio', category: 'OTHER', email: 'contact@urbanfitness.com', mobile: '9711223344', city: 'Pune', subscriptionTier: 'Standard Plan', plan: 'Standard Plan', planValidTill: '01 Nov 2026', paymentDate: '24 May 2025', paymentAmount: '₹ 24,000', totalPayment: '₹ 24,000', dateTime: 'May 24, 2025 09:15 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
+    { id: 'm5', businessName: 'Spice Junction Biryani', category: 'CAFE_RESTAURANT', email: 'spice@junction.com', mobile: '9844556611', city: 'Hyderabad', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '10 Oct 2026', paymentDate: '23 May 2025', paymentAmount: '₹ 0', totalPayment: '₹ 0', dateTime: 'May 23, 2025 08:50 PM', status: 'Trial', isComplimentary: true, dealDetails: { dealTitle: 'Special Trial Deal', dealAmount: 499 } },
+    { id: 'm6', businessName: 'Chai Chaska Bar', category: 'CAFE_RESTAURANT', email: 'chai@chaska.in', mobile: '9812345678', city: 'Gurugram', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '09 Oct 2026', paymentDate: '23 May 2025', paymentAmount: '₹ 0', totalPayment: '₹ 0', dateTime: 'May 23, 2025 07:15 PM', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
+    { id: 'm7', businessName: 'Bakers Point Delhi', category: 'CAFE_RESTAURANT', email: 'bakers@point.in', mobile: '9877001122', city: 'Delhi', subscriptionTier: 'Standard Plan', plan: 'Standard Plan', planValidTill: '11 Oct 2026', paymentDate: '23 May 2025', paymentAmount: '₹ 24,000', totalPayment: '₹ 24,000', dateTime: 'May 23, 2025 05:40 PM', status: 'Paid', isComplimentary: true, dealDetails: { dealTitle: '', dealAmount: 0 } }
   ]);
 
   // Plans Management State (Synchronized with Landing Page and MongoDB)
@@ -62,6 +65,7 @@ export default function SuperAdminDashboard() {
       period: '/ Year',
       subtext: 'Perfect for local retail shops getting started',
       tagText: 'Equivalent to ₹2,000/month',
+      tags: ['Starter Choice', 'Counter Standee', 'Instant Setup'],
       highlightBadge: '',
       isPopular: false,
       trialDays: 2,
@@ -86,6 +90,7 @@ export default function SuperAdminDashboard() {
       period: '/ 3 Years',
       subtext: 'Accelerated conversion tools for multi-counter growth',
       tagText: 'Only ₹1,361/month',
+      tags: ['Most Popular', 'Best Value', 'Save 32%', 'VIP Partner'],
       highlightBadge: 'Most Popular',
       isPopular: true,
       trialDays: 2,
@@ -111,6 +116,7 @@ export default function SuperAdminDashboard() {
       period: 'Lifetime',
       subtext: 'Ultimate lifetime system configuration',
       tagText: 'One-Time Payment • No Renewals',
+      tags: ['Lifetime Access', 'VIP Enterprise', 'Zero Renewals'],
       highlightBadge: 'Best Value',
       isPopular: false,
       trialDays: 2,
@@ -136,6 +142,7 @@ export default function SuperAdminDashboard() {
       period: '2 Days',
       subtext: 'Test all features risk-free with zero credit card required',
       tagText: '100% Free',
+      tags: ['100% Free', 'Instant Test'],
       highlightBadge: 'Risk-Free',
       isPopular: false,
       trialDays: 2,
@@ -154,6 +161,7 @@ export default function SuperAdminDashboard() {
   ]);
   const [planSaveSuccess, setPlanSaveSuccess] = useState('');
   const [newFeatureInputs, setNewFeatureInputs] = useState({});
+  const [newPlanTagInputs, setNewPlanTagInputs] = useState({});
   const [showPlansModal, setShowPlansModal] = useState(false);
   // Platform Plans Sub-Tab State (Active Plans, Create Plan, Plan History)
   const [planSubTab, setPlanSubTab] = useState('active'); // 'active', 'create', 'history'
@@ -199,6 +207,7 @@ export default function SuperAdminDashboard() {
     period: '/ Year',
     subtext: '',
     tagText: '',
+    tags: ['Recommended', 'Instant Setup'],
     highlightBadge: '',
     isPopular: false,
     trialDays: 2,
@@ -213,6 +222,7 @@ export default function SuperAdminDashboard() {
     ]
   });
   const [newPlanFeatureInput, setNewPlanFeatureInput] = useState('');
+  const [newPlanTagInput, setNewPlanTagInput] = useState('');
 
   // Feature Permissions State (By Plan Tier & Business Category)
   const [permissionPlan, setPermissionPlan] = useState('PROFESSIONAL'); // 'TRIAL', 'STANDARD', 'PROFESSIONAL', 'LEGACY'
@@ -293,6 +303,529 @@ export default function SuperAdminDashboard() {
     { id: 'speedPassFairPlay', name: '12h Device Anti-Fraud Lock', category: 'Security', description: 'Locks device browser for 12 hours between consecutive scans', minPlan: 'Trial' },
   ];
 
+  // =========================================================================
+  // MERCHANT DASHBOARD FEATURES MANAGEMENT (Show/Hide, Add, Update, Delete)
+  // =========================================================================
+  const [permissionsSubTab, setPermissionsSubTab] = useState('merchant_features'); // 'merchant_features' | 'tier_matrix'
+  const [merchantFeatures, setMerchantFeatures] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_merchant_features');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [
+      { id: 'home_overview', name: 'Home Analytics & Overview Stats', category: 'Home Dashboard', description: 'Total scans, active customers, redemptions count, and repeat rate stats cards on the home screen.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'home_qr_code', name: 'Store Counter QR Code & Standee Download', category: 'Home Dashboard', description: 'Dynamic QR code display with Download PNG and Print Standee triggers.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'home_plan_banner', name: 'Pro Subscription Plan Status Banner', category: 'Home Dashboard', description: 'Active subscription status, validity date, and plan upgrade banner.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'rewards_tab', name: 'Rewards & Redemption Approval (Tab)', category: 'Navigation & Tabs', description: 'Dedicated screen for reviewing customer stamp redemptions, pending approvals, and approved rewards.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'create_offer_tab', name: 'Create Offer & Stamp Programs (Tab)', category: 'Navigation & Tabs', description: 'Creation screen to launch stamp programs (image, title, stamps required, expiry validity).', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'customers_tab', name: 'Customers CRM & CSV Export (Tab)', category: 'Navigation & Tabs', description: 'Customer visits directory with search, date filters, and CSV export functionality.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'profile_tab', name: 'Profile & Settings (Tab)', category: 'Navigation & Tabs', description: 'Profile and store settings navigation item.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'auto_approve_scans', name: 'Auto Approve Scans Setting', category: 'Profile & Settings', description: 'Allows merchant to automatically approve customer visits without manual verification.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'allow_multiple_scans', name: 'Allow Multiple Daily Scans Setting', category: 'Profile & Settings', description: 'Permits customers to scan and collect stamps multiple times within the same day.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'allow_first_coin', name: 'Allow First Coin Without Approval Setting', category: 'Profile & Settings', description: 'First visit welcome stamp/coin is awarded automatically without merchant approval.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'location_hours', name: 'Location & Operating Hours Editor', category: 'Profile & Settings', description: 'Store address, city, pin code, opening/closing timings editor in merchant profile.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'phone_email', name: 'Phone & Email Contact Editor', category: 'Profile & Settings', description: 'Store contact number and email settings in merchant profile.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'social_reviews', name: 'Social Links & Google Reviews', category: 'Profile & Settings', description: 'Instagram handle, website, and Google Review destination link management.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'owner_account', name: 'Owner Account Details', category: 'Profile & Settings', description: 'Store owner identity, mobile, and password settings in profile.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'tutorial_video', name: 'How to Use BeAurex (Tutorial)', category: 'Education & Support', description: 'Video onboarding walkthrough modal for merchants.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'download_app', name: 'Download & Install PWA App', category: 'Education & Support', description: 'PWA device installation modal and download launcher.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'subscription_manage', name: 'Subscription & Billing Portal', category: 'Education & Support', description: 'Tier upgrade and billing modal.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'privacy_security', name: 'Privacy & Security Controls', category: 'Education & Support', description: 'Store data privacy policies and security management.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'help_support', name: 'Help & Support Assistance', category: 'Education & Support', description: 'Merchant help desk, FAQs, and WhatsApp/Email support contacts.', isVisible: true, minPlan: 'All Plans', isCustom: false }
+    ];
+  });
+
+  const [featureSearchQuery, setFeatureSearchQuery] = useState('');
+  const [featureCategoryFilter, setFeatureCategoryFilter] = useState('ALL');
+  const [featureStatusFilter, setFeatureStatusFilter] = useState('ALL'); // 'ALL' | 'VISIBLE' | 'HIDDEN'
+  const [featureNotice, setFeatureNotice] = useState('');
+  const [editingFeatureModal, setEditingFeatureModal] = useState(null);
+  const [addFeatureModalOpen, setAddFeatureModalOpen] = useState(false);
+  const [newFeatureForm, setNewFeatureForm] = useState({
+    id: '',
+    name: '',
+    category: 'Home Dashboard',
+    description: '',
+    isVisible: true,
+    minPlan: 'All Plans'
+  });
+
+  useEffect(() => {
+    fetch('/api/admin/merchant-features')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.features)) {
+          setMerchantFeatures(data.features);
+          localStorage.setItem('beaurex_merchant_features', JSON.stringify(data.features));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const showFeatureToast = (msg) => {
+    setFeatureNotice(msg);
+    setTimeout(() => setFeatureNotice(''), 3500);
+  };
+
+  const handleToggleFeatureVisibility = (featureId) => {
+    const updated = merchantFeatures.map(feat => {
+      if (feat.id === featureId) {
+        return { ...feat, isVisible: !feat.isVisible };
+      }
+      return feat;
+    });
+    setMerchantFeatures(updated);
+    localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+
+    fetch(`/api/admin/merchant-features/${featureId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isVisible: !merchantFeatures.find(f => f.id === featureId)?.isVisible })
+    }).catch(() => {});
+
+    const targetFeat = updated.find(f => f.id === featureId);
+    showFeatureToast(`Feature "${targetFeat?.name}" is now ${targetFeat?.isVisible ? 'VISIBLE' : 'HIDDEN'} on Merchant Dashboard.`);
+  };
+
+  const handleBulkToggleFeatures = (visibleState) => {
+    const updated = merchantFeatures.map(f => ({ ...f, isVisible: visibleState }));
+    setMerchantFeatures(updated);
+    localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+
+    fetch('/api/admin/merchant-features', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ features: updated })
+    }).catch(() => {});
+
+    showFeatureToast(`All merchant dashboard features have been set to ${visibleState ? 'VISIBLE' : 'HIDDEN'}.`);
+  };
+
+  const handleSaveEditedFeature = (e) => {
+    if (e) e.preventDefault();
+    if (!editingFeatureModal) return;
+
+    const updated = merchantFeatures.map(f => f.id === editingFeatureModal.id ? editingFeatureModal : f);
+    setMerchantFeatures(updated);
+    localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+
+    fetch(`/api/admin/merchant-features/${editingFeatureModal.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingFeatureModal)
+    }).catch(() => {});
+
+    showFeatureToast(`Feature "${editingFeatureModal.name}" updated successfully.`);
+    setEditingFeatureModal(null);
+  };
+
+  const handleCreateNewFeature = (e) => {
+    if (e) e.preventDefault();
+    if (!newFeatureForm.name) return;
+
+    const featureId = newFeatureForm.id ? newFeatureForm.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') : ('feat_' + Date.now().toString(36));
+    const created = {
+      ...newFeatureForm,
+      id: featureId,
+      isCustom: true
+    };
+    const updated = [...merchantFeatures, created];
+    setMerchantFeatures(updated);
+    localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+
+    fetch('/api/admin/merchant-features', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newFeature: created })
+    }).catch(() => {});
+
+    showFeatureToast(`New feature "${created.name}" created and added to Merchant Dashboard.`);
+    setNewFeatureForm({ id: '', name: '', category: 'Home Dashboard', description: '', isVisible: true, minPlan: 'All Plans' });
+    setAddFeatureModalOpen(false);
+  };
+
+  const handleDeleteFeature = (featureId) => {
+    const feat = merchantFeatures.find(f => f.id === featureId);
+    requestConfirm({
+      title: `Delete Feature: "${feat?.name || featureId}"?`,
+      message: `Are you sure you want to delete this feature from the Merchant Dashboard? It will no longer be available to any merchant.`,
+      confirmText: 'Yes, Delete Feature',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = merchantFeatures.filter(f => f.id !== featureId);
+        setMerchantFeatures(updated);
+        localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+
+        fetch(`/api/admin/merchant-features/${featureId}`, {
+          method: 'DELETE'
+        }).catch(() => {});
+
+        showFeatureToast(`Feature "${feat?.name}" deleted successfully.`);
+      }
+    });
+  };
+
+  // =========================================================
+  // OVERVIEW DASHBOARD GRAPH & CONTROLS STATE (Image 1 + Graphs)
+  // =========================================================
+  const [overviewDate, setOverviewDate] = useState('May 24, 2025');
+  const [overviewChartTimeframe, setOverviewChartTimeframe] = useState('30days'); // '7days', '30days', '90days'
+  const [overviewChartMetric, setOverviewChartMetric] = useState('revenue'); // 'revenue', 'onboarding', 'scans'
+
+  // =========================================================
+  // POLICY EDITOR STATE (Image 2 - Privacy Policy & Terms)
+  // =========================================================
+  const [policySubTab, setPolicySubTab] = useState('privacy'); // 'privacy' | 'terms'
+  const [policyData, setPolicyData] = useState({
+    privacy: {
+      type: 'Privacy Policy',
+      status: 'Published',
+      lastUpdated: 'May 24, 2025 08:20 AM',
+      version: '1.0',
+      publishedBy: 'Super Admin',
+      publishedOn: 'May 24, 2025 08:20 AM',
+      content: `Privacy Policy
+
+At LoyalQR, we value your privacy and are committed to protecting your personal information.
+This Privacy Policy explains how we collect, use, disclose and safeguard your information when you use our platform.
+
+1. Information We Collect
+We may collect information about you in a variety of ways. The information we may collect includes:
+• Personal Data (such as name, email address, phone number)
+• Business Information
+• Usage Data
+• Cookies and Tracking Technologies
+
+2. How We Use Your Information
+We use the information we collect in the following ways:
+• To provide, operate and maintain our platform
+• To improve, personalize and expand our platform
+• To communicate with you, including customer support
+• To send you important updates and information`
+    },
+    terms: {
+      type: 'Terms & Conditions',
+      status: 'Published',
+      lastUpdated: 'May 24, 2025 08:20 AM',
+      version: '1.0',
+      publishedBy: 'Super Admin',
+      publishedOn: 'May 24, 2025 08:20 AM',
+      content: `Terms & Conditions
+
+Welcome to LoyalQR. These Terms and Conditions govern your access to and use of our loyalty platform, merchant dashboard, and customer redemption engine.
+
+1. Acceptance of Terms
+By accessing or using our loyalty platform, merchant dashboard, or QR redemption engine, you agree to be bound by these Terms and Conditions and our Privacy Policy.
+
+2. Merchant Responsibilities
+Merchants agree to honor all issued points, stamps, and rewards presented by verified customers. Tampering with scan telemetry or creating duplicate counter standees is strictly prohibited.
+
+3. Customer Rewards & Points
+Reward points hold no direct cash value outside the specified redemption benefits at participating merchant outlets. LoyalQR reserves the right to audit suspicious coin activities.
+
+4. Platform Availability & Fair Use
+We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate limit abuses and ensures equitable scan processing across all registered counters.`
+    }
+  });
+  const [policyPreviewModalOpen, setPolicyPreviewModalOpen] = useState(false);
+  const [policyToast, setPolicyToast] = useState('');
+
+  const showPolicyToast = (msg) => {
+    setPolicyToast(msg);
+    setTimeout(() => setPolicyToast(''), 3500);
+  };
+
+  const handleSavePolicyDraft = () => {
+    const now = 'May 24, 2025 08:20 AM';
+    setPolicyData(prev => ({
+      ...prev,
+      [policySubTab]: {
+        ...prev[policySubTab],
+        status: 'Draft',
+        lastUpdated: now
+      }
+    }));
+    showPolicyToast(`Draft saved successfully for ${policySubTab === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions'}.`);
+  };
+
+  const handlePublishPolicy = () => {
+    const now = 'May 24, 2025 08:20 AM';
+    setPolicyData(prev => ({
+      ...prev,
+      [policySubTab]: {
+        ...prev[policySubTab],
+        status: 'Published',
+        lastUpdated: now,
+        publishedOn: now
+      }
+    }));
+    showPolicyToast(`Published ${policySubTab === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions'} successfully! Now live across all portals.`);
+  };
+
+  // =========================================================
+  // FAQ EDITOR STATE (Image 3 - 10 Exact FAQ Rows & Modals)
+  // =========================================================
+  const [faqsList, setFaqsList] = useState([
+    { id: 1, question: 'What is LoyalQR?', category: 'General', status: 'Published', order: 1, lastUpdated: 'May 24, 2025 11:20 AM', answer: 'LoyalQR is an omnichannel customer retention and digital loyalty engine powering seamless counter QR check-ins, automated rewards, and merchant marketing.' },
+    { id: 2, question: 'How does LoyalQR work?', category: 'General', status: 'Published', order: 2, lastUpdated: 'May 24, 2025 10:45 AM', answer: 'Customers scan a branded table or counter QR standee using Google Lens or default camera to earn loyalty coins, unlock mystery scratchers, and claim instant tier discounts.' },
+    { id: 3, question: 'How can merchants join LoyalQR?', category: 'Merchant', status: 'Published', order: 1, lastUpdated: 'May 24, 2025 09:30 AM', answer: 'Merchants can sign up in 30 seconds, configure their store profile, customize their loyalty coin values, and instantly download print-ready acrylic QR standees.' },
+    { id: 4, question: 'How do I create a loyalty program?', category: 'Merchant', status: 'Published', order: 2, lastUpdated: 'May 24, 2025 09:15 AM', answer: 'Navigate to Merchant Rewards Engine, define your coin earn rate (e.g. 1 coin per ₹10 spent), and create redemption vouchers with custom approval thresholds.' },
+    { id: 5, question: 'How are points calculated?', category: 'Rewards', status: 'Published', order: 1, lastUpdated: 'May 23, 2025 08:50 PM', answer: 'Points are automatically computed upon verified bill scans or counter check-ins based on the merchant tier rules and multiplier campaigns.' },
+    { id: 6, question: 'How can customers redeem rewards?', category: 'Rewards', status: 'Draft', order: 2, lastUpdated: 'May 23, 2025 08:20 PM', answer: 'Customers open their BeAurex Pass on their phone, pick an eligible voucher, and show the one-time 4-digit PIN or redemption QR code to the cashier.' },
+    { id: 7, question: 'Is LoyalQR free to use?', category: 'General', status: 'Published', order: 3, lastUpdated: 'May 23, 2025 07:45 PM', answer: 'We offer a risk-free 2-Day Free Trial for all new merchant partners with full feature access and zero upfront credit card requirement.' },
+    { id: 8, cancelOrder: false, question: 'Can I integrate LoyalQR with my POS?', category: 'Integration', status: 'Published', order: 1, lastUpdated: 'May 23, 2025 07:10 PM', answer: 'Yes, LoyalQR provides REST Webhooks and lightweight POS integration bridges compatible with Pine Labs, Petpooja, and custom billing software.' },
+    { id: 9, question: 'What payment methods are supported?', category: 'General', status: 'Unpublished', order: 4, lastUpdated: 'May 23, 2025 06:30 PM', answer: 'We support all major payment modes including UPI, RuPay, Visa, Mastercard, Net Banking, and corporate invoicing through Razorpay & Cashfree.' },
+    { id: 10, question: 'How do I contact support?', category: 'Support', status: 'Published', order: 1, lastUpdated: 'May 23, 2025 05:50 PM', answer: 'Reach out to our 24/7 partner operations desk via WhatsApp support (+91 98112 23344) or email support@beaurex.com.' }
+  ]);
+  const [faqSearch, setFaqSearch] = useState('');
+  const [faqCategoryFilter, setFaqCategoryFilter] = useState('ALL');
+  const [faqStatusFilter, setFaqStatusFilter] = useState('ALL');
+  const [faqModal, setFaqModal] = useState({ isOpen: false, mode: 'view', data: null });
+  const [faqCurrentPage, setFaqCurrentPage] = useState(1);
+  const [faqToast, setFaqToast] = useState('');
+
+  const showFaqToast = (msg) => {
+    setFaqToast(msg);
+    setTimeout(() => setFaqToast(''), 3500);
+  };
+
+  const handleSaveFaq = (faqData) => {
+    if (!faqData.question) return;
+    if (faqModal.mode === 'add') {
+      const newFaq = {
+        id: Date.now(),
+        question: faqData.question,
+        category: faqData.category || 'General',
+        status: faqData.status || 'Published',
+        order: Number(faqData.order) || (faqsList.length + 1),
+        lastUpdated: 'May 24, 2025 11:30 AM',
+        answer: faqData.answer || ''
+      };
+      setFaqsList([newFaq, ...faqsList]);
+      showFaqToast(`FAQ "${newFaq.question}" added successfully.`);
+    } else {
+      setFaqsList(faqsList.map(f => f.id === faqData.id ? { ...faqData, lastUpdated: 'May 24, 2025 11:30 AM' } : f));
+      showFaqToast(`FAQ updated successfully.`);
+    }
+    setFaqModal({ isOpen: false, mode: 'view', data: null });
+  };
+
+  const handleDeleteFaq = (faqId) => {
+    const target = faqsList.find(f => f.id === faqId);
+    requestConfirm({
+      title: `Delete FAQ: "${target?.question}"?`,
+      message: `Are you sure you want to delete this FAQ entry from the platform?`,
+      confirmText: 'Yes, Delete FAQ',
+      type: 'danger',
+      onConfirm: () => {
+        setFaqsList(faqsList.filter(f => f.id !== faqId));
+        showFaqToast(`FAQ deleted successfully.`);
+      }
+    });
+  };
+
+  // =========================================================
+  // CLAIM LOGS STATE (Image 4 - 10 Exact Rows & Detail Modal)
+  // =========================================================
+  const [claimLogsList, setClaimLogsList] = useState([
+    { id: 1, claimId: 'CLM10001', customer: 'Rahul Sharma', merchant: 'Coffee House', reward: 'Free Coffee', pointsUsed: 100, status: 'Success', claimedAt: 'May 24, 2025, 11:20 AM', txHash: '0x9fa12b8', cashierPin: '4921', phone: '+91 98112 34567' },
+    { id: 2, claimId: 'CLM10002', customer: 'Priya Singh', merchant: 'Pizza Plaza', reward: '20% Discount', pointsUsed: 150, status: 'Success', claimedAt: 'May 24, 2025, 10:45 AM', txHash: '0x88e43a1', cashierPin: '1102', phone: '+91 98223 45678' },
+    { id: 3, claimId: 'CLM10003', customer: 'Amit Patel', merchant: 'Burger Point', reward: 'Free Burger', pointsUsed: 200, status: 'Success', claimedAt: 'May 24, 2025, 09:30 AM', txHash: '0x17c93d2', cashierPin: '9084', phone: '+91 98334 56789' },
+    { id: 4, claimId: 'CLM10004', customer: 'Neha Verma', merchant: 'Fashion Hub', reward: '₹100 Off', pointsUsed: 250, status: 'Pending', claimedAt: 'May 24, 2025, 09:15 AM', txHash: '0x76b19a0', cashierPin: '3341', phone: '+91 98445 67890' },
+    { id: 5, claimId: 'CLM10005', customer: 'Vikas Mehta', merchant: 'Coffee House', reward: 'Free Sandwich', pointsUsed: 120, status: 'Success', claimedAt: 'May 23, 2025, 08:50 PM', txHash: '0x33b8219', cashierPin: '7729', phone: '+91 98556 78901' },
+    { id: 6, claimId: 'CLM10006', customer: 'Sneha Reddy', merchant: 'Pizza Plaza', reward: 'Free Drink', pointsUsed: 80, status: 'Failed', claimedAt: 'May 23, 2025, 08:20 PM', txHash: '0x12f45ea', cashierPin: '6618', phone: '+91 98667 89012' },
+    { id: 7, claimId: 'CLM10007', customer: 'Karan Singh', merchant: 'Burger Point', reward: '20% Discount', pointsUsed: 150, status: 'Success', claimedAt: 'May 23, 2025, 07:45 PM', txHash: '0x55aa3b1', cashierPin: '8830', phone: '+91 98778 90123' },
+    { id: 8, claimId: 'CLM10008', customer: 'Ishita Malhotra', merchant: 'Fashion Hub', reward: '₹200 Off', pointsUsed: 300, status: 'Pending', claimedAt: 'May 23, 2025, 07:10 PM', txHash: '0x88c2114', cashierPin: '2294', phone: '+91 98889 01234' },
+    { id: 9, claimId: 'CLM10009', customer: 'Rohit Kumar', merchant: 'Coffee House', reward: 'Free Coffee', pointsUsed: 100, status: 'Success', claimedAt: 'May 23, 2025, 06:30 PM', txHash: '0x44d9098', cashierPin: '5501', phone: '+91 98990 12345' },
+    { id: 10, claimId: 'CLM10010', customer: 'Anjali Gupta', merchant: 'Pizza Plaza', reward: 'Free Pizza Slice', pointsUsed: 180, status: 'Failed', claimedAt: 'May 23, 2025, 05:50 PM', txHash: '0x99e8210', cashierPin: '4423', phone: '+91 98001 23456' }
+  ]);
+  const [claimSearch, setClaimSearch] = useState('');
+  const [claimMerchantFilter, setClaimMerchantFilter] = useState('ALL');
+  const [claimStatusFilter, setClaimStatusFilter] = useState('ALL');
+  const [claimRewardFilter, setClaimRewardFilter] = useState('ALL');
+  const [selectedClaimModal, setSelectedClaimModal] = useState(null);
+  const [claimExportToast, setClaimExportToast] = useState('');
+  const [claimCurrentPage, setClaimCurrentPage] = useState(1);
+
+  const handleExportClaimLogs = () => {
+    setClaimExportToast('Exporting 245 Claim Logs to CSV/Excel...');
+    setTimeout(() => {
+      setClaimExportToast('Claim Logs CSV downloaded successfully!');
+      setTimeout(() => setClaimExportToast(''), 3000);
+    }, 1200);
+  };
+
+  // =========================================================
+  // CUSTOMER FEATURES & TEAM FEATURES STATE (Feature Management)
+  // =========================================================
+  const [customerFeatures, setCustomerFeatures] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_customer_features');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [
+      { id: 'cust_google_login', name: 'Google One-Tap & OAuth Authentication', category: 'Onboarding & Auth', description: 'Instant 1-tap sign-in for customers without tedious passwords or OTPs.', isVisible: true, isCustom: false },
+      { id: 'cust_lens_scan', name: 'Google Lens & Camera QR Claim Flow', category: 'Scans & Claim', description: 'Universal counter QR scan support directly from default Android/iPhone camera or Google Lens.', isVisible: true, isCustom: false },
+      { id: 'cust_first_coin_instant', name: 'Instant Auto-Claim First Coin', category: 'Scans & Claim', description: 'Credit first visit coin automatically upon QR scan without cashier manual confirmation.', isVisible: true, isCustom: false },
+      { id: 'cust_stamp_cards', name: 'Dynamic Stamp Cards & Progress Bar', category: 'Loyalty Rewards', description: 'Visual interactive stamp cards displaying loyalty progress towards free reward unlock.', isVisible: true, isCustom: false },
+      { id: 'cust_wallet_coins', name: 'Loyalty Points Wallet & Coin Balance', category: 'Loyalty Rewards', description: 'Live digital coin balance, earning history, and transaction ledger.', isVisible: true, isCustom: false },
+      { id: 'cust_mystery_scratch', name: 'Mystery Scratch Cards & Gamification', category: 'Gamification', description: 'Gamified scratch cards unlocked after every successful counter scan.', isVisible: true, isCustom: false },
+      { id: 'cust_spin_wheel', name: 'Spin & Win Daily Luck Wheel', category: 'Gamification', description: 'Daily lucky spin wheel giving bonus reward multipliers and discount coupons.', isVisible: true, isCustom: false },
+      { id: 'cust_referral_rewards', name: 'Friend Referral & Invite Code Program', category: 'Referrals', description: 'Personal referral link allowing customers to earn extra coins for inviting friends.', isVisible: true, isCustom: false },
+      { id: 'cust_pass_apple_wallet', name: 'Digital Pass & Home Screen Shortcut (PWA)', category: 'User Experience', description: 'Add BeAurex Pass to mobile home screen or Apple/Google Wallet.', isVisible: true, isCustom: false },
+      { id: 'cust_profile_edit', name: 'Customer Profile, Name & Preferences', category: 'Account & Security', description: 'Editable profile with avatar, food/retail preferences, and notifications.', isVisible: true, isCustom: false }
+    ];
+  });
+
+  const [teamFeatures, setTeamFeatures] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_team_features');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [
+      { id: 'team_dashboard_kpis', name: 'Agent Performance KPIs & Earnings Summary', category: 'Dashboard & Metrics', description: 'Real-time tracking of active merchant conversions, monthly commissions, and goal progress.', isVisible: true, isCustom: false },
+      { id: 'team_referral_tracking', name: 'Merchant Referral & Store Attribution', category: 'Merchant Pipeline', description: 'Unique agent referral code generator and attribution tracking for signed merchant stores.', isVisible: true, isCustom: false },
+      { id: 'team_crm_leads', name: 'CRM Merchant Lead Pipeline & Follow-ups', category: 'Sales & CRM', description: 'Quick-add lead logging, visit scheduling, phone call follow-up reminders, and deal notes.', isVisible: true, isCustom: false },
+      { id: 'team_marketing_kit', name: 'Field Marketing Kit & Acrylic Standee Assets', category: 'Marketing & Sales', description: 'Direct PDF & SVG standee asset downloads, pitch scripts, and product brochures.', isVisible: true, isCustom: false },
+      { id: 'team_digital_id', name: 'Verified Field Specialist Digital ID Card', category: 'Identity & Access', description: 'Official verifiable agent badge with security barcode, issue date, and validity badge.', isVisible: true, isCustom: false },
+      { id: 'team_commission_ledger', name: 'Commission Settlement & Payout History', category: 'Finance & Payouts', description: 'Detailed breakdown of per-store payout statuses (Paid, Processing, Pending).', isVisible: true, isCustom: false },
+      { id: 'team_territory_manager', name: 'Field Territory & City Zone Assignment', category: 'Operations', description: 'Dedicated geographical territory and pincode assignments for field representatives.', isVisible: true, isCustom: false }
+    ];
+  });
+
+  const [editingCustomerFeatureModal, setEditingCustomerFeatureModal] = useState(null);
+  const [addCustomerFeatureModalOpen, setAddCustomerFeatureModalOpen] = useState(false);
+  const [newCustomerFeatureForm, setNewCustomerFeatureForm] = useState({ id: '', name: '', category: 'Loyalty Rewards', description: '', isVisible: true });
+
+  const [editingTeamFeatureModal, setEditingTeamFeatureModal] = useState(null);
+  const [addTeamFeatureModalOpen, setAddTeamFeatureModalOpen] = useState(false);
+  const [newTeamFeatureForm, setNewTeamFeatureForm] = useState({ id: '', name: '', category: 'Sales & CRM', description: '', isVisible: true });
+
+  // Toggle Customer Feature Visibility
+  const handleToggleCustomerFeature = (featureId) => {
+    const updated = customerFeatures.map(feat => feat.id === featureId ? { ...feat, isVisible: !feat.isVisible } : feat);
+    setCustomerFeatures(updated);
+    localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+    const t = updated.find(f => f.id === featureId);
+    showFeatureToast(`Customer feature "${t?.name}" is now ${t?.isVisible ? 'VISIBLE' : 'HIDDEN'}.`);
+  };
+
+  const handleBulkToggleCustomerFeatures = (visibleState) => {
+    const updated = customerFeatures.map(f => ({ ...f, isVisible: visibleState }));
+    setCustomerFeatures(updated);
+    localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+    showFeatureToast(`All Customer portal features set to ${visibleState ? 'VISIBLE' : 'HIDDEN'}.`);
+  };
+
+  const handleSaveEditedCustomerFeature = (e) => {
+    if (e) e.preventDefault();
+    if (!editingCustomerFeatureModal) return;
+    const updated = customerFeatures.map(f => f.id === editingCustomerFeatureModal.id ? editingCustomerFeatureModal : f);
+    setCustomerFeatures(updated);
+    localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+    showFeatureToast(`Customer feature "${editingCustomerFeatureModal.name}" updated successfully.`);
+    setEditingCustomerFeatureModal(null);
+  };
+
+  const handleCreateNewCustomerFeature = (e) => {
+    if (e) e.preventDefault();
+    if (!newCustomerFeatureForm.name) return;
+    const featureId = newCustomerFeatureForm.id ? newCustomerFeatureForm.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') : ('cust_feat_' + Date.now().toString(36));
+    const created = { ...newCustomerFeatureForm, id: featureId, isCustom: true };
+    const updated = [...customerFeatures, created];
+    setCustomerFeatures(updated);
+    localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+    showFeatureToast(`New customer feature "${created.name}" created.`);
+    setNewCustomerFeatureForm({ id: '', name: '', category: 'Loyalty Rewards', description: '', isVisible: true });
+    setAddCustomerFeatureModalOpen(false);
+  };
+
+  const handleDeleteCustomerFeature = (featureId) => {
+    const feat = customerFeatures.find(f => f.id === featureId);
+    requestConfirm({
+      title: `Delete Customer Feature: "${feat?.name || featureId}"?`,
+      message: `Are you sure you want to delete this feature from the Customer Portal?`,
+      confirmText: 'Yes, Delete Feature',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = customerFeatures.filter(f => f.id !== featureId);
+        setCustomerFeatures(updated);
+        localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+        showFeatureToast(`Customer feature "${feat?.name}" deleted.`);
+      }
+    });
+  };
+
+  // Toggle Team Feature Visibility
+  const handleToggleTeamFeature = (featureId) => {
+    const updated = teamFeatures.map(feat => feat.id === featureId ? { ...feat, isVisible: !feat.isVisible } : feat);
+    setTeamFeatures(updated);
+    localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+    const t = updated.find(f => f.id === featureId);
+    showFeatureToast(`Team feature "${t?.name}" is now ${t?.isVisible ? 'VISIBLE' : 'HIDDEN'}.`);
+  };
+
+  const handleBulkToggleTeamFeatures = (visibleState) => {
+    const updated = teamFeatures.map(f => ({ ...f, isVisible: visibleState }));
+    setTeamFeatures(updated);
+    localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+    showFeatureToast(`All Team features set to ${visibleState ? 'VISIBLE' : 'HIDDEN'}.`);
+  };
+
+  const handleSaveEditedTeamFeature = (e) => {
+    if (e) e.preventDefault();
+    if (!editingTeamFeatureModal) return;
+    const updated = teamFeatures.map(f => f.id === editingTeamFeatureModal.id ? editingTeamFeatureModal : f);
+    setTeamFeatures(updated);
+    localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+    showFeatureToast(`Team feature "${editingTeamFeatureModal.name}" updated successfully.`);
+    setEditingTeamFeatureModal(null);
+  };
+
+  const handleCreateNewTeamFeature = (e) => {
+    if (e) e.preventDefault();
+    if (!newTeamFeatureForm.name) return;
+    const featureId = newTeamFeatureForm.id ? newTeamFeatureForm.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') : ('team_feat_' + Date.now().toString(36));
+    const created = { ...newTeamFeatureForm, id: featureId, isCustom: true };
+    const updated = [...teamFeatures, created];
+    setTeamFeatures(updated);
+    localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+    showFeatureToast(`New team feature "${created.name}" created.`);
+    setNewTeamFeatureForm({ id: '', name: '', category: 'Sales & CRM', description: '', isVisible: true });
+    setAddTeamFeatureModalOpen(false);
+  };
+
+  const handleDeleteTeamFeature = (featureId) => {
+    const feat = teamFeatures.find(f => f.id === featureId);
+    requestConfirm({
+      title: `Delete Team Feature: "${feat?.name || featureId}"?`,
+      message: `Are you sure you want to delete this feature from the Team Portal?`,
+      confirmText: 'Yes, Delete Feature',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = teamFeatures.filter(f => f.id !== featureId);
+        setTeamFeatures(updated);
+        localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+        showFeatureToast(`Team feature "${feat?.name}" deleted.`);
+      }
+    });
+  };
+
   // Coupons Management State
   const [coupons, setCoupons] = useState([
     { id: 'cpn_1', code: 'BEAUREX50', discountType: 'PERCENT', discountValue: 50, minOrder: 999, maxUses: 100, usedCount: 24, expiresAt: '2026-12-31', isActive: true },
@@ -350,10 +883,428 @@ export default function SuperAdminDashboard() {
   ]);
 
   // =========================================================================
+  // Manage Referrals State (Images 1, 2, 3: Referrals Detail, View Modal, Add Payment Modal)
+  // =========================================================================
+  const initialReferralsData = [
+    {
+      id: '01739',
+      userEmail: '15072026@yopmail.com',
+      userName: 'akhilesh test',
+      userNumber: '5845545622',
+      referredTo: 'MW - 737',
+      referralAmt: 150,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'tou\ntouyoteinoxou-2879@yopmail.com',
+        referralDate: '20-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 150,
+        paidAmount: 0,
+        pendingAmount: 150,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '-',
+      userEmail: 'akhilesh.vis17@gmail.com',
+      userName: '-',
+      userNumber: '-',
+      referredTo: 'FR - 1734',
+      referralAmt: 1500,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'priya\npriya.mumbai@yopmail.com',
+        referralDate: '19-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 1500,
+        paidAmount: 0,
+        pendingAmount: 1500,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '-',
+      userEmail: 'akhilesh.vis17@gmail.com',
+      userName: '-',
+      userNumber: '-',
+      referredTo: 'MW - 732',
+      referralAmt: 150,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'sumit\nsumit.delhi@yopmail.com',
+        referralDate: '18-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 150,
+        paidAmount: 0,
+        pendingAmount: 150,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '-',
+      userEmail: 'akhilesh.vis17@gmail.com',
+      userName: '-',
+      userNumber: '-',
+      referredTo: 'FR - 1732',
+      referralAmt: 1500,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'ankit\nankit.fitness@yopmail.com',
+        referralDate: '17-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 1500,
+        paidAmount: 0,
+        pendingAmount: 1500,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '01641',
+      userEmail: 'cdmwkr@yopmail.com',
+      userName: 'cd',
+      userNumber: '9658746895',
+      referredTo: 'MW - brappekabenne-1654...',
+      referralAmt: 150,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'neha\nneha.salon@yopmail.com',
+        referralDate: '16-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 150,
+        paidAmount: 0,
+        pendingAmount: 150,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '-',
+      userEmail: 'krmwtmtest@yopmail.com',
+      userName: '-',
+      userNumber: '-',
+      referredTo: 'MW - sewuzeittaza-5637@...',
+      referralAmt: 150,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'raj\nrajesh.cafe@yopmail.com',
+        referralDate: '15-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 150,
+        paidAmount: 0,
+        pendingAmount: 150,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '-',
+      userEmail: 'krmwtmtest@yopmail.com',
+      userName: '-',
+      userNumber: '-',
+      referredTo: 'FR - 1727',
+      referralAmt: 1500,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'vikram\nvikram.retail@yopmail.com',
+        referralDate: '14-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 1500,
+        paidAmount: 0,
+        pendingAmount: 1500,
+        status: 'Pending'
+      }
+    },
+    {
+      id: '-',
+      userEmail: 'akhilesh.vis17@gmail.com',
+      userName: '-',
+      userNumber: '-',
+      referredTo: 'FR - 1718',
+      referralAmt: 1500,
+      refund: 'None',
+      paymentStatus: 'Not Eligible',
+      details: {
+        referredUser: 'deepak\ndeepak.spa@yopmail.com',
+        referralDate: '13-07-2026',
+        userPaymentStatus: 'Not Paid',
+        totalAmount: 1500,
+        paidAmount: 0,
+        pendingAmount: 1500,
+        status: 'Pending'
+      }
+    }
+  ];
+
+  const [referralsList, setReferralsList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('loyalqr_admin_referrals');
+      return saved ? JSON.parse(saved) : initialReferralsData;
+    } catch {
+      return initialReferralsData;
+    }
+  });
+  const [referralSearch, setReferralSearch] = useState('');
+  const [selectedReferralDetailModal, setSelectedReferralDetailModal] = useState(null);
+  const [processPaymentModal, setProcessPaymentModal] = useState({ isOpen: false, referral: null, amount: '', txnNumber: '', method: 'Bank Transfer (NEFT / RTGS)', notes: '' });
+  const [addReferralModalOpen, setAddReferralModalOpen] = useState(false);
+  const [newReferralInput, setNewReferralInput] = useState({ userEmail: '', userName: '', userNumber: '', referredTo: '', referralAmt: 150 });
+  const [referralToast, setReferralToast] = useState('');
+
+  // =========================================================================
+  // Manage Deals & Coupons State (Image 1: All Created Deals Table & Modals)
+  // =========================================================================
+  const initialPlatformDeals = [
+    {
+      id: 'deal_img_1',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'temp fran',
+      couponCode: 'TEMP FRAN',
+      createdAt: '03-07-2026',
+      bonusAmount: '₹',
+      discountAmount: 5999,
+      discountPercentage: 0,
+      validityDate: '31-07-2026',
+      usedCount: 2,
+      maxUsage: 15,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_2',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'Creator Fr',
+      couponCode: 'FRC',
+      createdAt: '12-05-2026',
+      bonusAmount: 7000,
+      discountAmount: 3000,
+      discountPercentage: 0,
+      validityDate: '13-05-2026',
+      usedCount: 1,
+      maxUsage: 5,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_3',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'test05',
+      couponCode: '0511',
+      createdAt: '11-05-2026',
+      bonusAmount: 0,
+      discountAmount: 5999,
+      discountPercentage: 0,
+      validityDate: '12-05-2026',
+      usedCount: 2,
+      maxUsage: 5,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_4',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'TEST FE',
+      couponCode: 'TEST01',
+      createdAt: '03-04-2026',
+      bonusAmount: 0,
+      discountAmount: 29999,
+      discountPercentage: 0,
+      validityDate: '21-04-2026',
+      usedCount: 3,
+      maxUsage: 50,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_5',
+      planType: 'MiniWebsite',
+      state: 'All',
+      dealName: 'sale 450',
+      couponCode: 'SALE450',
+      createdAt: '03-04-2026',
+      bonusAmount: 0,
+      discountAmount: 499,
+      discountPercentage: 0,
+      validityDate: '06-04-2026',
+      usedCount: 16,
+      maxUsage: 1000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_6',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'testprice',
+      couponCode: 'PTEST',
+      createdAt: '09-12-2025',
+      bonusAmount: 0,
+      discountAmount: 29999,
+      discountPercentage: 0,
+      validityDate: '10-12-2025',
+      usedCount: 1,
+      maxUsage: 5,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_7',
+      planType: 'MiniWebsite',
+      state: 'All',
+      dealName: 'trade',
+      couponCode: 'TRADEFAIR30%',
+      createdAt: '20-11-2025',
+      bonusAmount: 0,
+      discountAmount: 254,
+      discountPercentage: 30,
+      validityDate: '28-11-2025',
+      usedCount: 2,
+      maxUsage: 10000000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_8',
+      planType: 'MiniWebsite',
+      state: 'All',
+      dealName: 'DEFAULT SALES',
+      couponCode: 'DFLT SALES',
+      createdAt: '19-10-2025',
+      bonusAmount: 400,
+      discountAmount: 100,
+      discountPercentage: 0,
+      validityDate: '31-12-2030',
+      usedCount: 0,
+      maxUsage: 10000000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_9',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'DEFAULT FRD (Premium Plan)',
+      couponCode: 'FRD PP',
+      createdAt: '17-10-2025',
+      bonusAmount: 3500,
+      discountAmount: 0,
+      discountPercentage: 0,
+      validityDate: '06-09-2030',
+      usedCount: 1,
+      maxUsage: 10000000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_10',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'DEFAULT FRD (Standard Plan)',
+      couponCode: 'FRD SP',
+      createdAt: '17-10-2025',
+      bonusAmount: 2500,
+      discountAmount: 0,
+      discountPercentage: 0,
+      validityDate: '06-09-2030',
+      usedCount: 0,
+      maxUsage: 10000000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_11',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'DEFAULT FRD (Creator Plan)',
+      couponCode: 'FRD CP',
+      createdAt: '17-10-2025',
+      bonusAmount: 1500,
+      discountAmount: 500,
+      discountPercentage: 0,
+      validityDate: '06-09-2030',
+      usedCount: 0,
+      maxUsage: 10000000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_12',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: 'DEFAULT FRD (Basic Free Plan)',
+      couponCode: 'FRD BFP',
+      createdAt: '17-10-2025',
+      bonusAmount: 1500,
+      discountAmount: 0,
+      discountPercentage: 0,
+      validityDate: '06-09-2030',
+      usedCount: 0,
+      maxUsage: 10000000,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_13',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: '25 SEPF',
+      couponCode: '25 SEPF',
+      createdAt: '25-09-2025',
+      bonusAmount: 10,
+      discountAmount: 5090,
+      discountPercentage: 0,
+      validityDate: '27-09-2025',
+      usedCount: 20,
+      maxUsage: 10,
+      status: 'Active'
+    },
+    {
+      id: 'deal_img_14',
+      planType: 'Franchise',
+      state: 'All',
+      dealName: '12SEPF',
+      couponCode: '12SEPF',
+      createdAt: '12-09-2025',
+      bonusAmount: 10,
+      discountAmount: 5000,
+      discountPercentage: 0,
+      validityDate: '26-09-2025',
+      usedCount: 11,
+      maxUsage: 12,
+      status: 'Active'
+    }
+  ];
+
+  const [platformDeals, setPlatformDeals] = useState(() => {
+    try {
+      const saved = localStorage.getItem('loyalqr_platform_deals');
+      return saved ? JSON.parse(saved) : initialPlatformDeals;
+    } catch {
+      return initialPlatformDeals;
+    }
+  });
+
+  const [dealCustomerMappingModalOpen, setDealCustomerMappingModalOpen] = useState(false);
+  const [editingDealModal, setEditingDealModal] = useState({ isOpen: false, deal: null });
+  const [dealToast, setDealToast] = useState('');
+  const [dealSearch, setDealSearch] = useState('');
+
+  // Form State for Image 4
+  const [newDealForm, setNewDealForm] = useState({
+    planName: 'Standard Plan',
+    planType: 'Yearly',
+    state: 'All States (No state restriction)',
+    dealName: '',
+    couponCode: '',
+    bonusAmount: 0,
+    discountAmount: 0,
+    discountPercentage: 0,
+    validityDate: '',
+    maxUsage: 0
+  });
+
+  // =========================================================================
   // Settings Modules State (Image 2 - Platform, Contact, Brand, FAQ, Privacy, Terms)
   // =========================================================================
-  const [settingsActiveModal, setSettingsActiveModal] = useState(null); // 'platform' | 'contact' | 'brand' | 'faq' | 'privacy' | 'terms' | null
+  const [settingsActiveModal, setSettingsActiveModal] = useState(null); // 'platform' | 'contact' | 'brand' | 'faq' | 'privacy' | 'terms' | 'brand_landing_preview' | null
   const [settingsToast, setSettingsToast] = useState('');
+  const [brandPreviewMode, setBrandPreviewMode] = useState('split'); // 'split' | 'before' | 'now'
 
   const [platformSettings, setPlatformSettings] = useState(() => {
     try {
@@ -728,6 +1679,14 @@ export default function SuperAdminDashboard() {
   const [crmSearchModal, setCrmSearchModal] = useState('');
   const [expandedLeadId, setExpandedLeadId] = useState(null);
 
+  // Team Management Modals: Reset Password & Edit Team Member
+  const [resetPasswordModal, setResetPasswordModal] = useState({ isOpen: false, member: null, newPassword: '' });
+  const [editTeamMemberModal, setEditTeamMemberModal] = useState({
+    isOpen: false,
+    member: null,
+    form: { name: '', email: '', mobile: '', district: '', state: '', role: 'FIELD_AGENT', mwId: '' }
+  });
+
   const handleCreateTeamMember = (e) => {
     e.preventDefault();
     if (!newTeamMember.name || !newTeamMember.email || !newTeamMember.password) return;
@@ -827,8 +1786,58 @@ export default function SuperAdminDashboard() {
         try {
           localStorage.setItem('beaurex_created_teams', JSON.stringify(updated));
         } catch (err) {}
+        setTeamSuccessMsg(`Status for ${member?.name || userId} updated to ${newStatus}.`);
+        setTimeout(() => setTeamSuccessMsg(''), 4000);
       }
     });
+  };
+
+  const handleSaveEditTeamMember = (e) => {
+    e.preventDefault();
+    if (!editTeamMemberModal.member) return;
+    const { name, email, mobile, district, state, role, mwId } = editTeamMemberModal.form;
+    const updated = teamMembers.map(m => {
+      if (m.userId === editTeamMemberModal.member.userId) {
+        return {
+          ...m,
+          name: name.trim() || m.name,
+          email: email.trim() || m.email,
+          mobile: mobile.trim() || m.mobile,
+          district: district.trim() || m.district,
+          state: state.trim() || m.state,
+          role: role || m.role,
+          mwId: mwId ? mwId.trim() : m.mwId
+        };
+      }
+      return m;
+    });
+    setTeamMembers(updated);
+    try {
+      localStorage.setItem('beaurex_created_teams', JSON.stringify(updated));
+    } catch (err) {}
+    setTeamSuccessMsg(`Team member "${name}" updated successfully.`);
+    setEditTeamMemberModal({ isOpen: false, member: null, form: { name: '', email: '', mobile: '', district: '', state: '', role: 'FIELD_AGENT', mwId: '' } });
+    setTimeout(() => setTeamSuccessMsg(''), 4000);
+  };
+
+  const handleResetTeamPassword = (e) => {
+    e.preventDefault();
+    if (!resetPasswordModal.member || !resetPasswordModal.newPassword) return;
+    const newPass = resetPasswordModal.newPassword.trim();
+    const updated = teamMembers.map(m => {
+      if (m.userId === resetPasswordModal.member.userId) {
+        return { ...m, password: newPass };
+      }
+      return m;
+    });
+    setTeamMembers(updated);
+    try {
+      localStorage.setItem('beaurex_created_teams', JSON.stringify(updated));
+    } catch (err) {}
+    navigator.clipboard?.writeText(newPass);
+    setTeamSuccessMsg(`Password for "${resetPasswordModal.member.name}" reset to "${newPass}" (copied to clipboard)!`);
+    setResetPasswordModal({ isOpen: false, member: null, newPassword: '' });
+    setTimeout(() => setTeamSuccessMsg(''), 5000);
   };
 
   // Retrieve team member's referred stores dynamically
@@ -1201,21 +2210,23 @@ export default function SuperAdminDashboard() {
     });
   };
 
-  // Handle Open Complimentary Modal (4 Options: Status, Plan Tier, Reason, Days)
+  // Handle Open Complimentary Modal (4 Options: Status, Plan Tier, Reason, Days: 7, 15, 30, 90, 180, 1 Year, Lifetime)
   const handleOpenComplimentaryModal = (merchant) => {
     setComplimentaryModalMerchant(merchant);
     const isComp = merchant.isComplimentary === true;
-    const initialDays = merchant.complimentaryDays || 10;
+    const isLifetime = merchant.complimentaryDays === 'Lifetime' || Number(merchant.complimentaryDays) >= 36500 || merchant.planValidTill === 'Lifetime Access';
+    const initialDays = isLifetime ? 36500 : (merchant.complimentaryDays || 15);
     
     const d = new Date();
     d.setDate(d.getDate() + Number(initialDays));
-    const calculatedDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const calculatedDate = isLifetime ? 'Lifetime Access' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
     setComplimentaryForm({
       status: isComp ? 'YES' : 'YES',
       planTier: merchant.subscriptionTier || 'PROFESSIONAL',
       reason: merchant.complimentaryReason || '',
-      days: initialDays,
+      days: isLifetime ? 'Lifetime' : initialDays,
+      isLifetime: isLifetime,
       customValidTill: calculatedDate
     });
   };
@@ -1227,18 +2238,19 @@ export default function SuperAdminDashboard() {
 
     const id = complimentaryModalMerchant.id || complimentaryModalMerchant._id;
     const isComp = complimentaryForm.status === 'YES';
-    const daysNum = Number(complimentaryForm.days) || 10;
+    const isLifetime = complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500;
+    const daysNum = isLifetime ? 36500 : (Number(complimentaryForm.days) || 15);
     
     const d = new Date();
     d.setDate(d.getDate() + daysNum);
     const newValidTill = isComp 
-      ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      ? (isLifetime ? 'Lifetime Access' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }))
       : complimentaryModalMerchant.planValidTill;
 
     requestConfirm({
       title: 'Permission Required: Complimentary Access',
       message: isComp 
-        ? `Grant complimentary ${complimentaryForm.planTier} tier (+${daysNum} days) to "${complimentaryModalMerchant.businessName}"? Reason: "${complimentaryForm.reason || 'Admin Special Courtesy'}"`
+        ? `Grant complimentary ${complimentaryForm.planTier} tier (${isLifetime ? 'Lifetime Access' : `+${daysNum} days`}) to "${complimentaryModalMerchant.businessName}"? Reason: "${complimentaryForm.reason || 'Admin Special Courtesy'}"`
         : `Revoke complimentary access for "${complimentaryModalMerchant.businessName}"?`,
       confirmText: isComp ? 'Yes, Grant Access' : 'Yes, Revoke Access',
       type: isComp ? 'primary' : 'warning',
@@ -1249,7 +2261,7 @@ export default function SuperAdminDashboard() {
               ...m,
               isComplimentary: isComp,
               complimentaryReason: isComp ? complimentaryForm.reason : '',
-              complimentaryDays: isComp ? daysNum : 0,
+              complimentaryDays: isComp ? (isLifetime ? 'Lifetime' : daysNum) : 0,
               planValidTill: isComp ? newValidTill : m.planValidTill,
               subscriptionTier: isComp ? complimentaryForm.planTier : m.subscriptionTier,
               status: isComp ? 'Paid' : m.status
@@ -1264,7 +2276,7 @@ export default function SuperAdminDashboard() {
           body: JSON.stringify({
             isComplimentary: isComp,
             complimentaryReason: isComp ? complimentaryForm.reason : '',
-            complimentaryDays: isComp ? daysNum : 0,
+            complimentaryDays: isComp ? (isLifetime ? 'Lifetime' : daysNum) : 0,
             planValidTill: isComp ? newValidTill : complimentaryModalMerchant.planValidTill,
             subscriptionTier: isComp ? complimentaryForm.planTier : complimentaryModalMerchant.subscriptionTier
           })
@@ -1272,7 +2284,7 @@ export default function SuperAdminDashboard() {
 
         setPaymentNotice(
           isComp 
-            ? `Complimentary access granted for ${complimentaryModalMerchant.businessName} (+${daysNum} days)! Reason: "${complimentaryForm.reason || 'None provided'}"`
+            ? `Complimentary access granted for ${complimentaryModalMerchant.businessName} (${isLifetime ? 'Lifetime Access' : `+${daysNum} days`})! Reason: "${complimentaryForm.reason || 'None provided'}"`
             : `Complimentary status updated for ${complimentaryModalMerchant.businessName}.`
         );
         setTimeout(() => setPaymentNotice(''), 4500);
@@ -1645,6 +2657,50 @@ export default function SuperAdminDashboard() {
     }));
   };
 
+  // Handle Add/Remove Tag for Active Plan
+  const handleAddTagToPlan = (planId, customTag) => {
+    const tag = (customTag || newPlanTagInputs[planId] || '').trim();
+    if (!tag) return;
+    setPlans(prev => prev.map(p => {
+      if (p.id === planId) {
+        const curTags = p.tags || [];
+        if (!curTags.includes(tag)) {
+          return { ...p, tags: [...curTags, tag] };
+        }
+      }
+      return p;
+    }));
+    setNewPlanTagInputs(prev => ({ ...prev, [planId]: '' }));
+  };
+
+  const handleRemoveTagFromPlan = (planId, tagIdx) => {
+    setPlans(prev => prev.map(p => {
+      if (p.id === planId) {
+        const nextTags = [...(p.tags || [])];
+        nextTags.splice(tagIdx, 1);
+        return { ...p, tags: nextTags };
+      }
+      return p;
+    }));
+  };
+
+  // Handle Add/Remove Tag for New Plan Form
+  const handleAddTagToNewPlan = (customTag) => {
+    const tag = (customTag || newPlanTagInput || '').trim();
+    if (!tag) return;
+    if (!(newPlanForm.tags || []).includes(tag)) {
+      setNewPlanForm(prev => ({ ...prev, tags: [...(prev.tags || []), tag] }));
+    }
+    setNewPlanTagInput('');
+  };
+
+  const handleRemoveTagFromNewPlan = (tagIdx) => {
+    setNewPlanForm(prev => ({
+      ...prev,
+      tags: (prev.tags || []).filter((_, idx) => idx !== tagIdx)
+    }));
+  };
+
   const handleSavePlanItem = async (planId, updatedFields = {}) => {
     const targetPlan = plans.find(p => p.id === planId);
     requestConfirm({
@@ -1799,6 +2855,7 @@ export default function SuperAdminDashboard() {
           period: newPlanForm.period || '/ Year',
           subtext: newPlanForm.subtext || 'Retail subscription tier',
           tagText: newPlanForm.tagText || '',
+          tags: (newPlanForm.tags && newPlanForm.tags.length > 0) ? newPlanForm.tags : [],
           highlightBadge: newPlanForm.highlightBadge || '',
           isPopular: Boolean(newPlanForm.isPopular),
           trialDays: Number(newPlanForm.trialDays) || 2,
@@ -1854,6 +2911,7 @@ export default function SuperAdminDashboard() {
           period: '/ Year',
           subtext: '',
           tagText: '',
+          tags: ['Recommended', 'Instant Setup'],
           highlightBadge: '',
           isPopular: false,
           trialDays: 2,
@@ -2275,12 +3333,14 @@ export default function SuperAdminDashboard() {
   const navItems = [
     { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, badge: 'Live' },
     { id: 'merchants', label: 'Merchants', icon: Store, count: merchants.length },
+    { id: 'claim_logs', label: 'Claim Logs', icon: Award, count: 245, badge: 'Logs' },
+    { id: 'referrals', label: 'Manage Referrals', icon: Share2, count: referralsList.length, badge: 'Payouts' },
+    { id: 'deals_coupons', label: 'Deal & Coupons', icon: Tag, count: platformDeals.length, badge: 'Deals' },
+    { id: 'permissions', label: 'Manage', icon: Sliders, badge: 'Control' },
     { id: 'plans', label: 'Plans', icon: Layers, count: plans.length, badge: 'Landing' },
-    { id: 'permissions', label: 'Feature Permissions', icon: ShieldCheck, badge: 'Control' },
-    { id: 'payments', label: 'Claim Logs', icon: CreditCard, count: paymentsData?.payments?.length || merchants.length, badge: 'Finance' },
-    { id: 'settings', label: 'Settings', icon: Settings, badge: '6' },
     { id: 'team', label: 'Teams Management', icon: UserCheck, count: teamMembers.length, badge: 'New' },
-    { id: 'customers', label: 'Customer CRM', icon: Users, count: customers.length },
+    { id: 'customers', label: 'Customer', icon: Users, count: customers.length },
+    { id: 'settings', label: 'Settings', icon: Settings, badge: '6' },
     { id: 'config', label: 'API & Gateway Keys', icon: Key, badge: 'Config' },
     { id: 'audit', label: 'Security & Audit Logs', icon: Activity, badge: 'Secured' },
   ];
@@ -2362,7 +3422,7 @@ export default function SuperAdminDashboard() {
                 <div className="p-3 space-y-1">
                   {navItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = activeTab === item.id;
+                    const isActive = activeTab === item.id || (item.id === 'settings' && (activeTab === 'policy_editor' || activeTab === 'faq_editor'));
                     return (
                       <button
                         key={item.id}
@@ -2466,7 +3526,7 @@ export default function SuperAdminDashboard() {
             <div className="p-3.5 space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeTab === item.id;
+                const isActive = activeTab === item.id || (item.id === 'settings' && (activeTab === 'policy_editor' || activeTab === 'faq_editor'));
                 return (
                   <button
                     key={item.id}
@@ -2539,14 +3599,34 @@ export default function SuperAdminDashboard() {
           {/* ========================================================= */}
           <header className="bg-white border-b border-slate-200/90 px-6 sm:px-8 py-4 sticky top-0 z-20 flex items-center justify-between shadow-xs">
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight capitalize">
-                {activeTab === 'settings' ? 'Settings' : navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                {activeTab === 'policy_editor' ? 'Policy Editor' : 
+                 activeTab === 'faq_editor' ? 'FAQ Editor' : 
+                 activeTab === 'claim_logs' ? 'Claim Logs' : 
+                 activeTab === 'referrals' ? 'Manage Referrals' : 
+                 activeTab === 'deals_coupons' ? 'Deal & Coupons' : 
+                 activeTab === 'permissions' ? 'Manage' : 
+                 activeTab === 'settings' ? 'Settings' : 
+                 navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}
               </h1>
               <div className="flex items-center space-x-1.5 text-xs text-slate-500 font-medium mt-0.5">
                 <Link to="/" className="hover:text-red-700 transition">Home</Link>
                 <span>&gt;</span>
-                <span className="text-slate-800 font-bold capitalize">
-                  {activeTab === 'settings' ? 'Settings' : navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}
+                {(activeTab === 'policy_editor' || activeTab === 'faq_editor') && (
+                  <>
+                    <button onClick={() => setActiveTab('settings')} className="hover:text-red-700 transition cursor-pointer">Settings</button>
+                    <span>&gt;</span>
+                  </>
+                )}
+                <span className="text-slate-800 font-bold">
+                  {activeTab === 'policy_editor' ? 'Policy Editor' : 
+                   activeTab === 'faq_editor' ? 'FAQ Editor' : 
+                   activeTab === 'claim_logs' ? 'Claim Logs' : 
+                   activeTab === 'referrals' ? 'Manage Referrals' : 
+                   activeTab === 'deals_coupons' ? 'Deal & Coupons' : 
+                   activeTab === 'permissions' ? 'Manage' : 
+                   activeTab === 'settings' ? 'Settings' : 
+                   navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}
                 </span>
               </div>
             </div>
@@ -2577,8 +3657,8 @@ export default function SuperAdminDashboard() {
             </div>
           </header>
 
-          {/* Main Container */}
-          <main className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
+          {/* Main Container (Full width for seamless right side alignment) */}
+          <main className="p-4 sm:p-6 lg:p-8 space-y-6 w-full">
             
             {/* Action Feedback Alert Banner */}
             {paymentNotice && (
@@ -2593,66 +3673,280 @@ export default function SuperAdminDashboard() {
               </div>
             )}
 
-            {/* TAB: OVERVIEW & TELEMETRY */}
+            {/* ========================================================= */}
+            {/* TAB: DASHBOARD OVERVIEW & ANALYTICS (Image 1 + Graphs)     */}
+            {/* ========================================================= */}
             {activeTab === 'overview' && (() => {
-              const liveTotalStores = (merchants && merchants.length > 0) ? merchants.length : (overviewStats.totalStores || 142);
-              const livePaidStores = (merchants && merchants.length > 0)
-                ? merchants.filter(m => (m.subscriptionTier && m.subscriptionTier !== 'TRIAL' && m.subscriptionTier !== 'Trial Plan') || m.status === 'Paid' || (m.paymentAmount && m.paymentAmount !== '-')).length
-                : (overviewStats.paidStores || 118);
-              const liveTrialStores = (liveTotalStores - livePaidStores) >= 0 ? (liveTotalStores - livePaidStores) : (overviewStats.trialStores || 24);
-
               return (
-                <div className="space-y-6">
-                  {/* 5 Dynamic Metric Cards (Matching Image 1 & added Today Total Scan) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {/* 1. Platform GMV */}
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        <span>Platform GMV</span>
-                        <span className="text-emerald-600 font-bold">{overviewStats.revenueGrowth || '↑ +32%'}</span>
-                      </div>
-                      <div className="text-2xl sm:text-3xl font-black text-slate-900">{overviewStats.totalRevenue || '₹28.4 Lakh'}</div>
-                      <p className="text-[11px] text-slate-500 mt-1">Total customer repeat billings</p>
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  {/* Top Header matching Image 1 */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                    <div>
+                      <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                        Dashboard
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                        Welcome back! Here's what's happening with your platform today.
+                      </p>
                     </div>
 
-                    {/* 2. Active Stores */}
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        <span>Active Stores</span>
-                        <span className="text-red-600 font-bold">{livePaidStores} Paid</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="relative">
+                        <select
+                          value={overviewDate}
+                          onChange={(e) => setOverviewDate(e.target.value)}
+                          className="appearance-none bg-white border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:border-slate-300 focus:outline-none focus:border-red-600 cursor-pointer"
+                        >
+                          <option value="May 24, 2025">May 24, 2025</option>
+                          <option value="May 23, 2025">May 23, 2025</option>
+                          <option value="Today">Today (Realtime)</option>
+                          <option value="Last 7 Days">Last 7 Days</option>
+                          <option value="This Month">This Month (May 2025)</option>
+                        </select>
+                        <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-3 pointer-events-none" />
                       </div>
-                      <div className="text-2xl sm:text-3xl font-black text-red-600">{liveTotalStores} Stores</div>
-                      <p className="text-[11px] text-slate-500 mt-1">{liveTrialStores} in active 2-day free trial</p>
+                    </div>
+                  </div>
+
+                  {/* 4 Stat Cards in 1 Row (Exact Match to Image 1) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {/* Card 1: Active Merchants */}
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
+                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
+                          <Users className="w-6 h-6 text-red-600" />
+                        </div>
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-800">Active Merchants</h3>
+                      <div className="text-3xl font-black text-slate-900 mt-2">1,248</div>
+                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
+                        <span>↑</span>
+                        <span>12.5% vs yesterday</span>
+                      </div>
                     </div>
 
-                    {/* 3. Total Scans */}
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        <span>Total Scans</span>
-                        <span className="text-emerald-600 font-bold">{overviewStats.repeatVisitRate || '43.2%'} Repeat</span>
+                    {/* Card 2: Today's Merchant Onboarding */}
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
+                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
+                          <UserPlus className="w-6 h-6 text-red-600" />
+                        </div>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-black text-slate-900">{overviewStats.totalScans || '1,42,850'}</div>
-                      <p className="text-[11px] text-slate-500 mt-1">Walk-ins converted to regulars</p>
+                      <h3 className="text-sm font-bold text-slate-800">Today's Merchant Onboarding</h3>
+                      <div className="text-3xl font-black text-slate-900 mt-2">36</div>
+                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
+                        <span>↑</span>
+                        <span>16.7% vs yesterday</span>
+                      </div>
                     </div>
 
-                    {/* 4. Today Total Scan (New Requested Card) */}
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        <span>Today Total Scan</span>
-                        <span className="text-emerald-600 font-bold">Today</span>
+                    {/* Card 3: Today's Revenue */}
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
+                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
+                          <CreditCard className="w-6 h-6 text-red-600" />
+                        </div>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-black text-slate-900">{overviewStats.todayScans || '1,420'}</div>
-                      <p className="text-[11px] text-slate-500 mt-1">In-store QR scans today</p>
+                      <h3 className="text-sm font-bold text-slate-800">Today's Revenue</h3>
+                      <div className="text-3xl font-black text-slate-900 mt-2">₹ 86,540</div>
+                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
+                        <span>↑</span>
+                        <span>16.3% vs yesterday</span>
+                      </div>
                     </div>
 
-                    {/* 5. Database Engine */}
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        <span>Database Engine</span>
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    {/* Card 4: Total Revenue */}
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
+                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
+                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
+                          <DollarSign className="w-6 h-6 text-red-600" />
+                        </div>
                       </div>
-                      <div className="text-xl font-black text-emerald-600 mt-1">{overviewStats.dbEngine || 'MongoDB Live'}</div>
-                      <p className="text-[11px] text-slate-500 mt-1">{overviewStats.dbLatency || 'Cluster beaurex • 2ms Latency'}</p>
+                      <h3 className="text-sm font-bold text-slate-800">Total Revenue</h3>
+                      <div className="text-3xl font-black text-slate-900 mt-2">₹ 24,85,430</div>
+                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
+                        <span>↑</span>
+                        <span>14.8% vs last month</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual Analytics Graphs Section ("and add some graph") */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Graph 1: Platform Revenue & GMV Trajectory */}
+                    <div className="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <TrendingUp className="w-4 h-4 text-red-600" />
+                            <h3 className="text-base font-black text-slate-900">Revenue & Billing Performance</h3>
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            Subscription collections, plan upgrades, and daily counter transactions
+                          </p>
+                        </div>
+
+                        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                          {['7days', '30days', '90days'].map((tf) => (
+                            <button
+                              key={tf}
+                              onClick={() => setOverviewChartTimeframe(tf)}
+                              className={`px-3 py-1 rounded-lg transition cursor-pointer ${
+                                overviewChartTimeframe === tf
+                                  ? 'bg-white text-slate-900 shadow-2xs font-black'
+                                  : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              {tf === '7days' ? '7D' : tf === '30days' ? '30D' : '90D'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* SVG Visual Revenue Curve Chart */}
+                      <div className="py-6">
+                        <div className="h-56 w-full relative">
+                          <svg viewBox="0 0 600 200" className="w-full h-full overflow-visible">
+                            <defs>
+                              <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#8B0000" stopOpacity="0.3" />
+                                <stop offset="100%" stopColor="#8B0000" stopOpacity="0.0" />
+                              </linearGradient>
+                            </defs>
+                            {/* Grid horizontal guidelines */}
+                            <line x1="0" y1="40" x2="600" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
+                            <line x1="0" y1="90" x2="600" y2="90" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
+                            <line x1="0" y1="140" x2="600" y2="140" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="4 4" />
+                            <line x1="0" y1="190" x2="600" y2="190" stroke="#f1f5f9" strokeWidth="1" />
+
+                            {/* Area fill */}
+                            <path
+                              d="M 0 160 Q 75 140, 150 110 T 300 95 T 450 60 T 600 45 L 600 190 L 0 190 Z"
+                              fill="url(#revenueGrad)"
+                            />
+
+                            {/* Main Stroke line */}
+                            <path
+                              d="M 0 160 Q 75 140, 150 110 T 300 95 T 450 60 T 600 45"
+                              fill="none"
+                              stroke="#8B0000"
+                              strokeWidth="3.5"
+                              strokeLinecap="round"
+                            />
+
+                            {/* Data points */}
+                            <circle cx="0" cy="160" r="4" fill="#8B0000" className="animate-pulse" />
+                            <circle cx="150" cy="110" r="4.5" fill="#8B0000" />
+                            <circle cx="300" cy="95" r="4.5" fill="#8B0000" />
+                            <circle cx="450" cy="60" r="5" fill="#8B0000" />
+                            <circle cx="600" cy="45" r="5.5" fill="#8B0000" className="animate-ping" />
+                            <circle cx="600" cy="45" r="4" fill="#ffffff" stroke="#8B0000" strokeWidth="2.5" />
+                          </svg>
+                        </div>
+
+                        {/* Chart X-axis Labels */}
+                        <div className="flex justify-between text-[11px] font-bold text-slate-400 pt-2 px-1 border-t border-slate-100">
+                          <span>01 May</span>
+                          <span>07 May</span>
+                          <span>14 May</span>
+                          <span>21 May</span>
+                          <span className="text-red-700 font-extrabold">24 May (Today: ₹86,540)</span>
+                        </div>
+                      </div>
+
+                      {/* Revenue KPI summary cards */}
+                      <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100">
+                        <div className="bg-slate-50 p-3 rounded-xl">
+                          <span className="text-[10px] font-bold uppercase text-slate-400">Peak Single Day</span>
+                          <div className="text-sm font-black text-slate-900 mt-0.5">₹ 98,420</div>
+                          <span className="text-[10px] text-emerald-600 font-semibold">22 May 2025</span>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl">
+                          <span className="text-[10px] font-bold uppercase text-slate-400">Average Daily</span>
+                          <div className="text-sm font-black text-slate-900 mt-0.5">₹ 76,850</div>
+                          <span className="text-[10px] text-slate-500 font-medium">30-day baseline</span>
+                        </div>
+                        <div className="bg-slate-50 p-3 rounded-xl">
+                          <span className="text-[10px] font-bold uppercase text-slate-400">Month Forecast</span>
+                          <div className="text-sm font-black text-red-700 mt-0.5">₹ 26.5 Lakh</div>
+                          <span className="text-[10px] text-emerald-600 font-semibold">↑ On track</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Graph 2: Merchant Signups & Category Distribution */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                          <div>
+                            <h3 className="text-base font-black text-slate-900">Merchant Growth & Mix</h3>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">Category breakdown & conversions</p>
+                          </div>
+                          <span className="bg-rose-50 text-red-700 font-bold text-xs px-2.5 py-1 rounded-xl border border-red-100">
+                            +36 Today
+                          </span>
+                        </div>
+
+                        {/* Category Progress Bars */}
+                        <div className="space-y-4 my-6">
+                          <div>
+                            <div className="flex justify-between text-xs font-bold mb-1">
+                              <span className="text-slate-700">Cafe & Restaurants</span>
+                              <span className="text-slate-900 font-extrabold">42% (524 stores)</span>
+                            </div>
+                            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-[#8B0000] rounded-full" style={{ width: '42%' }}></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between text-xs font-bold mb-1">
+                              <span className="text-slate-700">Retail & Fashion</span>
+                              <span className="text-slate-900 font-extrabold">26% (324 stores)</span>
+                            </div>
+                            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-rose-500 rounded-full" style={{ width: '26%' }}></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between text-xs font-bold mb-1">
+                              <span className="text-slate-700">Grocery & Supermarkets</span>
+                              <span className="text-slate-900 font-extrabold">18% (225 stores)</span>
+                            </div>
+                            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-amber-500 rounded-full" style={{ width: '18%' }}></div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex justify-between text-xs font-bold mb-1">
+                              <span className="text-slate-700">Salon & Wellness</span>
+                              <span className="text-slate-900 font-extrabold">14% (175 stores)</span>
+                            </div>
+                            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-500 rounded-full" style={{ width: '14%' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conversion Highlights */}
+                      <div className="p-4 bg-rose-50/60 rounded-xl border border-red-100 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-700">Trial to Paid Conversion</span>
+                          <span className="font-black text-red-700">68.4%</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-700">Average Store Redemptions</span>
+                          <span className="font-black text-slate-900">42 / day</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-700">Total Customer Repeat Rate</span>
+                          <span className="font-black text-emerald-600">48.6%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2772,8 +4066,8 @@ export default function SuperAdminDashboard() {
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-black tracking-wider">
                           <th className="py-3 px-4">Merchant / Business</th>
-                          <th className="py-3 px-3">Payment Date</th>
-                          <th className="py-3 px-3">Payment Amount</th>
+                          <th className="py-3 px-3">Total Payment</th>
+                          <th className="py-3 px-3">Date with Time</th>
                           <th className="py-3 px-3">Plan</th>
                           <th className="py-3 px-3">Plan Valid Till</th>
                           <th className="py-3 px-3 text-center">Set a Deal</th>
@@ -2807,14 +4101,14 @@ export default function SuperAdminDashboard() {
                                 <div className="text-[11px] text-slate-400 font-mono">{m.mobile} • {m.city || 'India'}</div>
                               </td>
 
-                              {/* PAYMENT DATE */}
-                              <td className="py-3 px-3 font-mono text-slate-600 text-[11px]">
-                                {m.paymentDate || '—'}
+                              {/* TOTAL PAYMENT */}
+                              <td className="py-3 px-3 font-extrabold text-slate-900">
+                                {m.totalPayment || m.paymentAmount || '₹ 24,000'}
                               </td>
 
-                              {/* PAYMENT AMOUNT */}
-                              <td className="py-3 px-3 font-bold text-slate-800">
-                                {m.paymentAmount || '—'}
+                              {/* DATE WITH TIME */}
+                              <td className="py-3 px-3 font-mono text-slate-600 text-[11px] whitespace-nowrap">
+                                {m.dateTime || (m.paymentDate && m.paymentDate !== '-' ? `${m.paymentDate} 11:20 AM` : 'May 24, 2025 11:20 AM')}
                               </td>
 
                               {/* PLAN (editable dropdown) */}
@@ -2911,12 +4205,12 @@ export default function SuperAdminDashboard() {
                                   onClick={() => handleOpenComplimentaryModal(m)}
                                   className={`rounded-lg px-2.5 py-1 text-[11px] font-bold cursor-pointer border transition flex items-center justify-center space-x-1.5 mx-auto ${
                                     m.isComplimentary
-                                      ? 'bg-purple-50 text-purple-700 border-purple-300 hover:bg-purple-100 shadow-xs'
+                                      ? 'bg-rose-50 text-[#74111d] border-rose-300 hover:bg-rose-100 shadow-xs'
                                       : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
                                   }`}
-                                  title={m.isComplimentary ? `Complimentary Active (${m.complimentaryDays || 10} Days) • Reason: ${m.complimentaryReason || 'Special Access'}` : 'Click to configure Complimentary access'}
+                                  title={m.isComplimentary ? `Complimentary Active (${m.complimentaryDays === 'Lifetime' || Number(m.complimentaryDays) >= 36500 ? 'Lifetime Access' : (m.complimentaryDays || 10) + ' Days'}) • Reason: ${m.complimentaryReason || 'Special Access'}` : 'Click to configure Complimentary access'}
                                 >
-                                  <span>{m.isComplimentary ? `Yes (${m.complimentaryDays ? m.complimentaryDays + 'd' : 'Active'})` : 'No'}</span>
+                                  <span>{m.isComplimentary ? `Yes (${m.complimentaryDays === 'Lifetime' || Number(m.complimentaryDays) >= 36500 ? 'Lifetime' : m.complimentaryDays ? m.complimentaryDays + 'd' : 'Active'})` : 'No'}</span>
                                   <ChevronDown className="w-3 h-3 opacity-60" />
                                 </button>
                               </td>
@@ -2942,9 +4236,933 @@ export default function SuperAdminDashboard() {
             )}
 
             {/* ========================================================= */}
-            {/* TAB: BILLING & PAYMENTS MENU (Paid vs Unpaid, Revenue, Suspend) */}
+            {/* TAB: CLAIM LOGS (Exact Match to Image 4)                  */}
             {/* ========================================================= */}
-            {activeTab === 'payments' && (
+            {(activeTab === 'claim_logs' || activeTab === 'payments') && (() => {
+              const filteredClaims = claimLogsList.filter(item => {
+                if (claimMerchantFilter !== 'ALL' && item.merchant !== claimMerchantFilter) return false;
+                if (claimStatusFilter !== 'ALL' && item.status.toLowerCase() !== claimStatusFilter.toLowerCase()) return false;
+                if (claimRewardFilter !== 'ALL' && !item.reward.toLowerCase().includes(claimRewardFilter.toLowerCase())) return false;
+                if (claimSearch.trim()) {
+                  const q = claimSearch.toLowerCase();
+                  return item.claimId.toLowerCase().includes(q) ||
+                    item.customer.toLowerCase().includes(q) ||
+                    item.merchant.toLowerCase().includes(q) ||
+                    item.reward.toLowerCase().includes(q);
+                }
+                return true;
+              });
+
+              return (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  {/* Notification Toast */}
+                  {claimExportToast && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>{claimExportToast}</span>
+                      </div>
+                      <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase">Success</span>
+                    </div>
+                  )}
+
+                  {/* Filter and Action Bar (Image 4) */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                    <div className="flex flex-1 flex-wrap items-center gap-3">
+                      {/* Search Bar */}
+                      <div className="relative flex-1 min-w-[240px]">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={claimSearch}
+                          onChange={(e) => setClaimSearch(e.target.value)}
+                          placeholder="Search by claim ID, customer or merchant..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
+
+                      {/* Merchant Filter */}
+                      <select
+                        value={claimMerchantFilter}
+                        onChange={(e) => setClaimMerchantFilter(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
+                      >
+                        <option value="ALL">All Merchants</option>
+                        <option value="Coffee House">Coffee House</option>
+                        <option value="Pizza Plaza">Pizza Plaza</option>
+                        <option value="Burger Point">Burger Point</option>
+                        <option value="Fashion Hub">Fashion Hub</option>
+                      </select>
+
+                      {/* Status Filter */}
+                      <select
+                        value={claimStatusFilter}
+                        onChange={(e) => setClaimStatusFilter(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
+                      >
+                        <option value="ALL">All Status</option>
+                        <option value="Success">Success</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Failed">Failed</option>
+                      </select>
+
+                      {/* Reward Types Filter */}
+                      <select
+                        value={claimRewardFilter}
+                        onChange={(e) => setClaimRewardFilter(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
+                      >
+                        <option value="ALL">All Reward Types</option>
+                        <option value="Coffee">Free Coffee</option>
+                        <option value="Discount">Discount</option>
+                        <option value="Burger">Burger</option>
+                        <option value="Off">Cash Off</option>
+                        <option value="Drink">Drink</option>
+                        <option value="Pizza">Pizza Slice</option>
+                      </select>
+
+                      {/* Date Range Button */}
+                      <button
+                        type="button"
+                        className="bg-white hover:bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 flex items-center space-x-1.5 transition cursor-pointer shadow-2xs"
+                      >
+                        <span>Date Range</span>
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
+                    </div>
+
+                    {/* Export Button (Image 4 red border styling) */}
+                    <div>
+                      <button
+                        type="button"
+                        onClick={handleExportClaimLogs}
+                        className="w-full sm:w-auto bg-white hover:bg-rose-50 text-red-600 border border-red-300 font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-2xs"
+                      >
+                        <Download className="w-4 h-4 text-red-600" />
+                        <span>Export</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Main Claims Table (Image 4) */}
+                  <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[900px] text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-black tracking-wider">
+                            <th className="py-3.5 px-4">#</th>
+                            <th className="py-3.5 px-3">Claim ID</th>
+                            <th className="py-3.5 px-3">Customer</th>
+                            <th className="py-3.5 px-3">Merchant</th>
+                            <th className="py-3.5 px-3">Reward</th>
+                            <th className="py-3.5 px-3">Points Used</th>
+                            <th className="py-3.5 px-3">Status</th>
+                            <th className="py-3.5 px-3">Claimed At</th>
+                            <th className="py-3.5 px-4 text-center">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredClaims.length === 0 ? (
+                            <tr>
+                              <td colSpan={9} className="py-10 text-center text-xs text-slate-400 font-bold">
+                                No claim logs match the selected search criteria.
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredClaims.map((claim, idx) => (
+                              <tr key={claim.id} className="hover:bg-slate-50/80 transition">
+                                <td className="py-3.5 px-4 font-bold text-slate-400">
+                                  {idx + 1}
+                                </td>
+                                <td className="py-3.5 px-3 font-extrabold text-slate-900 font-mono">
+                                  {claim.claimId}
+                                </td>
+                                <td className="py-3.5 px-3 font-bold text-slate-900">
+                                  {claim.customer}
+                                </td>
+                                <td className="py-3.5 px-3 text-slate-700 font-medium">
+                                  {claim.merchant}
+                                </td>
+                                <td className="py-3.5 px-3 font-bold text-slate-800">
+                                  {claim.reward}
+                                </td>
+                                <td className="py-3.5 px-3 font-bold text-slate-900 font-mono">
+                                  {claim.pointsUsed}
+                                </td>
+                                <td className="py-3.5 px-3">
+                                  <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold ${
+                                    claim.status === 'Success'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : claim.status === 'Pending'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  }`}>
+                                    {claim.status}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
+                                  {claim.claimedAt}
+                                </td>
+                                <td className="py-3.5 px-4 text-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedClaimModal(claim)}
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                                    title="View Claim Verification Details"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination Footer (Image 4 exact) */}
+                    <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/40">
+                      <div>
+                        Showing 1 to {filteredClaims.length} of 245 entries
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-50">
+                          &lt;
+                        </button>
+                        {[1, 2, 3, 4, 5].map(p => (
+                          <button
+                            key={p}
+                            onClick={() => setClaimCurrentPage(p)}
+                            className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
+                              claimCurrentPage === p
+                                ? 'bg-red-600 text-white'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                        <span className="px-1 text-slate-400">...</span>
+                        <button
+                          onClick={() => setClaimCurrentPage(25)}
+                          className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
+                        >
+                          25
+                        </button>
+                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600">
+                          &gt;
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Claim Detail Modal */}
+                  {selectedClaimModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                          <div className="flex items-center space-x-2">
+                            <Award className="w-5 h-5 text-red-600" />
+                            <h3 className="text-base font-black text-slate-900">Claim Receipt & Telemetry</h3>
+                          </div>
+                          <button
+                            onClick={() => setSelectedClaimModal(null)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="bg-slate-50 p-4 rounded-xl space-y-2 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Claim Reference</span>
+                            <span className="font-extrabold text-slate-900 font-mono">{selectedClaimModal.claimId}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Customer</span>
+                            <span className="font-bold text-slate-900">{selectedClaimModal.customer} ({selectedClaimModal.phone})</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Merchant Partner</span>
+                            <span className="font-bold text-slate-900">{selectedClaimModal.merchant}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Reward Redeemed</span>
+                            <span className="font-bold text-red-700">{selectedClaimModal.reward}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Loyalty Points Used</span>
+                            <span className="font-mono font-bold text-slate-900">{selectedClaimModal.pointsUsed} Coins</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Redemption Status</span>
+                            <span className="font-bold text-emerald-600">{selectedClaimModal.status}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Claim Timestamp</span>
+                            <span className="font-mono text-slate-700">{selectedClaimModal.claimedAt}</span>
+                          </div>
+                          <div className="flex justify-between border-t border-slate-200/80 pt-2">
+                            <span className="text-slate-500 font-medium">Cashier OTP Verified</span>
+                            <span className="font-mono font-bold text-slate-800">PIN: {selectedClaimModal.cashierPin}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-medium">Blockchain TX Hash</span>
+                            <span className="font-mono text-slate-400 text-[10px]">{selectedClaimModal.txHash}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedClaimModal(null)}
+                          className="w-full bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"
+                        >
+                          Close Receipt
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ========================================================= */}
+            {/* TAB: POLICY EDITOR (Exact Match to Image 2)               */}
+            {/* ========================================================= */}
+            {activeTab === 'policy_editor' && (() => {
+              const currentDoc = policyData[policySubTab];
+              const wordsCount = currentDoc.content.trim().split(/\s+/).filter(Boolean).length;
+              const charsCount = currentDoc.content.length;
+
+              return (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  {/* Toast Alert */}
+                  {policyToast && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>{policyToast}</span>
+                      </div>
+                      <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase">Synced</span>
+                    </div>
+                  )}
+
+                  {/* Sub-Tabs: Privacy Policy & Terms & Conditions (Image 2) */}
+                  <div className="bg-white border-b border-slate-200 px-6 pt-2 rounded-t-2xl flex items-center justify-between shadow-xs">
+                    <div className="flex items-center space-x-8">
+                      <button
+                        type="button"
+                        onClick={() => setPolicySubTab('privacy')}
+                        className={`pb-3.5 text-xs font-black transition cursor-pointer border-b-2 ${
+                          policySubTab === 'privacy'
+                            ? 'border-red-600 text-red-700'
+                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        Privacy Policy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPolicySubTab('terms')}
+                        className={`pb-3.5 text-xs font-black transition cursor-pointer border-b-2 ${
+                          policySubTab === 'terms'
+                            ? 'border-red-600 text-red-700'
+                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        Terms & Conditions
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('settings')}
+                      className="pb-3 text-xs font-bold text-slate-500 hover:text-red-700 flex items-center space-x-1.5 transition cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Settings</span>
+                    </button>
+                  </div>
+
+                  {/* Main Grid: Editor on Left, Document Info on Right (Image 2) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left: Editor Panel (8 Cols) */}
+                    <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+                      <div>
+                        <h2 className="text-sm font-black text-slate-900 mb-3">Editor</h2>
+
+                        {/* Rich Formatting Toolbar (Image 2 exact match) */}
+                        <div className="border border-slate-200 rounded-xl p-1.5 flex flex-wrap items-center gap-1 bg-slate-50/50 mb-4 text-slate-600">
+                          {/* Paragraph Dropdown */}
+                          <div className="relative">
+                            <select className="appearance-none bg-white border border-slate-200 rounded-lg pl-2.5 pr-6 py-1 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none">
+                              <option>Paragraph</option>
+                              <option>Heading 1</option>
+                              <option>Heading 2</option>
+                              <option>Heading 3</option>
+                            </select>
+                            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-1.5 top-2 pointer-events-none" />
+                          </div>
+
+                          <div className="h-4 w-px bg-slate-200 mx-1" />
+
+                          {/* Bold, Italic, Underline, Strike */}
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200 font-extrabold text-xs" title="Bold">
+                            <Bold className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200 italic text-xs" title="Italic">
+                            <Italic className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200 underline text-xs" title="Underline">
+                            <Underline className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200 line-through text-xs" title="Strikethrough">
+                            <Strikethrough className="w-3.5 h-3.5" />
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-200 mx-1" />
+
+                          {/* Alignment */}
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Align Left">
+                            <AlignLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Align Center">
+                            <AlignCenter className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Align Right">
+                            <AlignRight className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Align Justify">
+                            <AlignJustify className="w-3.5 h-3.5" />
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-200 mx-1" />
+
+                          {/* Lists & Indents */}
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Bullet List">
+                            <List className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Numbered List">
+                            <ListOrdered className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Decrease Indent">
+                            <Outdent className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Increase Indent">
+                            <Indent className="w-3.5 h-3.5" />
+                          </button>
+
+                          <div className="h-4 w-px bg-slate-200 mx-1" />
+
+                          {/* Inserts: Link, Image, Table, More */}
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Insert Link">
+                            <Link2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Insert Image">
+                            <ImageIcon className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="Insert Table">
+                            <TableIcon className="w-3.5 h-3.5" />
+                          </button>
+                          <button type="button" className="p-1.5 rounded-lg hover:bg-slate-200" title="More Options">
+                            <MoreHorizontal className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Editable Content Area */}
+                        <div className="relative">
+                          <textarea
+                            value={currentDoc.content}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setPolicyData(prev => ({
+                                ...prev,
+                                [policySubTab]: { ...prev[policySubTab], content: val }
+                              }));
+                            }}
+                            rows={16}
+                            className="w-full p-4 border border-slate-200 rounded-xl font-sans text-xs sm:text-sm text-slate-800 leading-relaxed focus:outline-none focus:border-red-600 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Words & Characters Count Footer (Image 2) */}
+                      <div className="flex items-center space-x-6 text-xs text-slate-400 font-bold pt-3 border-t border-slate-100">
+                        <span>Words: {wordsCount}</span>
+                        <span>Characters: {charsCount}</span>
+                      </div>
+                    </div>
+
+                    {/* Right: Document Info Panel (4 Cols) */}
+                    <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-6">
+                      <div>
+                        <h2 className="text-sm font-black text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                          Document Info
+                        </h2>
+
+                        <div className="space-y-4 text-xs">
+                          <div>
+                            <span className="text-slate-400 font-medium block">Document Type</span>
+                            <span className="font-extrabold text-slate-900">{currentDoc.type}</span>
+                          </div>
+
+                          <div>
+                            <span className="text-slate-400 font-medium block mb-1">Status</span>
+                            <span className={`inline-block px-3 py-0.5 rounded-full text-[11px] font-bold ${
+                              currentDoc.status === 'Published'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}>
+                              {currentDoc.status}
+                            </span>
+                          </div>
+
+                          <div>
+                            <span className="text-slate-400 font-medium block">Last Updated</span>
+                            <span className="font-mono text-slate-700">{currentDoc.lastUpdated}</span>
+                          </div>
+
+                          <div>
+                            <span className="text-slate-400 font-medium block">Version</span>
+                            <span className="font-mono font-bold text-slate-900">{currentDoc.version}</span>
+                          </div>
+
+                          <div>
+                            <span className="text-slate-400 font-medium block">Published By</span>
+                            <span className="font-bold text-slate-900">{currentDoc.publishedBy}</span>
+                          </div>
+
+                          <div>
+                            <span className="text-slate-400 font-medium block">Published On</span>
+                            <span className="font-mono text-slate-700">{currentDoc.publishedOn}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions Buttons (Image 2) */}
+                      <div className="space-y-2.5 pt-4 border-t border-slate-100">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                          Actions
+                        </div>
+
+                        {/* Preview */}
+                        <button
+                          type="button"
+                          onClick={() => setPolicyPreviewModalOpen(true)}
+                          className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer shadow-2xs"
+                        >
+                          <Eye className="w-4 h-4 text-slate-600" />
+                          <span>Preview</span>
+                        </button>
+
+                        {/* Save Draft */}
+                        <button
+                          type="button"
+                          onClick={handleSavePolicyDraft}
+                          className="w-full bg-white hover:bg-rose-50 text-red-600 border border-red-300 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer shadow-2xs"
+                        >
+                          <FileText className="w-4 h-4 text-red-600" />
+                          <span>Save Draft</span>
+                        </button>
+
+                        {/* Publish */}
+                        <button
+                          type="button"
+                          onClick={handlePublishPolicy}
+                          className="w-full bg-[#74111d] hover:bg-[#5c0d16] text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                        >
+                          <Send className="w-4 h-4 text-white" />
+                          <span>Publish</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning Notice Banner (Image 2 bottom notice) */}
+                  <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-center space-x-3 text-xs text-amber-900 font-medium shadow-2xs">
+                    <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Please preview the content before publishing. Published content will be visible to all users.</span>
+                  </div>
+
+                  {/* Policy Preview Modal */}
+                  {policyPreviewModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200 animate-in zoom-in-95">
+                        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <ShieldCheck className="w-5 h-5 text-red-600" />
+                            <h3 className="text-base font-black text-slate-900">{currentDoc.type} Preview</h3>
+                          </div>
+                          <button
+                            onClick={() => setPolicyPreviewModalOpen(false)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto space-y-4 whitespace-pre-wrap font-sans text-xs sm:text-sm text-slate-700 leading-relaxed bg-slate-50/50">
+                          {currentDoc.content}
+                        </div>
+                        <div className="p-4 border-t border-slate-100 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setPolicyPreviewModalOpen(false)}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+                          >
+                            Close Preview
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ========================================================= */}
+            {/* TAB: FAQ EDITOR (Exact Match to Image 3)                  */}
+            {/* ========================================================= */}
+            {activeTab === 'faq_editor' && (() => {
+              const filteredFaqs = faqsList.filter(f => {
+                if (faqCategoryFilter !== 'ALL' && f.category !== faqCategoryFilter) return false;
+                if (faqStatusFilter !== 'ALL' && f.status.toLowerCase() !== faqStatusFilter.toLowerCase()) return false;
+                if (faqSearch.trim()) {
+                  const q = faqSearch.toLowerCase();
+                  return f.question.toLowerCase().includes(q) || (f.answer && f.answer.toLowerCase().includes(q));
+                }
+                return true;
+              });
+
+              return (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  {/* Toast Alert */}
+                  {faqToast && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span>{faqToast}</span>
+                      </div>
+                      <span className="text-[10px] font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded uppercase">Synced</span>
+                    </div>
+                  )}
+
+                  {/* Top Toolbar (Image 3) */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                    <div className="flex flex-1 flex-wrap items-center gap-3">
+                      {/* Search FAQ */}
+                      <div className="relative flex-1 min-w-[240px]">
+                        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={faqSearch}
+                          onChange={(e) => setFaqSearch(e.target.value)}
+                          placeholder="Search FAQ by question or keyword..."
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
+
+                      {/* Category Filter */}
+                      <select
+                        value={faqCategoryFilter}
+                        onChange={(e) => setFaqCategoryFilter(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
+                      >
+                        <option value="ALL">All Categories</option>
+                        <option value="General">General</option>
+                        <option value="Merchant">Merchant</option>
+                        <option value="Rewards">Rewards</option>
+                        <option value="Integration">Integration</option>
+                        <option value="Support">Support</option>
+                      </select>
+
+                      {/* Status Filter */}
+                      <select
+                        value={faqStatusFilter}
+                        onChange={(e) => setFaqStatusFilter(e.target.value)}
+                        className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
+                      >
+                        <option value="ALL">All Status</option>
+                        <option value="Published">Published</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Unpublished">Unpublished</option>
+                      </select>
+                    </div>
+
+                    {/* Actions: Back to Settings & + Add FAQ Button */}
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('settings')}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
+                        <span>Settings</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFaqModal({ isOpen: true, mode: 'add', data: { question: '', answer: '', category: 'General', order: faqsList.length + 1, status: 'Published' } })}
+                        className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                      >
+                        <Plus className="w-4 h-4 text-white" />
+                        <span>Add FAQ</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Main FAQ Table (Image 3 exact match) */}
+                  <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[850px] text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-black tracking-wider">
+                            <th className="py-3.5 px-4">#</th>
+                            <th className="py-3.5 px-3">Question</th>
+                            <th className="py-3.5 px-3">Category</th>
+                            <th className="py-3.5 px-3">Status</th>
+                            <th className="py-3.5 px-3 text-center">Order</th>
+                            <th className="py-3.5 px-3">Last Updated</th>
+                            <th className="py-3.5 px-4 text-center">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredFaqs.length === 0 ? (
+                            <tr>
+                              <td colSpan={7} className="py-10 text-center text-xs text-slate-400 font-bold">
+                                No FAQ entries match the search filter.
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredFaqs.map((faq, idx) => (
+                              <tr key={faq.id} className="hover:bg-slate-50/80 transition">
+                                <td className="py-3.5 px-4 font-bold text-slate-400">
+                                  {idx + 1}
+                                </td>
+                                <td className="py-3.5 px-3 font-extrabold text-slate-900">
+                                  {faq.question}
+                                </td>
+                                <td className="py-3.5 px-3 font-semibold text-slate-700">
+                                  {faq.category}
+                                </td>
+                                <td className="py-3.5 px-3">
+                                  <span className={`inline-block px-3 py-0.5 rounded-full text-[11px] font-bold ${
+                                    faq.status === 'Published'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : faq.status === 'Draft'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  }`}>
+                                    {faq.status}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-3 text-center font-mono font-bold text-slate-700">
+                                  {faq.order}
+                                </td>
+                                <td className="py-3.5 px-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
+                                  {faq.lastUpdated}
+                                </td>
+                                <td className="py-3.5 px-4 text-center">
+                                  <div className="flex items-center justify-center space-x-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setFaqModal({ isOpen: true, mode: 'view', data: faq })}
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                                      title="View FAQ"
+                                    >
+                                      <Eye className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setFaqModal({ isOpen: true, mode: 'edit', data: faq })}
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-700 hover:bg-rose-50 transition cursor-pointer"
+                                      title="Edit FAQ"
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteFaq(faq.id)}
+                                      className="p-1.5 rounded-lg text-rose-400 hover:text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+                                      title="Delete FAQ"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination Footer (Image 3 exact) */}
+                    <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/40">
+                      <div>
+                        Showing 1 to {filteredFaqs.length} of 48 entries
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-50">
+                          &lt;
+                        </button>
+                        {[1, 2, 3, 4, 5].map(p => (
+                          <button
+                            key={p}
+                            onClick={() => setFaqCurrentPage(p)}
+                            className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
+                              faqCurrentPage === p
+                                ? 'bg-red-600 text-white'
+                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                        <span className="px-1 text-slate-400">...</span>
+                        <button
+                          onClick={() => setFaqCurrentPage(5)}
+                          className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
+                        >
+                          5
+                        </button>
+                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600">
+                          &gt;
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FAQ Modal (Add, Edit, View) */}
+                  {faqModal.isOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                          <h3 className="text-base font-black text-slate-900">
+                            {faqModal.mode === 'add' ? 'Add New FAQ' : faqModal.mode === 'edit' ? 'Edit FAQ' : 'FAQ Details'}
+                          </h3>
+                          <button
+                            onClick={() => setFaqModal({ isOpen: false, mode: 'view', data: null })}
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {faqModal.mode === 'view' ? (
+                          <div className="space-y-4 text-xs">
+                            <div>
+                              <span className="text-slate-400 font-bold block mb-1">Question</span>
+                              <p className="text-sm font-extrabold text-slate-900">{faqModal.data?.question}</p>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 font-bold block mb-1">Answer</span>
+                              <p className="text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">{faqModal.data?.answer || 'No answer content provided.'}</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <span className="text-slate-400 font-medium block">Category</span>
+                                <span className="font-bold text-slate-800">{faqModal.data?.category}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 font-medium block">Order</span>
+                                <span className="font-mono font-bold text-slate-800">#{faqModal.data?.order}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 font-medium block">Status</span>
+                                <span className="font-bold text-emerald-600">{faqModal.data?.status}</span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFaqModal({ isOpen: false, mode: 'view', data: null })}
+                              className="w-full bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"
+                            >
+                              Close
+                            </button>
+                          </div>
+                        ) : (
+                          <form onSubmit={(e) => { e.preventDefault(); handleSaveFaq(faqModal.data); }} className="space-y-3 text-xs">
+                            <div>
+                              <label className="block text-slate-700 font-bold mb-1">Question</label>
+                              <input
+                                type="text"
+                                required
+                                value={faqModal.data?.question || ''}
+                                onChange={(e) => setFaqModal({ ...faqModal, data: { ...faqModal.data, question: e.target.value } })}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-slate-700 font-bold mb-1">Answer</label>
+                              <textarea
+                                rows={4}
+                                required
+                                value={faqModal.data?.answer || ''}
+                                onChange={(e) => setFaqModal({ ...faqModal, data: { ...faqModal.data, answer: e.target.value } })}
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                              <div>
+                                <label className="block text-slate-700 font-bold mb-1">Category</label>
+                                <select
+                                  value={faqModal.data?.category || 'General'}
+                                  onChange={(e) => setFaqModal({ ...faqModal, data: { ...faqModal.data, category: e.target.value } })}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600"
+                                >
+                                  <option value="General">General</option>
+                                  <option value="Merchant">Merchant</option>
+                                  <option value="Rewards">Rewards</option>
+                                  <option value="Integration">Integration</option>
+                                  <option value="Support">Support</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-slate-700 font-bold mb-1">Order</label>
+                                <input
+                                  type="number"
+                                  value={faqModal.data?.order || 1}
+                                  onChange={(e) => setFaqModal({ ...faqModal, data: { ...faqModal.data, order: Number(e.target.value) } })}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-slate-700 font-bold mb-1">Status</label>
+                                <select
+                                  value={faqModal.data?.status || 'Published'}
+                                  onChange={(e) => setFaqModal({ ...faqModal, data: { ...faqModal.data, status: e.target.value } })}
+                                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600"
+                                >
+                                  <option value="Published">Published</option>
+                                  <option value="Draft">Draft</option>
+                                  <option value="Unpublished">Unpublished</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                              <button
+                                type="button"
+                                onClick={() => setFaqModal({ isOpen: false, mode: 'view', data: null })}
+                                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold shadow-md shadow-[#74111d]/20"
+                              >
+                                Save FAQ
+                              </button>
+                            </div>
+                          </form>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* TAB: BILLING & PAYMENTS MENU (Paid vs Unpaid, Revenue, Suspend) */}
+            {activeTab === 'payments_old' && (
               <div className="space-y-6 animate-in fade-in duration-150">
 
 
@@ -3290,7 +5508,7 @@ export default function SuperAdminDashboard() {
                     }`}
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>+ Create Plan</span>
+                    <span>Create Plan</span>
                   </button>
                   <button
                     type="button"
@@ -3504,6 +5722,101 @@ export default function SuperAdminDashboard() {
                               placeholder="2"
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
                             />
+                          </div>
+                        </div>
+
+                        {/* Plan Tags & Badges Section */}
+                        <div className="p-3.5 bg-rose-50/50 rounded-2xl border border-rose-200/70 space-y-2.5">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-1.5">
+                              <Tag className="w-3.5 h-3.5 text-[#74111d]" />
+                              <span className="text-[11px] font-black uppercase text-slate-700 tracking-wide">
+                                Plan Tags & Badges ({(p.tags || []).length})
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-bold">
+                              Visible on plan card & landing page
+                            </span>
+                          </div>
+
+                          {/* Active tags pills */}
+                          <div className="flex flex-wrap gap-1.5 min-h-[28px] items-center">
+                            {(p.tags || []).length === 0 ? (
+                              <span className="text-[11px] text-slate-400 italic">No tags added yet. Choose preset or add custom tags below.</span>
+                            ) : (
+                              (p.tags || []).map((tag, tIdx) => (
+                                <span
+                                  key={tIdx}
+                                  className="inline-flex items-center space-x-1.5 bg-white border border-rose-200 text-[#74111d] px-2.5 py-1 rounded-xl text-xs font-bold shadow-2xs"
+                                >
+                                  <Sparkles className="w-3 h-3 text-[#74111d]" />
+                                  <span>{tag}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveTagFromPlan(p.id, tIdx)}
+                                    className="text-rose-400 hover:text-rose-700 ml-0.5 p-0.5 rounded cursor-pointer"
+                                    title="Remove tag"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </span>
+                              ))
+                            )}
+                          </div>
+
+                          {/* Add custom tag input */}
+                          <div className="flex items-center space-x-2 pt-1">
+                            <input
+                              type="text"
+                              value={newPlanTagInputs[p.id] || ''}
+                              onChange={(e) => setNewPlanTagInputs({ ...newPlanTagInputs, [p.id]: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleAddTagToPlan(p.id);
+                                }
+                              }}
+                              placeholder="Type custom tag (e.g. Save 40%, VIP Choice, Top Rated)..."
+                              className="flex-1 bg-white border border-rose-200/80 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleAddTagToPlan(p.id)}
+                              className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-2xs flex items-center space-x-1"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add Tag</span>
+                            </button>
+                          </div>
+
+                          {/* Quick preset tags */}
+                          <div className="pt-1.5 border-t border-rose-200/60">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                              Add Suggested Tags:
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {[
+                                'Most Popular',
+                                'Best Value',
+                                'Recommended',
+                                'Top Choice',
+                                'Limited Offer',
+                                'Save 40%',
+                                'VIP Partner',
+                                'Instant Setup',
+                                'Lifetime Deal'
+                              ].filter(t => !(p.tags || []).includes(t)).map((preset, pIdx) => (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  onClick={() => handleAddTagToPlan(p.id, preset)}
+                                  className="text-[10px] bg-white hover:bg-rose-50 text-slate-600 hover:text-[#74111d] border border-rose-200/70 hover:border-rose-300 px-2 py-0.5 rounded-lg transition cursor-pointer font-medium flex items-center space-x-1"
+                                >
+                                  <Plus className="w-2.5 h-2.5 text-[#74111d]" />
+                                  <span>{preset}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
 
@@ -3964,6 +6277,101 @@ export default function SuperAdminDashboard() {
                       </div>
                     </div>
 
+                    {/* Plan Tags & Badges Addition System */}
+                    <div className="p-4 bg-rose-50/50 rounded-2xl border border-rose-200/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Tag className="w-4 h-4 text-[#74111d]" />
+                          <span className="text-[11px] font-black uppercase text-slate-800 tracking-wide">
+                            Plan Tags & Badges ({(newPlanForm.tags || []).length})
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-bold">
+                          Add multiple promotional tags to this plan
+                        </span>
+                      </div>
+
+                      {/* Active tags pills */}
+                      <div className="flex flex-wrap gap-2 min-h-[32px] items-center">
+                        {(newPlanForm.tags || []).length === 0 ? (
+                          <span className="text-xs text-slate-400 italic">No custom tags added yet. Choose presets below or type your own.</span>
+                        ) : (
+                          (newPlanForm.tags || []).map((tag, tIdx) => (
+                            <span
+                              key={tIdx}
+                              className="inline-flex items-center space-x-1.5 bg-white border border-rose-200 text-[#74111d] px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs"
+                            >
+                              <Sparkles className="w-3 h-3 text-[#74111d]" />
+                              <span>{tag}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTagFromNewPlan(tIdx)}
+                                className="text-rose-400 hover:text-rose-700 ml-1 p-0.5 rounded cursor-pointer"
+                                title="Remove tag"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </div>
+
+                      {/* Input to add custom tag */}
+                      <div className="flex items-center space-x-2 pt-1">
+                        <input
+                          type="text"
+                          value={newPlanTagInput}
+                          onChange={(e) => setNewPlanTagInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddTagToNewPlan();
+                            }
+                          }}
+                          placeholder="Type custom tag (e.g. Best Value, Save 40%, Limited Offer) and press Enter..."
+                          className="flex-1 bg-white border border-rose-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-red-600 font-medium"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleAddTagToNewPlan()}
+                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs flex items-center space-x-1.5"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Tag</span>
+                        </button>
+                      </div>
+
+                      {/* Quick Preset Tag Suggestions */}
+                      <div className="pt-2 border-t border-rose-200/60">
+                        <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">
+                          Quick Preset Tag Badges:
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[
+                            'Most Popular',
+                            'Best Value',
+                            'Recommended',
+                            'Top Choice',
+                            'Limited Offer',
+                            'Save 40%',
+                            'VIP Partner',
+                            'Instant Setup',
+                            'Lifetime Deal'
+                          ].filter(preset => !(newPlanForm.tags || []).includes(preset)).map((preset, pIdx) => (
+                            <button
+                              key={pIdx}
+                              type="button"
+                              onClick={() => handleAddTagToNewPlan(preset)}
+                              className="text-[11px] bg-white hover:bg-rose-50 text-slate-700 hover:text-[#74111d] border border-rose-200 hover:border-rose-300 px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center space-x-1"
+                            >
+                              <Plus className="w-3 h-3 text-[#74111d]" />
+                              <span>{preset}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Feature Tags List */}
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
                       <div className="flex items-center justify-between">
@@ -4134,6 +6542,16 @@ export default function SuperAdminDashboard() {
                               {newPlanForm.tagText}
                             </span>
                           )}
+                          {(newPlanForm.tags || []).length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {newPlanForm.tags.map((tg, idx) => (
+                                <span key={idx} className="text-[10px] font-bold text-[#74111d] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md flex items-center space-x-1">
+                                  <Sparkles className="w-2.5 h-2.5 text-[#74111d]" />
+                                  <span>{tg}</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         <ul className="space-y-2 text-slate-600 text-xs mb-6">
@@ -4236,58 +6654,2200 @@ export default function SuperAdminDashboard() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB: FEATURE PERMISSIONS (Control merchant dashboard features) */}
+        {/* TAB: MANAGE REFERRALS (Images 1, 2, 3)                     */}
+        {/* ========================================================= */}
+        {activeTab === 'referrals' && (() => {
+          const filteredReferrals = referralsList.filter(r => {
+            if (!referralSearch.trim()) return true;
+            const q = referralSearch.toLowerCase();
+            return (
+              (r.id && r.id.toLowerCase().includes(q)) ||
+              (r.userEmail && r.userEmail.toLowerCase().includes(q)) ||
+              (r.userName && r.userName.toLowerCase().includes(q)) ||
+              (r.userNumber && r.userNumber.toLowerCase().includes(q)) ||
+              (r.referredTo && r.referredTo.toLowerCase().includes(q))
+            );
+          });
+
+          return (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Notification Toast */}
+              {referralToast && (
+                <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>{referralToast}</span>
+                  </div>
+                  <button onClick={() => setReferralToast('')} className="p-1 hover:text-emerald-950">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Wine Red Header Banner (Matching Landing Page Theme) */}
+              <div className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('overview')}
+                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition mb-3 cursor-pointer backdrop-blur-xs"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Dashboard</span>
+                    </button>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                        Manage Referrals
+                      </h2>
+                    </div>
+                    <p className="text-rose-100 text-xs sm:text-sm font-medium mt-1">
+                      Referrals with payment and bank details
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setAddReferralModalOpen(true)}
+                      className="px-4 py-2.5 rounded-xl bg-white text-[#74111d] hover:bg-rose-50 text-xs font-black transition cursor-pointer shadow-md flex items-center space-x-1.5"
+                    >
+                      <Plus className="w-4 h-4 text-[#74111d]" />
+                      <span>Add Referral</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Search Bar & Action Controls */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="relative flex-1 w-full sm:max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={referralSearch}
+                    onChange={(e) => setReferralSearch(e.target.value)}
+                    placeholder="Search by user email, name, phone or referral code..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:border-red-600"
+                  />
+                </div>
+                <div className="flex items-center space-x-3 text-xs text-slate-500 font-bold">
+                  <span>Total Records: <strong className="text-slate-900">{filteredReferrals.length}</strong></span>
+                </div>
+              </div>
+
+              {/* Referrals Detail Table Card */}
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                  <div className="flex items-center space-x-2 font-bold text-sm">
+                    <TableIcon className="w-4 h-4 text-rose-200" />
+                    <span>Referrals Detail</span>
+                  </div>
+                  <span className="text-xs bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full">
+                    {filteredReferrals.length} Entries
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[900px] text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-800 text-white uppercase text-[10px] font-black tracking-wider">
+                        <th className="py-3 px-4">USER ID</th>
+                        <th className="py-3 px-4">USER EMAIL</th>
+                        <th className="py-3 px-4">USER NAME</th>
+                        <th className="py-3 px-4">USER NUMBER</th>
+                        <th className="py-3 px-4">REFERRED TO</th>
+                        <th className="py-3 px-4 text-center">REFERRAL DETAILS</th>
+                        <th className="py-3 px-4 text-right">REFERRAL AMT.</th>
+                        <th className="py-3 px-4 text-center">REFUND</th>
+                        <th className="py-3 px-4 text-center">MW PAYMENT STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredReferrals.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-rose-50/40 transition">
+                          <td className="py-3 px-4 font-mono font-bold text-slate-600">
+                            {item.id}
+                          </td>
+                          <td className="py-3 px-4 font-medium text-slate-900">
+                            {item.userEmail}
+                          </td>
+                          <td className="py-3 px-4 font-semibold text-slate-700">
+                            {item.userName}
+                          </td>
+                          <td className="py-3 px-4 font-mono text-slate-600">
+                            {item.userNumber}
+                          </td>
+                          <td className="py-3 px-4 font-bold text-slate-800">
+                            {item.referredTo}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedReferralDetailModal(item)}
+                              className="px-3.5 py-1 rounded-lg border border-[#74111d]/40 text-[#74111d] hover:bg-rose-50 font-bold text-xs transition cursor-pointer shadow-2xs"
+                            >
+                              View
+                            </button>
+                          </td>
+                          <td className="py-3 px-4 text-right font-black text-slate-900">
+                            ₹{Number(item.referralAmt).toLocaleString('en-IN')}
+                          </td>
+                          <td className="py-3 px-4 text-center text-slate-500 font-medium">
+                            {item.refund || 'None'}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                              item.paymentStatus === 'Paid'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : item.paymentStatus === 'Eligible'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-red-700 text-white'
+                            }`}>
+                              {item.paymentStatus}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* MODAL: REFERRAL DETAILS (Image 2 Exact Layout) */}
+              {selectedReferralDetailModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                  <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
+                    {/* Modal Header */}
+                    <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                      <h3 className="font-bold text-base">Referral Details</h3>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReferralDetailModal(null)}
+                        className="text-white hover:text-rose-100 p-1 cursor-pointer transition"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                      <div className="text-sm font-black text-slate-900">
+                        Referrals by: {selectedReferralDetailModal.userName !== '-' ? selectedReferralDetailModal.userName : selectedReferralDetailModal.userEmail} ({selectedReferralDetailModal.userEmail})
+                      </div>
+
+                      {/* Modal Table */}
+                      <div className="border border-slate-200 rounded-xl overflow-hidden">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                              <th className="py-3 px-3">Referred User</th>
+                              <th className="py-3 px-3">Referral Date</th>
+                              <th className="py-3 px-3 text-center">User Payment Status</th>
+                              <th className="py-3 px-3 text-right">Total Amount</th>
+                              <th className="py-3 px-3 text-right">Paid Amount</th>
+                              <th className="py-3 px-3 text-right">Pending Amount</th>
+                              <th className="py-3 px-3 text-center">Status</th>
+                              <th className="py-3 px-3 text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr className="hover:bg-slate-50">
+                              <td className="py-3 px-3 font-medium whitespace-pre-line text-slate-900">
+                                {selectedReferralDetailModal.details?.referredUser || selectedReferralDetailModal.userEmail}
+                              </td>
+                              <td className="py-3 px-3 text-slate-600 font-mono">
+                                {selectedReferralDetailModal.details?.referralDate || '20-07-2026'}
+                              </td>
+                              <td className="py-3 px-3 text-center">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                  selectedReferralDetailModal.details?.userPaymentStatus === 'Paid'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                    : 'bg-amber-400 text-slate-900'
+                                }`}>
+                                  {selectedReferralDetailModal.details?.userPaymentStatus || 'Not Paid'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-900">
+                                ₹{Number(selectedReferralDetailModal.details?.totalAmount || selectedReferralDetailModal.referralAmt).toLocaleString('en-IN')}
+                              </td>
+                              <td className="py-3 px-3 text-right font-bold text-emerald-600">
+                                ₹{Number(selectedReferralDetailModal.details?.paidAmount || 0).toLocaleString('en-IN')}
+                              </td>
+                              <td className="py-3 px-3 text-right font-black text-rose-600">
+                                ₹{Number(selectedReferralDetailModal.details?.pendingAmount ?? selectedReferralDetailModal.referralAmt).toLocaleString('en-IN')}
+                              </td>
+                              <td className="py-3 px-3 text-center">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  selectedReferralDetailModal.details?.status === 'Completed'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : 'bg-amber-400 text-slate-900'
+                                }`}>
+                                  {selectedReferralDetailModal.details?.status || 'Pending'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setProcessPaymentModal({
+                                      isOpen: true,
+                                      referral: selectedReferralDetailModal,
+                                      amount: selectedReferralDetailModal.details?.pendingAmount ?? selectedReferralDetailModal.referralAmt,
+                                      txnNumber: '',
+                                      method: 'Bank Transfer (NEFT / RTGS)',
+                                      notes: ''
+                                    });
+                                  }}
+                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition cursor-pointer shadow-xs"
+                                >
+                                  Add Payment
+                                </button>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MODAL: PROCESS REFERRAL PAYMENT (Image 3 Exact Layout) */}
+              {processPaymentModal.isOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                  <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
+                    {/* Modal Header */}
+                    <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                      <h3 className="font-bold text-base">Process Referral Payment</h3>
+                      <button
+                        type="button"
+                        onClick={() => setProcessPaymentModal({ ...processPaymentModal, isOpen: false })}
+                        className="text-white hover:text-rose-100 p-1 cursor-pointer transition"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const pAmt = Number(processPaymentModal.amount) || 0;
+                        if (pAmt <= 0) return;
+
+                        const updated = referralsList.map(item => {
+                          if (item.userEmail === processPaymentModal.referral.userEmail) {
+                            const prevPaid = Number(item.details?.paidAmount || 0);
+                            const prevPending = Number(item.details?.pendingAmount ?? item.referralAmt);
+                            const newPaid = prevPaid + pAmt;
+                            const newPending = Math.max(0, prevPending - pAmt);
+                            const isFullyPaid = newPending === 0;
+
+                            return {
+                              ...item,
+                              paymentStatus: isFullyPaid ? 'Paid' : 'Eligible',
+                              details: {
+                                ...item.details,
+                                paidAmount: newPaid,
+                                pendingAmount: newPending,
+                                userPaymentStatus: isFullyPaid ? 'Paid' : item.details.userPaymentStatus,
+                                status: isFullyPaid ? 'Completed' : 'Pending'
+                              }
+                            };
+                          }
+                          return item;
+                        });
+
+                        setReferralsList(updated);
+                        try { localStorage.setItem('loyalqr_admin_referrals', JSON.stringify(updated)); } catch {}
+
+                        if (selectedReferralDetailModal && selectedReferralDetailModal.userEmail === processPaymentModal.referral.userEmail) {
+                          const updatedSelected = updated.find(x => x.userEmail === selectedReferralDetailModal.userEmail);
+                          if (updatedSelected) setSelectedReferralDetailModal(updatedSelected);
+                        }
+
+                        setProcessPaymentModal({ isOpen: false, referral: null, amount: '', txnNumber: '', method: '', notes: '' });
+                        setReferralToast(`Payment of ₹${pAmt.toLocaleString('en-IN')} processed successfully! Txn: ${processPaymentModal.txnNumber || 'N/A'}`);
+                        setTimeout(() => setReferralToast(''), 4000);
+                      }}
+                      className="p-6 space-y-4"
+                    >
+                      {/* Amount */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Amount (₹):
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          value={processPaymentModal.amount}
+                          onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, amount: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
+
+                      {/* Transaction Number */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Transaction Number:
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Enter transaction/reference number"
+                          value={processPaymentModal.txnNumber}
+                          onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, txnNumber: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
+
+                      {/* Payment Method */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Payment Method:
+                        </label>
+                        <select
+                          value={processPaymentModal.method}
+                          onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, method: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                        >
+                          <option value="">Select Method</option>
+                          <option value="Bank Transfer (NEFT / RTGS)">Bank Transfer (NEFT / RTGS)</option>
+                          <option value="UPI (GPay / PhonePe / Paytm)">UPI (GPay / PhonePe / Paytm)</option>
+                          <option value="IMPS Immediate Transfer">IMPS Immediate Transfer</option>
+                          <option value="Cheque / Demand Draft">Cheque / Demand Draft</option>
+                          <option value="Cash / Direct Handover">Cash / Direct Handover</option>
+                        </select>
+                      </div>
+
+                      {/* Notes */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Notes (Optional):
+                        </label>
+                        <textarea
+                          rows={2}
+                          placeholder="Additional notes about payment"
+                          value={processPaymentModal.notes}
+                          onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, notes: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 resize-none"
+                        />
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end space-x-2.5 pt-3">
+                        <button
+                          type="submit"
+                          className="px-5 py-2 rounded-xl bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs font-bold transition cursor-pointer shadow-md"
+                        >
+                          Process Payment
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProcessPaymentModal({ ...processPaymentModal, isOpen: false })}
+                          className="px-4 py-2 rounded-xl bg-slate-500 hover:bg-slate-600 text-white text-xs font-bold transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* MODAL: ADD NEW REFERRAL */}
+              {addReferralModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                  <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
+                    <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                      <h3 className="font-bold text-base">Add New Referral Record</h3>
+                      <button
+                        type="button"
+                        onClick={() => setAddReferralModalOpen(false)}
+                        className="text-white hover:text-rose-100 p-1 cursor-pointer transition"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const newRecord = {
+                          id: String(Math.floor(1000 + Math.random() * 9000)),
+                          userEmail: newReferralInput.userEmail,
+                          userName: newReferralInput.userName || '-',
+                          userNumber: newReferralInput.userNumber || '-',
+                          referredTo: newReferralInput.referredTo || 'MW - 890',
+                          referralAmt: Number(newReferralInput.referralAmt) || 150,
+                          refund: 'None',
+                          paymentStatus: 'Not Eligible',
+                          details: {
+                            referredUser: `${newReferralInput.userName || 'New User'}\n${newReferralInput.userEmail}`,
+                            referralDate: new Date().toISOString().split('T')[0],
+                            userPaymentStatus: 'Not Paid',
+                            totalAmount: Number(newReferralInput.referralAmt) || 150,
+                            paidAmount: 0,
+                            pendingAmount: Number(newReferralInput.referralAmt) || 150,
+                            status: 'Pending'
+                          }
+                        };
+
+                        const updated = [newRecord, ...referralsList];
+                        setReferralsList(updated);
+                        try { localStorage.setItem('loyalqr_admin_referrals', JSON.stringify(updated)); } catch {}
+
+                        setAddReferralModalOpen(false);
+                        setNewReferralInput({ userEmail: '', userName: '', userNumber: '', referredTo: '', referralAmt: 150 });
+                        setReferralToast(`New referral added for ${newRecord.userEmail}!`);
+                        setTimeout(() => setReferralToast(''), 4000);
+                      }}
+                      className="p-6 space-y-3"
+                    >
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">User Email *</label>
+                        <input
+                          type="email"
+                          required
+                          value={newReferralInput.userEmail}
+                          onChange={(e) => setNewReferralInput({ ...newReferralInput, userEmail: e.target.value })}
+                          placeholder="e.g. user@example.com"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">User Name</label>
+                          <input
+                            type="text"
+                            value={newReferralInput.userName}
+                            onChange={(e) => setNewReferralInput({ ...newReferralInput, userName: e.target.value })}
+                            placeholder="e.g. Rahul Sharma"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">User Phone</label>
+                          <input
+                            type="text"
+                            value={newReferralInput.userNumber}
+                            onChange={(e) => setNewReferralInput({ ...newReferralInput, userNumber: e.target.value })}
+                            placeholder="e.g. 9876543210"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Referred To</label>
+                          <input
+                            type="text"
+                            value={newReferralInput.referredTo}
+                            onChange={(e) => setNewReferralInput({ ...newReferralInput, referredTo: e.target.value })}
+                            placeholder="e.g. MW - 890"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Referral Amt (₹)</label>
+                          <input
+                            type="number"
+                            value={newReferralInput.referralAmt}
+                            onChange={(e) => setNewReferralInput({ ...newReferralInput, referralAmt: e.target.value })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-end space-x-2 pt-3">
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-bold transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                        >
+                          Save Referral
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAddReferralModalOpen(false)}
+                          className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ========================================================= */}
+        {/* TAB: MANAGE DEALS & COUPONS (Image 4 Exact Layout)        */}
+        {/* ========================================================= */}
+        {activeTab === 'deals_coupons' && (() => {
+          const filteredDeals = platformDeals.filter(d => {
+            if (!dealSearch.trim()) return true;
+            const q = dealSearch.toLowerCase();
+            return (
+              d.dealName.toLowerCase().includes(q) ||
+              d.couponCode.toLowerCase().includes(q) ||
+              d.planName.toLowerCase().includes(q) ||
+              d.state.toLowerCase().includes(q)
+            );
+          });
+
+          return (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Toast */}
+              {dealToast && (
+                <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>{dealToast}</span>
+                  </div>
+                  <button onClick={() => setDealToast('')} className="p-1 hover:text-emerald-950">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Header Bar Matching Image 4 */}
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setDealCustomerMappingModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold text-xs transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                  >
+                    Deal Customer Mapping
+                  </button>
+                </div>
+                <div className="text-center md:text-right">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    Deal & Coupons
+                  </h2>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    Create promotions, bonuses, and state-targeted coupon packages
+                  </p>
+                </div>
+              </div>
+
+              {/* Form: New Deal (Image 4 Exact Match) */}
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
+                <h3 className="text-lg font-black text-slate-900 mb-6 pb-3 border-b border-slate-100 flex items-center space-x-2">
+                  <Tag className="w-5 h-5 text-red-600" />
+                  <span>New Deal</span>
+                </h3>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!newDealForm.dealName || !newDealForm.couponCode) return;
+
+                    const created = {
+                      id: `deal_${Date.now()}`,
+                      ...newDealForm,
+                      usedCount: 0,
+                      status: 'Active',
+                      createdAt: new Date().toISOString().split('T')[0]
+                    };
+
+                    const updated = [created, ...platformDeals];
+                    setPlatformDeals(updated);
+                    try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
+
+                    setNewDealForm({
+                      planName: 'Standard Plan',
+                      planType: 'Yearly',
+                      state: 'All States (No state restriction)',
+                      dealName: '',
+                      couponCode: '',
+                      bonusAmount: 0,
+                      discountAmount: 0,
+                      discountPercentage: 0,
+                      validityDate: '',
+                      maxUsage: 0
+                    });
+
+                    setDealToast(`Deal "${created.dealName}" (${created.couponCode}) created and published to merchants!`);
+                    setTimeout(() => setDealToast(''), 4000);
+                  }}
+                  className="space-y-5"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Plan Name */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Plan Name *
+                      </label>
+                      <select
+                        required
+                        value={newDealForm.planName}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, planName: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                      >
+                        <option value="Select Plan">Select Plan</option>
+                        <option value="All Plans">All Plans (Universal)</option>
+                        <option value="Trial Plan">Trial Plan</option>
+                        <option value="Standard Plan">Standard Plan</option>
+                        <option value="Professional Plan">Professional Plan</option>
+                        <option value="Legacy Plan">Legacy Plan</option>
+                      </select>
+                    </div>
+
+                    {/* Plan Type */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Plan Type *
+                      </label>
+                      <select
+                        required
+                        value={newDealForm.planType}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, planType: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                      >
+                        <option value="Select Plan Type">Select Plan Type</option>
+                        <option value="Yearly">Yearly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Lifetime">Lifetime</option>
+                        <option value="All Types">All Types</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* State (Optional - for state-wise MiniWebsite deals) */}
+                  <div>
+                    <label className="block text-xs font-black uppercase text-slate-700 mb-1">
+                      State (Optional - for state-wise MiniWebsite deals)
+                    </label>
+                    <select
+                      value={newDealForm.state}
+                      onChange={(e) => setNewDealForm({ ...newDealForm, state: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                    >
+                      <option value="All States (No state restriction)">All States (No state restriction)</option>
+                      <option value="Delhi NCR">Delhi NCR</option>
+                      <option value="Maharashtra">Maharashtra</option>
+                      <option value="Karnataka">Karnataka</option>
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                      <option value="Telangana">Telangana</option>
+                      <option value="Gujarat">Gujarat</option>
+                      <option value="Uttar Pradesh">Uttar Pradesh</option>
+                      <option value="West Bengal">West Bengal</option>
+                      <option value="Rajasthan">Rajasthan</option>
+                      <option value="Punjab">Punjab</option>
+                      <option value="Haryana">Haryana</option>
+                      <option value="Kerala">Kerala</option>
+                      <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    </select>
+                    <p className="text-[11px] text-slate-500 italic mt-1">
+                      If set, this deal auto-applies during Mini Website payment for customers registered in this state.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Deal Name */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Deal Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., New Year Offer"
+                        value={newDealForm.dealName}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, dealName: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+
+                    {/* Coupon Code */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Coupon Code *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="E.G., NEWYEAR2024"
+                        value={newDealForm.couponCode}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, couponCode: e.target.value.toUpperCase() })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-mono font-black text-slate-900 uppercase focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    {/* Bonus Amount (For Referrer) */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Bonus Amount (For Referrer)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={newDealForm.bonusAmount}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, bonusAmount: Number(e.target.value) })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+
+                    {/* Discount Amount (For Referred User) */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Discount Amount (For Referred User)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={newDealForm.discountAmount}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, discountAmount: Number(e.target.value) })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+
+                    {/* Discount Percentage */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Discount Percentage
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={newDealForm.discountPercentage}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, discountPercentage: Number(e.target.value) })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Validity Date */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Validity Date *
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={newDealForm.validityDate}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, validityDate: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+
+                    {/* Maximum Usage */}
+                    <div>
+                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                        Maximum Usage (0 = Unlimited)
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={newDealForm.maxUsage}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, maxUsage: Number(e.target.value) })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="px-6 py-3 rounded-xl bg-[#8B0000] hover:bg-[#720000] text-white font-black text-xs transition cursor-pointer shadow-md flex items-center space-x-2"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save Deal & Coupon</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Created Deals & Coupons List (Show Below In Same Menu as Requested) */}
+              <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">
+                      All Created Deals & Coupons ({filteredDeals.length})
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      These deals automatically appear in the Merchant Dashboard deals section
+                    </p>
+                  </div>
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={dealSearch}
+                      onChange={(e) => setDealSearch(e.target.value)}
+                      placeholder="Filter deals..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[1000px] text-left text-xs border-collapse">
+                      <thead>
+                        <tr className="bg-slate-900 border-b border-slate-800 text-white uppercase text-[10px] font-black tracking-wider">
+                          <th className="py-3 px-3.5">Plan Type</th>
+                          <th className="py-3 px-3">State</th>
+                          <th className="py-3 px-3.5">Deal Name</th>
+                          <th className="py-3 px-3 text-center">Coupon Code</th>
+                          <th className="py-3 px-3">Date Created</th>
+                          <th className="py-3 px-3">Bonus (Referrer)</th>
+                          <th className="py-3 px-3">Discount (User)</th>
+                          <th className="py-3 px-3">Validity Date</th>
+                          <th className="py-3 px-3 text-center">Usage</th>
+                          <th className="py-3 px-3 text-center">Status</th>
+                          <th className="py-3 px-3 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 bg-white">
+                        {filteredDeals.map((deal) => (
+                          <tr key={deal.id} className="hover:bg-slate-50/80 transition">
+                            {/* 1. Plan Type */}
+                            <td className="py-3 px-3.5 font-bold text-slate-800">
+                              {deal.planType || 'Franchise'}
+                            </td>
+
+                            {/* 2. State */}
+                            <td className="py-3 px-3 text-slate-600 font-medium">
+                              {deal.state || 'All'}
+                            </td>
+
+                            {/* 3. Deal Name */}
+                            <td className="py-3 px-3.5 font-black text-slate-900">
+                              {deal.dealName}
+                            </td>
+
+                            {/* 4. Coupon Code */}
+                            <td className="py-3 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard?.writeText(deal.couponCode);
+                                  setDealToast(`Copied coupon code "${deal.couponCode}"!`);
+                                  setTimeout(() => setDealToast(''), 3000);
+                                }}
+                                className="inline-flex items-center space-x-1 font-mono text-[11px] font-black bg-rose-50 text-[#74111d] hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-md transition cursor-pointer"
+                                title="Click to copy coupon code"
+                              >
+                                <span>{deal.couponCode}</span>
+                                <Copy className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+                              </button>
+                            </td>
+
+                            {/* 5. Date Created */}
+                            <td className="py-3 px-3 font-mono text-slate-600 text-[11px]">
+                              {deal.createdAt || '03-07-2026'}
+                            </td>
+
+                            {/* 6. Bonus (Referrer) */}
+                            <td className="py-3 px-3 font-semibold text-slate-700">
+                              {deal.bonusAmount !== undefined && deal.bonusAmount !== '' 
+                                ? (typeof deal.bonusAmount === 'number' ? `₹${deal.bonusAmount}` : deal.bonusAmount) 
+                                : '₹0'}
+                            </td>
+
+                            {/* 7. Discount (User) */}
+                            <td className="py-3 px-3 font-bold text-emerald-700">
+                              {deal.discountAmount > 0 
+                                ? `₹${deal.discountAmount}` 
+                                : deal.discountPercentage > 0 
+                                  ? `${deal.discountPercentage}% OFF` 
+                                  : '-'}
+                            </td>
+
+                            {/* 8. Validity Date */}
+                            <td className="py-3 px-3 font-mono text-slate-600 text-[11px]">
+                              {deal.validityDate || 'Lifetime'}
+                            </td>
+
+                            {/* 9. Usage */}
+                            <td className="py-3 px-3 text-center font-bold text-slate-700 font-mono text-[11px]">
+                              {deal.maxUsage > 0 ? `${deal.usedCount || 0}/${deal.maxUsage}` : `${deal.usedCount || 0}/∞`}
+                            </td>
+
+                            {/* 10. Status */}
+                            <td className="py-3 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = platformDeals.map(d =>
+                                    d.id === deal.id ? { ...d, status: d.status === 'Active' ? 'Inactive' : 'Active' } : d
+                                  );
+                                  setPlatformDeals(updated);
+                                  try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
+                                  setDealToast(`Status changed to ${deal.status === 'Active' ? 'Inactive' : 'Active'}`);
+                                  setTimeout(() => setDealToast(''), 3000);
+                                }}
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black cursor-pointer transition ${
+                                  deal.status === 'Active'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
+                                    : 'bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200'
+                                }`}
+                              >
+                                {deal.status}
+                              </button>
+                            </td>
+
+                            {/* 11. Action (Image 1: Edit & Delete buttons) */}
+                            <td className="py-3 px-3 text-right">
+                              <div className="flex items-center justify-end space-x-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingDealModal({ isOpen: true, deal: { ...deal } })}
+                                  className="w-7 h-7 rounded-lg bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center transition cursor-pointer shadow-xs"
+                                  title="Edit Deal"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    requestConfirm({
+                                      title: 'Delete Deal & Coupon',
+                                      message: `Are you sure you want to delete deal "${deal.dealName}" (${deal.couponCode})?`,
+                                      confirmText: 'Yes, Delete',
+                                      type: 'danger',
+                                      onConfirm: () => {
+                                        const updated = platformDeals.filter(d => d.id !== deal.id);
+                                        setPlatformDeals(updated);
+                                        try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
+                                        setDealToast(`Deal "${deal.dealName}" deleted.`);
+                                        setTimeout(() => setDealToast(''), 3000);
+                                      }
+                                    });
+                                  }}
+                                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-rose-700 text-white flex items-center justify-center transition cursor-pointer shadow-xs"
+                                  title="Delete Deal"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* MODAL: EDIT DEAL (Image 1 Pencil Action) */}
+              {editingDealModal.isOpen && editingDealModal.deal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                  <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto p-6 sm:p-7 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900">Edit Deal & Coupon</h3>
+                        <p className="text-xs text-slate-500">Update promotional settings for {editingDealModal.deal.dealName}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditingDealModal({ isOpen: false, deal: null })}
+                        className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const updated = platformDeals.map(d =>
+                          d.id === editingDealModal.deal.id ? editingDealModal.deal : d
+                        );
+                        setPlatformDeals(updated);
+                        try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
+                        setDealToast(`Deal "${editingDealModal.deal.dealName}" updated successfully!`);
+                        setEditingDealModal({ isOpen: false, deal: null });
+                        setTimeout(() => setDealToast(''), 3000);
+                      }}
+                      className="space-y-3.5 text-xs font-bold"
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-600 mb-1">Plan Type *</label>
+                          <select
+                            value={editingDealModal.deal.planType}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, planType: e.target.value }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                          >
+                            <option value="Franchise">Franchise</option>
+                            <option value="MiniWebsite">MiniWebsite</option>
+                            <option value="Standard Plan">Standard Plan</option>
+                            <option value="Professional Plan">Professional Plan</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-slate-600 mb-1">Target State *</label>
+                          <input
+                            type="text"
+                            value={editingDealModal.deal.state}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, state: e.target.value }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-600 mb-1">Deal Name *</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingDealModal.deal.dealName}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, dealName: e.target.value }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-slate-600 mb-1">Coupon Code *</label>
+                          <input
+                            type="text"
+                            required
+                            value={editingDealModal.deal.couponCode}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, couponCode: e.target.value.toUpperCase() }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-600 mb-1">Bonus (Referrer) ₹</label>
+                          <input
+                            type="text"
+                            value={editingDealModal.deal.bonusAmount}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, bonusAmount: e.target.value }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-slate-600 mb-1">Discount (User) ₹</label>
+                          <input
+                            type="number"
+                            value={editingDealModal.deal.discountAmount}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, discountAmount: Number(e.target.value) }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-slate-600 mb-1">Validity Date</label>
+                          <input
+                            type="text"
+                            value={editingDealModal.deal.validityDate}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, validityDate: e.target.value }
+                            })}
+                            placeholder="DD-MM-YYYY"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-slate-600 mb-1">Max Usage Limit</label>
+                          <input
+                            type="number"
+                            value={editingDealModal.deal.maxUsage}
+                            onChange={(e) => setEditingDealModal({
+                              ...editingDealModal,
+                              deal: { ...editingDealModal.deal, maxUsage: Number(e.target.value) }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 pt-1">
+                        <label className="text-slate-700">Status:</label>
+                        <select
+                          value={editingDealModal.deal.status}
+                          onChange={(e) => setEditingDealModal({
+                            ...editingDealModal,
+                            deal: { ...editingDealModal.deal, status: e.target.value }
+                          })}
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold"
+                        >
+                          <option value="Active">Active</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+
+                      <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => setEditingDealModal({ isOpen: false, deal: null })}
+                          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-red-600/20 cursor-pointer"
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* MODAL: DEAL CUSTOMER MAPPING (Image 4 Button) */}
+              {dealCustomerMappingModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                  <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
+                    <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-base font-black text-slate-900">Deal Customer Mapping</h3>
+                        <p className="text-xs text-slate-500">Live view of customers and merchants mapped to active promotions</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDealCustomerMappingModalOpen(false)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="p-6 space-y-4">
+                      <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                        {platformDeals.map((deal) => (
+                          <div key={deal.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                            <div>
+                              <div className="font-black text-xs text-slate-900">{deal.dealName}</div>
+                              <div className="font-mono text-[10px] text-red-700 font-bold">{deal.couponCode} • {deal.planName}</div>
+                              <div className="text-[10px] text-slate-500 mt-1">State: {deal.state}</div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xs font-black text-emerald-600 block">{deal.usedCount || 0} Redemptions</span>
+                              <span className="text-[10px] font-bold text-slate-400">Limit: {deal.maxUsage > 0 ? deal.maxUsage : 'Unlimited'}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setDealCustomerMappingModalOpen(false)}
+                          className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ========================================================= */}
+        {/* TAB: MANAGE (Feature Permissions & Controls)             */}
         {/* ========================================================= */}
         {activeTab === 'permissions' && (
           <div className="space-y-6 animate-in fade-in duration-150">
-            {/* Save Confirmation Banner */}
-            {permissionNotice && (
+            {/* Top Sub-Navigation Tabs */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPermissionsSubTab('merchant_features')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                    permissionsSubTab === 'merchant_features'
+                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Store className="w-3.5 h-3.5" />
+                  <span>Merchant Features</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    permissionsSubTab === 'merchant_features' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {merchantFeatures.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPermissionsSubTab('customer_features')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                    permissionsSubTab === 'customer_features'
+                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Customer Features</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    permissionsSubTab === 'customer_features' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {customerFeatures.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPermissionsSubTab('team_features')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                    permissionsSubTab === 'team_features'
+                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Team Features</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    permissionsSubTab === 'team_features' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {teamFeatures.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPermissionsSubTab('tier_matrix')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                    permissionsSubTab === 'tier_matrix'
+                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Tier Access Matrix</span>
+                </button>
+              </div>
+
+              <div className="text-[11px] text-slate-400 font-medium">
+                Live Dynamic Sync • Instant Enforcement
+              </div>
+            </div>
+
+            {/* Notification Toast for Features */}
+            {featureNotice && (
               <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>{permissionNotice}</span>
+                  <span>{featureNotice}</span>
                 </div>
                 <span className="text-[10px] uppercase font-mono text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                  Live in Database
+                  Live in Sync
                 </span>
               </div>
             )}
 
-            {/* Header Card with Save & Reset */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center space-x-2 mb-1">
-                  <div className="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-black">
-                    <ShieldCheck className="w-4 h-4" />
+            {/* ========================================================= */}
+            {/* SUB-VIEW 1: MERCHANT DASHBOARD FEATURES CONTROL */}
+            {/* ========================================================= */}
+            {permissionsSubTab === 'merchant_features' && (
+              <div className="space-y-6">
+                {/* Header Card */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-black">
+                        <Sliders className="w-4 h-4" />
+                      </div>
+                      <h2 className="text-lg font-black text-slate-900">
+                        Merchant Dashboard Features Manager
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium max-w-3xl">
+                      Manage every feature, tab, toggle, and widget of the Merchant Dashboard. Toggle show/hide, edit feature details, create custom features, or delete features. All adjustments take effect immediately on merchant counters.
+                    </p>
                   </div>
-                  <h2 className="text-lg font-black text-slate-900">
-                    Merchant Feature Permissions & Dashboard Access Matrix
-                  </h2>
-                </div>
-                <p className="text-xs text-slate-500 font-medium">
-                  Configure which merchant dashboard tools and capabilities are unlocked for businesses based on their Plan Tier and Category. Save directly to MongoDB to apply instantly.
-                </p>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-                <button
-                  type="button"
-                  onClick={() => handleResetPermissionsTier(permissionPlan)}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reset {permissionPlan} Defaults</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSavePermissions}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Save Permissions to MongoDB</span>
-                </button>
+                  <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleBulkToggleFeatures(true)}
+                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer border border-emerald-200"
+                    >
+                      Show All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBulkToggleFeatures(false)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Hide All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddFeatureModalOpen(true)}
+                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Feature</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Metrics Summary Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Total Features</span>
+                      <Sliders className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <div className="text-2xl font-black text-slate-900">{merchantFeatures.length}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Configured system tools</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Visible to Merchants</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div className="text-2xl font-black text-emerald-600">
+                      {merchantFeatures.filter(f => f.isVisible).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Live on merchant app</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Hidden Features</span>
+                      <Ban className="w-4 h-4 text-rose-500" />
+                    </div>
+                    <div className="text-2xl font-black text-rose-600">
+                      {merchantFeatures.filter(f => !f.isVisible).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Locked & hidden</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Custom Admin Tools</span>
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="text-2xl font-black text-amber-600">
+                      {merchantFeatures.filter(f => f.isCustom).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Custom extensions</div>
+                  </div>
+                </div>
+
+                {/* Search & Category Filter Bar */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative flex-1 w-full">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={featureSearchQuery}
+                        onChange={(e) => setFeatureSearchQuery(e.target.value)}
+                        placeholder="Search feature by name, key (e.g. allow_first_coin), or description..."
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+
+                    <div className="flex items-center space-x-2 w-full sm:w-auto">
+                      <select
+                        value={featureCategoryFilter}
+                        onChange={(e) => setFeatureCategoryFilter(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600"
+                      >
+                        <option value="ALL">All Categories</option>
+                        <option value="Home Dashboard">Home Dashboard</option>
+                        <option value="Navigation & Tabs">Navigation & Tabs</option>
+                        <option value="Profile & Settings">Profile & Settings</option>
+                        <option value="Education & Support">Education & Support</option>
+                        <option value="Custom Features">Custom Features</option>
+                      </select>
+
+                      <select
+                        value={featureStatusFilter}
+                        onChange={(e) => setFeatureStatusFilter(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600"
+                      >
+                        <option value="ALL">All Status</option>
+                        <option value="VISIBLE">Visible Only</option>
+                        <option value="HIDDEN">Hidden Only</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Features Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {merchantFeatures
+                    .filter(feat => {
+                      if (featureCategoryFilter !== 'ALL' && feat.category !== featureCategoryFilter) return false;
+                      if (featureStatusFilter === 'VISIBLE' && !feat.isVisible) return false;
+                      if (featureStatusFilter === 'HIDDEN' && feat.isVisible) return false;
+                      if (featureSearchQuery.trim()) {
+                        const q = featureSearchQuery.toLowerCase();
+                        return feat.name.toLowerCase().includes(q) ||
+                          feat.id.toLowerCase().includes(q) ||
+                          (feat.description && feat.description.toLowerCase().includes(q));
+                      }
+                      return true;
+                    })
+                    .map((feat) => (
+                      <div
+                        key={feat.id}
+                        className={`bg-white border rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 transition ${
+                          feat.isVisible
+                            ? 'border-slate-200 hover:border-red-300'
+                            : 'border-slate-200 bg-slate-50/50 opacity-75'
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+                              {feat.category}
+                            </span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 ${
+                              feat.isVisible
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-slate-200 text-slate-600'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${feat.isVisible ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                              <span>{feat.isVisible ? 'SHOW' : 'HIDE'}</span>
+                            </span>
+                          </div>
+
+                          <div>
+                            <h4 className="text-sm font-black text-slate-900 leading-snug">
+                              {feat.name}
+                            </h4>
+                            <span className="text-[10px] font-mono font-bold text-slate-400 block mt-0.5">
+                              ID: {feat.id}
+                            </span>
+                          </div>
+
+                          <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                            {feat.description}
+                          </p>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                          {/* Toggle Switch */}
+                          <div className="flex items-center space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleFeatureVisibility(feat.id)}
+                              className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                                feat.isVisible ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                              }`}
+                              title={feat.isVisible ? 'Click to Hide from Merchant' : 'Click to Show on Merchant'}
+                            >
+                              <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
+                            </button>
+                            <span className="text-[11px] font-bold text-slate-600">
+                              {feat.isVisible ? 'Visible' : 'Hidden'}
+                            </span>
+                          </div>
+
+                          {/* Action Buttons: Edit & Delete */}
+                          <div className="flex items-center space-x-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingFeatureModal({ ...feat })}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+                              title="Update Feature"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFeature(feat.id)}
+                              className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+                              title="Delete Feature"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* SUB-VIEW 2: CUSTOMER PORTAL FEATURES CONTROL              */}
+            {/* ========================================================= */}
+            {permissionsSubTab === 'customer_features' && (
+              <div className="space-y-6">
+                {/* Header Card */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-black">
+                        <Smartphone className="w-4 h-4" />
+                      </div>
+                      <h2 className="text-lg font-black text-slate-900">
+                        Customer Portal Features Manager
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium max-w-3xl">
+                      Manage every feature, gamification module, redemption flow, and account capability of the customer experience. Toggle visibility, edit feature logic, or create custom customer tools. Changes synchronize live to the customer app.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleBulkToggleCustomerFeatures(true)}
+                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer border border-emerald-200"
+                    >
+                      Show All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBulkToggleCustomerFeatures(false)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Hide All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddCustomerFeatureModalOpen(true)}
+                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Feature</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Metrics Summary Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Total Customer Tools</span>
+                      <Smartphone className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <div className="text-2xl font-black text-slate-900">{customerFeatures.length}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Configured app tools</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Visible to Customers</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div className="text-2xl font-black text-emerald-600">
+                      {customerFeatures.filter(f => f.isVisible).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Live on customer app</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Hidden Features</span>
+                      <Ban className="w-4 h-4 text-rose-500" />
+                    </div>
+                    <div className="text-2xl font-black text-rose-600">
+                      {customerFeatures.filter(f => !f.isVisible).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Temporarily locked</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Custom Features</span>
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="text-2xl font-black text-amber-600">
+                      {customerFeatures.filter(f => f.isCustom).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Custom extensions</div>
+                  </div>
+                </div>
+
+                {/* Features Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {customerFeatures.map((feat) => (
+                    <div
+                      key={feat.id}
+                      className={`bg-white border rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 transition ${
+                        feat.isVisible
+                          ? 'border-slate-200 hover:border-red-300'
+                          : 'border-slate-200 bg-slate-50/50 opacity-75'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-slate-400 block mb-1">
+                              {feat.category}
+                            </span>
+                            <h3 className="font-black text-sm text-slate-900 leading-tight">
+                              {feat.name}
+                            </h3>
+                          </div>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 ${
+                            feat.isVisible
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}>
+                            {feat.isVisible ? 'Visible' : 'Hidden'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                          {feat.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCustomerFeature(feat.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                            feat.isVisible
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+                          }`}
+                        >
+                          {feat.isVisible ? <CheckCircle2 className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          <span>{feat.isVisible ? 'Enabled' : 'Disabled'}</span>
+                        </button>
+
+                        <div className="flex items-center space-x-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingCustomerFeatureModal(feat)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                            title="Edit Feature"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          {feat.isCustom && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCustomerFeature(feat.id)}
+                              className="p-1.5 rounded-lg text-rose-400 hover:text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+                              title="Delete Custom Feature"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* SUB-VIEW 3: TEAM PORTAL FEATURES CONTROL                  */}
+            {/* ========================================================= */}
+            {permissionsSubTab === 'team_features' && (
+              <div className="space-y-6">
+                {/* Header Card */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-black">
+                        <UserCheck className="w-4 h-4" />
+                      </div>
+                      <h2 className="text-lg font-black text-slate-900">
+                        Team Dashboard Features Manager
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium max-w-3xl">
+                      Manage every sales module, lead tracking tool, marketing standee download generator, and field verification capability for the Team Hub. Changes update in real-time for all active specialists.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleBulkToggleTeamFeatures(true)}
+                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer border border-emerald-200"
+                    >
+                      Show All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBulkToggleTeamFeatures(false)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Hide All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddTeamFeatureModalOpen(true)}
+                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Feature</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Metrics Summary Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Total Team Tools</span>
+                      <UserCheck className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <div className="text-2xl font-black text-slate-900">{teamFeatures.length}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Configured team tools</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Visible to Agents</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    </div>
+                    <div className="text-2xl font-black text-emerald-600">
+                      {teamFeatures.filter(f => f.isVisible).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Live on team hub</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Hidden Features</span>
+                      <Ban className="w-4 h-4 text-rose-500" />
+                    </div>
+                    <div className="text-2xl font-black text-rose-600">
+                      {teamFeatures.filter(f => !f.isVisible).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Temporarily locked</div>
+                  </div>
+
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                    <div className="flex items-center justify-between text-slate-500 text-xs font-bold mb-1">
+                      <span>Custom Tools</span>
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div className="text-2xl font-black text-amber-600">
+                      {teamFeatures.filter(f => f.isCustom).length}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">Custom extensions</div>
+                  </div>
+                </div>
+
+                {/* Features Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {teamFeatures.map((feat) => (
+                    <div
+                      key={feat.id}
+                      className={`bg-white border rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4 transition ${
+                        feat.isVisible
+                          ? 'border-slate-200 hover:border-red-300'
+                          : 'border-slate-200 bg-slate-50/50 opacity-75'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div>
+                            <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-slate-400 block mb-1">
+                              {feat.category}
+                            </span>
+                            <h3 className="font-black text-sm text-slate-900 leading-tight">
+                              {feat.name}
+                            </h3>
+                          </div>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold shrink-0 ${
+                            feat.isVisible
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}>
+                            {feat.isVisible ? 'Visible' : 'Hidden'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed font-normal">
+                          {feat.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTeamFeature(feat.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                            feat.isVisible
+                              ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+                          }`}
+                        >
+                          {feat.isVisible ? <CheckCircle2 className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          <span>{feat.isVisible ? 'Enabled' : 'Disabled'}</span>
+                        </button>
+
+                        <div className="flex items-center space-x-1">
+                          <button
+                            type="button"
+                            onClick={() => setEditingTeamFeatureModal(feat)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                            title="Edit Feature"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          {feat.isCustom && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTeamFeature(feat.id)}
+                              className="p-1.5 rounded-lg text-rose-400 hover:text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+                              title="Delete Custom Feature"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Customer Feature Edit Modal */}
+            {editingCustomerFeatureModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 className="text-base font-black text-slate-900">Edit Customer Feature</h3>
+                    <button
+                      onClick={() => setEditingCustomerFeatureModal(null)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSaveEditedCustomerFeature} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Feature Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingCustomerFeatureModal.name}
+                        onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, name: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Category</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingCustomerFeatureModal.category}
+                        onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Description</label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={editingCustomerFeatureModal.description}
+                        onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, description: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCustomerFeatureModal(null)}
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Customer Feature Add Modal */}
+            {addCustomerFeatureModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 className="text-base font-black text-slate-900">Add Customer Feature</h3>
+                    <button
+                      onClick={() => setAddCustomerFeatureModalOpen(false)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleCreateNewCustomerFeature} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Feature Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Daily Bonus Coins"
+                        value={newCustomerFeatureForm.name}
+                        onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, name: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Category</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Loyalty Rewards"
+                        value={newCustomerFeatureForm.category}
+                        onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Description</label>
+                      <textarea
+                        rows={3}
+                        required
+                        placeholder="Explain feature functionality..."
+                        value={newCustomerFeatureForm.description}
+                        onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, description: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setAddCustomerFeatureModalOpen(false)}
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                      >
+                        Create Feature
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Team Feature Edit Modal */}
+            {editingTeamFeatureModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 className="text-base font-black text-slate-900">Edit Team Feature</h3>
+                    <button
+                      onClick={() => setEditingTeamFeatureModal(null)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSaveEditedTeamFeature} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Feature Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingTeamFeatureModal.name}
+                        onChange={(e) => setEditingTeamFeatureModal({ ...editingTeamFeatureModal, name: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Category</label>
+                      <input
+                        type="text"
+                        required
+                        value={editingTeamFeatureModal.category}
+                        onChange={(e) => setEditingTeamFeatureModal({ ...editingTeamFeatureModal, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Description</label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={editingTeamFeatureModal.description}
+                        onChange={(e) => setEditingTeamFeatureModal({ ...editingTeamFeatureModal, description: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setEditingTeamFeatureModal(null)}
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Team Feature Add Modal */}
+            {addTeamFeatureModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+                <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 className="text-base font-black text-slate-900">Add Team Feature</h3>
+                    <button
+                      onClick={() => setAddTeamFeatureModalOpen(false)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleCreateNewTeamFeature} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Feature Name</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Field GPS Verification"
+                        value={newTeamFeatureForm.name}
+                        onChange={(e) => setNewTeamFeatureForm({ ...newTeamFeatureForm, name: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Category</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Operations"
+                        value={newTeamFeatureForm.category}
+                        onChange={(e) => setNewTeamFeatureForm({ ...newTeamFeatureForm, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 font-bold mb-1">Description</label>
+                      <textarea
+                        rows={3}
+                        required
+                        placeholder="Explain feature functionality..."
+                        value={newTeamFeatureForm.description}
+                        onChange={(e) => setNewTeamFeatureForm({ ...newTeamFeatureForm, description: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                      />
+                    </div>
+                    <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => setAddTeamFeatureModalOpen(false)}
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                      >
+                        Create Feature
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* SUB-VIEW 4: PLAN TIER PERMISSIONS MATRIX */}
+            {/* ========================================================= */}
+            {permissionsSubTab === 'tier_matrix' && (
+              <div className="space-y-6">
+                {/* Save Confirmation Banner */}
+                {permissionNotice && (
+                  <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between shadow-xs animate-in fade-in">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{permissionNotice}</span>
+                    </div>
+                    <span className="text-[10px] uppercase font-mono text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                      Live in Database
+                    </span>
+                  </div>
+                )}
+
+                {/* Header Card with Save & Reset */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-black">
+                        <ShieldCheck className="w-4 h-4" />
+                      </div>
+                      <h2 className="text-lg font-black text-slate-900">
+                        Merchant Feature Permissions & Dashboard Access Matrix
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Configure which merchant dashboard tools and capabilities are unlocked for businesses based on their Plan Tier and Category. Save directly to MongoDB to apply instantly.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleResetPermissionsTier(permissionPlan)}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3.5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Reset {permissionPlan} Defaults</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSavePermissions}
+                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save Permissions to MongoDB</span>
+                    </button>
+                  </div>
+                </div>
 
             {/* Filter & Tier Selector Controls */}
             <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4">
@@ -4486,6 +9046,249 @@ export default function SuperAdminDashboard() {
               </button>
             </div>
           </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* MODAL: EDIT MERCHANT FEATURE */}
+          {/* ========================================================= */}
+          {editingFeatureModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+                <button 
+                  type="button"
+                  onClick={() => setEditingFeatureModal(null)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 text-[#74111d] flex items-center justify-center font-black">
+                    <Edit3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Update Feature Details</h3>
+                    <p className="text-xs text-slate-500 font-mono">ID: {editingFeatureModal.id}</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSaveEditedFeature} className="space-y-4 text-xs font-bold pt-2">
+                  <div>
+                    <label className="block uppercase text-slate-600 mb-1">Feature Display Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingFeatureModal.name}
+                      onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, name: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Category</label>
+                      <select
+                        value={editingFeatureModal.category}
+                        onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
+                      >
+                        <option value="Home Dashboard">Home Dashboard</option>
+                        <option value="Navigation & Tabs">Navigation & Tabs</option>
+                        <option value="Profile & Settings">Profile & Settings</option>
+                        <option value="Education & Support">Education & Support</option>
+                        <option value="Custom Features">Custom Features</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Min Required Plan</label>
+                      <select
+                        value={editingFeatureModal.minPlan}
+                        onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, minPlan: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
+                      >
+                        <option value="All Plans">All Plans (Universal)</option>
+                        <option value="Standard">Standard Tier</option>
+                        <option value="Pro">Pro / Professional Tier</option>
+                        <option value="Legacy">Legacy Lifetime</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block uppercase text-slate-600 mb-1">Feature Description</label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={editingFeatureModal.description}
+                      onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, description: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 resize-none font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div>
+                      <span className="text-xs font-black text-slate-900 block">Feature Visibility</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Show or hide this item on merchant app</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingFeatureModal({ ...editingFeatureModal, isVisible: !editingFeatureModal.isVisible })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                        editingFeatureModal.isVisible ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingFeatureModal(null)}
+                      className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-black transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    >
+                      Save Feature Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* MODAL: ADD CUSTOM MERCHANT FEATURE */}
+          {/* ========================================================= */}
+          {addFeatureModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+                <button 
+                  type="button"
+                  onClick={() => setAddFeatureModalOpen(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-100 text-[#74111d] flex items-center justify-center font-black">
+                    <Plus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Add New Merchant Feature</h3>
+                    <p className="text-xs text-slate-500">Define a new capability toggle for the Merchant Dashboard</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCreateNewFeature} className="space-y-4 text-xs font-bold pt-2">
+                  <div>
+                    <label className="block uppercase text-slate-600 mb-1">Feature Key / ID</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. flash_sale_banner (auto-generated if empty)"
+                      value={newFeatureForm.id}
+                      onChange={(e) => setNewFeatureForm({ ...newFeatureForm, id: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block uppercase text-slate-600 mb-1">Feature Name <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Flash Sales Counter Banner"
+                      value={newFeatureForm.name}
+                      onChange={(e) => setNewFeatureForm({ ...newFeatureForm, name: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Category</label>
+                      <select
+                        value={newFeatureForm.category}
+                        onChange={(e) => setNewFeatureForm({ ...newFeatureForm, category: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
+                      >
+                        <option value="Home Dashboard">Home Dashboard</option>
+                        <option value="Navigation & Tabs">Navigation & Tabs</option>
+                        <option value="Profile & Settings">Profile & Settings</option>
+                        <option value="Education & Support">Education & Support</option>
+                        <option value="Custom Features">Custom Features</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Min Required Plan</label>
+                      <select
+                        value={newFeatureForm.minPlan}
+                        onChange={(e) => setNewFeatureForm({ ...newFeatureForm, minPlan: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
+                      >
+                        <option value="All Plans">All Plans (Universal)</option>
+                        <option value="Standard">Standard Tier</option>
+                        <option value="Pro">Pro / Professional Tier</option>
+                        <option value="Legacy">Legacy Lifetime</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block uppercase text-slate-600 mb-1">Description <span className="text-red-500">*</span></label>
+                    <textarea
+                      rows={3}
+                      required
+                      placeholder="Describe what this feature controls on the merchant dashboard..."
+                      value={newFeatureForm.description}
+                      onChange={(e) => setNewFeatureForm({ ...newFeatureForm, description: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 resize-none font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    <div>
+                      <span className="text-xs font-black text-slate-900 block">Default Visibility</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Show immediately on Merchant Dashboard</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setNewFeatureForm({ ...newFeatureForm, isVisible: !newFeatureForm.isVisible })}
+                      className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                        newFeatureForm.isVisible ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                      }`}
+                    >
+                      <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setAddFeatureModalOpen(false)}
+                      className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-black transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    >
+                      Create Feature
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
         )}
 
             {/* ========================================================= */}
@@ -4742,29 +9545,84 @@ export default function SuperAdminDashboard() {
                             <td className="py-3.5 px-4 text-slate-500">{m.district}</td>
                             <td className="py-3.5 px-4 text-slate-500">{m.state}</td>
                             
+                            {/* Status: Active / Deactivated */}
                             <td className="py-3.5 px-4 text-center">
-                              <button
-                                onClick={() => handleToggleTeamStatus(m.userId)}
-                                className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md transition cursor-pointer ${
+                              <span
+                                className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full inline-block ${
                                   m.status === 'ACTIVE' 
-                                    ? 'bg-emerald-600 text-white' 
-                                    : 'bg-slate-200 text-slate-600'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                    : 'bg-rose-100 text-rose-800 border border-rose-300'
                                 }`}
                               >
-                                {m.status}
-                              </button>
+                                {m.status === 'ACTIVE' ? 'ACTIVE' : 'DEACTIVATED'}
+                              </span>
                             </td>
 
                             <td className="py-3.5 px-4 text-slate-500 text-[11px]">{m.lastLogin}</td>
                             
+                            {/* Action: Edit, Reset Password, Activate/Deactivate, Delete */}
                             <td className="py-3.5 px-4 text-right">
-                              <button
-                                onClick={() => handleDeleteTeamMember(m.userId)}
-                                className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer"
-                                title="Remove Member"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center justify-end space-x-1.5">
+                                {/* 1. Edit Team Member */}
+                                <button
+                                  type="button"
+                                  onClick={() => setEditTeamMemberModal({
+                                    isOpen: true,
+                                    member: m,
+                                    form: {
+                                      name: m.name || '',
+                                      email: m.email || '',
+                                      mobile: m.mobile || '',
+                                      district: m.district || '',
+                                      state: m.state || '',
+                                      role: m.role || 'FIELD_AGENT',
+                                      mwId: m.mwId || ''
+                                    }
+                                  })}
+                                  className="p-1.5 rounded-lg text-slate-600 hover:text-[#74111d] hover:bg-rose-50 transition cursor-pointer"
+                                  title="Edit Team Member Details"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* 2. Reset Password */}
+                                <button
+                                  type="button"
+                                  onClick={() => setResetPasswordModal({
+                                    isOpen: true,
+                                    member: m,
+                                    newPassword: `BX@${Math.floor(100000 + Math.random() * 900000)}`
+                                  })}
+                                  className="p-1.5 rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50 transition cursor-pointer"
+                                  title="Reset Member Password"
+                                >
+                                  <Key className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* 3. Activate / Deactivate Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleTeamStatus(m.userId)}
+                                  className={`p-1.5 rounded-lg transition cursor-pointer ${
+                                    m.status === 'ACTIVE'
+                                      ? 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50'
+                                      : 'text-rose-600 hover:text-rose-800 hover:bg-rose-50'
+                                  }`}
+                                  title={m.status === 'ACTIVE' ? 'Deactivate Member' : 'Activate Member'}
+                                >
+                                  {m.status === 'ACTIVE' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Ban className="w-3.5 h-3.5" />}
+                                </button>
+
+                                {/* 4. Delete Member */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteTeamMember(m.userId)}
+                                  className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                  title="Remove Member"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -4772,6 +9630,185 @@ export default function SuperAdminDashboard() {
                     </table>
                   </div>
                 </div>
+
+                {/* MODAL 1: EDIT TEAM MEMBER */}
+                {editTeamMemberModal.isOpen && editTeamMemberModal.member && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto p-6 sm:p-7 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div>
+                          <h3 className="text-base font-black text-slate-900">Edit Team Member</h3>
+                          <p className="text-xs text-slate-500">Update account credentials and territory for ID #{editTeamMemberModal.member.userId}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditTeamMemberModal({ isOpen: false, member: null, form: { name: '', email: '', mobile: '', district: '', state: '', role: '', mwId: '' } })}
+                          className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveEditTeamMember} className="space-y-3.5 text-xs font-bold">
+                        <div>
+                          <label className="block text-slate-700 mb-1">Member Name *</label>
+                          <input
+                            type="text"
+                            required
+                            value={editTeamMemberModal.form.name}
+                            onChange={(e) => setEditTeamMemberModal({
+                              ...editTeamMemberModal,
+                              form: { ...editTeamMemberModal.form, name: e.target.value }
+                            })}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 mb-1">Email ID *</label>
+                            <input
+                              type="email"
+                              required
+                              value={editTeamMemberModal.form.email}
+                              onChange={(e) => setEditTeamMemberModal({
+                                ...editTeamMemberModal,
+                                form: { ...editTeamMemberModal.form, email: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 mb-1">Mobile Number</label>
+                            <input
+                              type="tel"
+                              value={editTeamMemberModal.form.mobile}
+                              onChange={(e) => setEditTeamMemberModal({
+                                ...editTeamMemberModal,
+                                form: { ...editTeamMemberModal.form, mobile: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 mb-1">District</label>
+                            <input
+                              type="text"
+                              value={editTeamMemberModal.form.district}
+                              onChange={(e) => setEditTeamMemberModal({
+                                ...editTeamMemberModal,
+                                form: { ...editTeamMemberModal.form, district: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 mb-1">State</label>
+                            <input
+                              type="text"
+                              value={editTeamMemberModal.form.state}
+                              onChange={(e) => setEditTeamMemberModal({
+                                ...editTeamMemberModal,
+                                form: { ...editTeamMemberModal.form, state: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setEditTeamMemberModal({ isOpen: false, member: null, form: { name: '', email: '', mobile: '', district: '', state: '', role: '', mwId: '' } })}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-red-600/20 cursor-pointer"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* MODAL 2: RESET PASSWORD */}
+                {resetPasswordModal.isOpen && resetPasswordModal.member && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto p-6 sm:p-7 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                            <Key className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-slate-900">Reset Member Password</h3>
+                            <p className="text-xs text-slate-500">For {resetPasswordModal.member.name} ({resetPasswordModal.member.email})</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setResetPasswordModal({ isOpen: false, member: null, newPassword: '' })}
+                          className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleResetTeamPassword} className="space-y-4 text-xs font-bold">
+                        <div>
+                          <label className="block text-slate-700 mb-1">New Password *</label>
+                          <div className="flex space-x-2">
+                            <input
+                              type="text"
+                              required
+                              value={resetPasswordModal.newPassword}
+                              onChange={(e) => setResetPasswordModal({ ...resetPasswordModal, newPassword: e.target.value })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-amber-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setResetPasswordModal({
+                                ...resetPasswordModal,
+                                newPassword: `BX@${Math.floor(100000 + Math.random() * 900000)}`
+                              })}
+                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-xs font-bold shrink-0 cursor-pointer"
+                              title="Generate random password"
+                            >
+                              Generate
+                            </button>
+                          </div>
+                          <p className="text-[11px] text-slate-400 font-normal mt-1.5">
+                            Saving will update their login credential immediately and copy the new password to your clipboard.
+                          </p>
+                        </div>
+
+                        <div className="flex justify-end space-x-2 pt-3 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setResetPasswordModal({ isOpen: false, member: null, newPassword: '' })}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-amber-600/20 cursor-pointer"
+                          >
+                            Reset & Copy Password
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
 
               </div>
             )}
@@ -4837,7 +9874,7 @@ export default function SuperAdminDashboard() {
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
                   <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                     <div>
-                      <h2 className="text-lg font-black text-slate-900">Customer CRM & Real-Time Monitoring</h2>
+                      <h2 className="text-lg font-black text-slate-900">Customer & Real-Time Monitoring</h2>
                       <p className="text-xs text-slate-500">Monitor live customer signups, last login activity, wallet vouchers, and suspend unauthorized accounts</p>
                     </div>
 
@@ -5018,7 +10055,7 @@ export default function SuperAdminDashboard() {
                     className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl px-4 py-2 text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer shadow-2xs"
                   >
                     <Plus className="w-4 h-4 text-red-600" />
-                    <span>+ Add Custom API Key</span>
+                    <span>Add Custom API Key</span>
                   </button>
                 </div>
 
@@ -5254,7 +10291,7 @@ export default function SuperAdminDashboard() {
                   <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50/60 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 font-black text-slate-900 text-sm">
-                        <Mail className="w-4 h-4 text-purple-600" />
+                        <Mail className="w-4 h-4 text-[#74111d]" />
                         <span>Email & SMTP Notifications (Gmail / SendGrid / Custom SMTP)</span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -5358,7 +10395,7 @@ export default function SuperAdminDashboard() {
                     {/* Quick Test Email Tool */}
                     <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
                       <span className="text-[11px] font-bold text-slate-700 uppercase flex items-center space-x-1">
-                        <Zap className="w-3.5 h-3.5 text-purple-600" />
+                        <Zap className="w-3.5 h-3.5 text-[#74111d]" />
                         <span>Instant SMTP Mail Server Delivery Test</span>
                       </span>
                       <div className="flex gap-2">
@@ -5373,7 +10410,7 @@ export default function SuperAdminDashboard() {
                           type="button"
                           disabled={testEmailLoading || !testEmailAddr}
                           onClick={handleTestEmail}
-                          className="bg-purple-700 hover:bg-purple-800 text-white text-xs font-black px-4 py-1.5 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
+                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black px-4 py-1.5 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           {testEmailLoading ? 'Testing...' : 'Send Test Email'}
                         </button>
@@ -5571,13 +10608,33 @@ export default function SuperAdminDashboard() {
               <div className="space-y-6">
                 
                 {/* Header Section */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-7 shadow-xs">
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Settings Modules
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                    Manage all platform settings and configurations from here.
-                  </p>
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                      Settings Modules
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                      Manage all platform settings, legal disclosures, terms of service, and frequently asked questions.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('policy_editor'); setPolicySubTab('privacy'); }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition flex items-center space-x-2 cursor-pointer shadow-xs"
+                    >
+                      <FileText className="w-4 h-4 text-rose-600" />
+                      <span>Policy Editor</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('faq_editor')}
+                      className="px-4 py-2.5 rounded-xl bg-rose-50 text-[#74111d] hover:bg-rose-100 border border-rose-200 text-xs font-bold transition flex items-center space-x-2 cursor-pointer shadow-xs"
+                    >
+                      <HelpCircle className="w-4 h-4 text-[#74111d]" />
+                      <span>FAQ Editor</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Settings Toast */}
@@ -5600,8 +10657,8 @@ export default function SuperAdminDashboard() {
                   <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                     <div>
                       <div className="flex items-start space-x-4 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
-                          <Store className="w-6 h-6 text-purple-600" />
+                        <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+                          <Store className="w-6 h-6 text-[#74111d]" />
                         </div>
                         <div>
                           <h3 className="font-black text-base text-slate-900">Platform</h3>
@@ -5711,8 +10768,8 @@ export default function SuperAdminDashboard() {
                   <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs hover:shadow-md transition flex flex-col justify-between">
                     <div>
                       <div className="flex items-start space-x-4 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                          <HelpCircle className="w-6 h-6 text-blue-600" />
+                        <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
+                          <HelpCircle className="w-6 h-6 text-[#74111d]" />
                         </div>
                         <div>
                           <h3 className="font-black text-base text-slate-900">FAQ</h3>
@@ -5735,7 +10792,7 @@ export default function SuperAdminDashboard() {
                     </div>
 
                     <button
-                      onClick={() => setSettingsActiveModal('faq')}
+                      onClick={() => setActiveTab('faq_editor')}
                       className="mt-6 w-full py-2.5 px-4 rounded-xl border border-red-500 text-red-600 hover:bg-red-50 font-bold text-xs transition cursor-pointer text-center"
                     >
                       Manage
@@ -5770,7 +10827,7 @@ export default function SuperAdminDashboard() {
                     </div>
 
                     <button
-                      onClick={() => setSettingsActiveModal('privacy')}
+                      onClick={() => { setActiveTab('policy_editor'); setPolicySubTab('privacy'); }}
                       className="mt-6 w-full py-2.5 px-4 rounded-xl border border-red-500 text-red-600 hover:bg-red-50 font-bold text-xs transition cursor-pointer text-center"
                     >
                       Manage
@@ -5805,10 +10862,53 @@ export default function SuperAdminDashboard() {
                     </div>
 
                     <button
-                      onClick={() => setSettingsActiveModal('terms')}
+                      onClick={() => { setActiveTab('policy_editor'); setPolicySubTab('terms'); }}
                       className="mt-6 w-full py-2.5 px-4 rounded-xl border border-red-500 text-red-600 hover:bg-red-50 font-bold text-xs transition cursor-pointer text-center"
                     >
                       Manage
+                    </button>
+                  </div>
+
+                  {/* 7. Brand & Landing Page Live Preview Module */}
+                  <div className="bg-white border-2 border-rose-200/90 rounded-2xl p-6 shadow-xs hover:shadow-md transition flex flex-col justify-between relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-[#74111d] to-[#8B0000] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs flex items-center space-x-1">
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                      <span>Live Comparison</span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-start space-x-4 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0 border border-rose-200">
+                          <Eye className="w-6 h-6 text-[#74111d]" />
+                        </div>
+                        <div className="pr-12">
+                          <h3 className="font-black text-base text-slate-900">Landing Page & Brand Preview</h3>
+                          <p className="text-xs text-slate-500 font-normal leading-relaxed mt-1">
+                            Preview first how your landing page looked originally vs how it looks now, and change live brand colors & identity.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-400 font-medium">Original (Before)</span>
+                          <span className="font-semibold text-slate-600 text-[11px] bg-slate-100 px-2 py-0.5 rounded">Default Indigo (#2563EB)</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-400 font-medium">Brand (Now)</span>
+                          <span className="bg-rose-50 text-[#74111d] font-bold px-2 py-0.5 rounded text-[11px] border border-rose-200">
+                            {brandSettings.brandName} Wine Red ({brandSettings.primaryColor})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setSettingsActiveModal('brand_landing_preview')}
+                      className="mt-6 w-full py-2.5 px-4 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-black text-xs transition cursor-pointer text-center flex items-center justify-center space-x-2 shadow-xs"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Preview & Change Brand</span>
                     </button>
                   </div>
 
@@ -5833,7 +10933,7 @@ export default function SuperAdminDashboard() {
                   </button>
 
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-black">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center font-black">
                       <Store className="w-6 h-6" />
                     </div>
                     <div>
@@ -6205,7 +11305,7 @@ export default function SuperAdminDashboard() {
                 <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 relative my-auto max-h-[90vh] flex flex-col">
                   <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-black">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center font-black">
                         <HelpCircle className="w-6 h-6" />
                       </div>
                       <div>
@@ -6456,6 +11556,495 @@ export default function SuperAdminDashboard() {
                       </button>
                     </div>
                   </form>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* Modal 7: Brand & Landing Page Live Preview & Customizer   */}
+            {/* ========================================================= */}
+            {settingsActiveModal === 'brand_landing_preview' && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-5xl w-full shadow-2xl border border-slate-200 relative my-auto max-h-[94vh] flex flex-col overflow-hidden">
+                  
+                  {/* Modal Header */}
+                  <div className="flex items-start justify-between pb-4 border-b border-slate-100 shrink-0">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] border border-rose-200 flex items-center justify-center font-black shrink-0">
+                        <Sparkles className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-black text-lg sm:text-xl text-slate-900">Brand & Landing Page Live Preview</h3>
+                          <span className="text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#74111d] px-2.5 py-0.5 rounded-full border border-rose-200">
+                            Before vs Now
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                          See how your landing page looked originally vs how it looks now, and change live brand styling in real-time.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href="/#pricing"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+                      >
+                        <span>Open Live Landing Page</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        onClick={() => setSettingsActiveModal(null)}
+                        className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 cursor-pointer transition"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Modal Scrollable Body */}
+                  <div className="overflow-y-auto py-4 space-y-5 pr-1 flex-1">
+                    
+                    {/* View Switcher Tabs */}
+                    <div className="flex items-center justify-between flex-wrap gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200/80">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">Comparison View:</span>
+                        <button
+                          type="button"
+                          onClick={() => setBrandPreviewMode('split')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                            brandPreviewMode === 'split'
+                              ? 'bg-[#74111d] text-white shadow-xs'
+                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                          }`}
+                        >
+                          <Layers className="w-3.5 h-3.5" />
+                          <span>Split (Before & Now)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBrandPreviewMode('before')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                            brandPreviewMode === 'before'
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                          }`}
+                        >
+                          <span>🕰️ Original Look (First)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBrandPreviewMode('now')}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
+                            brandPreviewMode === 'now'
+                              ? 'bg-[#74111d] text-white shadow-xs'
+                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                          }`}
+                        >
+                          <span>🍷 How It Looks Now (Live)</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 px-2">
+                        <span>Current Brand Palette:</span>
+                        <div className="flex items-center space-x-1">
+                          <span className="w-3.5 h-3.5 rounded-full shadow-2xs border border-white" style={{ backgroundColor: brandSettings.primaryColor }} title="Primary" />
+                          <span className="w-3.5 h-3.5 rounded-full shadow-2xs border border-white" style={{ backgroundColor: brandSettings.secondaryColor }} title="Secondary" />
+                          <span className="w-3.5 h-3.5 rounded-full shadow-2xs border border-white" style={{ backgroundColor: brandSettings.accentColor }} title="Accent" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Previews Grid: Before vs Now */}
+                    <div className={`grid gap-4 ${brandPreviewMode === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+                      
+                      {/* PREVIEW CARD 1: How they looked first (Original / Legacy) */}
+                      {(brandPreviewMode === 'split' || brandPreviewMode === 'before') && (
+                        <div className="bg-slate-900/5 rounded-2xl border-2 border-dashed border-slate-300 p-4 relative flex flex-col justify-between">
+                          <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+                            <div className="flex items-center space-x-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                              <span className="text-xs font-black uppercase text-slate-800 tracking-wider">
+                                First Look: Original Default Template
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full">
+                              Legacy Indigo (#2563EB)
+                            </span>
+                          </div>
+
+                          {/* Mockup Frame (Original) */}
+                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden text-slate-800">
+                            {/* Browser bar */}
+                            <div className="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex items-center space-x-2 text-[10px] text-slate-400">
+                              <div className="flex space-x-1">
+                                <span className="w-2 h-2 rounded-full bg-red-400" />
+                                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                              </div>
+                              <span className="bg-white px-2.5 py-0.5 rounded text-slate-500 font-mono text-[9px] flex-1 text-center">
+                                https://beaurex.in (Default Legacy Layout)
+                              </span>
+                            </div>
+
+                            {/* Mini Hero Mockup */}
+                            <div className="p-4 bg-gradient-to-b from-blue-50/50 to-white text-center space-y-2.5">
+                              {/* Header mock */}
+                              <div className="flex items-center justify-between text-[11px] pb-2 border-b border-slate-100 text-slate-600">
+                                <div className="flex items-center space-x-1.5 font-bold text-blue-700">
+                                  <Store className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>LoyalQR Generic</span>
+                                </div>
+                                <div className="flex items-center space-x-3 text-[10px] text-slate-500">
+                                  <span>Features</span>
+                                  <span>Pricing</span>
+                                  <span className="text-blue-600 font-bold">Login</span>
+                                </div>
+                              </div>
+
+                              <span className="inline-block bg-blue-100 text-blue-800 text-[9px] font-bold px-2 py-0.5 rounded-full">
+                                Standard Standee Engine
+                              </span>
+
+                              <h4 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                                Customer Retention System & Standee Tool
+                              </h4>
+                              
+                              <p className="text-[11px] text-slate-500 max-w-sm mx-auto leading-relaxed">
+                                Standard unbranded blue layout before custom wine-red branding and VIP badge configuration.
+                              </p>
+
+                              <div className="flex items-center justify-center space-x-2 pt-1">
+                                <button type="button" className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-xs pointer-events-none">
+                                  Get Started (Blue)
+                                </button>
+                                <button type="button" className="bg-slate-100 text-slate-700 text-[10px] font-medium px-3 py-1.5 rounded-lg pointer-events-none">
+                                  View Standees
+                                </button>
+                              </div>
+
+                              {/* Mini Pricing card in legacy style */}
+                              <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-left">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-bold text-slate-800">Standard Plan</span>
+                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">₹24,000/yr</span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Basic counter standalone QR generator</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] text-slate-500 mt-3 text-center italic">
+                            Before: Generic default layout with standard blue buttons and unbranded header.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* PREVIEW CARD 2: How I now look like (Live Branded Burgundy Theme) */}
+                      {(brandPreviewMode === 'split' || brandPreviewMode === 'now') && (
+                        <div
+                          className="rounded-2xl border-2 p-4 relative flex flex-col justify-between shadow-sm transition-all"
+                          style={{
+                            borderColor: brandSettings.primaryColor,
+                            backgroundColor: '#fffcfc'
+                          }}
+                        >
+                          <div className="flex items-center justify-between pb-3 mb-3 border-b border-rose-200">
+                            <div className="flex items-center space-x-2">
+                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: brandSettings.primaryColor }} />
+                              <span className="text-xs font-black uppercase text-slate-900 tracking-wider">
+                                Now: Live {brandSettings.brandName} Landing Page
+                              </span>
+                            </div>
+                            <span
+                              className="text-[10px] font-black uppercase tracking-wider text-white px-2.5 py-0.5 rounded-full shadow-xs"
+                              style={{ backgroundColor: brandSettings.primaryColor }}
+                            >
+                              Live Branded (Active)
+                            </span>
+                          </div>
+
+                          {/* Mockup Frame (Now / Live Theme) */}
+                          <div className="bg-white rounded-xl border border-rose-200/80 shadow-md overflow-hidden text-slate-800">
+                            {/* Browser bar */}
+                            <div className="bg-rose-50/80 px-3 py-1.5 border-b border-rose-200 flex items-center space-x-2 text-[10px] text-slate-400">
+                              <div className="flex space-x-1">
+                                <span className="w-2 h-2 rounded-full bg-rose-400" />
+                                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                              </div>
+                              <span className="bg-white px-2.5 py-0.5 rounded text-[#74111d] font-mono text-[9px] font-bold flex-1 text-center border border-rose-100">
+                                https://beaurex.in (Live Branded Theme)
+                              </span>
+                            </div>
+
+                            {/* Mini Hero Mockup (Live Branded) */}
+                            <div className="p-4 bg-gradient-to-b from-rose-50/40 to-white text-center space-y-2.5">
+                              {/* Header mock */}
+                              <div className="flex items-center justify-between text-[11px] pb-2 border-b border-rose-100 text-slate-700">
+                                <div className="flex items-center space-x-1.5 font-black" style={{ color: brandSettings.primaryColor }}>
+                                  <div className="w-4 h-4 rounded-full overflow-hidden bg-rose-100 flex items-center justify-center">
+                                    <img src={brandSettings.logoUrl} alt="Logo" className="w-4 h-4 object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                                  </div>
+                                  <span>{brandSettings.brandName}</span>
+                                </div>
+                                <div className="flex items-center space-x-3 text-[10px] text-slate-600 font-medium">
+                                  <span>Solutions</span>
+                                  <span>Pricing</span>
+                                  <span className="font-black px-2 py-0.5 rounded-lg text-white text-[9px]" style={{ backgroundColor: brandSettings.primaryColor }}>
+                                    Partner Login
+                                  </span>
+                                </div>
+                              </div>
+
+                              <span className="inline-flex items-center space-x-1 bg-rose-100/80 text-[#74111d] border border-rose-300 text-[9px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+                                <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                                <span>Royal Counter Standee Rewards & Loyalty</span>
+                              </span>
+
+                              <h4 className="text-sm sm:text-base font-black text-slate-950 leading-snug">
+                                The Next-Gen Loyalty Engine for{' '}
+                                <span style={{ color: brandSettings.primaryColor }}>
+                                  {brandSettings.brandName}
+                                </span>
+                              </h4>
+                              
+                              <p className="text-[11px] text-slate-600 max-w-sm mx-auto leading-relaxed font-normal">
+                                Convert walk-in customers into lifelong brand advocates with luxury QR standees and interactive rewards.
+                              </p>
+
+                              <div className="flex items-center justify-center space-x-2 pt-1">
+                                <button
+                                  type="button"
+                                  className="text-white text-[10px] font-black px-3.5 py-1.5 rounded-xl shadow-md pointer-events-none flex items-center space-x-1"
+                                  style={{ backgroundColor: brandSettings.primaryColor }}
+                                >
+                                  <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                                  <span>Start 2-Day Trial</span>
+                                </button>
+                                <button type="button" className="bg-rose-50 text-[#74111d] border border-rose-200 text-[10px] font-bold px-3 py-1.5 rounded-xl pointer-events-none">
+                                  Live Demo
+                                </button>
+                              </div>
+
+                              {/* Mini Pricing card in live burgundy style */}
+                              <div className="mt-3 p-3 bg-white rounded-xl border-2 text-left relative" style={{ borderColor: brandSettings.primaryColor }}>
+                                <span
+                                  className="absolute -top-2 left-4 text-white text-[8px] font-black px-2 py-0.2 rounded-full uppercase tracking-wider"
+                                  style={{ backgroundColor: brandSettings.primaryColor }}
+                                >
+                                  Most Popular
+                                </span>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <span className="text-[11px] font-black text-slate-900">Professional Plan</span>
+                                    <span className="text-[9px] text-[#74111d] block font-bold">Only ₹1,361/month</span>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-xs font-black text-slate-900">₹49,000</span>
+                                    <span className="text-[9px] text-slate-400 block">/ 3 Years</span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  <span className="text-[8px] font-bold bg-rose-50 text-[#74111d] px-1.5 py-0.5 rounded border border-rose-200">Most Popular</span>
+                                  <span className="text-[8px] font-bold bg-rose-50 text-[#74111d] px-1.5 py-0.5 rounded border border-rose-200">Save 32%</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] font-bold mt-3 text-center" style={{ color: brandSettings.primaryColor }}>
+                            Now: Live brand theme with {brandSettings.primaryColor} accents and custom standee badges.
+                          </p>
+                        </div>
+                      )}
+
+                    </div>
+
+                    {/* LIVE CUSTOMIZER & PALETTE CONTROLS ("SO I CAN CHANGE") */}
+                    <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Sliders className="w-4 h-4 text-[#74111d]" />
+                          <h4 className="text-xs font-black uppercase text-slate-900 tracking-wider">
+                            Brand Customizer & Theme Controls
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-bold">
+                          Changes update landing page & dashboard instantly
+                        </span>
+                      </div>
+
+                      {/* 1-Click Preset Palettes */}
+                      <div>
+                        <span className="text-[11px] font-bold text-slate-600 block mb-2">
+                          Quick 1-Click Brand Color Schemes:
+                        </span>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                          {[
+                            { name: 'BeAurex Burgundy', primary: '#8B0000', secondary: '#9E000D', accent: '#c8102e' },
+                            { name: 'Royal Sapphire', primary: '#1E40AF', secondary: '#2563EB', accent: '#3B82F6' },
+                            { name: 'Emerald Velvet', primary: '#065F46', secondary: '#059669', accent: '#10B981' },
+                            { name: 'Imperial Amber', primary: '#92400E', secondary: '#D97706', accent: '#F59E0B' },
+                            { name: 'Midnight Obsidian', primary: '#0F172A', secondary: '#1E293B', accent: '#334155' }
+                          ].map((theme) => {
+                            const isActive = brandSettings.primaryColor?.toLowerCase() === theme.primary.toLowerCase();
+                            return (
+                              <button
+                                key={theme.name}
+                                type="button"
+                                onClick={() => {
+                                  setBrandSettings(prev => ({
+                                    ...prev,
+                                    primaryColor: theme.primary,
+                                    secondaryColor: theme.secondary,
+                                    accentColor: theme.accent,
+                                    lastUpdated: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                  }));
+                                }}
+                                className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                                  isActive
+                                    ? 'bg-white border-[#74111d] ring-2 ring-[#74111d]/20 shadow-xs'
+                                    : 'bg-white border-slate-200 hover:bg-slate-100'
+                                }`}
+                              >
+                                <div className="flex items-center space-x-1.5 mb-1.5">
+                                  <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: theme.primary }} />
+                                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.secondary }} />
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.accent }} />
+                                </div>
+                                <span className="text-[11px] font-bold text-slate-800 leading-tight">
+                                  {theme.name}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Detailed Color & Brand Inputs */}
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-200">
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Brand Name</label>
+                          <input
+                            type="text"
+                            value={brandSettings.brandName}
+                            onChange={(e) => setBrandSettings({ ...brandSettings, brandName: e.target.value })}
+                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Primary Color</label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="color"
+                              value={brandSettings.primaryColor}
+                              onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                              className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer shrink-0"
+                            />
+                            <input
+                              type="text"
+                              value={brandSettings.primaryColor}
+                              onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Secondary Color</label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="color"
+                              value={brandSettings.secondaryColor}
+                              onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
+                              className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer shrink-0"
+                            />
+                            <input
+                              type="text"
+                              value={brandSettings.secondaryColor}
+                              onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Accent Color</label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="color"
+                              value={brandSettings.accentColor}
+                              onChange={(e) => setBrandSettings({ ...brandSettings, accentColor: e.target.value })}
+                              className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer shrink-0"
+                            />
+                            <input
+                              type="text"
+                              value={brandSettings.accentColor}
+                              onChange={(e) => setBrandSettings({ ...brandSettings, accentColor: e.target.value })}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {/* Modal Footer Actions */}
+                  <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBrandSettings({
+                          brandName: 'BeAurex',
+                          logoUrl: '/beaurex-icon.jpg',
+                          faviconUrl: '/favicon.ico',
+                          primaryColor: '#8B0000',
+                          secondaryColor: '#9E000D',
+                          accentColor: '#c8102e',
+                          status: 'Completed',
+                          lastUpdated: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        });
+                      }}
+                      className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold transition cursor-pointer"
+                    >
+                      Reset to Default Burgundy
+                    </button>
+
+                    <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setSettingsActiveModal(null)}
+                        className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer"
+                      >
+                        Close Preview
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                          const updated = { ...brandSettings, lastUpdated: now };
+                          setBrandSettings(updated);
+                          try {
+                            localStorage.setItem('loyalqr_brand_settings', JSON.stringify(updated));
+                          } catch {}
+                          setSettingsActiveModal(null);
+                          showSettingsToast('Landing page brand identity & color palette successfully applied live!');
+                        }}
+                        className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black transition cursor-pointer shadow-md shadow-[#74111d]/20 flex items-center space-x-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>Save & Apply Changes to Landing Page</span>
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             )}
@@ -6818,9 +12407,9 @@ export default function SuperAdminDashboard() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-black text-lg sm:text-xl text-slate-900">
-                        Customer Manager (CRM) — {selectedCustomerTrackerMember.name}
+                        Customer Manager — {selectedCustomerTrackerMember.name}
                       </h3>
-                      <span className="bg-purple-50 text-purple-700 font-black text-[11px] px-2.5 py-0.5 rounded-full border border-purple-200">
+                      <span className="bg-rose-50 text-[#74111d] font-black text-[11px] px-2.5 py-0.5 rounded-full border border-rose-200">
                         ID #{selectedCustomerTrackerMember.userId}
                       </span>
                     </div>
@@ -6832,8 +12421,8 @@ export default function SuperAdminDashboard() {
 
                 {/* Quick Stats Badges */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-                  <div className="bg-purple-50/60 border border-purple-200/60 rounded-2xl p-3">
-                    <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">Total Approached</span>
+                  <div className="bg-rose-50/60 border border-rose-200/60 rounded-2xl p-3">
+                    <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-wider block">Total Approached</span>
                     <span className="text-xl font-black text-slate-900 mt-1 block">{totalLeads} Leads</span>
                   </div>
                   <div className="bg-rose-50/60 border border-rose-200/60 rounded-2xl p-3">
@@ -6864,7 +12453,7 @@ export default function SuperAdminDashboard() {
                         placeholder="Search lead, phone, company..."
                         value={crmSearchModal}
                         onChange={(e) => setCrmSearchModal(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-purple-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
                       />
                     </div>
                     <button
@@ -6908,7 +12497,11 @@ export default function SuperAdminDashboard() {
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <div className="font-bold text-slate-800">{lead.name}</div>
-                                  <div className="font-mono text-[11px] text-slate-500">{lead.phone || '—'}</div>
+                                  <div className="text-[11px] font-bold text-rose-700 flex items-center space-x-1">
+                                    <Building2 className="w-3 h-3 text-rose-500 inline shrink-0" />
+                                    <span>{lead.companyName && lead.companyName !== '—' ? lead.companyName : 'No Company'}</span>
+                                  </div>
+                                  <div className="font-mono text-[10px] text-slate-400">{lead.phone || '—'}</div>
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <span className="font-semibold text-slate-700">
@@ -6923,7 +12516,7 @@ export default function SuperAdminDashboard() {
                                       ? 'bg-amber-50 text-amber-700 border-amber-200'
                                       : (lead.status || '').toLowerCase().includes('won')
                                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                      : 'bg-purple-50 text-purple-700 border-purple-200'
+                                      : 'bg-rose-50 text-[#74111d] border-rose-200'
                                   }`}>
                                     {lead.status || 'Prospect'}
                                   </span>
@@ -6944,8 +12537,8 @@ export default function SuperAdminDashboard() {
                                     onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
                                     className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition inline-flex items-center space-x-1 cursor-pointer ${
                                       isExpanded
-                                        ? 'bg-purple-600 text-white border-purple-600'
-                                        : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+                                        ? 'bg-[#74111d] text-white border-[#74111d]'
+                                        : 'bg-rose-50 text-[#74111d] border-rose-200 hover:bg-rose-100'
                                     }`}
                                   >
                                     <span>Notes ({followupsList.length})</span>
@@ -6956,12 +12549,12 @@ export default function SuperAdminDashboard() {
 
                               {/* Expanded Follow-up Logs Drawer */}
                               {isExpanded && (
-                                <tr className="bg-purple-50/30">
-                                  <td colSpan={7} className="p-3.5 border-t border-purple-100">
+                                <tr className="bg-rose-50/30">
+                                  <td colSpan={7} className="p-3.5 border-t border-rose-100">
                                     <div className="space-y-2">
                                       <div className="flex items-center justify-between">
-                                        <div className="text-[11px] font-black uppercase text-purple-800 tracking-wider flex items-center space-x-1.5">
-                                          <FileText className="w-3.5 h-3.5 text-purple-600" />
+                                        <div className="text-[11px] font-black uppercase text-[#74111d] tracking-wider flex items-center space-x-1.5">
+                                          <FileText className="w-3.5 h-3.5 text-[#74111d]" />
                                           <span>Follow-up History & Activity Logs ({lead.name})</span>
                                         </div>
                                         {lead.email && lead.email !== '—' && (
@@ -6972,13 +12565,13 @@ export default function SuperAdminDashboard() {
                                       {followupsList.length > 0 ? (
                                         <div className="space-y-1.5">
                                           {followupsList.map((f, fIdx) => (
-                                            <div key={f.id || fIdx} className="bg-white p-2.5 rounded-xl border border-purple-200/60 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                                            <div key={f.id || fIdx} className="bg-white p-2.5 rounded-xl border border-rose-200/60 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
                                               <div className="flex items-center space-x-2">
                                                 <span className="font-mono text-[10px] text-slate-400 font-semibold">{f.dateTime}</span>
                                                 <span className="font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{f.method}</span>
                                                 <span className="font-bold text-slate-800">{f.comments || 'No note added.'}</span>
                                               </div>
-                                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 uppercase">
+                                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-[#74111d] uppercase">
                                                 {f.status}
                                               </span>
                                             </div>
@@ -7054,6 +12647,38 @@ export default function SuperAdminDashboard() {
               </div>
 
               <form onSubmit={handleSaveDeal} className="space-y-4">
+                {/* Quick Pick From Platform Deals & Coupons */}
+                {platformDeals && platformDeals.length > 0 && (
+                  <div className="p-3 bg-red-50/60 border border-red-200/80 rounded-2xl">
+                    <label className="block text-[11px] font-black uppercase text-red-900 mb-1">
+                      Quick Pick From Platform Deals ({platformDeals.length})
+                    </label>
+                    <select
+                      onChange={(e) => {
+                        const sel = platformDeals.find(d => d.id === e.target.value);
+                        if (sel) {
+                          setDealForm({
+                            ...dealForm,
+                            dealTitle: sel.dealName,
+                            dealAmount: sel.discountAmount || 499,
+                            discountPercent: sel.discountPercentage || 20,
+                            validTill: sel.validityDate || '30 Days',
+                            notes: `Auto-populated from Deal Code: ${sel.couponCode} (${sel.planName})`
+                          });
+                        }
+                      }}
+                      className="w-full bg-white border border-red-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                    >
+                      <option value="">-- Select Deal & Coupon to Auto-Fill --</option>
+                      {platformDeals.map(d => (
+                        <option key={d.id} value={d.id}>
+                          {d.dealName} [{d.couponCode}] — {d.discountPercentage ? `${d.discountPercentage}% Off` : `₹${d.discountAmount} Off`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Deal Title / Package Name</label>
                   <input
@@ -7157,8 +12782,8 @@ export default function SuperAdminDashboard() {
               {/* Modal Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-black shrink-0">
-                    <Gift className="w-5 h-5 text-purple-700" />
+                  <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center font-black shrink-0">
+                    <Gift className="w-5 h-5 text-[#74111d]" />
                   </div>
                   <div>
                     <h3 className="font-black text-base text-slate-900">Complimentary Access</h3>
@@ -7184,7 +12809,7 @@ export default function SuperAdminDashboard() {
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       Option 1: Complimentary Status
                     </label>
-                    <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                    <span className="text-[10px] font-bold text-[#74111d] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                       Required
                     </span>
                   </div>
@@ -7194,7 +12819,7 @@ export default function SuperAdminDashboard() {
                       onClick={() => setComplimentaryForm({ ...complimentaryForm, status: 'YES' })}
                       className={`py-2.5 px-3 rounded-xl border text-xs font-black flex items-center justify-center space-x-2 transition cursor-pointer ${
                         complimentaryForm.status === 'YES'
-                          ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-900/20'
+                          ? 'bg-[#74111d] text-white border-[#74111d] shadow-md shadow-[#74111d]/20'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
@@ -7226,7 +12851,7 @@ export default function SuperAdminDashboard() {
                       <select
                         value={complimentaryForm.planTier}
                         onChange={(e) => setComplimentaryForm({ ...complimentaryForm, planTier: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-purple-600 cursor-pointer"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
                       >
                         <option value="PROFESSIONAL">Professional Plan (All VIP Features & Multi-counter)</option>
                         <option value="STANDARD">Standard Plan (Counter QR Engine)</option>
@@ -7248,77 +12873,116 @@ export default function SuperAdminDashboard() {
                         value={complimentaryForm.reason}
                         onChange={(e) => setComplimentaryForm({ ...complimentaryForm, reason: e.target.value })}
                         placeholder="Write reason e.g. VIP Launch Partner, Festival Promo, Trial Extension, Referral Bonus..."
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-purple-600 font-medium"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 font-medium"
                       />
                       <p className="text-[11px] text-slate-400 mt-1">
                         Explain why this merchant was granted free complimentary access.
                       </p>
                     </div>
 
-                    {/* OPTION 4: Date / Days (Add number like 5, 10, 20 days) */}
+                    {/* OPTION 4: Date / Days (7, 15, 30, 90, 180 days, 1 Year, Lifetime) */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Option 4: Validity Extension (Add Days)
+                          Option 4: Validity Extension (Add Days / Lifetime)
                         </label>
-                        <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
-                          +{complimentaryForm.days} Days
+                        <span className="text-[11px] font-bold text-[#74111d] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                          {complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500
+                            ? 'Lifetime Access'
+                            : `+${complimentaryForm.days || 0} Days`}
                         </span>
                       </div>
                       
-                      {/* Quick preset buttons: 5, 10, 20... */}
+                      {/* Presets requested: 7, 15, 30, 90, 180 days, 1 year, and lifetime */}
                       <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
-                        {[5, 10, 20, 30, 60, 90, 365].map((d) => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => {
-                              const target = new Date();
-                              target.setDate(target.getDate() + d);
-                              const formatted = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                              setComplimentaryForm({ ...complimentaryForm, days: d, customValidTill: formatted });
-                            }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
-                              Number(complimentaryForm.days) === d
-                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
-                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                            }`}
-                          >
-                            {d >= 365 ? '1 Year' : `${d} Days`}
-                          </button>
-                        ))}
+                        {[
+                          { label: '7 Days', days: 7 },
+                          { label: '15 Days', days: 15 },
+                          { label: '30 Days', days: 30 },
+                          { label: '90 Days', days: 90 },
+                          { label: '180 Days', days: 180 },
+                          { label: '1 Year', days: 365 },
+                          { label: 'Lifetime', days: 36500, isLifetime: true }
+                        ].map((preset) => {
+                          const isSelected = preset.isLifetime
+                            ? (complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500)
+                            : (!complimentaryForm.isLifetime && complimentaryForm.days !== 'Lifetime' && Number(complimentaryForm.days) === preset.days);
+                          return (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => {
+                                if (preset.isLifetime) {
+                                  setComplimentaryForm({
+                                    ...complimentaryForm,
+                                    days: 'Lifetime',
+                                    isLifetime: true,
+                                    customValidTill: 'Lifetime Access'
+                                  });
+                                } else {
+                                  const target = new Date();
+                                  target.setDate(target.getDate() + preset.days);
+                                  const formatted = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                  setComplimentaryForm({
+                                    ...complimentaryForm,
+                                    days: preset.days,
+                                    isLifetime: false,
+                                    customValidTill: formatted
+                                  });
+                                }
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#74111d] text-white border-[#74111d] shadow-xs'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                              }`}
+                            >
+                              {preset.label}
+                            </button>
+                          );
+                        })}
                       </div>
 
-                      {/* Add number input field */}
+                      {/* Add number input field or lifetime indicator */}
                       <div className="flex items-center space-x-2">
                         <input
-                          type="number"
+                          type={complimentaryForm.isLifetime ? "text" : "number"}
                           min="1"
-                          max="3650"
-                          required
-                          value={complimentaryForm.days}
+                          max="36500"
+                          required={!complimentaryForm.isLifetime}
+                          readOnly={Boolean(complimentaryForm.isLifetime)}
+                          value={complimentaryForm.isLifetime ? 'Lifetime Access (Never Expires)' : complimentaryForm.days}
                           onChange={(e) => {
+                            if (complimentaryForm.isLifetime) return;
                             const val = Number(e.target.value);
                             const target = new Date();
                             target.setDate(target.getDate() + val);
                             const formatted = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                            setComplimentaryForm({ ...complimentaryForm, days: val, customValidTill: formatted });
+                            setComplimentaryForm({ ...complimentaryForm, days: val, isLifetime: false, customValidTill: formatted });
                           }}
-                          placeholder="Enter number of days (e.g. 5, 10, 20)"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-purple-600 font-bold"
+                          placeholder="Enter custom number of days (e.g. 7, 15, 30...)"
+                          className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
+                            complimentaryForm.isLifetime
+                              ? 'bg-rose-50/70 border-rose-300 text-[#74111d]'
+                              : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:border-red-600 focus:bg-white'
+                          }`}
                         />
-                        <span className="text-xs font-bold text-slate-500 whitespace-nowrap">Days</span>
+                        <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                          {complimentaryForm.isLifetime ? 'Perpetual' : 'Days'}
+                        </span>
                       </div>
 
                       {/* Calculated expiry preview */}
-                      <div className="mt-2.5 p-3 bg-purple-50/70 border border-purple-200/80 rounded-xl flex items-center justify-between text-xs">
+                      <div className="mt-2.5 p-3 bg-rose-50/70 border border-rose-200/80 rounded-xl flex items-center justify-between text-xs">
                         <span className="text-slate-600 font-medium">Calculated Plan Expiry:</span>
-                        <span className="font-black text-purple-900 font-mono">
-                          {(() => {
-                            const target = new Date();
-                            target.setDate(target.getDate() + (Number(complimentaryForm.days) || 0));
-                            return target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                          })()}
+                        <span className="font-black text-[#74111d] font-mono">
+                          {complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500
+                            ? 'Lifetime Access (Never Expires)'
+                            : (() => {
+                                const target = new Date();
+                                target.setDate(target.getDate() + (Number(complimentaryForm.days) || 0));
+                                return target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                              })()}
                         </span>
                       </div>
                     </div>
@@ -7336,7 +13000,7 @@ export default function SuperAdminDashboard() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition shadow-md shadow-purple-900/20 cursor-pointer flex items-center space-x-1.5"
+                    className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center space-x-1.5"
                   >
                     <Check className="w-4 h-4" />
                     <span>Save & Apply Complimentary</span>
@@ -7660,9 +13324,9 @@ export default function SuperAdminDashboard() {
                     {viewMerchantModal.status === 'Paid' ? 'Paid Active' : viewMerchantModal.status === 'Trial' ? 'Trial Store' : 'Suspended'}
                   </span>
                   {viewMerchantModal.isComplimentary && (
-                    <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 flex items-center space-x-1">
-                      <Gift className="w-3 h-3 text-purple-600" />
-                      <span>Complimentary ({viewMerchantModal.complimentaryDays || 10}d)</span>
+                    <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-rose-50 text-[#74111d] border border-rose-200 flex items-center space-x-1">
+                      <Gift className="w-3 h-3 text-[#74111d]" />
+                      <span>Complimentary ({viewMerchantModal.complimentaryDays === 'Lifetime' || Number(viewMerchantModal.complimentaryDays) >= 36500 ? 'Lifetime' : `${viewMerchantModal.complimentaryDays || 10}d`})</span>
                     </span>
                   )}
                   <button
@@ -7702,7 +13366,7 @@ export default function SuperAdminDashboard() {
                 <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     <span>Enrolled Shoppers</span>
-                    <Users className="w-4 h-4 text-blue-600" />
+                    <Users className="w-4 h-4 text-slate-600" />
                   </div>
                   <div className="text-xl sm:text-2xl font-black text-slate-900">
                     {Math.round((viewMerchantModal.totalScans || 120) * 0.45) || 54}
@@ -7713,9 +13377,9 @@ export default function SuperAdminDashboard() {
                 <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     <span>Redeemed Vouchers</span>
-                    <CheckCircle2 className="w-4 h-4 text-purple-600" />
+                    <CheckCircle2 className="w-4 h-4 text-rose-600" />
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-purple-700">
+                  <div className="text-xl sm:text-2xl font-black text-[#74111d]">
                     {Math.round((viewMerchantModal.totalScans || 120) * 0.32) || 38}
                   </div>
                   <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Verified by cashier PIN</p>
@@ -7795,9 +13459,9 @@ export default function SuperAdminDashboard() {
 
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500 font-medium">Complimentary Access:</span>
-                    <span className="font-bold text-purple-700">
+                    <span className="font-bold text-[#74111d]">
                       {viewMerchantModal.isComplimentary 
-                        ? `Yes (+${viewMerchantModal.complimentaryDays || 10} Days) - ${viewMerchantModal.complimentaryReason || 'Special Access'}` 
+                        ? `Yes (${viewMerchantModal.complimentaryDays === 'Lifetime' || Number(viewMerchantModal.complimentaryDays) >= 36500 ? 'Lifetime Access' : `+${viewMerchantModal.complimentaryDays || 10} Days`}) - ${viewMerchantModal.complimentaryReason || 'Special Access'}` 
                         : 'No (Standard Plan)'}
                     </span>
                   </div>
@@ -7878,7 +13542,8 @@ export default function SuperAdminDashboard() {
                       setViewMerchantModal(null);
                       handleOpenComplimentaryModal(m);
                     }}
-                    className="bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center space-x-1"
+                    className="bg-rose-50 hover:bg-rose-100 text-[#74111d] border border-rose-200 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center space-x-1"
+                    title="Configure complimentary access"
                   >
                     <Gift className="w-3.5 h-3.5" />
                     <span>Complimentary Settings</span>

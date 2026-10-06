@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Merchant = require('../models/Merchant');
 const smsService = require('../services/smsService');
+const emailService = require('../services/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'loyalqr_super_secret_jwt_key_2026';
 
@@ -137,31 +138,36 @@ router.post('/login', async (req, res) => {
 
 // =========================================================================
 // Merchant Phone Login - Send Dynamic OTP
-// Checks MongoDB if store is registered. Sends real dynamic 6-digit OTP.
+// =========================================================================
+// Merchant Email / Phone Login - Send Dynamic OTP
+// Checks MongoDB if store is registered. Sends real dynamic 6-digit OTP via Email.
 // =========================================================================
 router.post('/send-login-otp', async (req, res) => {
   try {
-    const { mobile } = req.body;
-    if (!mobile) {
-      return res.status(400).json({ success: false, message: 'Mobile number is required.' });
+    const { email, mobile } = req.body;
+    if (!email && !mobile) {
+      return res.status(400).json({ success: false, message: 'Registered Email address is required.' });
     }
 
-    const cleanMobile = mobile.replace(/[^0-9]/g, '').slice(-10);
-    if (cleanMobile.length !== 10) {
-      return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number.' });
-    }
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+    const cleanMobile = mobile ? String(mobile).replace(/[^0-9]/g, '').slice(-10) : '';
 
     let merchant = null;
     if (mongoose.connection.readyState === 1) {
-      merchant = await Merchant.findOne({ mobile: cleanMobile });
+      if (cleanEmail) {
+        merchant = await Merchant.findOne({ email: cleanEmail });
+      } else if (cleanMobile) {
+        merchant = await Merchant.findOne({ mobile: cleanMobile });
+      }
     }
 
     // STRICT: Store must be signed up first!
     if (!merchant) {
+      const identifier = cleanEmail || `+91 ${cleanMobile}`;
       return res.status(404).json({
         success: false,
         notRegistered: true,
-        message: `Mobile number +91 ${cleanMobile} is not registered. Please sign up first to register your store.`
+        message: `${identifier} is not registered. Please sign up first to register your store.`
       });
     }
 
@@ -175,41 +181,56 @@ router.post('/send-login-otp', async (req, res) => {
     }
 
     // Generate real dynamic 6-digit OTP & save expiry in MongoDB
-    const otp = smsService.generateOtp();
+    const otp = emailService.generateOtp();
     merchant.loginOtp = otp;
     merchant.loginOtpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     await merchant.save();
 
-    // Dispatch SMS via gateway
-    await smsService.sendOtp(cleanMobile, otp, 'login');
+    // Dispatch via Email if email is available (or mobile SMS as fallback)
+    if (merchant.email) {
+      await emailService.sendOtpEmail(merchant.email, otp, 'store sign in');
+      return res.json({
+        success: true,
+        message: `OTP sent successfully to ${merchant.email}. Valid for 5 minutes.`,
+        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+      });
+    } else if (cleanMobile) {
+      await smsService.sendOtp(cleanMobile, otp, 'login');
+      return res.json({
+        success: true,
+        message: `OTP sent successfully to +91 ${cleanMobile}. Valid for 5 minutes.`,
+        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+      });
+    }
 
-    return res.json({
-      success: true,
-      message: `OTP sent successfully to +91 ${cleanMobile}. Valid for 5 minutes.`,
-      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
-    });
+    return res.status(400).json({ success: false, message: 'No registered email found for this store.' });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // =========================================================================
-// Merchant Phone Login - Verify Dynamic OTP
+// Merchant Login - Verify Dynamic OTP
 // Validates against MongoDB loginOtp.
 // =========================================================================
 router.post('/login-otp', async (req, res) => {
   try {
-    const { mobile, otp } = req.body;
-    if (!mobile || !otp) {
-      return res.status(400).json({ success: false, message: 'Mobile number and OTP are required.' });
+    const { email, mobile, otp } = req.body;
+    if ((!email && !mobile) || !otp) {
+      return res.status(400).json({ success: false, message: 'Email address and 6-digit OTP are required.' });
     }
 
-    const cleanMobile = mobile.replace(/[^0-9]/g, '').slice(-10);
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+    const cleanMobile = mobile ? String(mobile).replace(/[^0-9]/g, '').slice(-10) : '';
     const cleanOtp = String(otp).trim();
 
     let merchant = null;
     if (mongoose.connection.readyState === 1) {
-      merchant = await Merchant.findOne({ mobile: cleanMobile });
+      if (cleanEmail) {
+        merchant = await Merchant.findOne({ email: cleanEmail });
+      } else if (cleanMobile) {
+        merchant = await Merchant.findOne({ mobile: cleanMobile });
+      }
     }
 
     if (!merchant) {
@@ -237,7 +258,7 @@ router.post('/login-otp', async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired OTP entered. Please check your SMS and enter the 6-digit code.'
+        message: 'Invalid or expired OTP entered. Please check your email inbox/spam folder and enter the 6-digit code.'
       });
     }
 
@@ -309,20 +330,32 @@ router.post('/forgot-password', async (req, res) => {
       });
     }
 
+    const targetEmail = cleanEmail || merchant.email;
     const targetMobile = merchant.mobile || cleanMobile;
-    const otp = smsService.generateOtp();
+    const otp = emailService.generateOtp();
     merchant.resetOtp = otp;
     merchant.resetOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await merchant.save();
 
-    await smsService.sendOtp(targetMobile, otp, 'password reset');
-
-    return res.json({
-      success: true,
-      message: `Password reset OTP sent to +91 ${targetMobile}. Valid for 10 minutes.`,
-      mobile: targetMobile,
-      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
-    });
+    if (targetEmail) {
+      await emailService.sendOtpEmail(targetEmail, otp, 'password reset');
+      return res.json({
+        success: true,
+        message: `Password reset OTP sent to ${targetEmail}. Valid for 10 minutes.`,
+        email: targetEmail,
+        mobile: targetMobile,
+        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+      });
+    } else {
+      await smsService.sendOtp(targetMobile, otp, 'password reset');
+      return res.json({
+        success: true,
+        message: `Password reset OTP sent to +91 ${targetMobile}. Valid for 10 minutes.`,
+        email: targetEmail,
+        mobile: targetMobile,
+        devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined
+      });
+    }
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
   }
@@ -333,18 +366,26 @@ router.post('/forgot-password', async (req, res) => {
 // =========================================================================
 router.post('/verify-otp', async (req, res) => {
   try {
-    const { mobile, otp } = req.body;
+    const { email, mobile, otp } = req.body;
 
-    if (!mobile || !otp) {
-      return res.status(400).json({ success: false, message: 'Mobile number and 6-digit OTP are required.' });
+    if ((!email && !mobile) || !otp) {
+      return res.status(400).json({ success: false, message: 'Email address and 6-digit OTP are required.' });
     }
 
-    const cleanMobile = mobile.replace(/[^0-9]/g, '').slice(-10);
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    const cleanMobile = mobile ? mobile.replace(/[^0-9]/g, '').slice(-10) : '';
     const cleanOtp = String(otp).trim();
 
-    const merchant = await Merchant.findOne({ mobile: cleanMobile });
+    let merchant = null;
+    if (cleanEmail) {
+      merchant = await Merchant.findOne({ email: cleanEmail });
+    }
+    if (!merchant && cleanMobile) {
+      merchant = await Merchant.findOne({ mobile: cleanMobile });
+    }
+
     if (!merchant) {
-      return res.status(404).json({ success: false, message: 'Store not found.' });
+      return res.status(404).json({ success: false, message: 'Store account not found.' });
     }
 
     if (
@@ -355,7 +396,7 @@ router.post('/verify-otp', async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired OTP. Please re-check the SMS code or request a new one.'
+        message: 'Invalid or expired OTP. Please re-check the code or request a new one.'
       });
     }
 
@@ -377,14 +418,23 @@ router.post('/verify-otp', async (req, res) => {
 // =========================================================================
 router.post('/set-password', async (req, res) => {
   try {
-    const { mobile, newPassword } = req.body;
+    const { email, mobile, newPassword } = req.body;
 
-    if (!mobile || !newPassword || newPassword.length < 8) {
+    if ((!email && !mobile) || !newPassword || newPassword.length < 8) {
       return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long.' });
     }
 
-    const cleanMobile = mobile.replace(/[^0-9]/g, '').slice(-10);
-    const merchant = await Merchant.findOne({ mobile: cleanMobile });
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    const cleanMobile = mobile ? mobile.replace(/[^0-9]/g, '').slice(-10) : '';
+
+    let merchant = null;
+    if (cleanEmail) {
+      merchant = await Merchant.findOne({ email: cleanEmail });
+    }
+    if (!merchant && cleanMobile) {
+      merchant = await Merchant.findOne({ mobile: cleanMobile });
+    }
+
     if (!merchant) {
       return res.status(404).json({ success: false, message: 'Store not found.' });
     }
@@ -454,26 +504,30 @@ router.post('/register', async (req, res) => {
   try {
     const { businessName, email, mobile, password, category, city } = req.body;
 
-    if (!businessName || !mobile || !password) {
-      return res.status(400).json({ success: false, message: 'Business Name, Mobile Number and Password are required.' });
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    const cleanMobile = mobile ? mobile.replace(/[^0-9]/g, '').slice(-10) : '';
+
+    if (!businessName || !cleanEmail || !password) {
+      return res.status(400).json({ success: false, message: 'Business Name, Email Address and Password are required.' });
     }
 
-    const cleanEmail = email ? email.toLowerCase().trim() : '';
-    const cleanMobile = mobile.replace(/[^0-9]/g, '').slice(-10);
+    if (!cleanEmail.includes('@')) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
 
-    if (cleanMobile.length !== 10) {
-      return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number.' });
+    if (cleanMobile && cleanMobile.length !== 10) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number or leave blank.' });
     }
 
     // Check if store already exists in MongoDB
-    const query = [{ mobile: cleanMobile }];
-    if (cleanEmail) query.push({ email: cleanEmail });
+    const query = [{ email: cleanEmail }];
+    if (cleanMobile) query.push({ mobile: cleanMobile });
 
     const existing = await Merchant.findOne({ $or: query });
     if (existing) {
       return res.status(400).json({ 
         success: false, 
-        message: 'A store with this mobile number or email is already registered. Please go to Sign In.' 
+        message: 'A store with this email or mobile number is already registered. Please go to Sign In.' 
       });
     }
 
@@ -490,8 +544,8 @@ router.post('/register', async (req, res) => {
       businessName: businessName.trim(),
       category: category || 'CAFE_RESTAURANT',
       city: city || 'Delhi NCR',
-      email: cleanEmail || `store_${cleanMobile}@beaurex.in`,
-      mobile: cleanMobile,
+      email: cleanEmail,
+      mobile: cleanMobile || undefined,
       password: hashedPassword,
       qrSlug,
       subscriptionTier: 'TRIAL',

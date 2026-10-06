@@ -56,13 +56,13 @@ export default function AdminLogin() {
 
   // =========================================================================
   // =========================================================================
-  // HANDLER: Send Merchant Phone OTP
+  // HANDLER: Send Merchant Email OTP
   // =========================================================================
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    const clean = String(mobile).replace(/[^0-9]/g, '').slice(-10);
-    if (!clean || clean.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
     setError('');
@@ -73,22 +73,22 @@ export default function AdminLogin() {
       const res = await fetch('/api/auth/send-login-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile: clean })
+        body: JSON.stringify({ email: cleanEmail })
       });
       const data = await res.json();
 
       if (data.success) {
         setOtpSent(true);
         setOtpCountdown(60);
-        setOtp(''); // NEVER auto-fill: wait for SMS OTP!
+        setOtp(''); // Wait for email OTP!
         if (data.devOtp) setDevOtpHint(data.devOtp);
-        setSuccessMsg(data.message || 'OTP sent to your phone! Please enter the code below.');
+        setSuccessMsg(data.message || 'OTP sent to your email! Please enter the code below.');
       } else {
         setError(data.message || 'Unable to send OTP.');
         if (data.notRegistered) {
           setTimeout(() => {
             setAuthMode('signup');
-            setSignupForm(prev => ({ ...prev, mobile: clean }));
+            setSignupForm(prev => ({ ...prev, email: cleanEmail }));
           }, 2000);
         }
       }
@@ -105,9 +105,10 @@ export default function AdminLogin() {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (!otp || otp.trim().length !== 6) {
-      setError('Please enter the complete 6-digit OTP received on your phone.');
+      setError('Please enter the complete 6-digit OTP received in your email.');
       return;
     }
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
     setError('');
     setLoading(true);
 
@@ -115,7 +116,7 @@ export default function AdminLogin() {
       const res = await fetch('/api/auth/login-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobile, otp: otp.trim() })
+        body: JSON.stringify({ email: cleanEmail, otp: otp.trim() })
       });
       const data = await res.json();
 
@@ -196,13 +197,18 @@ export default function AdminLogin() {
   // =========================================================================
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!signupForm.businessName || !signupForm.mobile || !signupForm.password) {
-      setError('Please fill in Store Name, 10-Digit Mobile Number, and Password.');
+    if (!signupForm.businessName || !signupForm.email || !signupForm.password) {
+      setError('Please fill in Store Name, Email Address, and Password.');
       return;
     }
-    const cleanMobile = String(signupForm.mobile).replace(/[^0-9]/g, '').slice(-10);
-    if (cleanMobile.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number.');
+    const cleanEmail = signupForm.email ? signupForm.email.trim().toLowerCase() : '';
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    const cleanMobile = signupForm.mobile ? String(signupForm.mobile).replace(/[^0-9]/g, '').slice(-10) : '';
+    if (signupForm.mobile && cleanMobile.length !== 10) {
+      setError('Please enter a valid 10-digit mobile number or leave blank.');
       return;
     }
     setError('');
@@ -214,7 +220,8 @@ export default function AdminLogin() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...signupForm,
-          mobile: cleanMobile
+          email: cleanEmail,
+          mobile: cleanMobile || undefined
         })
       });
       const data = await res.json();
@@ -247,6 +254,7 @@ export default function AdminLogin() {
 
   return (
     <BrowserFrame
+      containerClass="max-w-xl"
       screenNumber="1"
       screenTitle={authMode === 'signin' ? "Store Owner Login" : "Create Store Account"}
       screenSubtitle="Merchant signs in or registers to access BeAurex Merchant Hub"
@@ -255,83 +263,8 @@ export default function AdminLogin() {
       purposeText="Allows store owners to sign up, log in via SMS OTP or Password, and access customer loyalty telemetry."
       userGoalText="Store owners manage standees, QR scans, customer points, active vouchers and store profile."
     >
-      {/* Left Split-Screen: Crimson Gradient Brand Panel (Exact Match to Reference Image 1) */}
-      <div className="md:w-5/12 bg-gradient-to-br from-[#7b0309] via-[#980008] to-[#5a0004] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl">
-        <div className="absolute inset-0 hero-dot-pattern opacity-30 pointer-events-none" />
-
-        <div className="relative z-10">
-          {/* BeAurex Logo Emblem */}
-          <Link to="/" className="flex items-center space-x-3 mb-8 group inline-flex">
-            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-md group-hover:scale-105 transition transform">
-              <QrCode className="w-7 h-7 text-[#8B0000]" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-black tracking-tight leading-none text-white">BeAurex</span>
-              <span className="text-[10px] font-bold text-red-200 uppercase tracking-widest mt-1">Admin Panel</span>
-            </div>
-          </Link>
-
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-3 text-white">
-            {authMode === 'signin' ? 'Welcome Back!' : 'Create Account'}
-          </h2>
-          <p className="text-red-100/90 text-xs sm:text-sm font-medium leading-relaxed mb-9">
-            {authMode === 'signin' 
-              ? 'Sign in to your BeAurex Admin Panel and manage your entire platform.'
-              : 'Create your store account in seconds and manage customer loyalty.'}
-          </p>
-
-          {/* Feature Badges with White Circular Icons (Image 1) */}
-          <div className="space-y-5">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
-                <ShieldCheck className="w-5 h-5 text-[#8B0000]" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-white">Secure & Reliable</h4>
-                <p className="text-xs text-red-100/80 leading-tight">Enterprise-grade security to keep your data safe and protected.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
-                <BarChart3 className="w-5 h-5 text-[#8B0000]" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-white">Real-time Insights</h4>
-                <p className="text-xs text-red-100/80 leading-tight">Track platform performance and growth in real-time.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
-                <Users className="w-5 h-5 text-[#8B0000]" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-white">Complete Control</h4>
-                <p className="text-xs text-red-100/80 leading-tight">Manage merchants, customers, plans, rewards, claims and more.</p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#8B0000] shrink-0 shadow-md">
-                <Clock className="w-5 h-5 text-[#8B0000]" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-white">Always Accessible</h4>
-                <p className="text-xs text-red-100/80 leading-tight">Access your dashboard anytime, anywhere with secure login.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-8 text-[11px] text-red-200/80 font-medium relative z-10 flex items-center justify-between">
-          <span>© 2026 BeAurex. All rights reserved.</span>
-          <Link to="/" className="text-white hover:underline font-bold">Return to Home</Link>
-        </div>
-      </div>
-
-      {/* Right Split-Screen: Clean White Auth Card (Exact Match to Reference Image 1) */}
-      <div className="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between bg-white overflow-y-auto">
+      {/* Auth Card Container */}
+      <div className="w-full p-6 sm:p-10 flex flex-col justify-between bg-white overflow-y-auto">
         <div>
           
           {/* Header Switcher & Logo Badge */}
@@ -345,7 +278,7 @@ export default function AdminLogin() {
                   BeAurex
                 </span>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-                  Admin Panel
+                  Store Owner Portal
                 </span>
               </div>
             </div>
@@ -427,8 +360,8 @@ export default function AdminLogin() {
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>Mobile OTP Login</span>
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Email OTP Login</span>
                 </button>
               </div>
 
@@ -573,31 +506,28 @@ export default function AdminLogin() {
                 </form>
               )}
 
-              {/* METHOD 2: PHONE NUMBER + OTP */}
+              {/* METHOD 2: EMAIL + OTP */}
               {signInMethod === 'otp' && (
                 <div>
                   {!otpSent ? (
                     <form onSubmit={handleSendOtp} className="space-y-4">
                       <div>
                         <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                          Registered Mobile Number
+                          Registered Email Address
                         </label>
-                        <div className="flex">
-                          <span className="inline-flex items-center px-3.5 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-700 text-xs font-bold">
-                            +91
-                          </span>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                           <input
-                            type="tel"
+                            type="email"
                             required
-                            pattern="[6-9][0-9]{9}"
-                            value={mobile}
-                            onChange={(e) => setMobile(e.target.value)}
-                            placeholder="Enter 10-digit mobile number"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 font-bold transition"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="owner@yourstore.com"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 font-bold transition"
                           />
                         </div>
                         <p className="text-[11px] text-slate-400 mt-1">
-                          We will send a 6-digit verification code to your mobile.
+                          We will send a 6-digit verification code to your email.
                         </p>
                       </div>
 
@@ -615,21 +545,21 @@ export default function AdminLogin() {
                       <div className="p-3 bg-red-50/70 border border-red-200 rounded-xl flex items-center justify-between text-xs">
                         <div>
                           <span className="text-slate-600 block">OTP Sent to:</span>
-                          <span className="font-extrabold text-slate-900">+91 {mobile}</span>
+                          <span className="font-extrabold text-slate-900">{email}</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => setOtpSent(false)}
                           className="text-[#8B0000] font-bold hover:underline cursor-pointer text-xs"
                         >
-                          Change Number
+                          Change Email
                         </button>
                       </div>
 
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
                           <label className="block text-xs font-bold uppercase text-slate-600">
-                            Enter 6-Digit OTP Received on Phone
+                            Enter 6-Digit OTP Received on Email
                           </label>
                           {devOtpHint && (
                             <span className="text-[11px] font-mono text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-bold">
@@ -750,28 +680,6 @@ export default function AdminLogin() {
                 </div>
               </div>
 
-              {/* Mobile Number */}
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-600 mb-1 flex items-center space-x-1.5">
-                  <Phone className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Mobile Number</span>
-                </label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-700 text-xs font-bold">
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    required
-                    pattern="[6-9][0-9]{9}"
-                    value={signupForm.mobile}
-                    onChange={(e) => setSignupForm({ ...signupForm, mobile: e.target.value })}
-                    placeholder="10-digit mobile number"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-3.5 py-2 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-bold transition"
-                  />
-                </div>
-              </div>
-
               {/* Email Address */}
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-1 flex items-center space-x-1.5">
@@ -786,6 +694,26 @@ export default function AdminLogin() {
                   placeholder="owner@yourstore.com"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition"
                 />
+              </div>
+
+              {/* Mobile Number (Optional) */}
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-1 flex items-center space-x-1.5">
+                  <Phone className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Mobile Number <span className="text-slate-400 font-normal normal-case">(Optional)</span></span>
+                </label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-700 text-xs font-bold">
+                    +91
+                  </span>
+                  <input
+                    type="tel"
+                    value={signupForm.mobile}
+                    onChange={(e) => setSignupForm({ ...signupForm, mobile: e.target.value })}
+                    placeholder="10-digit mobile number (optional)"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-3.5 py-2 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-bold transition"
+                  />
+                </div>
               </div>
 
               {/* Password */}

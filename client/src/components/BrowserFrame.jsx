@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
-export default function BrowserFrame({ children }) {
+export default function BrowserFrame({ children, containerClass = "max-w-5xl md:flex-row md:min-h-[580px]" }) {
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col justify-between selection:bg-red-500 selection:text-white font-sans">
       
@@ -35,7 +35,7 @@ export default function BrowserFrame({ children }) {
 
       {/* Main Container */}
       <main className="flex-1 flex items-center justify-center p-3 sm:p-6 lg:p-8 my-4 sm:my-8">
-        <div className="max-w-5xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col md:flex-row min-h-0 md:min-h-[580px]">
+        <div className={`w-full mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col min-h-0 ${containerClass}`}>
           {children}
         </div>
       </main>

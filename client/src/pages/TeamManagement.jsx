@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ActionConfirmModal from '../components/ActionConfirmModal';
 import { 
@@ -6,7 +6,9 @@ import {
   Download, ExternalLink, QrCode, Printer, Search, Phone, Mail, MapPin, Sparkles, 
   Clock, ArrowRight, Lock, Menu, X, TrendingUp, Wallet, Send, FileText, ShieldCheck, 
   Store, Award, Plus, Calendar, AlertCircle, LogOut, User, Building2, Globe, Save,
-  History, RotateCcw, MessageSquare, ChevronDown, ChevronUp
+  History, RotateCcw, MessageSquare, ChevronDown, ChevronUp, Camera, Upload, Trash2,
+  Eye, Folder, Video, Play, File, Edit3, Image as ImageIcon, Briefcase, Megaphone, Handshake,
+  ArrowLeft, MoreVertical, Film, CheckCircle
 } from 'lucide-react';
 
 export default function TeamManagement() {
@@ -150,6 +152,45 @@ export default function TeamManagement() {
   };
 
   const agentKey = agentProfile.userId || agentProfile.email || 'default';
+
+  const [agentPhoto, setAgentPhoto] = useState(() => {
+    try {
+      return localStorage.getItem(`beaurex_team_photo_${agentKey}`) || '';
+    } catch (e) {
+      return '';
+    }
+  });
+
+  const photoInputRef = useRef(null);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert('File size must be less than 3MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result;
+        if (base64) {
+          setAgentPhoto(base64);
+          try {
+            localStorage.setItem(`beaurex_team_photo_${agentKey}`, base64);
+          } catch (err) {}
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setAgentPhoto('');
+    try {
+      localStorage.removeItem(`beaurex_team_photo_${agentKey}`);
+    } catch (err) {}
+    if (photoInputRef.current) photoInputRef.current.value = '';
+  };
 
   const [copiedCodeToast, setCopiedCodeToast] = useState(false);
   const [copiedLinkToast, setCopiedLinkToast] = useState(false);
@@ -370,7 +411,8 @@ export default function TeamManagement() {
     website: '',
     address: '',
     email: '',
-    source: 'Direct'
+    source: 'Direct',
+    comments: ''
   });
 
   // Followup Modal State (Image 4)
@@ -381,6 +423,381 @@ export default function TeamManagement() {
     status: 'Followup required',
     comments: ''
   });
+
+  // Edit Customer Lead Modal State
+  const [editCustomerModal, setEditCustomerModal] = useState({
+    isOpen: false,
+    customer: null,
+    form: {
+      name: '',
+      phone: '',
+      email: '',
+      companyName: '',
+      businessType: 'Retail',
+      approachedFor: 'MW Sales',
+      followupMethod: 'Call',
+      status: 'Followup required',
+      source: 'Direct',
+      website: '',
+      address: '',
+      comments: ''
+    }
+  });
+
+  // =========================================================================
+  // REFERRAL DETAILS (IMAGES 2 & 3): REFERRED USERS & BANK ACCOUNT DETAILS
+  // =========================================================================
+  const [referralSubTab, setReferralSubTab] = useState('referred_users'); // 'referred_users' | 'bank_details'
+  
+  // Exact 10 Referred Users from Image 2
+  const [referredUsers, setReferredUsers] = useState([
+    { id: '1728', mwFrId: 'N/A', email: 'sewuzeittaza-5637@yopmail.com', userType: 'MW', name: 'sew', number: '4565246586', joinedOn: '03-07-2026', dateCreated: '-', validityDate: '-', mwStatus: '7 Day Trial', paymentStatus: 'Unpaid' },
+    { id: '1727', mwFrId: 'FR - 1727', email: 'butohidayo-9038@yopmail.com', userType: 'Franchise', name: 'buto', number: '3214567944', joinedOn: '03-07-2026', dateCreated: '-', validityDate: '-', mwStatus: '7 Day Trial', paymentStatus: 'Unpaid' },
+    { id: '1590', mwFrId: '605', isMwLink: true, email: 'thisistest@yopmail.com', userType: 'MW', name: 'this is', number: '9182736461', joinedOn: '26-12-2025', dateCreated: '27-12-2025', validityDate: '27-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
+    { id: '1589', mwFrId: 'N/A', email: 'akhitestkrm@yopmail.com', userType: 'MW', name: 'akhitest reffer by krm', number: '9192939192', joinedOn: '26-12-2025', dateCreated: '-', validityDate: '-', mwStatus: '7 Day Trial', paymentStatus: 'Unpaid' },
+    { id: '1587', mwFrId: '601', isMwLink: true, email: 'calev91750@fftube.com', userType: 'MW', name: 'dsfd', number: '4565464567', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
+    { id: '1586', mwFrId: '597', isMwLink: true, email: 'jatite5118@roratu.com', userType: 'MW', name: 'asas', number: '9999999789', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
+    { id: '1075', mwFrId: '587', isMwLink: true, email: 'gonav80663@nctime.com', userType: 'MW', name: 'test', number: '6300000000', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '30-12-2025', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
+    { id: '1074', mwFrId: '586', isMwLink: true, email: 'najib87498@gamintor.com', userType: 'MW', name: 'test ajay', number: '9800321450', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
+    { id: '1072', mwFrId: '584', isMwLink: true, email: 'yorep81550@roratu.com', userType: 'MW', name: 'test mw', number: '9658732140', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
+    { id: '1068', mwFrId: '581', isMwLink: true, email: 'pebes73509@arugy.com', userType: 'MW', name: 'temp test', number: '9654823170', joinedOn: '22-12-2025', dateCreated: '22-12-2025', validityDate: '22-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' }
+  ]);
+
+  const [selectedMwPreviewModal, setSelectedMwPreviewModal] = useState({ isOpen: false, item: null });
+
+  // Bank Account Details State (Matching Image 3)
+  const [bankDetails, setBankDetails] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_team_bank_details');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      bankName: 'Kotak Mahindra Bank',
+      accountHolderName: 'Ajeet Kumar',
+      accountNumber: '921100345671',
+      ifscCode: 'KKBK0000154',
+      upiId: '22233@upi',
+      upiName: 'Ajeet Kumar',
+      isSaved: true
+    };
+  });
+  const [bankSavedToast, setBankSavedToast] = useState('');
+  const [isEditingBankDetails, setIsEditingBankDetails] = useState(false);
+  const [showMaskedAccount, setShowMaskedAccount] = useState(true);
+
+  // =========================================================================
+  // MARKETING KIT STATE (IMAGE 4: FOLDERS, METRICS BANNER, MODALS)
+  // =========================================================================
+  const [kitSubTab, setKitSubTab] = useState('mw_sales_kit'); // 'mw_sales_kit' (14) | 'creator_kit' (9) | 'franchise_sales_kit' (16)
+  const [openFolder, setOpenFolder] = useState(null); // null | 'Document' | 'My Kit' or folder object
+  const [addFolderModalOpen, setAddFolderModalOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [addImagesModalOpen, setAddImagesModalOpen] = useState(false);
+  const [newImageForm, setNewImageForm] = useState({ name: '', targetFolder: '', size: '2.5 MB', res: '300 DPI High-Res' });
+  const [addVideoLinkModalOpen, setAddVideoLinkModalOpen] = useState(false);
+  const [newVideoLinkForm, setNewVideoLinkForm] = useState({ name: '', url: '', targetFolder: '' });
+  const [uploadVideoModalOpen, setUploadVideoModalOpen] = useState(false);
+  const [uploadVideoForm, setUploadVideoForm] = useState({ name: '', size: '25 MB', targetFolder: '' });
+  const [addFileModalOpen, setAddFileModalOpen] = useState(false);
+  const [newFileForm, setNewFileForm] = useState({ name: '', size: '1.5 MB', ext: 'PDF', targetFolder: '' });
+  const [previewKitItem, setPreviewKitItem] = useState(null);
+  const [kitToast, setKitToast] = useState('');
+
+  // Marketing Kits Data Structure (Image 4 exact data & categories)
+  const [kitsData, setKitsData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_marketing_kits_data');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      mw_sales_kit: {
+        title: 'MW Sales Kit',
+        folders: [
+          {
+            id: 'doc',
+            name: 'Document',
+            subCount: 0,
+            items: [
+              { id: 'd1', name: 'Merchant Agreement & Franchise Protocol Guide.pdf', type: 'file', ext: 'PDF', size: '2.4 MB', date: '15 Sep 2026', res: 'Official Document' }
+            ]
+          },
+          {
+            id: 'mykit',
+            name: 'My Kit',
+            subCount: 0,
+            items: [
+              { id: 'img1', name: '5x7 Table Standee QR Print.png', type: 'image', ext: 'PNG', size: '3.8 MB', date: '18 Sep 2026', res: '300 DPI High-Res' },
+              { id: 'img2', name: 'Window & Door Scan To Win Vinyl Sticker.png', type: 'image', ext: 'PNG', size: '1.9 MB', date: '18 Sep 2026', res: 'Round Vinyl' },
+              { id: 'img3', name: 'Table Tent Counter Flyer A5.png', type: 'image', ext: 'PNG', size: '2.6 MB', date: '19 Sep 2026', res: 'Print Ready' },
+              { id: 'img4', name: 'Instagram Story Promotional Template 1.png', type: 'image', ext: 'PNG', size: '1.2 MB', date: '20 Sep 2026', res: '1080x1920' },
+              { id: 'img5', name: 'Instagram Story Promotional Template 2.png', type: 'image', ext: 'PNG', size: '1.4 MB', date: '20 Sep 2026', res: '1080x1920' },
+              { id: 'img6', name: 'WhatsApp Offer & Scratch Card Banner.png', type: 'image', ext: 'PNG', size: '890 KB', date: '22 Sep 2026', res: '1200x628' },
+              { id: 'img7', name: 'Merchant 20% Cashback Poster.png', type: 'image', ext: 'PNG', size: '2.1 MB', date: '23 Sep 2026', res: 'A4 Print' },
+              { id: 'img8', name: 'Customer Mystery Reward Mockup.png', type: 'image', ext: 'PNG', size: '1.7 MB', date: '24 Sep 2026', res: '3D Mockup' },
+              { id: 'img9', name: 'Retailer Onboarding Pitch One-Pager.png', type: 'image', ext: 'PNG', size: '1.5 MB', date: '25 Sep 2026', res: 'One-Pager' },
+              { id: 'img10', name: 'BeAurex Official Vector Brand Logo Pack.png', type: 'image', ext: 'PNG', size: '4.2 MB', date: '25 Sep 2026', res: 'Vector Asset' },
+              { id: 'img11', name: 'Store Cash Counter Decal.png', type: 'image', ext: 'PNG', size: '1.1 MB', date: '26 Sep 2026', res: 'Plexiglass' },
+              { id: 'img12', name: 'Festival Mega Rewards Banner Template.png', type: 'image', ext: 'PNG', size: '2.8 MB', date: '27 Sep 2026', res: 'Editable' },
+              { id: 'img13', name: 'VIP Customer Loyalty Card Graphic.png', type: 'image', ext: 'PNG', size: '950 KB', date: '28 Sep 2026', res: 'Wallet Card' }
+            ]
+          }
+        ]
+      },
+      creator_kit: {
+        title: 'Creator Kit',
+        folders: [
+          {
+            id: 'creator_gfx',
+            name: 'Creator Graphics',
+            subCount: 0,
+            items: [
+              { id: 'cg1', name: 'YouTube Thumbnail Brand Kit.png', type: 'image', ext: 'PNG', size: '2.1 MB', date: '20 Sep 2026', res: '1920x1080' },
+              { id: 'cg2', name: 'Reels Hook Overlay Graphics.png', type: 'image', ext: 'PNG', size: '1.5 MB', date: '21 Sep 2026', res: '1080x1920' },
+              { id: 'cg3', name: 'BeAurex Sticker Pack for Stories.png', type: 'image', ext: 'PNG', size: '1.8 MB', date: '22 Sep 2026', res: 'Transparent PNG' },
+              { id: 'cg4', name: 'Affiliate Commission Badge.png', type: 'image', ext: 'PNG', size: '820 KB', date: '23 Sep 2026', res: 'Vector' },
+              { id: 'cg5', name: 'QR Scan Callout Arrow Graphic.png', type: 'image', ext: 'PNG', size: '640 KB', date: '24 Sep 2026', res: 'Vector' },
+              { id: 'cg6', name: 'Creator Showcase Banner.png', type: 'image', ext: 'PNG', size: '2.4 MB', date: '25 Sep 2026', res: 'Full HD' },
+              { id: 'cg7', name: 'Social Proof Testimonial Card.png', type: 'image', ext: 'PNG', size: '1.1 MB', date: '26 Sep 2026', res: 'Square 1080' },
+              { id: 'cg8', name: 'End Screen Call to Action.png', type: 'image', ext: 'PNG', size: '1.3 MB', date: '27 Sep 2026', res: '16:9 HD' }
+            ]
+          },
+          {
+            id: 'creator_vid',
+            name: 'Video Assets',
+            subCount: 0,
+            items: [
+              { id: 'cv1', name: 'BeAurex 15s Story Animation Intro.mp4', type: 'video', ext: 'MP4', size: '14.2 MB', date: '28 Sep 2026', res: '1080p 60fps' }
+            ]
+          }
+        ]
+      },
+      franchise_sales_kit: {
+        title: 'Franchise Sales Kit',
+        folders: [
+          {
+            id: 'fr_legal',
+            name: 'Franchise Legal & Agreements',
+            subCount: 0,
+            items: [
+              { id: 'fl1', name: 'Master Franchise Agreement Template.pdf', type: 'file', ext: 'PDF', size: '3.5 MB', date: '10 Sep 2026', res: 'Document' },
+              { id: 'fl2', name: 'Territory Exclusivity Certificate.pdf', type: 'file', ext: 'PDF', size: '1.8 MB', date: '12 Sep 2026', res: 'Document' },
+              { id: 'fl3', name: 'Franchise Commission Structure Breakdown.pdf', type: 'file', ext: 'PDF', size: '1.2 MB', date: '15 Sep 2026', res: 'Document' },
+              { id: 'fl4', name: 'GST & Compliance Manual 2026.pdf', type: 'file', ext: 'PDF', size: '2.1 MB', date: '18 Sep 2026', res: 'Document' }
+            ]
+          },
+          {
+            id: 'fr_pitch',
+            name: 'Pitch Decks & Marketing Standees',
+            subCount: 0,
+            items: [
+              { id: 'fp1', name: 'Franchise Investor Pitch Deck 2026.pdf', type: 'file', ext: 'PDF', size: '8.4 MB', date: '20 Sep 2026', res: 'Presentation' },
+              { id: 'fp2', name: 'Roll-up Standee 6x3 Feet High Res.png', type: 'image', ext: 'PNG', size: '12.4 MB', date: '21 Sep 2026', res: 'Vector 300 DPI' },
+              { id: 'fp3', name: 'Franchise Billboard Outdoor Banner.png', type: 'image', ext: 'PNG', size: '18.1 MB', date: '22 Sep 2026', res: 'Large Format' },
+              { id: 'fp4', name: 'Newspaper Print Ad 16x20cm.png', type: 'image', ext: 'PNG', size: '6.2 MB', date: '23 Sep 2026', res: 'CMYK Print' },
+              { id: 'fp5', name: 'City Launch Invitation Card.png', type: 'image', ext: 'PNG', size: '2.8 MB', date: '24 Sep 2026', res: 'Gloss Finish' },
+              { id: 'fp6', name: 'District Partner ID Template.png', type: 'image', ext: 'PNG', size: '1.4 MB', date: '25 Sep 2026', res: 'Badge' },
+              { id: 'fp7', name: 'Partner Welcome Letterhead.png', type: 'image', ext: 'PNG', size: '1.6 MB', date: '26 Sep 2026', res: 'A4' },
+              { id: 'fp8', name: 'Franchise Expo Booth Backdrop 10x8ft.png', type: 'image', ext: 'PNG', size: '22.0 MB', date: '27 Sep 2026', res: 'Backdrop' },
+              { id: 'fp9', name: 'Merchant Referral QR Table Cards.png', type: 'image', ext: 'PNG', size: '3.1 MB', date: '28 Sep 2026', res: 'Die Cut' },
+              { id: 'fp10', name: 'Certificate of Franchise Authorization.png', type: 'image', ext: 'PNG', size: '2.9 MB', date: '29 Sep 2026', res: 'Gold Foil Ready' }
+            ]
+          },
+          {
+            id: 'fr_training',
+            name: 'Franchise Training Videos',
+            subCount: 0,
+            items: [
+              { id: 'ft1', name: 'How to Onboard 50 Retailers in Month 1.mp4', type: 'video', ext: 'MP4', size: '48.5 MB', date: '01 Oct 2026', res: '1080p Video' },
+              { id: 'ft2', name: 'BeAurex CRM Mastery for Franchisees.mp4', type: 'video', ext: 'MP4', size: '62.0 MB', date: '02 Oct 2026', res: '1080p Video' }
+            ]
+          }
+        ]
+      }
+    };
+  });
+
+  const saveKitsData = (newData) => {
+    setKitsData(newData);
+    try {
+      localStorage.setItem('beaurex_marketing_kits_data', JSON.stringify(newData));
+    } catch (_) {}
+  };
+
+  // Helper calculations for current sub-tab
+  const currentKit = kitsData[kitSubTab] || kitsData.mw_sales_kit;
+  const currentFolders = currentKit.folders || [];
+  const currentTotalFolders = currentFolders.length;
+  let currentImagesCount = 0;
+  let currentVideosCount = 0;
+  let currentFilesCount = 0;
+  let currentActiveItemsCount = 0;
+
+  currentFolders.forEach(f => {
+    (f.items || []).forEach(item => {
+      currentActiveItemsCount++;
+      if (item.type === 'image') currentImagesCount++;
+      else if (item.type === 'video') currentVideosCount++;
+      else currentFilesCount++;
+    });
+  });
+
+  const showKitToast = (msg) => {
+    setKitToast(msg);
+    setTimeout(() => setKitToast(''), 3000);
+  };
+
+  const handleCreateFolder = (e) => {
+    e.preventDefault();
+    if (!newFolderName.trim()) return;
+    const updated = { ...kitsData };
+    const folderId = 'folder_' + Date.now();
+    updated[kitSubTab].folders.push({
+      id: folderId,
+      name: newFolderName.trim(),
+      subCount: 0,
+      items: []
+    });
+    saveKitsData(updated);
+    setNewFolderName('');
+    setAddFolderModalOpen(false);
+    showKitToast(`Folder "${newFolderName.trim()}" created successfully!`);
+  };
+
+  const handleAddImage = (e) => {
+    e.preventDefault();
+    if (!newImageForm.name.trim()) return;
+    const updated = { ...kitsData };
+    const targetFolderName = newImageForm.targetFolder || (currentFolders[0] ? currentFolders[0].name : 'Default');
+    let targetF = updated[kitSubTab].folders.find(f => f.name === targetFolderName);
+    if (!targetF) {
+      if (updated[kitSubTab].folders.length > 0) {
+        targetF = updated[kitSubTab].folders[0];
+      } else {
+        targetF = { id: 'f_' + Date.now(), name: 'General', subCount: 0, items: [] };
+        updated[kitSubTab].folders.push(targetF);
+      }
+    }
+    targetF.items.push({
+      id: 'img_' + Date.now(),
+      name: newImageForm.name.trim().endsWith('.png') ? newImageForm.name.trim() : `${newImageForm.name.trim()}.png`,
+      type: 'image',
+      ext: 'PNG',
+      size: newImageForm.size || '2.5 MB',
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      res: newImageForm.res || '300 DPI High-Res'
+    });
+    saveKitsData(updated);
+    setNewImageForm({ name: '', targetFolder: '', size: '2.5 MB', res: '300 DPI High-Res' });
+    setAddImagesModalOpen(false);
+    showKitToast('Image added to kit successfully!');
+  };
+
+  const handleAddVideoLink = (e) => {
+    e.preventDefault();
+    if (!newVideoLinkForm.name.trim()) return;
+    const updated = { ...kitsData };
+    const targetFolderName = newVideoLinkForm.targetFolder || (currentFolders[0] ? currentFolders[0].name : 'Videos');
+    let targetF = updated[kitSubTab].folders.find(f => f.name === targetFolderName);
+    if (!targetF) {
+      if (updated[kitSubTab].folders.length > 0) {
+        targetF = updated[kitSubTab].folders[0];
+      } else {
+        targetF = { id: 'f_' + Date.now(), name: 'Videos', subCount: 0, items: [] };
+        updated[kitSubTab].folders.push(targetF);
+      }
+    }
+    targetF.items.push({
+      id: 'vid_' + Date.now(),
+      name: newVideoLinkForm.name.trim(),
+      type: 'video',
+      ext: 'LINK',
+      size: 'Web Stream',
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      res: 'Online Video Link',
+      url: newVideoLinkForm.url
+    });
+    saveKitsData(updated);
+    setNewVideoLinkForm({ name: '', url: '', targetFolder: '' });
+    setAddVideoLinkModalOpen(false);
+    showKitToast('Video link added to kit successfully!');
+  };
+
+  const handleUploadVideo = (e) => {
+    e.preventDefault();
+    if (!uploadVideoForm.name.trim()) return;
+    const updated = { ...kitsData };
+    const targetFolderName = uploadVideoForm.targetFolder || (currentFolders[0] ? currentFolders[0].name : 'Videos');
+    let targetF = updated[kitSubTab].folders.find(f => f.name === targetFolderName);
+    if (!targetF) {
+      if (updated[kitSubTab].folders.length > 0) {
+        targetF = updated[kitSubTab].folders[0];
+      } else {
+        targetF = { id: 'f_' + Date.now(), name: 'Videos', subCount: 0, items: [] };
+        updated[kitSubTab].folders.push(targetF);
+      }
+    }
+    targetF.items.push({
+      id: 'vid_' + Date.now(),
+      name: uploadVideoForm.name.trim().endsWith('.mp4') ? uploadVideoForm.name.trim() : `${uploadVideoForm.name.trim()}.mp4`,
+      type: 'video',
+      ext: 'MP4',
+      size: uploadVideoForm.size || '32 MB',
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      res: '1080p HD'
+    });
+    saveKitsData(updated);
+    setUploadVideoForm({ name: '', size: '25 MB', targetFolder: '' });
+    setUploadVideoModalOpen(false);
+    showKitToast('Video asset uploaded successfully!');
+  };
+
+  const handleAddFile = (e) => {
+    e.preventDefault();
+    if (!newFileForm.name.trim()) return;
+    const updated = { ...kitsData };
+    const targetFolderName = newFileForm.targetFolder || (currentFolders[0] ? currentFolders[0].name : 'Documents');
+    let targetF = updated[kitSubTab].folders.find(f => f.name === targetFolderName);
+    if (!targetF) {
+      if (updated[kitSubTab].folders.length > 0) {
+        targetF = updated[kitSubTab].folders[0];
+      } else {
+        targetF = { id: 'f_' + Date.now(), name: 'Documents', subCount: 0, items: [] };
+        updated[kitSubTab].folders.push(targetF);
+      }
+    }
+    const ext = newFileForm.ext || 'PDF';
+    targetF.items.push({
+      id: 'file_' + Date.now(),
+      name: newFileForm.name.trim().endsWith(`.${ext.toLowerCase()}`) ? newFileForm.name.trim() : `${newFileForm.name.trim()}.${ext.toLowerCase()}`,
+      type: 'file',
+      ext: ext,
+      size: newFileForm.size || '1.8 MB',
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      res: 'Resource Document'
+    });
+    saveKitsData(updated);
+    setNewFileForm({ name: '', size: '1.5 MB', ext: 'PDF', targetFolder: '' });
+    setAddFileModalOpen(false);
+    showKitToast('File resource added to kit successfully!');
+  };
+
+  const handleDeleteKitItem = (folderName, itemId) => {
+    requestConfirm({
+      title: 'Delete Asset',
+      message: 'Are you sure you want to remove this asset from the marketing kit?',
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = { ...kitsData };
+        const f = updated[kitSubTab].folders.find(folder => folder.name === folderName);
+        if (f) {
+          f.items = f.items.filter(item => item.id !== itemId);
+          saveKitsData(updated);
+          showKitToast('Asset removed from folder.');
+        }
+      }
+    });
+  };
 
   // Sync referrals & CRM customers whenever logged-in agent profile changes
   useEffect(() => {
@@ -560,7 +977,8 @@ export default function TeamManagement() {
               status: quickCustomerForm.status,
               comments: `Quick Add Customer - Approached for ${quickCustomerForm.approachedFor}`
             }
-          ]
+          ],
+          comments: quickCustomerForm.comments || ''
         };
 
         const updated = [newCustomer, ...crmCustomers];
@@ -589,11 +1007,113 @@ export default function TeamManagement() {
           website: '',
           address: '',
           email: '',
-          source: 'Direct'
+          source: 'Direct',
+          comments: ''
         });
         setShowAdditionalDetails(false);
       }
     });
+  };
+
+  const handleOpenEditCustomer = (customer) => {
+    setEditCustomerModal({
+      isOpen: true,
+      customer,
+      form: {
+        name: customer.name || '',
+        phone: customer.phone || '',
+        email: customer.email && customer.email !== '—' ? customer.email : '',
+        companyName: customer.companyName && customer.companyName !== '—' ? customer.companyName : '',
+        businessType: customer.businessType || 'Retail',
+        approachedFor: customer.approachedFor || 'MW Sales',
+        followupMethod: customer.followupMethod || 'Call',
+        status: customer.status || 'Followup required',
+        source: customer.source || 'Direct',
+        website: customer.website && customer.website !== '—' ? customer.website : '',
+        address: customer.address && customer.address !== '—' ? customer.address : '',
+        comments: customer.comments || ''
+      }
+    });
+  };
+
+  const handleSaveEditCustomer = (e) => {
+    e.preventDefault();
+    if (!editCustomerModal.customer) return;
+    const now = new Date();
+    const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const agentKey = agentProfile.userId || agentProfile.email || 'default';
+    const form = editCustomerModal.form;
+
+    const updatedList = crmCustomers.map(c => {
+      if (c.id === editCustomerModal.customer.id) {
+        return {
+          ...c,
+          name: form.name.trim() || c.name,
+          phone: form.phone.trim() || c.phone,
+          email: form.email.trim() || '—',
+          companyName: form.companyName.trim() || '—',
+          businessType: form.businessType || c.businessType,
+          approachedFor: form.approachedFor || c.approachedFor,
+          followupMethod: form.followupMethod || c.followupMethod,
+          status: form.status || c.status,
+          source: form.source || c.source,
+          website: form.website.trim() || '—',
+          address: form.address.trim() || '—',
+          comments: form.comments.trim() || c.comments || '',
+          lastUpdated: formattedDate
+        };
+      }
+      return c;
+    });
+
+    setCrmCustomers(updatedList);
+    try {
+      localStorage.setItem(`beaurex_team_crm_${agentKey}`, JSON.stringify(updatedList));
+      localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updatedList));
+    } catch (e) {}
+
+    setEditCustomerModal({
+      isOpen: false,
+      customer: null,
+      form: {
+        name: '',
+        phone: '',
+        email: '',
+        companyName: '',
+        businessType: 'Retail',
+        approachedFor: 'MW Sales',
+        followupMethod: 'Call',
+        status: 'Followup required',
+        source: 'Direct',
+        website: '',
+        address: '',
+        comments: ''
+      }
+    });
+  };
+
+  const handleSaveBankDetails = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!bankDetails.bankName?.trim()) {
+      setBankSavedToast('Please enter your Bank Name');
+      return;
+    }
+    if (!bankDetails.accountNumber?.trim()) {
+      setBankSavedToast('Please enter your Bank Account Number');
+      return;
+    }
+    if (!bankDetails.ifscCode?.trim()) {
+      setBankSavedToast('Please enter your Bank IFSC Code');
+      return;
+    }
+    const updated = { ...bankDetails, isSaved: true };
+    setBankDetails(updated);
+    try {
+      localStorage.setItem('beaurex_team_bank_details', JSON.stringify(updated));
+    } catch (_) {}
+    setIsEditingBankDetails(false);
+    setBankSavedToast('Bank details saved successfully! All future referral payouts will be transferred to this account.');
+    setTimeout(() => setBankSavedToast(''), 5000);
   };
 
   // Open Followup Modal (Image 4)
@@ -884,23 +1404,21 @@ export default function TeamManagement() {
         )}
 
         {/* ========================================================= */}
-        {/* LEFT SIDEBAR NAVIGATION (Desktop: Fixed Position) */}
+        {/* LEFT SIDEBAR NAVIGATION (Desktop: Colored Crimson Theme)  */}
         {/* ========================================================= */}
-        <aside className="hidden md:flex md:w-72 bg-white border-r border-slate-200/90 flex-col justify-between shrink-0 shadow-sm z-30 fixed inset-y-0 left-0 h-screen">
+        <aside className="hidden md:flex md:w-72 bg-[#8B0000] text-white flex-col justify-between shrink-0 shadow-lg z-30 fixed inset-y-0 left-0 h-screen">
           <div className="flex-1 overflow-y-auto">
             {/* Brand Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <Link to="/" className="flex items-center space-x-3 group">
-                <img 
-                  src="/beaurex-icon.jpg" 
-                  alt="BeAurex Logo" 
-                  className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-600/30 group-hover:scale-105 transition transform"
-                />
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 shrink-0 group-hover:scale-105 transition transform">
+                  <QrCode className="w-6 h-6 text-[#8B0000]" />
+                </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-black tracking-tight leading-none text-slate-900">
-                    Be<span className="text-[#851421]">Aurex</span>
+                  <span className="text-xl font-black tracking-tight leading-none text-white">
+                    BeAurex
                   </span>
-                  <span className="text-[10px] font-black text-red-600 uppercase tracking-widest mt-1">
+                  <span className="text-[10px] font-bold text-red-200 uppercase tracking-widest mt-1">
                     Team Portal
                   </span>
                 </div>
@@ -908,17 +1426,17 @@ export default function TeamManagement() {
             </div>
 
             {/* Status Indicator */}
-            <div className="px-6 py-3 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between text-xs">
+            <div className="px-6 py-3 bg-black/20 border-b border-white/10 flex items-center justify-between text-xs">
               <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="font-bold text-slate-700 text-[11px]">Field Agent Active</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-bold text-white text-[11px]">Field Agent Active</span>
               </div>
-              <span className="text-[10px] font-mono text-slate-600 bg-slate-100 font-bold px-1.5 py-0.5 rounded">{agentProfile.id}</span>
+              <span className="text-[10px] font-mono text-red-200 bg-white/10 font-bold px-2 py-0.5 rounded border border-white/10">{agentProfile.id}</span>
             </div>
 
             {/* Navigation Menu: Exactly the 5 items */}
-            <div className="p-4 space-y-1">
-              <div className="px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
+            <div className="p-4 space-y-1.5">
+              <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-red-200/60">
                 Menu
               </div>
 
@@ -931,17 +1449,17 @@ export default function TeamManagement() {
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                       isActive
-                        ? 'bg-red-600 text-white shadow-md shadow-[#74111d]/25'
-                        : 'text-slate-600 hover:bg-rose-50 hover:text-[#74111d]'
+                        ? 'bg-black/30 text-white shadow-inner font-black border border-white/15'
+                        : 'text-white/85 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-center space-x-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <div className="flex items-center space-x-3">
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-red-200'}`} />
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                        isActive ? 'bg-white/25 text-white' : 'bg-black/20 text-red-100 border border-white/10'
                       }`}>
                         {item.badge}
                       </span>
@@ -953,25 +1471,25 @@ export default function TeamManagement() {
           </div>
 
           {/* Sidebar Footer */}
-          <div className="p-4 border-t border-slate-200/90 bg-slate-50/50 space-y-2 shrink-0">
+          <div className="p-4 border-t border-white/10 bg-black/20 space-y-2.5 shrink-0">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#74111d] text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                <div className="w-8 h-8 rounded-full bg-white text-[#8B0000] font-black text-xs flex items-center justify-center shadow-xs">
                   {getInitials(agentProfile.name)}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-bold text-slate-900">{agentProfile.name}</span>
-                  <span className="text-[10px] text-slate-400 truncate max-w-[130px]">{agentProfile.email}</span>
+                  <span className="text-xs font-bold text-white">{agentProfile.name}</span>
+                  <span className="text-[10px] text-red-200 truncate max-w-[130px]">{agentProfile.email}</span>
                 </div>
               </div>
-              <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-1.5 py-0.5 rounded">
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold px-1.5 py-0.5 rounded">
                 Active
               </span>
             </div>
 
             <button
               onClick={() => setAgentProfileModalOpen(true)}
-              className="w-full bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center space-x-1.5 border border-slate-200 shadow-xs cursor-pointer"
+              className="w-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2 rounded-xl transition flex items-center justify-center space-x-1.5 border border-white/15 shadow-xs cursor-pointer"
             >
               <User className="w-3.5 h-3.5" />
               <span>Agent Profile</span>
@@ -979,11 +1497,15 @@ export default function TeamManagement() {
 
             <button
               onClick={handleLogout}
-              className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-red-200 hover:border-red-300 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
+              className="w-full bg-white hover:bg-rose-50 text-[#8B0000] text-xs font-black py-2 rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Logout</span>
             </button>
+
+            <div className="pt-1 border-t border-white/10 text-[10px] text-red-200/70 text-center">
+              © 2026 BeAurex. Team Hub.
+            </div>
           </div>
         </aside>
 
@@ -1205,139 +1727,605 @@ export default function TeamManagement() {
             {activeTab === 'referral_details' && (
               <div className="space-y-6 animate-in fade-in duration-150">
                 
-                {/* Referral Link & Share Card */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-                  <h3 className="text-base font-black text-slate-900 mb-1">Your Personal Merchant Invitation Link</h3>
-                  <p className="text-xs text-slate-500 mb-4">Share this link with store owners to grant them an instant 2-day free trial and earn onboarding commissions.</p>
-                  
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 truncate select-all">
-                      {referralLink}
-                    </div>
+                {/* Referral Sub-Navigation Bar (Matching Images 2 & 3) */}
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                  <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => copyToClipboard(referralLink, 'link')}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-bold px-5 py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm shadow-red-600/20 cursor-pointer shrink-0"
+                      type="button"
+                      onClick={() => setReferralSubTab('referred_users')}
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                        referralSubTab === 'referred_users'
+                          ? 'bg-[#74111d] text-white shadow-sm'
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
                     >
-                      <Copy className="w-4 h-4" />
-                      <span>Copy Link</span>
+                      <Users className="w-4 h-4" />
+                      <span>Referred Users ({referredUsers.length})</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setReferralSubTab('bank_details')}
+                      className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                        referralSubTab === 'bank_details'
+                          ? 'bg-[#74111d] text-white shadow-sm'
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      <span>Bank Account Details</span>
+                    </button>
+                  </div>
+
+                  {/* Personal Invitation Link Quick Copy */}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[11px] font-bold text-slate-400 hidden lg:inline">Your Invite Link:</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(referralLink, 'link')}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[11px] font-bold px-3 py-1.5 rounded-xl border border-slate-300 flex items-center space-x-1.5 transition cursor-pointer"
+                      title="Copy referral link"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{agentProfile.referralCode}</span>
                     </button>
                     <a
                       href={`https://wa.me/?text=Hello!%20Get%20started%20with%20BeAurex%20QR%20Customer%20Loyalty%20for%20your%20store%20with%20a%20Free%202-Day%20Trial:%20${encodeURIComponent(referralLink)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm shadow-emerald-600/20 shrink-0"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-xs cursor-pointer"
                     >
-                      <Send className="w-4 h-4" />
-                      <span>WhatsApp Share</span>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Share</span>
                     </a>
                   </div>
                 </div>
 
-                {/* Commission Structure Banner */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
-                    <span className="text-[10px] font-black uppercase text-emerald-700 tracking-wider">Tier 1 Bonus</span>
-                    <div className="text-xl font-black text-emerald-950 mt-1">₹1,000 / Store</div>
-                    <p className="text-xs text-emerald-800 mt-1">Paid on successful merchant subscription activation</p>
-                  </div>
-                  <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5">
-                    <span className="text-[10px] font-black uppercase text-[#74111d] tracking-wider">Monthly Recurring</span>
-                    <div className="text-xl font-black text-[#5c0d16] mt-1">10% Commission</div>
-                    <p className="text-xs text-[#74111d] mt-1">Every month as long as the merchant stays active</p>
-                  </div>
-                  <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5">
-                    <span className="text-[10px] font-black uppercase text-purple-700 tracking-wider">Total Lifetime Paid</span>
-                    <div className="text-xl font-black text-purple-950 mt-1">₹21,000</div>
-                    <p className="text-xs text-purple-800 mt-1">Directly credited to verified bank account</p>
-                  </div>
-                </div>
-
-                {/* Filterable Table of Referred Merchants */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-black text-slate-900">Referred Merchant Accounts</h3>
-                      <p className="text-xs text-slate-500">Complete register of stores onboarded under your referral ID (<span className="font-mono font-bold text-[#74111d]">{agentProfile.referralCode}</span>)</p>
-                    </div>
-
-                    <div className="flex items-center space-x-2 w-full sm:w-auto">
-                      <div className="relative flex-1 sm:w-60">
-                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                        <input
-                          type="text"
-                          value={referralSearch}
-                          onChange={(e) => setReferralSearch(e.target.value)}
-                          placeholder="Search store, owner or city..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#74111d]"
-                        />
+                {/* ========================================================= */}
+                {/* VIEW 1: REFERRED USERS (Matching Image 2) */}
+                {/* ========================================================= */}
+                {referralSubTab === 'referred_users' && (
+                  <div className="space-y-6">
+                    {/* Top Stat Cards (Image 2: Total Sales & Total MW Created) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Stat Card 1: Total Sales */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#8B0000] text-white flex items-center justify-center font-black shadow-md shadow-[#74111d]/20">
+                          <Store className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-600">Total Sales</p>
+                          <h3 className="text-2xl font-black text-slate-900 mt-0.5">0</h3>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => setShowAddStoreModal(true)}
-                        className="bg-[#74111d] hover:bg-[#851421] text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Onboard Store</span>
-                      </button>
+
+                      {/* Stat Card 2: Total MW Created */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#8B0000] text-white flex items-center justify-center font-black shadow-md shadow-[#74111d]/20">
+                          <CheckCircle2 className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-600">Total MW Created</p>
+                          <h3 className="text-2xl font-black text-slate-900 mt-0.5">7</h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Table Card (Image 2: Referred Users Table) */}
+                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-black text-slate-900 tracking-tight">Referred Users</h3>
+                          <p className="text-xs text-slate-500">Live registry of accounts onboarded under your referral footprint</p>
+                        </div>
+
+                        <div className="flex items-center space-x-2 w-full sm:w-auto">
+                          <div className="relative flex-1 sm:w-64">
+                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                            <input
+                              type="text"
+                              value={referralSearch}
+                              onChange={(e) => setReferralSearch(e.target.value)}
+                              placeholder="Search user ID, email, MW ID..."
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#74111d]"
+                            />
+                          </div>
+                          <button
+                            onClick={() => setShowAddStoreModal(true)}
+                            className="bg-[#74111d] hover:bg-[#851421] text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Onboard Store</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                        <div className="overflow-x-auto">
+                          <table className="w-full min-w-[1050px] text-left text-xs border-collapse">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] font-bold select-none">
+                                <th className="py-3 px-3.5">User ID</th>
+                                <th className="py-3 px-3">MW ID/FR ID</th>
+                                <th className="py-3 px-3.5">User Email</th>
+                                <th className="py-3 px-3">User Type</th>
+                                <th className="py-3 px-3.5">User Name</th>
+                                <th className="py-3 px-3">User Number</th>
+                                <th className="py-3 px-3">Joined On</th>
+                                <th className="py-3 px-3">Date Created</th>
+                                <th className="py-3 px-3">Validity Date</th>
+                                <th className="py-3 px-3 text-center">MW Status</th>
+                                <th className="py-3 px-3 text-center">User Payment Status</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 bg-white">
+                              {referredUsers
+                                .filter(u => {
+                                  if (!referralSearch) return true;
+                                  const q = referralSearch.toLowerCase();
+                                  return (
+                                    u.id.toLowerCase().includes(q) ||
+                                    u.email.toLowerCase().includes(q) ||
+                                    u.name.toLowerCase().includes(q) ||
+                                    u.mwFrId.toLowerCase().includes(q) ||
+                                    u.number.toLowerCase().includes(q)
+                                  );
+                                })
+                                .map((u) => (
+                                  <tr key={u.id} className="hover:bg-slate-50/80 transition">
+                                    {/* 1. User ID */}
+                                    <td className="py-3.5 px-3.5 font-bold text-slate-800">
+                                      {u.id}
+                                    </td>
+
+                                    {/* 2. MW ID/FR ID (with Eye icon for links) */}
+                                    <td className="py-3.5 px-3">
+                                      {u.isMwLink ? (
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedMwPreviewModal({ isOpen: true, item: u })}
+                                          className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center space-x-1 cursor-pointer transition hover:underline"
+                                          title="View MW Website Details"
+                                        >
+                                          <Eye className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                          <span>{u.mwFrId}</span>
+                                        </button>
+                                      ) : (
+                                        <span className="font-semibold text-slate-700">{u.mwFrId}</span>
+                                      )}
+                                    </td>
+
+                                    {/* 3. User Email */}
+                                    <td className="py-3.5 px-3.5 font-mono text-slate-700 text-[11px]">
+                                      {u.email}
+                                    </td>
+
+                                    {/* 4. User Type */}
+                                    <td className="py-3.5 px-3 font-bold text-slate-800">
+                                      {u.userType}
+                                    </td>
+
+                                    {/* 5. User Name */}
+                                    <td className="py-3.5 px-3.5 font-bold text-slate-900">
+                                      {u.name}
+                                    </td>
+
+                                    {/* 6. User Number */}
+                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
+                                      {u.number}
+                                    </td>
+
+                                    {/* 7. Joined On */}
+                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
+                                      {u.joinedOn}
+                                    </td>
+
+                                    {/* 8. Date Created */}
+                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
+                                      {u.dateCreated}
+                                    </td>
+
+                                    {/* 9. Validity Date */}
+                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
+                                      {u.validityDate}
+                                    </td>
+
+                                    {/* 10. MW Status (Theme pill) */}
+                                    <td className="py-3.5 px-3 text-center">
+                                      <span className="bg-rose-50 text-[#74111d] border border-rose-200 px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap inline-block">
+                                        {u.mwStatus}
+                                      </span>
+                                    </td>
+
+                                    {/* 11. User Payment Status (Grey pill as shown in Image 2) */}
+                                    <td className="py-3.5 px-3 text-center">
+                                      <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold inline-block">
+                                        {u.paymentStatus}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  {filteredReferrals.length === 0 ? (
-                    <div className="text-center py-12 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                      <Store className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                      <h4 className="text-sm font-bold text-slate-700">No Stores Onboarded Yet</h4>
-                      <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-4">
-                        Share your referral link ({referralLink}) with merchants or click Onboard Store to record an onboarded retail shop.
-                      </p>
-                      <button
-                        onClick={() => setShowAddStoreModal(true)}
-                        className="bg-[#74111d] hover:bg-[#851421] text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer"
-                      >
-                        + Onboard Store Now
-                      </button>
+                {/* ========================================================= */}
+                {/* VIEW 2: BANK ACCOUNT DETAILS (Matching Image 3) */}
+                {/* ========================================================= */}
+                {referralSubTab === 'bank_details' && (
+                  <div className="space-y-6">
+                    {/* 4 Top Stat Cards (Matching Image 3) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Card 1: Pending Amt */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-black shadow-2xs">
+                          <Gift className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-600">Pending Amt</p>
+                          <h3 className="text-xl font-black text-slate-900 mt-0.5">₹ 0/-</h3>
+                        </div>
+                      </div>
+
+                      {/* Card 2: Total Earning */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-black shadow-2xs">
+                          <Wallet className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-600">Total Earning</p>
+                          <h3 className="text-xl font-black text-slate-900 mt-0.5">₹ 0/-</h3>
+                        </div>
+                      </div>
+
+                      {/* Card 3: Referred MW */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center font-black shadow-2xs">
+                          <Users className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-600">Referred MW</p>
+                          <h3 className="text-xl font-black text-slate-900 mt-0.5">2</h3>
+                        </div>
+                      </div>
+
+                      {/* Card 4: Referred Franchise */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-red-100 text-[#8B0000] flex items-center justify-center font-black shadow-2xs">
+                          <MapPin className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-600">Referred Franchise</p>
+                          <h3 className="text-xl font-black text-slate-900 mt-0.5">6</h3>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[750px] text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-bold">
-                            <th className="py-3 px-4">Store & Owner</th>
-                            <th className="py-3 px-4">Location</th>
-                            <th className="py-3 px-4">Onboarded</th>
-                            <th className="py-3 px-4">Subscription Plan</th>
-                            <th className="py-3 px-4 text-center">Commission</th>
-                            <th className="py-3 px-4 text-right">Payout Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {filteredReferrals.map((r) => (
-                            <tr key={r.id} className="hover:bg-slate-50/70 transition">
-                              <td className="py-3.5 px-4">
-                                <div className="font-black text-slate-900">{r.storeName}</div>
-                                <div className="text-[11px] text-slate-500">{r.owner} • {r.phone}</div>
-                              </td>
-                              <td className="py-3.5 px-4 text-slate-600">{r.city}</td>
-                              <td className="py-3.5 px-4 text-slate-500 font-medium">{r.date}</td>
-                              <td className="py-3.5 px-4">
-                                <span className="font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-lg text-[10px]">
-                                  {r.plan}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4 text-center font-black text-slate-900">{r.commission}</td>
-                              <td className="py-3.5 px-4 text-right">
-                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
-                                  r.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 
-                                  r.status === 'PROCESSING' ? 'bg-rose-100 text-[#74111d]' : 'bg-amber-100 text-amber-800'
-                                }`}>
-                                  {r.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+
+                    {/* Bank Account Details Form Card (Image 3) */}
+                    <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+                      {/* Success / Alert Toast if saved */}
+                      {bankSavedToast && (
+                        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between text-xs font-bold animate-in fade-in duration-200">
+                          <div className="flex items-center space-x-2.5">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                            <span>{bankSavedToast}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setBankSavedToast('')}
+                            className="p-1 rounded-lg text-emerald-600 hover:bg-emerald-100 transition cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Header with Title and Status */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                        <div>
+                          <div className="flex items-center space-x-2.5">
+                            <h3 className="text-lg font-black text-slate-900 tracking-tight">Bank Account Details:</h3>
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-black flex items-center space-x-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              <span>Payouts Active</span>
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Submit or update the bank account & UPI details where you want us to transfer your referral earnings.
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const profile = getInitialAgentProfile();
+                              setBankDetails({
+                                bankName: 'Kotak Mahindra Bank',
+                                accountHolderName: profile?.name || 'Ajeet Kumar',
+                                accountNumber: '921100345671',
+                                ifscCode: 'KKBK0000154',
+                                upiId: '22233@upi',
+                                upiName: profile?.name || 'Ajeet Kumar',
+                                isSaved: true
+                              });
+                              setBankSavedToast('Sample bank details filled. Click "Save Bank Details" to persist.');
+                              setTimeout(() => setBankSavedToast(''), 4000);
+                            }}
+                            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold text-xs transition cursor-pointer flex items-center space-x-1.5"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Reset Sample</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Luxury Virtual Passbook / Payout Card */}
+                      <div className="bg-gradient-to-br from-slate-900 via-[#74111d] to-slate-950 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden border border-rose-950/40">
+                        {/* Background decoration */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                        <div className="relative z-10 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2.5">
+                              <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-rose-300">
+                                <Building2 className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-black text-white tracking-wide">
+                                  {bankDetails.bankName || 'YOUR BANK NAME'}
+                                </h4>
+                                <p className="text-[10px] text-rose-200/80 font-semibold uppercase tracking-wider">
+                                  Official Payout Settlement Account
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1.5 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-3 py-1 rounded-full text-[10px] font-black">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>Direct IMPS / NEFT</span>
+                            </div>
+                          </div>
+
+                          {/* Account Number with Mask toggle */}
+                          <div className="pt-2">
+                            <div className="text-[10px] uppercase font-bold text-slate-300 tracking-wider mb-1">
+                              Account Number
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <span className="text-lg sm:text-xl font-mono font-black tracking-widest text-white">
+                                {showMaskedAccount && bankDetails.accountNumber && bankDetails.accountNumber.length > 4
+                                  ? `•••• •••• ${bankDetails.accountNumber.slice(-4)}`
+                                  : (bankDetails.accountNumber || '•••• •••• ••••')}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setShowMaskedAccount(!showMaskedAccount)}
+                                className="text-xs text-rose-200 hover:text-white underline cursor-pointer font-bold"
+                              >
+                                {showMaskedAccount ? 'Show' : 'Hide'}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Card Details Grid */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/10 text-xs">
+                            <div>
+                              <p className="text-[10px] uppercase text-rose-200/70 font-bold">Holder Name</p>
+                              <p className="font-black text-white truncate">{bankDetails.accountHolderName || '—'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase text-rose-200/70 font-bold">IFSC Code</p>
+                              <p className="font-black font-mono text-white truncate">{bankDetails.ifscCode || '—'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase text-rose-200/70 font-bold">UPI ID</p>
+                              <p className="font-black font-mono text-white truncate">{bankDetails.upiId || '—'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Interactive Editable Form */}
+                      <form onSubmit={handleSaveBankDetails} className="space-y-5 text-xs font-bold">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          {/* Col 1 */}
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>Bank Name *</span>
+                                <span className="text-[10px] font-normal text-slate-400">e.g. HDFC, SBI, Kotak</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={bankDetails.bankName}
+                                onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
+                                placeholder="e.g. Kotak Mahindra Bank"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>Bank Account Number *</span>
+                                <span className="text-[10px] font-normal text-slate-400">Numbers only</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={bankDetails.accountNumber}
+                                onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
+                                placeholder="e.g. 921100345671"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>UPI ID *</span>
+                                <span className="text-[10px] font-normal text-slate-400">e.g. user@okhdfcbank</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={bankDetails.upiId}
+                                onChange={(e) => setBankDetails({ ...bankDetails, upiId: e.target.value })}
+                                placeholder="e.g. 22233@upi"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Col 2 */}
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>Account Holder Name *</span>
+                                <span className="text-[10px] font-normal text-slate-400">As per bank passbook</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={bankDetails.accountHolderName}
+                                onChange={(e) => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
+                                placeholder="e.g. Ajeet Kumar"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>Bank IFSC Code *</span>
+                                <span className="text-[10px] font-normal text-slate-400">11-character code</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={bankDetails.ifscCode}
+                                onChange={(e) => setBankDetails({ ...bankDetails, ifscCode: e.target.value.toUpperCase() })}
+                                placeholder="e.g. KKBK0000154"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono uppercase text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>UPI Name *</span>
+                                <span className="text-[10px] font-normal text-slate-400">Registered UPI name</span>
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={bankDetails.upiName}
+                                onChange={(e) => setBankDetails({ ...bankDetails, upiName: e.target.value })}
+                                placeholder="e.g. Ajeet Kumar"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Save Action Buttons - ALWAYS VISIBLE */}
+                        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
+                          <p className="text-[11px] text-slate-500 font-normal">
+                            Changes saved here are instantly synced to your referral payout profile.
+                          </p>
+                          <div className="flex items-center space-x-2 w-full sm:w-auto">
+                            <button
+                              type="submit"
+                              className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5e0c15] text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-md shadow-[#74111d]/25 transition cursor-pointer flex items-center justify-center space-x-2"
+                            >
+                              <Save className="w-4 h-4" />
+                              <span>Save Bank Details</span>
+                            </button>
+                          </div>
+                        </div>
+                      </form>
+
+                      {/* Status Banner */}
+                      <div className="p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200/60 flex items-center space-x-3 text-xs text-slate-700">
+                        <div className="w-6 h-6 rounded-full bg-[#74111d] text-white flex items-center justify-center text-xs font-black shrink-0">
+                          ✓
+                        </div>
+                        <p className="font-medium text-slate-700">
+                          <strong className="text-slate-900">Direct Payout Settlement:</strong> All referral commission earnings are processed directly to this verified bank account via IMPS / NEFT. You can update these details anytime.
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* MODAL: MW ID PREVIEW (Eye icon in Table) */}
+                {selectedMwPreviewModal.isOpen && selectedMwPreviewModal.item && (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto p-6 sm:p-7 space-y-4">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div>
+                          <h3 className="text-base font-black text-slate-900">MW ID #{selectedMwPreviewModal.item.mwFrId} Details</h3>
+                          <p className="text-xs text-slate-500">{selectedMwPreviewModal.item.name} • {selectedMwPreviewModal.item.email}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMwPreviewModal({ isOpen: false, item: null })}
+                          className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-3 text-xs">
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">User ID:</span>
+                            <span className="font-bold text-slate-900">{selectedMwPreviewModal.item.id}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">User Type:</span>
+                            <span className="font-bold text-slate-900">{selectedMwPreviewModal.item.userType}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Phone:</span>
+                            <span className="font-mono font-bold text-slate-900">{selectedMwPreviewModal.item.number}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Joined On:</span>
+                            <span className="font-bold text-slate-900">{selectedMwPreviewModal.item.joinedOn}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Date Created:</span>
+                            <span className="font-bold text-slate-900">{selectedMwPreviewModal.item.dateCreated}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Validity Date:</span>
+                            <span className="font-bold text-slate-900">{selectedMwPreviewModal.item.validityDate}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">MW Status:</span>
+                            <span className="font-bold text-purple-700">{selectedMwPreviewModal.item.mwStatus}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500">Payment Status:</span>
+                            <span className="font-bold text-slate-700">{selectedMwPreviewModal.item.paymentStatus}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMwPreviewModal({ isOpen: false, item: null })}
+                          className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+                        >
+                          Close
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Modal: Onboard Store Referral */}
                 {showAddStoreModal && (
@@ -1487,13 +2475,13 @@ export default function TeamManagement() {
                       <p className="text-xs text-slate-500">Track and manage prospective retail stores, lead channels, and scheduled follow-ups</p>
                     </div>
 
-                    {/* + Add Customer Button (Image 2 - styled in BeAurex crimson red) */}
+                    {/* Add Customer Button (Styled in BeAurex crimson red) */}
                     <button
                       onClick={() => setShowAddCustomerModal(true)}
                       className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-md shadow-[#74111d]/25 cursor-pointer shrink-0"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>+ Add Customer</span>
+                      <span>Add Customer</span>
                     </button>
                   </div>
 
@@ -1546,11 +2534,18 @@ export default function TeamManagement() {
                           filteredCrmCustomers.map((c) => (
                             <tr key={c.id} className="hover:bg-slate-50/70 transition">
                               
-                              {/* 1. Approached For / Customer Name */}
+                              {/* 1. Approached For / Customer Name & Company Name */}
                               <td className="py-3.5 px-4 font-black text-slate-900">
                                 <div>{c.approachedFor || 'MW Sales'}</div>
-                                <div className="text-[11px] text-slate-500 font-normal">
-                                  {c.name} • <span className="font-mono text-slate-700 font-semibold">{c.phone}</span>
+                                <div className="text-[12px] text-slate-900 font-black mt-0.5">
+                                  {c.name}
+                                </div>
+                                <div className="text-[11px] font-bold text-rose-700 flex items-center space-x-1 mt-0.5">
+                                  <Building2 className="w-3 h-3 text-rose-600 inline shrink-0" />
+                                  <span>{c.companyName && c.companyName !== '—' ? c.companyName : 'No Company Name'}</span>
+                                </div>
+                                <div className="text-[10px] text-slate-500 font-normal mt-0.5">
+                                  Phone: <span className="font-mono text-slate-700 font-semibold">{c.phone}</span>
                                 </div>
                               </td>
 
@@ -1601,15 +2596,27 @@ export default function TeamManagement() {
                                 {c.lastUpdated || '09-09-2026 13:54'}
                               </td>
 
-                              {/* 10. Actions: Followup button (Image 4) */}
+                              {/* 10. Actions: Edit button & Followup button */}
                               <td className="py-3.5 px-4 text-right">
-                                <button
-                                  onClick={() => handleOpenFollowup(c)}
-                                  className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer inline-flex items-center space-x-1"
-                                >
-                                  <RotateCcw className="w-3.5 h-3.5" />
-                                  <span>Follow up</span>
-                                </button>
+                                <div className="inline-flex items-center space-x-1.5 justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenEditCustomer(c)}
+                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer inline-flex items-center space-x-1"
+                                    title="Edit Customer"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    <span>Edit</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenFollowup(c)}
+                                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer inline-flex items-center space-x-1"
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <span>Follow up</span>
+                                  </button>
+                                </div>
                               </td>
 
                             </tr>
@@ -1661,6 +2668,23 @@ export default function TeamManagement() {
                               value={quickCustomerForm.name}
                               onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, name: e.target.value })}
                               placeholder="Enter customer name"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 focus:bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        {/* 2. Company / Store Name (Positioned directly below Customer Name) */}
+                        <div>
+                          <label className="block text-slate-700 mb-1">Company Name</label>
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                              <Building2 className="w-4 h-4" />
+                            </span>
+                            <input
+                              type="text"
+                              value={quickCustomerForm.companyName}
+                              onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, companyName: e.target.value })}
+                              placeholder="Enter company / business name"
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 focus:bg-white"
                             />
                           </div>
@@ -1841,16 +2865,6 @@ export default function TeamManagement() {
                             <div className="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 animate-in fade-in duration-100">
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                  <label className="block text-slate-600 text-[11px] mb-1">Company Name</label>
-                                  <input
-                                    type="text"
-                                    value={quickCustomerForm.companyName}
-                                    onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, companyName: e.target.value })}
-                                    placeholder="e.g. Royal Sweets & Cafe"
-                                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                                  />
-                                </div>
-                                <div>
                                   <label className="block text-slate-600 text-[11px] mb-1">Website URL</label>
                                   <input
                                     type="url"
@@ -1860,9 +2874,6 @@ export default function TeamManagement() {
                                     className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
                                   />
                                 </div>
-                              </div>
-
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                   <label className="block text-slate-600 text-[11px] mb-1">Email ID</label>
                                   <input
@@ -1873,6 +2884,9 @@ export default function TeamManagement() {
                                     className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
                                   />
                                 </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                   <label className="block text-slate-600 text-[11px] mb-1">Lead Source</label>
                                   <select
@@ -1886,20 +2900,31 @@ export default function TeamManagement() {
                                     <option value="Social Media">Social Media</option>
                                   </select>
                                 </div>
-                              </div>
-
-                              <div>
-                                <label className="block text-slate-600 text-[11px] mb-1">Store Address / City</label>
-                                <input
-                                  type="text"
-                                  value={quickCustomerForm.address}
-                                  onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, address: e.target.value })}
-                                  placeholder="Full store address"
-                                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                                />
+                                <div>
+                                  <label className="block text-slate-600 text-[11px] mb-1">Store Address / City</label>
+                                  <input
+                                    type="text"
+                                    value={quickCustomerForm.address}
+                                    onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, address: e.target.value })}
+                                    placeholder="Full store address"
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                                  />
+                                </div>
                               </div>
                             </div>
                           )}
+                        </div>
+
+                        {/* Comment / Notes Section */}
+                        <div>
+                          <label className="block text-slate-700 mb-1">Comment / Notes</label>
+                          <textarea
+                            rows={2}
+                            value={quickCustomerForm.comments}
+                            onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, comments: e.target.value })}
+                            placeholder="Enter discussion notes, preliminary requirements or initial comments..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600 focus:bg-white resize-none"
+                          />
                         </div>
 
                         {/* Modal Footer Buttons */}
@@ -1920,6 +2945,208 @@ export default function TeamManagement() {
                           </button>
                         </div>
 
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ========================================================= */}
+                {/* MODAL: EDIT CUSTOMER LEAD (Requested Feature) */}
+                {/* ========================================================= */}
+                {editCustomerModal.isOpen && editCustomerModal.customer && (
+                  <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
+                            <Edit3 className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-black text-slate-900">Edit Customer Lead</h3>
+                            <p className="text-xs text-slate-500">Update details for {editCustomerModal.form.name || 'Lead'}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'MW Sales', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
+                          className="text-slate-400 hover:text-slate-700 p-1 rounded-lg cursor-pointer"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleSaveEditCustomer} className="space-y-3.5 text-xs font-bold">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 mb-1">Customer Name *</label>
+                            <input
+                              type="text"
+                              required
+                              value={editCustomerModal.form.name}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, name: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 mb-1">Company / Store Name</label>
+                            <input
+                              type="text"
+                              value={editCustomerModal.form.companyName}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, companyName: e.target.value }
+                              })}
+                              placeholder="e.g. Royal Sweets & Cafe"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 mb-1">Phone Number *</label>
+                            <input
+                              type="tel"
+                              required
+                              value={editCustomerModal.form.phone}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, phone: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-blue-600"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 mb-1">Email ID</label>
+                            <input
+                              type="email"
+                              value={editCustomerModal.form.email}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, email: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 mb-1">Approached For</label>
+                            <select
+                              value={editCustomerModal.form.approachedFor}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, approachedFor: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            >
+                              <option value="MW Sales">MW Sales</option>
+                              <option value="BeAurex Loyalty">BeAurex Loyalty</option>
+                              <option value="Standee Setup">Standee Setup</option>
+                              <option value="Digital Menu QR">Digital Menu QR</option>
+                              <option value="Custom Plan">Custom Plan</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 mb-1">Status</label>
+                            <select
+                              value={editCustomerModal.form.status}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, status: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            >
+                              {statusOptions.map((st, i) => (
+                                <option key={i} value={st}>{st}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-slate-700 mb-1">Follow-up Method</label>
+                            <select
+                              value={editCustomerModal.form.followupMethod}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, followupMethod: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            >
+                              <option value="Call">Call</option>
+                              <option value="Visit">In-Person Visit</option>
+                              <option value="WhatsApp">WhatsApp Message</option>
+                              <option value="Email">Email</option>
+                              <option value="Meeting">Meeting</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-slate-700 mb-1">Lead Source</label>
+                            <select
+                              value={editCustomerModal.form.source}
+                              onChange={(e) => setEditCustomerModal({
+                                ...editCustomerModal,
+                                form: { ...editCustomerModal.form, source: e.target.value }
+                              })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            >
+                              <option value="Direct">Direct</option>
+                              <option value="Referral">Referral</option>
+                              <option value="Walk-in">Walk-in</option>
+                              <option value="Social Media">Social Media</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 mb-1">Store Address / Location</label>
+                          <input
+                            type="text"
+                            value={editCustomerModal.form.address}
+                            onChange={(e) => setEditCustomerModal({
+                              ...editCustomerModal,
+                              form: { ...editCustomerModal.form, address: e.target.value }
+                            })}
+                            placeholder="Address..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 mb-1">Comments / Discussion Notes</label>
+                          <textarea
+                            rows={2}
+                            value={editCustomerModal.form.comments}
+                            onChange={(e) => setEditCustomerModal({
+                              ...editCustomerModal,
+                              form: { ...editCustomerModal.form, comments: e.target.value }
+                            })}
+                            placeholder="Add comments or conversation notes..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 resize-none"
+                          />
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'MW Sales', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl shadow-md shadow-blue-600/20 text-xs cursor-pointer"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
                       </form>
                     </div>
                   </div>
@@ -2087,154 +3314,806 @@ export default function TeamManagement() {
 
 
             {/* ========================================================= */}
-            {/* TAB 4: MARKETING KIT */}
+            {/* TAB 4: MARKETING KIT (EXACT IMAGE 4 IMPLEMENTATION) */}
             {/* ========================================================= */}
             {activeTab === 'marketing_kit' && (
               <div className="space-y-6 animate-in fade-in duration-150">
                 
-                {/* Intro Card */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-base font-black text-slate-900">BeAurex Field Representative Marketing Kit</h3>
-                      <p className="text-xs text-slate-500">Official promotional resources, printable standees, and pitch scripts for onboarding local retailers.</p>
+                {/* Toast Notification */}
+                {kitToast && (
+                  <div className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center justify-between animate-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center space-x-2 text-xs font-bold">
+                      <CheckCircle className="w-4 h-4 text-emerald-200" />
+                      <span>{kitToast}</span>
                     </div>
-                    <span className="bg-rose-50 text-[#74111d] border border-rose-200 text-xs font-bold px-3 py-1 rounded-full shrink-0">
-                      Print Ready Assets
-                    </span>
+                    <button onClick={() => setKitToast('')} className="text-emerald-200 hover:text-white text-xs ml-4">✕</button>
+                  </div>
+                )}
+
+                {/* Top Header Row with Back to Dashboard Button & Title */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => setActiveTab('dashboard')}
+                      className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#74111d] bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-xs transition hover:bg-slate-50 cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back to Dashboard</span>
+                    </button>
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">Marketing Kit</h2>
+                      <p className="text-xs text-slate-500">Manage promotional materials and resources for franchisees.</p>
+                    </div>
+                  </div>
+
+                  <span className="text-[11px] font-bold text-[#74111d] bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+                    Franchise Asset Hub
+                  </span>
+                </div>
+
+                {/* Sub-Tabs: MW Sales Kit (14) | Creator Kit (9) | Franchise Sales Kit (16) */}
+                <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+                  <button
+                    onClick={() => { setKitSubTab('mw_sales_kit'); setOpenFolder(null); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                      kitSubTab === 'mw_sales_kit'
+                        ? 'bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    <span>MW Sales Kit (14)</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setKitSubTab('creator_kit'); setOpenFolder(null); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                      kitSubTab === 'creator_kit'
+                        ? 'bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    <span>Creator Kit (9)</span>
+                  </button>
+
+                  <button
+                    onClick={() => { setKitSubTab('franchise_sales_kit'); setOpenFolder(null); }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                      kitSubTab === 'franchise_sales_kit'
+                        ? 'bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25'
+                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    <span>Franchise Sales Kit (16)</span>
+                  </button>
+                </div>
+
+                {/* Landing Page Themed Banner - Exact Metrics from Image 4 */}
+                <div className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] rounded-2xl p-5 text-white shadow-md border border-[#590104]">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center gap-6 text-sm sm:text-base font-extrabold divide-x divide-rose-400/30">
+                      <div className="flex items-center space-x-2">
+                        <Folder className="w-4 h-4 text-rose-200" />
+                        <span>{currentTotalFolders} Folders</span>
+                      </div>
+                      <div className="pl-6 flex items-center space-x-2">
+                        <ImageIcon className="w-4 h-4 text-rose-200" />
+                        <span>{currentImagesCount} Images</span>
+                      </div>
+                      <div className="pl-6 flex items-center space-x-2">
+                        <Video className="w-4 h-4 text-rose-200" />
+                        <span>{currentVideosCount} Videos</span>
+                      </div>
+                      <div className="pl-6 flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-rose-200" />
+                        <span>{currentFilesCount} Files</span>
+                      </div>
+                      <div className="pl-6 flex items-center space-x-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span className="text-rose-100">{currentActiveItemsCount} Active Items</span>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-rose-200 font-semibold bg-[#49070f]/70 px-3 py-1.5 rounded-lg border border-rose-300/20">
+                      All Assets Synced
+                    </div>
                   </div>
                 </div>
 
-                {/* 5 Official Marketing Assets */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  
-                  {/* Asset 1: 5x7 Acrylic Standee */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-black uppercase text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
-                          High Res Print
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">PDF • 300 DPI</span>
-                      </div>
-                      <h4 className="font-black text-slate-900 text-base mb-1">5x7 Acrylic Counter Standee</h4>
-                      <p className="text-xs text-slate-500 mb-4">
-                        Standard table standee featuring the "Scan & Win Mystery Reward" callout, QR frame, and 3-step redemption guide.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => triggerDownload('5x7 Acrylic Standee (PDF)')}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                {/* Breadcrumbs and Action Buttons Row */}
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  {/* Left: Breadcrumbs */}
+                  <div className="flex items-center space-x-2 text-xs font-black text-slate-700">
+                    <button 
+                      onClick={() => setOpenFolder(null)}
+                      className="hover:text-[#74111d] transition flex items-center space-x-1 cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download Standee PDF (300 DPI)</span>
+                      <span>🏠 {currentKit.title}</span>
                     </button>
+                    {openFolder && (
+                      <>
+                        <span className="text-slate-400">/</span>
+                        <span className="text-[#74111d] flex items-center space-x-1">
+                          <Folder className="w-3.5 h-3.5 text-amber-500 fill-amber-400 inline" />
+                          <span>{openFolder}</span>
+                        </span>
+                      </>
+                    )}
                   </div>
 
-                  {/* Asset 2: Merchant Pitch Deck */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-black uppercase text-[#74111d] bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
-                          Sales Slide Deck
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">12 Slides • PDF</span>
-                      </div>
-                      <h4 className="font-black text-slate-900 text-base mb-1">Retailer Onboarding Pitch Deck</h4>
-                      <p className="text-xs text-slate-500 mb-4">
-                        Visually compelling pitch presentation explaining why digital loyalty beats paper punch cards and boosts repeat visits by 42%.
-                      </p>
-                    </div>
+                  {/* Right: Action Buttons (+ Add Folder, + Add Images, + Add Video Link, Upload Video, + Add File) */}
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
-                      onClick={() => triggerDownload('Merchant Onboarding Pitch Deck (PDF)')}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                      onClick={() => setAddFolderModalOpen(true)}
+                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download Pitch Deck (PDF)</span>
+                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
+                      <span>Add Folder</span>
                     </button>
-                  </div>
-
-                  {/* Asset 3: WhatsApp Pitch Script */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-slate-300 transition md:col-span-2">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
-                          Direct Outreach Script
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">Instant Copy</span>
-                      </div>
-                      <h4 className="font-black text-slate-900 text-base mb-1">WhatsApp Store Owner Outreach Script</h4>
-                      <p className="text-xs text-slate-500 mb-3">
-                        Pre-tested high-converting message script to send to cafe, restaurant, salon, and grocery store owners.
-                      </p>
-                      
-                      <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 font-sans text-xs text-slate-700 leading-relaxed mb-4">
-                        "Namaste! 🙏 Are you looking to turn walk-in customers into regular weekly visitors for your store? 
-                        <br /><br />
-                        With <strong>BeAurex QR Loyalty</strong>, your customers scan a table standee to scratch mystery reward coupons on their phone — with zero app download and zero cashier headache.
-                        <br /><br />
-                        👉 <strong>Claim your 2-Day Free Trial Standee:</strong> {referralLink}
-                        <br />
-                        Let me know and I will drop by to deliver your acrylic standee tomorrow!"
-                      </div>
-                    </div>
 
                     <button
-                      onClick={() => copyToClipboard(`Namaste! Are you looking to turn walk-in customers into regular weekly visitors? With BeAurex QR Loyalty, customers scan to win mystery rewards on their phones with zero app download. Claim your Free 2-Day Trial: ${referralLink}`, 'script')}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-sm shadow-emerald-600/20"
+                      onClick={() => {
+                        setNewImageForm({ name: '', targetFolder: openFolder || (currentFolders[0]?.name || ''), size: '2.5 MB', res: '300 DPI High-Res' });
+                        setAddImagesModalOpen(true);
+                      }}
+                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
                     >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy WhatsApp Pitch Script</span>
+                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
+                      <span>Add Images</span>
                     </button>
-                  </div>
 
-                  {/* Asset 4: Table Tent & Window Sticker */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-black uppercase text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                          Storefront Asset
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">PNG • Vector</span>
-                      </div>
-                      <h4 className="font-black text-slate-900 text-base mb-1">Window & Door "Scan to Win" Stickers</h4>
-                      <p className="text-xs text-slate-500 mb-4">
-                        Eye-catching round vinyl sticker design for glass entrance doors to attract pedestrians into the store.
-                      </p>
-                    </div>
                     <button
-                      onClick={() => triggerDownload('Storefront Window Stickers (PNG)')}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                      onClick={() => {
+                        setNewVideoLinkForm({ name: '', url: '', targetFolder: openFolder || (currentFolders[0]?.name || '') });
+                        setAddVideoLinkModalOpen(true);
+                      }}
+                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download Sticker Pack</span>
+                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
+                      <span>Add Video Link</span>
                     </button>
-                  </div>
 
-                  {/* Asset 5: ROI Calculator One-Pager */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-black uppercase text-purple-600 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-full">
-                          Merchant Brochure
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">1-Page • PDF</span>
-                      </div>
-                      <h4 className="font-black text-slate-900 text-base mb-1">Merchant ROI Comparison Sheet</h4>
-                      <p className="text-xs text-slate-500 mb-4">
-                        Side-by-side cost breakdown comparing paper punch cards vs WhatsApp marketing vs BeAurex automated loyalty.
-                      </p>
-                    </div>
                     <button
-                      onClick={() => triggerDownload('Merchant ROI Comparison Sheet (PDF)')}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                      onClick={() => {
+                        setUploadVideoForm({ name: '', size: '25 MB', targetFolder: openFolder || (currentFolders[0]?.name || '') });
+                        setUploadVideoModalOpen(true);
+                      }}
+                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download ROI One-Pager</span>
+                      <Upload className="w-3.5 h-3.5 text-[#74111d]" />
+                      <span>Upload Video</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setNewFileForm({ name: '', size: '1.5 MB', ext: 'PDF', targetFolder: openFolder || (currentFolders[0]?.name || '') });
+                        setAddFileModalOpen(true);
+                      }}
+                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
+                      <span>Add File</span>
                     </button>
                   </div>
-
                 </div>
+
+                {/* Content View: Folders Grid OR Folder Contents */}
+                {openFolder === null ? (
+                  /* ================= FOLDER CARDS GRID ================= */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-slate-900 tracking-tight">Folders ({currentFolders.length})</h3>
+                      <span className="text-xs text-slate-400">Click any folder to view and download assets</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {currentFolders.map((folder) => {
+                        const itemCount = (folder.items || []).length;
+                        return (
+                          <div
+                            key={folder.id}
+                            onClick={() => setOpenFolder(folder.name)}
+                            className="group bg-white rounded-2xl p-5 border border-slate-200 hover:border-rose-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between relative"
+                          >
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="w-12 h-12 rounded-xl bg-amber-50 group-hover:bg-rose-50 flex items-center justify-center transition border border-amber-200/60 group-hover:border-rose-200">
+                                <Folder className="w-7 h-7 text-amber-500 fill-amber-400 group-hover:text-[#74111d] group-hover:fill-[#8B0000] transition" />
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
+                                0 sub • {itemCount} items
+                              </span>
+                            </div>
+
+                            <div>
+                              <h4 className="text-base font-black text-slate-900 group-hover:text-[#74111d] transition truncate">
+                                {folder.name}
+                              </h4>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {folder.name === 'Document' ? 'Official Franchise agreements & forms' : 'High resolution promotional designs'}
+                              </p>
+                            </div>
+
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#74111d]">
+                              <span>Open Folder</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  /* ================= FOLDER ITEMS VIEW ================= */
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between bg-rose-50/70 border border-rose-200 rounded-2xl px-5 py-3">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => setOpenFolder(null)}
+                          className="bg-white hover:bg-rose-50 text-[#74111d] text-xs font-black px-3 py-1.5 rounded-xl border border-rose-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                        >
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                          <span>Back to Folders</span>
+                        </button>
+                        <div>
+                          <h3 className="text-sm font-black text-slate-900 flex items-center space-x-2">
+                            <Folder className="w-4 h-4 text-amber-500 fill-amber-400 inline" />
+                            <span>{openFolder}</span>
+                          </h3>
+                          <p className="text-[11px] text-[#74111d] font-semibold">
+                            {currentFolders.find(f => f.name === openFolder)?.items?.length || 0} items in this folder
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            showKitToast(`All assets in "${openFolder}" queued for zip download`);
+                          }}
+                          className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download All (.zip)</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Items Grid */}
+                    {(() => {
+                      const activeFolderObj = currentFolders.find(f => f.name === openFolder);
+                      const folderItems = activeFolderObj?.items || [];
+
+                      if (folderItems.length === 0) {
+                        return (
+                          <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+                            <Folder className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                            <h4 className="text-sm font-bold text-slate-700">This folder is currently empty</h4>
+                            <p className="text-xs text-slate-400 mt-1 mb-4">Upload images, documents or video assets into this folder.</p>
+                            <button
+                              onClick={() => {
+                                setNewImageForm({ name: '', targetFolder: openFolder, size: '2.5 MB', res: '300 DPI High-Res' });
+                                setAddImagesModalOpen(true);
+                              }}
+                              className="bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-xs"
+                            >
+                              + Add Asset Now
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {folderItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="bg-white rounded-2xl border border-slate-200 hover:border-slate-300 hover:shadow-md transition p-4 flex flex-col justify-between"
+                            >
+                              <div>
+                                {/* Icon / Preview banner */}
+                                <div className="h-32 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center p-3 text-center mb-3 relative overflow-hidden group">
+                                  {item.type === 'image' ? (
+                                    <>
+                                      <div className="w-12 h-12 rounded-full bg-rose-100 text-[#74111d] flex items-center justify-center mb-2">
+                                        <ImageIcon className="w-6 h-6" />
+                                      </div>
+                                      <span className="text-[10px] font-black uppercase tracking-wider text-[#74111d] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                        {item.ext || 'PNG'}
+                                      </span>
+                                    </>
+                                  ) : item.type === 'video' ? (
+                                    <>
+                                      <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-700 mb-2">
+                                        <Play className="w-6 h-6 fill-rose-600" />
+                                      </div>
+                                      <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                        {item.ext || 'VIDEO'}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 mb-2">
+                                        <FileText className="w-6 h-6" />
+                                      </div>
+                                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                        {item.ext || 'PDF'}
+                                      </span>
+                                    </>
+                                  )}
+
+                                  {/* Quick Preview Hover Overlay */}
+                                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center space-x-2">
+                                    <button
+                                      onClick={() => setPreviewKitItem(item)}
+                                      className="bg-white text-slate-900 text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm hover:bg-slate-100 cursor-pointer flex items-center space-x-1"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>Preview</span>
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <h4 className="text-xs font-black text-slate-900 truncate mb-1" title={item.name}>
+                                  {item.name}
+                                </h4>
+
+                                <div className="flex items-center justify-between text-[11px] text-slate-400 mb-3">
+                                  <span>{item.size || '1.5 MB'}</span>
+                                  <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                    {item.res || item.date || '300 DPI'}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Card Actions */}
+                              <div className="pt-3 border-t border-slate-100 flex items-center space-x-1.5">
+                                <button
+                                  onClick={() => setPreviewKitItem(item)}
+                                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-1.5 rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer"
+                                >
+                                  <Eye className="w-3 h-3" />
+                                  <span>View</span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    triggerDownload(item.name);
+                                    showKitToast(`Downloaded ${item.name}`);
+                                  }}
+                                  className="flex-1 bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-bold py-1.5 rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer shadow-xs"
+                                >
+                                  <Download className="w-3 h-3" />
+                                  <span>Download</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleDeleteKitItem(openFolder, item.id)}
+                                  title="Delete Asset"
+                                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                {/* ================= MODAL 1: ADD FOLDER ================= */}
+                {addFolderModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Folder className="w-5 h-5 text-[#74111d]" />
+                          <h3 className="text-base font-black text-slate-900">Create New Folder</h3>
+                        </div>
+                        <button onClick={() => setAddFolderModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+                      </div>
+
+                      <form onSubmit={handleCreateFolder} className="space-y-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Folder Name *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Social Media Banners, Retail Pitch Guides"
+                            value={newFolderName}
+                            onChange={(e) => setNewFolderName(e.target.value)}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          />
+                        </div>
+
+                        <p className="text-[11px] text-slate-400">
+                          This folder will be added to <strong>{currentKit.title}</strong> and visible to all field representatives.
+                        </p>
+
+                        <div className="pt-2 flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setAddFolderModalOpen(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                          >
+                            Create Folder
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= MODAL 2: ADD IMAGES ================= */}
+                {addImagesModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <ImageIcon className="w-5 h-5 text-[#74111d]" />
+                          <h3 className="text-base font-black text-slate-900">Add Images to Marketing Kit</h3>
+                        </div>
+                        <button onClick={() => setAddImagesModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+                      </div>
+
+                      <form onSubmit={handleAddImage} className="space-y-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Image Title / Name *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. 5x7 Counter Standee QR.png"
+                            value={newImageForm.name}
+                            onChange={(e) => setNewImageForm({ ...newImageForm, name: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Select Target Folder</label>
+                          <select
+                            value={newImageForm.targetFolder}
+                            onChange={(e) => setNewImageForm({ ...newImageForm, targetFolder: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          >
+                            {currentFolders.map(f => (
+                              <option key={f.id} value={f.name}>{f.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-bold text-slate-700 mb-1 block">File Size</label>
+                            <input
+                              type="text"
+                              value={newImageForm.size}
+                              onChange={(e) => setNewImageForm({ ...newImageForm, size: e.target.value })}
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-slate-700 mb-1 block">Resolution / Tag</label>
+                            <input
+                              type="text"
+                              value={newImageForm.res}
+                              onChange={(e) => setNewImageForm({ ...newImageForm, res: e.target.value })}
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50">
+                          <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                          <span className="text-xs font-bold text-slate-600 block">Drag & drop PNG/JPG or click to browse</span>
+                          <span className="text-[10px] text-slate-400">High resolution 300 DPI recommended for print</span>
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setAddImagesModalOpen(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                          >
+                            Add Image
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= MODAL 3: ADD VIDEO LINK ================= */}
+                {addVideoLinkModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Video className="w-5 h-5 text-[#74111d]" />
+                          <h3 className="text-base font-black text-slate-900">Add Video Link</h3>
+                        </div>
+                        <button onClick={() => setAddVideoLinkModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+                      </div>
+
+                      <form onSubmit={handleAddVideoLink} className="space-y-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Video Title *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. How to Pitch BeAurex to Retailers (Walkthrough)"
+                            value={newVideoLinkForm.name}
+                            onChange={(e) => setNewVideoLinkForm({ ...newVideoLinkForm, name: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Video URL (YouTube, Vimeo, Loom) *</label>
+                          <input
+                            type="url"
+                            required
+                            placeholder="https://youtube.com/watch?v=..."
+                            value={newVideoLinkForm.url}
+                            onChange={(e) => setNewVideoLinkForm({ ...newVideoLinkForm, url: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Select Target Folder</label>
+                          <select
+                            value={newVideoLinkForm.targetFolder}
+                            onChange={(e) => setNewVideoLinkForm({ ...newVideoLinkForm, targetFolder: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          >
+                            {currentFolders.map(f => (
+                              <option key={f.id} value={f.name}>{f.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setAddVideoLinkModalOpen(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                          >
+                            Add Video Link
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= MODAL 4: UPLOAD VIDEO ================= */}
+                {uploadVideoModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Upload className="w-5 h-5 text-[#74111d]" />
+                          <h3 className="text-base font-black text-slate-900">Upload Video Asset</h3>
+                        </div>
+                        <button onClick={() => setUploadVideoModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+                      </div>
+
+                      <form onSubmit={handleUploadVideo} className="space-y-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Video Title / File Name *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. BeAurex Loyalty Demo 1080p.mp4"
+                            value={uploadVideoForm.name}
+                            onChange={(e) => setNewImageForm({ ...uploadVideoForm, name: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Select Target Folder</label>
+                          <select
+                            value={uploadVideoForm.targetFolder}
+                            onChange={(e) => setUploadVideoForm({ ...uploadVideoForm, targetFolder: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          >
+                            {currentFolders.map(f => (
+                              <option key={f.id} value={f.name}>{f.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50">
+                          <Video className="w-6 h-6 text-slate-400 mx-auto mb-1" />
+                          <span className="text-xs font-bold text-slate-600 block">Select MP4, MOV or WebM video file</span>
+                          <span className="text-[10px] text-slate-400">Max size 250 MB</span>
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setUploadVideoModalOpen(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                          >
+                            Upload Video
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= MODAL 5: ADD FILE ================= */}
+                {addFileModalOpen && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <FileText className="w-5 h-5 text-[#74111d]" />
+                          <h3 className="text-base font-black text-slate-900">Add File Resource</h3>
+                        </div>
+                        <button onClick={() => setAddFileModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+                      </div>
+
+                      <form onSubmit={handleAddFile} className="space-y-4">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">File Name *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Merchant Onboarding Guide 2026.pdf"
+                            value={newFileForm.name}
+                            onChange={(e) => setNewFileForm({ ...newFileForm, name: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-bold text-slate-700 mb-1 block">File Type</label>
+                            <select
+                              value={newFileForm.ext}
+                              onChange={(e) => setNewFileForm({ ...newFileForm, ext: e.target.value })}
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            >
+                              <option value="PDF">PDF Document</option>
+                              <option value="DOCX">Word Document (.docx)</option>
+                              <option value="XLSX">Spreadsheet (.xlsx)</option>
+                              <option value="ZIP">Archive (.zip)</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-slate-700 mb-1 block">Estimated Size</label>
+                            <input
+                              type="text"
+                              value={newFileForm.size}
+                              onChange={(e) => setNewFileForm({ ...newFileForm, size: e.target.value })}
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Select Target Folder</label>
+                          <select
+                            value={newFileForm.targetFolder}
+                            onChange={(e) => setNewFileForm({ ...newFileForm, targetFolder: e.target.value })}
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                          >
+                            {currentFolders.map(f => (
+                              <option key={f.id} value={f.name}>{f.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="pt-2 flex items-center justify-end space-x-2">
+                          <button
+                            type="button"
+                            onClick={() => setAddFileModalOpen(false)}
+                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                          >
+                            Upload File
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                {/* ================= MODAL 6: PREVIEW ITEM MODAL ================= */}
+                {previewKitItem && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                        <div className="flex items-center space-x-2">
+                          {previewKitItem.type === 'image' ? (
+                            <ImageIcon className="w-5 h-5 text-[#74111d]" />
+                          ) : previewKitItem.type === 'video' ? (
+                            <Video className="w-5 h-5 text-rose-700" />
+                          ) : (
+                            <FileText className="w-5 h-5 text-amber-700" />
+                          )}
+                          <h3 className="text-sm font-black text-slate-900 truncate max-w-xs">{previewKitItem.name}</h3>
+                        </div>
+                        <button onClick={() => setPreviewKitItem(null)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+                      </div>
+
+                      {/* Preview Graphic Canvas */}
+                      <div className="rounded-2xl bg-gradient-to-br from-[#450103] via-[#690005] to-[#260102] p-6 text-center text-white mb-4 relative overflow-hidden flex flex-col items-center justify-center min-h-[220px]">
+                        <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-3 border border-white/20">
+                          {previewKitItem.type === 'image' ? (
+                            <ImageIcon className="w-8 h-8 text-rose-200" />
+                          ) : previewKitItem.type === 'video' ? (
+                            <Play className="w-8 h-8 text-rose-300 fill-rose-300" />
+                          ) : (
+                            <FileText className="w-8 h-8 text-amber-300" />
+                          )}
+                        </div>
+                        <h4 className="font-extrabold text-sm mb-1">{previewKitItem.name}</h4>
+                        <span className="text-[11px] font-mono text-rose-200">
+                          {previewKitItem.ext} • {previewKitItem.size} • {previewKitItem.res || 'High-Resolution Asset'}
+                        </span>
+                        <div className="mt-4 inline-flex items-center space-x-1.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/30">
+                          <CheckCircle className="w-3 h-3" />
+                          <span>Official Verified BeAurex Marketing Material</span>
+                        </div>
+                      </div>
+
+                      {/* Modal Actions */}
+                      <div className="flex items-center justify-end space-x-3 pt-2">
+                        <button
+                          onClick={() => setPreviewKitItem(null)}
+                          className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                        >
+                          Close
+                        </button>
+                        <button
+                          onClick={() => {
+                            triggerDownload(previewKitItem.name);
+                            showKitToast(`Downloaded ${previewKitItem.name}`);
+                            setPreviewKitItem(null);
+                          }}
+                          className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-extrabold px-5 py-2 rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span>Download Asset</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               </div>
             )}
@@ -2245,23 +4124,49 @@ export default function TeamManagement() {
             {activeTab === 'id_card' && (
               <div className="space-y-6 animate-in fade-in duration-150">
                 
+                {/* Hidden photo input */}
+                <input 
+                  type="file" 
+                  ref={photoInputRef} 
+                  accept="image/*" 
+                  onChange={handlePhotoUpload} 
+                  className="hidden" 
+                />
+
                 <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-black text-slate-900">Official Field Representative Identification</h3>
                     <p className="text-xs text-slate-500">Authorized digital credential for in-person retail merchant visits and onboarding</p>
                   </div>
 
-                  <div className="flex items-center space-x-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => photoInputRef.current?.click()}
+                      className="bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-red-200 shadow-xs"
+                      title="Upload custom ID photo"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>{agentPhoto ? 'Change Photo' : 'Upload Photo'}</span>
+                    </button>
+                    {agentPhoto && (
+                      <button
+                        onClick={handleRemovePhoto}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold px-2.5 py-2.5 rounded-xl transition cursor-pointer"
+                        title="Remove uploaded photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <button
                       onClick={() => window.print()}
-                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
                     >
                       <Printer className="w-3.5 h-3.5" />
-                      <span>Print ID Card</span>
+                      <span>Print ID</span>
                     </button>
                     <button
                       onClick={() => triggerDownload('Digital ID Card Badge')}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm shadow-red-600/20"
+                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm shadow-red-600/20"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Save Badge</span>
@@ -2278,8 +4183,8 @@ export default function TeamManagement() {
                       <div className="w-14 h-2 bg-slate-300 rounded-full"></div>
                     </div>
 
-                    {/* Badge Header with Red Gradient */}
-                    <div className="bg-gradient-to-br from-red-600 to-rose-700 p-6 text-white text-center relative overflow-hidden">
+                    {/* Badge Header with Brand Red Gradient */}
+                    <div className="bg-gradient-to-br from-[#74111d] via-[#851421] to-[#590d16] p-6 text-white text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
                       
                       <div className="flex items-center justify-center space-x-2 mb-2">
@@ -2299,13 +4204,43 @@ export default function TeamManagement() {
                     {/* Agent Avatar & Core Info */}
                     <div className="p-6 text-center space-y-4">
                       
-                      {/* Photo Avatar */}
-                      <div className="relative inline-block">
-                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-700 text-white text-2xl font-black flex items-center justify-center mx-auto shadow-md border-4 border-white">
-                          AS
+                      {/* Photo Avatar with Upload Trigger */}
+                      <div className="relative inline-block group">
+                        <div 
+                          onClick={() => photoInputRef.current?.click()}
+                          className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-700 text-white text-2xl font-black flex items-center justify-center mx-auto shadow-md border-4 border-white overflow-hidden cursor-pointer relative"
+                          title="Click to change photo"
+                        >
+                          {agentPhoto ? (
+                            <img 
+                              src={agentPhoto} 
+                              alt={agentProfile.name} 
+                              className="w-full h-full object-cover" 
+                            />
+                          ) : (
+                            getInitials(agentProfile.name)
+                          )}
+
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center text-[10px] font-bold">
+                            <Camera className="w-5 h-5 mb-0.5" />
+                            <span>Upload</span>
+                          </div>
                         </div>
-                        <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1 rounded-full border-2 border-white" title="Active Credential">
-                          <CheckCircle2 className="w-4 h-4" />
+
+                        {/* Camera Floating Button */}
+                        <button
+                          type="button"
+                          onClick={() => photoInputRef.current?.click()}
+                          className="absolute -bottom-2 -right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-xl border-2 border-white shadow-md transition cursor-pointer"
+                          title="Upload / Change Photo"
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Active Credential Badge */}
+                        <div className="absolute -top-1 -right-1 bg-emerald-500 text-white p-1 rounded-full border-2 border-white shadow-xs" title="Active Credential">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                         </div>
                       </div>
 
@@ -2316,12 +4251,64 @@ export default function TeamManagement() {
                         <p className="text-[11px] text-slate-400 font-mono mt-1">ID: {agentProfile.id}</p>
                       </div>
 
-                      {/* QR Code Verification Frame */}
-                      <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center justify-center space-y-2">
-                        <div className="w-28 h-28 bg-white border border-slate-200 rounded-xl p-2 flex items-center justify-center shadow-xs">
-                          <QrCode className="w-24 h-24 text-slate-900" />
+                      {/* Security IC Chip & Authenticity Badge (Replaces old QR code) */}
+                      <div className="bg-gradient-to-r from-amber-50 via-slate-50 to-amber-50/60 p-4 border border-amber-200/80 rounded-2xl flex items-center justify-between shadow-xs">
+                        <div className="flex items-center space-x-3">
+                          {/* Gold Metallic Smart Chip Graphic */}
+                          <div className="w-12 h-9 rounded-lg bg-gradient-to-br from-amber-300 via-amber-200 to-amber-400 border border-amber-500/40 p-1.5 shadow-inner relative flex flex-col justify-between overflow-hidden">
+                            <div className="w-full h-0.5 bg-amber-600/40"></div>
+                            <div className="flex justify-between items-center h-full my-0.5">
+                              <div className="w-2.5 h-full border-r border-amber-600/40"></div>
+                              <div className="w-2.5 h-full border-l border-amber-600/40"></div>
+                            </div>
+                            <div className="w-full h-0.5 bg-amber-600/40"></div>
+                          </div>
+                          <div className="text-left">
+                            <div className="flex items-center space-x-1.5">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                              <span className="text-[11px] font-black uppercase tracking-wider text-slate-800">Tamper-Proof ID</span>
+                            </div>
+                            <span className="text-[10px] text-slate-500 font-mono">SEC-UID: BX9042-AUTH</span>
+                          </div>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-500">Scan to Verify Authorization</span>
+                        {/* Holographic Seal badge */}
+                        <div className="px-2.5 py-1 bg-gradient-to-tr from-amber-500 to-amber-300 text-amber-950 text-[9px] font-black uppercase rounded-lg shadow-xs tracking-wider flex items-center space-x-1 border border-amber-300">
+                          <Award className="w-3 h-3 text-amber-900" />
+                          <span>Verified</span>
+                        </div>
+                      </div>
+
+                      {/* Security Barcode Strip & Digital Signature Block */}
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                        {/* Barcode representation */}
+                        <div className="flex flex-col items-center justify-center space-y-1">
+                          <div className="h-8 flex items-center space-x-[2px] opacity-80 px-2 py-0.5 bg-white rounded border border-slate-200">
+                            {[4,2,6,1,3,5,2,4,1,6,3,2,5,1,4,3,2,6,1,5,2,4,3,1,5,2,6,3,1,4,2,5].map((w, i) => (
+                              <div 
+                                key={i} 
+                                className={`h-full bg-slate-900 ${i % 3 === 0 ? 'opacity-100' : 'opacity-70'}`} 
+                                style={{ width: `${(w % 3) + 1.5}px` }}
+                              />
+                            ))}
+                          </div>
+                          <span className="font-mono text-[9px] tracking-widest text-slate-500 font-bold uppercase">
+                            AUTH-SERIAL: {agentProfile.id} • SECURE-NFC
+                          </span>
+                        </div>
+
+                        {/* Authorizing Signature */}
+                        <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
+                          <div className="text-left">
+                            <span className="text-[8px] uppercase tracking-wider text-slate-400 font-bold block">Authorizing Officer</span>
+                            <span className="font-serif italic text-xs font-bold text-slate-800 tracking-wide select-none">
+                              K. Singhania
+                            </span>
+                            <span className="text-[8px] text-slate-400 block -mt-0.5">Dir. Field Operations</span>
+                          </div>
+                          <div className="w-10 h-10 rounded-full border border-red-200 bg-red-50 flex items-center justify-center text-[7px] font-black text-red-600 text-center leading-tight uppercase p-1">
+                            OFFICIAL SEAL
+                          </div>
+                        </div>
                       </div>
 
                       {/* Details Grid */}
@@ -2396,8 +4383,12 @@ export default function TeamManagement() {
 
               {/* Avatar & Header */}
               <div className="p-6 text-center border-b border-slate-100 bg-slate-50/50">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#74111d] to-[#851421] text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#74111d]/30">
-                  {getInitials(agentProfile.name)}
+                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#74111d] to-[#851421] text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#74111d]/30 overflow-hidden border-2 border-white">
+                  {agentPhoto ? (
+                    <img src={agentPhoto} alt={agentProfile.name} className="w-full h-full object-cover" />
+                  ) : (
+                    getInitials(agentProfile.name)
+                  )}
                 </div>
 
                 <h4 className="text-xl font-black text-slate-900">
