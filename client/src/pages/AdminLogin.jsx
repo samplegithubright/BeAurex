@@ -479,30 +479,6 @@ export default function AdminLogin() {
                     </button>
                   </div>
 
-                  {/* Divider: or */}
-                  <div className="relative py-2">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-200"></div>
-                    </div>
-                    <div className="relative flex justify-center text-xs">
-                      <span className="bg-white px-3 text-slate-400 font-medium">or</span>
-                    </div>
-                  </div>
-
-                  {/* Step 7: Secure Admin Access Outline Button */}
-                  <div className="flex items-center space-x-3">
-                    <span className="w-6 h-6 rounded-full bg-[#8B0000] text-white text-xs font-black flex items-center justify-center shrink-0">
-                      7
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/admin')}
-                      className="flex-1 border-2 border-[#8B0000] hover:bg-red-50/60 text-[#8B0000] font-extrabold py-3 rounded-xl transition cursor-pointer text-xs flex items-center justify-center space-x-2 shadow-xs"
-                    >
-                      <Shield className="w-4 h-4 text-[#8B0000]" />
-                      <span>Secure Admin Access</span>
-                    </button>
-                  </div>
                 </form>
               )}
 
