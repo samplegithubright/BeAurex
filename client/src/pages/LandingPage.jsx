@@ -203,9 +203,11 @@ export default function LandingPage() {
           
           {/* Brand Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B0000] via-[#a30b17] to-[#ef4444] flex items-center justify-center text-white shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300">
-              <QrCode className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src="/beaurex-icon.jpg" 
+              alt="BeAurex Logo" 
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
+            />
             <div className="flex flex-col">
               <span className="text-xl sm:text-2xl font-bold tracking-tight leading-none text-slate-900">
                 BeAurex
@@ -291,10 +293,8 @@ export default function LandingPage() {
       <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 text-center relative">
         
         {/* Top Tagline */}
-        <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200/80 text-[#8B0000] font-semibold text-xs uppercase px-4 py-1.5 rounded-full mb-6">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-amber-400 to-rose-500 flex items-center justify-center text-white shrink-0">
-            <Sparkles className="w-2.5 h-2.5" />
-          </div>
+        <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200/80 text-[#8B0000] font-semibold text-xs uppercase px-3.5 py-1.5 rounded-full mb-6 shadow-xs">
+          <img src="/beaurex-icon.jpg" alt="BeAurex" className="w-4 h-4 rounded-sm object-cover shrink-0" />
           <span>India's Leading Counter Retention Engine</span>
         </div>
 
@@ -347,9 +347,11 @@ export default function LandingPage() {
           </picture>
           <div className="mt-3 sm:mt-0 sm:absolute sm:bottom-6 sm:left-10 sm:right-10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-4 shadow-xl text-left">
             <div className="flex items-center space-x-3 w-full sm:w-auto">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 via-[#8B0000] to-[#590104] text-white flex items-center justify-center font-bold shadow-md shadow-red-950/20 shrink-0">
-                <Store className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/beaurex-icon.jpg" 
+                alt="BeAurex Standee" 
+                className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 shrink-0"
+              />
               <div>
                 <div className="font-bold text-sm text-slate-900">Custom Acrylic Counter Standees</div>
                 <div className="text-xs text-slate-500 font-medium">Download print-ready vector 5x7" counter templates instantly</div>
@@ -1110,9 +1112,11 @@ export default function LandingPage() {
             {/* Brand Column */}
             <div className="lg:col-span-2 space-y-4">
               <Link to="/" className="flex items-center space-x-3 group inline-flex">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B0000] via-[#a30b17] to-[#ef4444] flex items-center justify-center text-white shadow-md shadow-red-950/40">
-                  <QrCode className="w-6 h-6 text-white" />
-                </div>
+                <img 
+                  src="/beaurex-icon.jpg" 
+                  alt="BeAurex Logo" 
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/40 group-hover:scale-105 transition-all duration-300"
+                />
                 <div className="flex flex-col">
                   <span className="text-2xl font-bold tracking-tight leading-none text-white">
                     BeAurex
@@ -1247,9 +1251,11 @@ export default function LandingPage() {
             </button>
 
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#74111d] to-[#981b2a] flex items-center justify-center text-white font-bold text-xl shadow-md shadow-[#74111d]/30">
-                B
-              </div>
+              <img 
+                src="/beaurex-icon.jpg" 
+                alt="BeAurex Logo" 
+                className="w-10 h-10 rounded-xl object-cover shadow-md shadow-[#74111d]/30 shrink-0"
+              />
               <div>
                 <h3 className="font-bold text-lg text-slate-900">Activate 3-Day Free Trial</h3>
                 <p className="text-xs text-slate-500">No payment required • Instant BeAurex access</p>

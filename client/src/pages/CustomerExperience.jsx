@@ -604,26 +604,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   if (slug && !isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
-              <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
+        <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
+                <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
+                  Be<span className="text-[#74111d]">Aurex</span>
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Counter Scan &amp; Earn
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
-                Be<span className="text-[#74111d]">Aurex</span>
-              </span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Counter Scan &amp; Earn
-              </span>
-            </div>
+            <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition">
+              Home
+            </Link>
           </div>
-          <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800">
-            Home
-          </Link>
         </header>
 
-        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
+        <main className="flex-1 max-w-md sm:max-w-lg lg:max-w-xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
           <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xl space-y-5 text-center">
             
             {/* Store Badge */}
@@ -761,26 +763,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
-        <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
-              <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
+        <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
+                <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
+                  Be<span className="text-[#74111d]">Aurex</span>
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  Customer Rewards Portal
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
-                Be<span className="text-[#74111d]">Aurex</span>
-              </span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Customer Rewards Portal
-              </span>
-            </div>
+            <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition">
+              Back to Home
+            </Link>
           </div>
-          <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800">
-            Back to Home
-          </Link>
         </header>
 
-        <main className="flex-1 max-w-md w-full mx-auto p-4 flex flex-col justify-center">
+        <main className="flex-1 max-w-md sm:max-w-lg lg:max-w-xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
           <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
             
             {/* Header Icon & Title */}
@@ -1151,7 +1155,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // MAIN APP CONTAINER (Screens 5, 6, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white pb-20">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white pb-24 md:pb-8">
       
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 16: SPLASH SCREEN (Batch 5) */}
@@ -1237,18 +1241,175 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
+      {/* DESKTOP & TABLET TOP NAVIGATION BAR (Visible on md/lg screens) */}
+      {/* ------------------------------------------------------------------- */}
+      <header className="bg-white border-b border-slate-200/90 sticky top-0 z-40 hidden md:block">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+          
+          {/* Brand Logo & Title */}
+          <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-3 group">
+            <img 
+              src="/beaurex-icon.jpg" 
+              alt="BeAurex Logo" 
+              className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition"
+            />
+            <div className="flex flex-col">
+              <span className="text-lg font-black tracking-tight leading-none text-slate-900">
+                Be<span className="text-[#74111d]">Aurex</span>
+              </span>
+              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-wider mt-0.5">
+                Customer Rewards Portal
+              </span>
+            </div>
+          </Link>
+
+          {/* Center Navigation Tabs */}
+          <nav className="flex items-center space-x-1 sm:space-x-2">
+            <button
+              onClick={() => setCurrentScreen('home')}
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                currentScreen === 'home'
+                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </button>
+
+            <button
+              onClick={openScanScreen}
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                currentScreen === 'scan'
+                  ? 'bg-[#74111d] text-white shadow-xs'
+                  : 'bg-rose-500/10 text-[#74111d] hover:bg-[#74111d] hover:text-white'
+              }`}
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Scan QR Standee</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setRewardsSubTab('to_claim');
+                setCurrentScreen('rewards');
+              }}
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                currentScreen === 'rewards'
+                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Gift className="w-4 h-4" />
+              <span>My Rewards</span>
+              <span className="bg-[#74111d] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                {rewardHistory.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setCurrentScreen('profile')}
+              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                currentScreen === 'profile'
+                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span>Profile & Refer</span>
+            </button>
+          </nav>
+
+          {/* Right Customer Info & Logout */}
+          <div className="flex items-center space-x-3">
+            <div className="text-right hidden lg:block">
+              <div className="text-xs font-black text-slate-900">{customerUser.name}</div>
+              <div className="flex items-center space-x-1 justify-end text-[10px] font-mono text-slate-400">
+                <span>{customerUser.customerId}</span>
+                <button
+                  onClick={() => handleCopyCustomer(customerUser.customerId)}
+                  title="Copy ID"
+                  className="hover:text-slate-700 cursor-pointer"
+                >
+                  <Copy className="w-3 h-3" />
+                </button>
+                {copiedId && <span className="text-[9px] text-emerald-600 font-bold">Copied!</span>}
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setCurrentScreen('profile')}
+              className="w-9 h-9 rounded-xl bg-rose-100 text-[#74111d] font-black text-xs flex items-center justify-center hover:ring-2 hover:ring-[#74111d]/30 transition cursor-pointer"
+              title="Profile"
+            >
+              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ------------------------------------------------------------------- */}
+      {/* MOBILE TOP NAVIGATION BAR (Visible on mobile screens < md) */}
+      {/* ------------------------------------------------------------------- */}
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-xs">
+        <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-2.5">
+          <img 
+            src="/beaurex-icon.jpg" 
+            alt="BeAurex Logo" 
+            className="w-8 h-8 rounded-xl object-cover shadow-xs"
+          />
+          <div>
+            <span className="text-base font-black tracking-tight leading-none text-slate-900 block">
+              Be<span className="text-[#74111d]">Aurex</span>
+            </span>
+            <span className="text-[9px] font-bold text-[#74111d] uppercase tracking-wider block">
+              Rewards Portal
+            </span>
+          </div>
+        </Link>
+
+        <div className="flex items-center space-x-2">
+          <div className="bg-rose-50 border border-rose-200/60 rounded-xl px-2.5 py-1 text-right">
+            <span className="text-[8px] uppercase font-bold text-slate-400 block leading-tight">Customer ID</span>
+            <span className="text-xs font-black font-mono text-[#74111d] leading-tight block">
+              {customerUser.customerId}
+            </span>
+          </div>
+          <button
+            onClick={() => setCurrentScreen('profile')}
+            className="w-8 h-8 rounded-xl bg-rose-100 text-[#74111d] font-black text-xs flex items-center justify-center shadow-xs cursor-pointer ring-1 ring-[#74111d]/20"
+            title="Profile & Refer"
+          >
+            {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+          </button>
+        </div>
+      </header>
+
+      {/* ------------------------------------------------------------------- */}
       {/* SCREEN 5: HOME (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'home' && (
-        <div className="space-y-4 max-w-md w-full mx-auto">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
           
-          {/* Top Crimson Header */}
-          <div className="bg-[#74111d] text-white p-6 rounded-b-[36px] shadow-lg relative overflow-hidden">
-            <div className="flex items-start justify-between">
+          {/* Top Crimson Header Banner */}
+          <div className="bg-gradient-to-r from-[#590104] via-[#74111d] to-[#8f1927] text-white p-6 sm:p-8 rounded-3xl shadow-lg relative overflow-hidden">
+            {/* Ambient background glow */}
+            <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -left-10 -top-10 w-36 h-36 bg-white/5 rounded-full blur-xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <span className="text-xs text-rose-200 font-medium block">Good Evening,</span>
-                <h1 className="text-xl font-black tracking-tight text-white">{customerUser.name}</h1>
-                <div className="flex items-center space-x-1.5 mt-0.5 text-xs text-rose-200/90 font-mono">
+                <span className="text-xs sm:text-sm text-rose-200 font-medium block">Good Evening,</span>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">{customerUser.name}</h1>
+                <div className="flex items-center space-x-1.5 mt-1 text-xs text-rose-200/90 font-mono">
                   <span>Customer ID: {customerUser.customerId}</span>
                   <button 
                     onClick={() => handleCopyCustomer(customerUser.customerId)}
@@ -1261,178 +1422,411 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
               </div>
 
-              {/* Profile Avatar Trigger */}
-              <button
-                onClick={() => setCurrentScreen('profile')}
-                className="w-10 h-10 rounded-full border-2 border-white/60 bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer"
-                title="View Profile"
-              >
-                <User className="w-5 h-5" />
-              </button>
+              {/* Gold Member Card & Profile Trigger */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3">
+                <div className="bg-gradient-to-r from-[#941c2b] to-[#600e18] border border-rose-300/30 rounded-2xl p-3 sm:p-4 shadow-sm flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-300 flex items-center justify-center shrink-0">
+                    <Crown className="w-5 h-5 fill-amber-300 text-amber-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-amber-200 tracking-tight leading-tight">{customerUser.tier}</h4>
+                    <p className="text-[11px] text-rose-200/80 font-medium">Member Since • {customerUser.memberSince}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setCurrentScreen('profile')}
+                  className="w-11 h-11 rounded-2xl border-2 border-white/60 bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer md:hidden shrink-0"
+                  title="View Profile"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            {/* Gold Member Card */}
-            <div className="mt-5 bg-gradient-to-r from-[#941c2b] to-[#600e18] border border-rose-300/30 rounded-2xl p-4 shadow-sm flex items-center space-x-3.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-300 flex items-center justify-center shrink-0">
-                <Crown className="w-5 h-5 fill-amber-300 text-amber-300" />
+            {/* Metrics Row across banner */}
+            <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mt-6 pt-5 border-t border-white/15">
+              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
+                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
+                  <CreditCard className="w-4 h-4 text-amber-300" />
+                  <span>Active Cards</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-white">{customerUser.activeCardsCount}</div>
+                <div className="text-[10px] text-rose-200/80">Loyalty programs joined</div>
               </div>
-              <div>
-                <h4 className="text-sm font-black text-amber-200 tracking-tight leading-tight">{customerUser.tier}</h4>
-                <p className="text-[11px] text-rose-200/80 font-medium">Member Since • {customerUser.memberSince}</p>
+
+              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
+                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
+                  <Gift className="w-4 h-4 text-emerald-300" />
+                  <span>Redeemed</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-white">{customerUser.rewardsRedeemedCount}</div>
+                <div className="text-[10px] text-rose-200/80">Rewards unlocked</div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
+                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Stamps</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-white">{customerUser.stamps || 3} / {customerUser.totalStamps || 5}</div>
+                <div className="text-[10px] text-rose-200/80">Current store progress</div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
+                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
+                  <TrendingUp className="w-4 h-4 text-emerald-300" />
+                  <span>Referral Profit</span>
+                </div>
+                <div className="text-xl sm:text-2xl font-black text-emerald-300">₹{customerUser.referralEarnings || 150}</div>
+                <div className="text-[10px] text-rose-200/80">+{customerUser.referralCount || 3} bonus stamps</div>
               </div>
             </div>
           </div>
 
-          <div className="px-4 space-y-4">
+          {/* Main Layout Grid on Laptop (Left col: Cards, Right col: Digital Pass & Quick actions) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
             
-            {/* Summary Metrics Row (Active Cards & Redeemed) */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
-                  <CreditCard className="w-4 h-4" />
+            {/* Left Column (8 cols): Active Loyalty Programs */}
+            <div className="lg:col-span-8 space-y-6">
+              
+              {/* Empty State Toggle Demo */}
+              {emptyStateDemo ? (
+                <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xs">
+                  <div className="w-24 h-24 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
+                    <ShoppingBag className="w-12 h-12 text-rose-300 stroke-[1.5]" />
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900">No Loyalty Cards Yet</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
+                    You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting stamps and earn exciting rewards!
+                  </p>
+                  <button
+                    onClick={openScanScreen}
+                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-8 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
+                  >
+                    <QrCode className="w-4 h-4" />
+                    <span>Scan QR Code Standee</span>
+                  </button>
+                  <button
+                    onClick={() => setEmptyStateDemo(false)}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline block mx-auto cursor-pointer"
+                  >
+                    Show Active Loyalty Cards
+                  </button>
                 </div>
-                <div className="text-[11px] text-slate-500 font-bold leading-tight">Active<br />Loyalty Cards</div>
-                <div className="text-2xl font-black text-slate-900 mt-1">{customerUser.activeCardsCount}</div>
-              </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">Continue Collecting</h3>
+                      <p className="text-xs text-slate-500">Tap any store card or reward to view details</p>
+                    </div>
+                    <button
+                      onClick={() => setEmptyStateDemo(true)}
+                      className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
+                    >
+                      View Empty State
+                    </button>
+                  </div>
 
-              <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
-                  <Gift className="w-4 h-4" />
+                  {/* Loyalty Cards Grid (Responsive: 1 col on mobile, 2 cols on tablet/laptop) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* Card 1: Ka-feen Coffee Shop */}
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-11 h-11 rounded-2xl bg-[#111111] text-white flex items-center justify-center shadow-xs">
+                              <Coffee className="w-5 h-5 text-amber-200" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">Coffee Shop • Sector 29</p>
+                            </div>
+                          </div>
+                          <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
+                            2 more stamps
+                          </span>
+                        </div>
+
+                        {/* Stamp Indicators */}
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            {[1, 2, 3].map((n) => (
+                              <BeAurexStamp key={n} stamped={true} size="md" />
+                            ))}
+                            {[4, 5].map((n) => (
+                              <BeAurexStamp key={n} stamped={false} size="md" />
+                            ))}
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps Collected</span>
+                        </div>
+                      </div>
+
+                      {/* Next Unlock Banner */}
+                      <div 
+                        onClick={() => {
+                          setSelectedReward({
+                            title: '30% OFF on next purchase',
+                            storeName: 'Ka-feen',
+                            requiresStamps: 2,
+                            validTill: '30 Jul 2026',
+                            image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+                            approvedAt: 'Today, 2:30 PM'
+                          });
+                          setCurrentScreen('reward_details');
+                        }}
+                        className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-rose-100/60 transition"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
+                            <Gift className="w-3.5 h-3.5 text-amber-200" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</div>
+                            <div className="text-[10px] text-slate-500 font-medium">Collect 2 more stamps to unlock</div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[#74111d]" />
+                      </div>
+                    </div>
+
+                    {/* Card 2: Brew House */}
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
+                              <Utensils className="w-5 h-5 text-amber-200" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro • Cyber Hub</p>
+                            </div>
+                          </div>
+                          <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
+                            Reward Ready 🎉
+                          </span>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            {[1, 2, 3, 4, 5].map((n) => (
+                              <BeAurexStamp key={n} stamped={true} size="md" />
+                            ))}
+                          </div>
+                          <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
+                        </div>
+                      </div>
+
+                      {/* Ready banner */}
+                      <div 
+                        onClick={() => {
+                          setSelectedReward({
+                            title: 'Buy 1 Get 1 Free',
+                            storeName: 'Brew House',
+                            requiresStamps: 5,
+                            validTill: '15 Aug 2026',
+                            image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+                            approvedAt: 'Ready Now'
+                          });
+                          setCurrentScreen('reward_details');
+                        }}
+                        className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-emerald-100/60 transition"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                            <Award className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-black text-emerald-950 leading-tight">Buy 1 Get 1 Free</div>
+                            <div className="text-[10px] text-emerald-700 font-medium">Ready to claim at counter!</div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-emerald-700" />
+                      </div>
+                    </div>
+
+                    {/* Card 3: The Daily Roastery */}
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-11 h-11 rounded-2xl bg-amber-800 text-white flex items-center justify-center shadow-xs">
+                              <Coffee className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">The Daily Roastery</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">Artisanal Coffee &amp; Bakes</p>
+                            </div>
+                          </div>
+                          <span className="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
+                            3 more stamps
+                          </span>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            {[1, 2].map((n) => (
+                              <BeAurexStamp key={n} stamped={true} size="md" />
+                            ))}
+                            {[3, 4, 5].map((n) => (
+                              <BeAurexStamp key={n} stamped={false} size="md" />
+                            ))}
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-bold">2 of 5 Stamps Collected</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shrink-0">
+                            <Gift className="w-3.5 h-3.5 text-amber-300" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-black text-slate-900 leading-tight">Flat ₹100 Off on Meals</div>
+                            <div className="text-[10px] text-slate-500 font-medium">Collect 3 more stamps</div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                      </div>
+                    </div>
+
+                    {/* Card 4: Royal Sweets & Treats */}
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-11 h-11 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-xs">
+                              <ShoppingBag className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">Royal Sweets &amp; Treats</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">Confectionery &amp; Desserts</p>
+                            </div>
+                          </div>
+                          <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
+                            1 more stamp
+                          </span>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            {[1, 2, 3, 4].map((n) => (
+                              <BeAurexStamp key={n} stamped={true} size="md" />
+                            ))}
+                            {[5].map((n) => (
+                              <BeAurexStamp key={n} stamped={false} size="md" />
+                            ))}
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-bold">4 of 5 Stamps Collected</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
+                            <Gift className="w-3.5 h-3.5 text-amber-200" />
+                          </div>
+                          <div>
+                            <div className="text-xs font-black text-slate-900 leading-tight">Complimentary Dessert Box</div>
+                            <div className="text-[10px] text-slate-500 font-medium">Only 1 stamp to unlock!</div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[#74111d]" />
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-                <div className="text-[11px] text-slate-500 font-bold leading-tight">Rewards<br />Redeemed</div>
-                <div className="text-2xl font-black text-slate-900 mt-1">{customerUser.rewardsRedeemedCount}</div>
-              </div>
+              )}
+
             </div>
 
-            {/* Empty State Toggle (for Screen 17 demonstration) */}
-            {emptyStateDemo ? (
-              /* ------------------------------------------------------------- */
-              /* SCREEN 17: EMPTY STATE (Batch 3 & Batch 5) */
-              /* ------------------------------------------------------------- */
-              <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center space-y-4 shadow-xs">
-                <div className="w-24 h-24 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
-                  <ShoppingBag className="w-12 h-12 text-rose-300 stroke-[1.5]" />
+            {/* Right Column (4 cols): Customer Digital Pass, Scan CTA & Referral Widget */}
+            <div className="lg:col-span-4 space-y-5">
+              
+              {/* Digital Pass / Membership Counter Card */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-5 text-center">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center space-x-2">
+                    <img src="/beaurex-icon.jpg" alt="BeAurex" className="w-6 h-6 rounded-lg object-cover" />
+                    <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Digital Pass</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                    Active Member
+                  </span>
                 </div>
-                <h3 className="text-base font-black text-slate-900">No Loyalty Cards Yet</h3>
-                <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                  You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting stamps and earn exciting rewards!
-                </p>
+
+                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 space-y-2">
+                  <QrCode className="w-20 h-20 text-slate-900 mx-auto" />
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Customer ID</div>
+                  <div className="text-xl font-mono font-black text-[#74111d] tracking-wider">{customerUser.customerId}</div>
+                  <p className="text-[11px] text-slate-500">Show this QR / ID to the cashier to earn stamps without scanning</p>
+                </div>
+
                 <button
                   onClick={openScanScreen}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-6 rounded-2xl text-xs transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
+                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 px-6 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-[#74111d]/20"
                 >
-                  <QrCode className="w-4 h-4" />
-                  <span>Scan QR Code</span>
-                </button>
-                <button
-                  onClick={() => setEmptyStateDemo(false)}
-                  className="text-[11px] text-slate-400 hover:text-slate-600 underline block mx-auto cursor-pointer"
-                >
-                  Show Active Loyalty Cards
+                  <Camera className="w-4 h-4 text-amber-300" />
+                  <span>Scan Store QR Standee</span>
                 </button>
               </div>
-            ) : (
-              /* Continue Collecting Section */
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-slate-900">Continue Collecting</h3>
+
+              {/* Refer & Earn Quick Snapshot */}
+              <div className="bg-gradient-to-br from-[#74111d] via-[#8c1725] to-[#550c14] text-white rounded-3xl p-5 shadow-md space-y-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-7 h-7 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center">
+                    <Gift className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-300">Invite &amp; Earn Profit</span>
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-white">Give 10% Off, Get +1 Stamp &amp; ₹50</h4>
+                  <p className="text-xs text-rose-100/90 mt-1 leading-relaxed">
+                    Friends get a 10% instant welcome voucher when joining with your code.
+                  </p>
+                </div>
+
+                <div className="bg-white/10 border border-white/20 rounded-2xl p-2.5 flex items-center justify-between">
+                  <span className="font-mono text-xs font-black text-white tracking-widest pl-2">
+                    {customerUser.referralCode || 'BEAUREX-8F4A'}
+                  </span>
                   <button
-                    onClick={() => setEmptyStateDemo(true)}
-                    className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
+                    onClick={() => handleCopyReferralCode(customerUser.referralCode || 'BEAUREX-8F4A')}
+                    className="bg-white text-[#74111d] hover:bg-rose-50 font-black px-3 py-1.5 rounded-xl text-[11px] transition flex items-center space-x-1 cursor-pointer"
                   >
-                    View Empty State
+                    <Copy className="w-3 h-3" />
+                    <span>{copiedReferral ? 'Copied!' : 'Copy'}</span>
                   </button>
                 </div>
 
-                {/* Card 1: Ka-feen Coffee Shop */}
-                <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 transition">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-11 h-11 rounded-2xl bg-[#111111] text-white flex items-center justify-center shadow-xs">
-                        <Coffee className="w-5 h-5 text-amber-200" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
-                      </div>
-                    </div>
-                    <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                      2 more stamps
-                    </span>
-                  </div>
-
-                  {/* Stamp Indicators */}
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1.5">
-                      {[1, 2, 3].map((n) => (
-                        <BeAurexStamp key={n} stamped={true} size="sm" />
-                      ))}
-                      {[4, 5].map((n) => (
-                        <BeAurexStamp key={n} stamped={false} size="sm" />
-                      ))}
-                    </div>
-                    <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
-                  </div>
-
-                  {/* Next Unlock Banner */}
-                  <div 
-                    onClick={() => {
-                      setSelectedReward({
-                        title: '30% OFF on next purchase',
-                        storeName: 'Ka-feen',
-                        requiresStamps: 2,
-                        validTill: '30 Jul 2026',
-                        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-                        approvedAt: 'Today, 2:30 PM'
-                      });
-                      setCurrentScreen('reward_details');
-                    }}
-                    className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-rose-100/50 transition"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
-                        <Gift className="w-3.5 h-3.5 text-amber-200" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</div>
-                        <div className="text-[10px] text-slate-500 font-medium">Collect 2 more stamps to unlock</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#74111d]" />
-                  </div>
-                </div>
-
-                {/* Card 2: Brew House */}
-                <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
-                        <Utensils className="w-5 h-5 text-amber-200" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro</p>
-                      </div>
-                    </div>
-                    <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
-                      Reward Ready 🎉
-                    </span>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1.5">
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <BeAurexStamp key={n} stamped={true} size="sm" />
-                      ))}
-                    </div>
-                    <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
-                  </div>
-                </div>
-
+                <button
+                  onClick={handleWhatsAppShare}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
+                >
+                  <MessageCircle className="w-4 h-4 fill-white" />
+                  <span>Share on WhatsApp</span>
+                </button>
               </div>
-            )}
+
+              {/* Verified Trust Badge */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center space-x-3 text-slate-600">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-slate-900">BeAurex Verified Platform</div>
+                  <div className="text-[10px] text-slate-400">Zero auto-debit • 100% Secure Digital Stamps</div>
+                </div>
+              </div>
+
+            </div>
 
           </div>
+
         </div>
       )}
 
@@ -1506,29 +1900,32 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 7: AFTER SCAN (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'after_scan' && (
-        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-3">
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
           {/* Top Bar with Back Arrow & Store info */}
-          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200">
+          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200">
             <button
               onClick={() => setCurrentScreen('home')}
-              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
               <Coffee className="w-4 h-4 text-amber-200" />
             </div>
             <div>
               <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop • Sector 29</p>
             </div>
           </div>
 
           {/* Stamp Earned Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 text-center shadow-xs space-y-3">
-            <h3 className="text-sm font-black text-slate-900">You earned 1 stamp!</h3>
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 text-center shadow-xs space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center mx-auto shadow-xs border border-rose-100">
+              <Sparkles className="w-6 h-6 text-[#74111d]" />
+            </div>
+            <h3 className="text-base font-black text-slate-900">You earned 1 stamp!</h3>
             <p className="text-xs text-slate-500">3 of 5 stamps collected</p>
-            <div className="flex items-center justify-center space-x-2 py-1">
+            <div className="flex items-center justify-center space-x-2 py-1 flex-wrap gap-y-2">
               {[1, 2, 3].map((n) => (
                 <BeAurexStamp key={n} stamped={true} size="md" />
               ))}
@@ -1539,8 +1936,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           </div>
 
           {/* Available Rewards Section */}
-          <div className="space-y-3 pt-1">
+          <div className="space-y-3 pt-2">
             <h3 className="text-sm font-black text-slate-900">Available Rewards</h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
 
             {/* Reward 1: 30% OFF (Achieved) */}
             <div 
@@ -1600,6 +1999,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 <p className="text-[11px] text-slate-600 font-bold mt-1">3 STAMPS • Collect 1 more</p>
                 <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
               </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1609,65 +2009,181 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Batch 2 & 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'rewards' && (
-        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-4">
-          {/* Top Bar with My Rewards title & Profile avatar */}
-          <div className="flex items-center justify-between pb-1">
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">My Rewards</h2>
-            <button
-              onClick={() => setCurrentScreen('profile')}
-              className="w-8 h-8 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 cursor-pointer"
-            >
-              <User className="w-4 h-4" />
-            </button>
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+          
+          {/* Header Card (Responsive on Mobile and Laptop) */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center shrink-0 shadow-xs">
+                <Gift className="w-5 h-5 text-[#74111d]" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                  My Rewards &amp; Vouchers
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                  Track unlocked vouchers, redeem in-store, and review past rewards
+                </p>
+              </div>
+            </div>
+
+            {/* Quick stats pills */}
+            <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
+                <span className="text-[10px] font-bold text-emerald-700 uppercase block">Active</span>
+                <span className="text-base font-black text-emerald-800">
+                  {rewardHistory.filter(r => r.status === 'Active').length}
+                </span>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
+                <span className="text-[10px] font-bold text-slate-500 uppercase block">Total</span>
+                <span className="text-base font-black text-slate-800">{rewardHistory.length}</span>
+              </div>
+            </div>
           </div>
 
-          {/* Segmented Tab Control: To Claim vs History (2) */}
-          <div className="border-b border-slate-200 flex">
+          {/* Segmented Tab Control: To Claim vs History */}
+          <div className="bg-slate-100 p-1.5 rounded-2xl flex max-w-md shadow-xs">
             <button
               onClick={() => setRewardsSubTab('to_claim')}
-              className={`flex-1 pb-2.5 text-xs font-black transition cursor-pointer relative ${
-                rewardsSubTab === 'to_claim' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-700'
+              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                rewardsSubTab === 'to_claim'
+                  ? 'bg-white text-[#74111d] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <span>To Claim</span>
-              {rewardsSubTab === 'to_claim' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#74111d] rounded-full"></div>
-              )}
+              Ready to Claim
             </button>
 
             <button
               onClick={() => setRewardsSubTab('history')}
-              className={`flex-1 pb-2.5 text-xs font-black transition cursor-pointer relative flex items-center justify-center space-x-1.5 ${
-                rewardsSubTab === 'history' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-700'
+              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition cursor-pointer text-center flex items-center justify-center space-x-1.5 ${
+                rewardsSubTab === 'history'
+                  ? 'bg-white text-[#74111d] shadow-xs'
+                  : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <span>History</span>
-              <span className="w-4 h-4 rounded-full bg-[#74111d] text-white text-[9px] font-bold flex items-center justify-center">
+              <span>Reward History</span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                rewardsSubTab === 'history' ? 'bg-[#74111d] text-white' : 'bg-slate-200 text-slate-700'
+              }`}>
                 {rewardHistory.length}
               </span>
-              {rewardsSubTab === 'history' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#74111d] rounded-full"></div>
-              )}
             </button>
           </div>
 
           {/* TAB 1: TO CLAIM (Screen 8) */}
           {rewardsSubTab === 'to_claim' && (
-            <div className="space-y-4 pt-6">
-              {/* Empty state matching Screen 8 */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-8 text-center space-y-4 shadow-xs">
-                <div className="w-20 h-20 rounded-3xl bg-amber-50 flex items-center justify-center mx-auto text-amber-500 shadow-xs border border-amber-100">
-                  <Gift className="w-10 h-10 text-amber-600" />
+            <div className="space-y-6">
+              {/* Ready Rewards Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-black text-slate-900">Available at Participating Stores</h3>
+                  <span className="text-xs text-slate-500 font-medium">1 reward unlocked</span>
                 </div>
-                <h3 className="text-base font-black text-slate-900">No Rewards Yet</h3>
-                <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                  Collect more stamps from your favourite businesses to earn exciting rewards!
-                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Ready to Claim Card: Brew House */}
+                  <div className="bg-white border-2 border-emerald-500/30 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
+                            alt="Brew House"
+                            className="w-12 h-12 rounded-2xl object-cover shadow-xs"
+                          />
+                          <div>
+                            <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                              Ready Now 🎉
+                            </span>
+                            <h4 className="text-sm font-black text-slate-900 mt-1">Buy 1 Get 1 Free</h4>
+                            <p className="text-xs text-slate-500 font-medium">Brew House Bakery &amp; Bistro</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-xs text-emerald-800 font-medium flex items-center space-x-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>5 of 5 stamps collected! Ready to claim at checkout.</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedReward({
+                          title: 'Buy 1 Get 1 Free',
+                          storeName: 'Brew House',
+                          requiresStamps: 5,
+                          validTill: '15 Aug 2026',
+                          image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+                          approvedAt: 'Ready Now'
+                        });
+                        setCurrentScreen('reward_details');
+                      }}
+                      className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
+                    >
+                      <Gift className="w-4 h-4 text-amber-300" />
+                      <span>Claim This Reward</span>
+                    </button>
+                  </div>
+
+                  {/* Progress Card: Ka-feen */}
+                  <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
+                            alt="Ka-feen"
+                            className="w-12 h-12 rounded-2xl object-cover shadow-xs"
+                          />
+                          <div>
+                            <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase border border-rose-100">
+                              2 More Stamps
+                            </span>
+                            <h4 className="text-sm font-black text-slate-900 mt-1">30% off on next purchase</h4>
+                            <p className="text-xs text-slate-500 font-medium">Ka-feen Coffee Shop</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-xs text-slate-600 font-medium flex items-center justify-between">
+                        <span>Progress: 3/5 Stamps</span>
+                        <div className="flex items-center space-x-1">
+                          {[1, 2, 3].map(n => <BeAurexStamp key={n} stamped={true} size="xs" />)}
+                          {[4, 5].map(n => <BeAurexStamp key={n} stamped={false} size="xs" />)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={openScanScreen}
+                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    >
+                      <QrCode className="w-4 h-4 text-[#74111d]" />
+                      <span>Scan to Collect Stamps</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Quick Help Card */}
+              <div className="bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-100 rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#74111d] text-white flex items-center justify-center shrink-0">
+                    <Sparkles className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-900">Want to earn faster?</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Invite your friends to BeAurex and earn +1 bonus stamp plus ₹50 profit for every referral.</p>
+                  </div>
+                </div>
                 <button
-                  onClick={() => setCurrentScreen('home')}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 px-6 rounded-2xl text-xs transition cursor-pointer mx-auto shadow-md"
+                  onClick={() => setCurrentScreen('profile')}
+                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-2.5 px-5 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs"
                 >
-                  Explore Businesses
+                  Invite Friends
                 </button>
               </div>
             </div>
@@ -1681,7 +2197,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             });
 
             return (
-              <div className="space-y-3.5 pt-1">
+              <div className="space-y-4">
                 {/* Filter pills: All, Active, Used, Expired */}
                 <div className="flex items-center space-x-2 overflow-x-auto pb-1">
                   {['All', 'Active', 'Used', 'Expired'].map((f) => (
@@ -1689,10 +2205,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       key={f}
                       type="button"
                       onClick={() => setHistoryFilter(f)}
-                      className={`py-1.5 px-4 rounded-full text-xs font-bold transition cursor-pointer shrink-0 ${
+                      className={`py-2 px-5 rounded-full text-xs font-bold transition cursor-pointer shrink-0 ${
                         historyFilter === f
                           ? 'bg-[#74111d] text-white shadow-xs'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       {f}
@@ -1700,62 +2216,74 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   ))}
                 </div>
 
-                {/* History Cards */}
-                <div className="space-y-3">
-                  {filteredHistory.length === 0 ? (
-                    <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-2">
-                      <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-slate-400">
-                        <Gift className="w-6 h-6 text-slate-400" />
-                      </div>
-                      <h4 className="text-xs font-black text-slate-800">No {historyFilter} Rewards</h4>
-                      <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
-                        You do not have any {historyFilter.toLowerCase()} reward vouchers at this time.
-                      </p>
+                {/* History Responsive Grid: 1 col on mobile, 2 on tablet, 3 on laptop */}
+                {filteredHistory.length === 0 ? (
+                  <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center space-y-3">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto text-slate-400">
+                      <Gift className="w-7 h-7 text-slate-400" />
                     </div>
-                  ) : (
-                    filteredHistory.map((item) => (
+                    <h4 className="text-sm font-black text-slate-800">No {historyFilter} Rewards</h4>
+                    <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                      You do not have any {historyFilter.toLowerCase()} reward vouchers at this time.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredHistory.map((item) => (
                       <div
                         key={item.id}
                         onClick={() => setSelectedHistoryVoucher(item)}
-                        className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3 hover:border-slate-300 transition cursor-pointer"
+                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3 min-w-0">
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-12 h-12 rounded-xl object-cover shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <h4 className="text-xs font-black text-slate-900 truncate">{item.title}</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">{item.storeName}</p>
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center space-x-3 min-w-0">
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className="w-12 h-12 rounded-2xl object-cover shrink-0 shadow-xs"
+                              />
+                              <div className="min-w-0">
+                                <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight">
+                                  {item.title}
+                                </h4>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">{item.storeName}</p>
+                              </div>
                             </div>
+                            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shrink-0 ${
+                              item.status === 'Active'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                                : item.status === 'Used'
+                                ? 'bg-slate-100 text-slate-600 border-slate-200'
+                                : 'bg-rose-50 text-rose-600 border-rose-200'
+                            }`}>
+                              {item.status}
+                            </span>
                           </div>
-                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
-                            item.status === 'Active'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                              : item.status === 'Used'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : 'bg-slate-100 text-slate-600 border-slate-200'
-                          }`}>
-                            {item.status}
-                          </span>
+
+                          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-2.5 flex items-center justify-between text-xs">
+                            <span className="text-slate-400 text-[10px] uppercase font-bold">Voucher</span>
+                            <span className="font-mono font-black text-[#74111d]">{item.voucherCode}</span>
+                          </div>
                         </div>
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
                           <div>
-                            <span className="text-slate-400 block text-[9px]">Claimed on</span>
-                            <span>{item.claimedDate}</span>
+                            <span className="text-slate-400 block text-[9px]">Claimed</span>
+                            <span className="font-bold text-slate-700">{item.claimedDate}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 block text-[9px]">{item.dateLabel}</span>
-                            <span>{item.dateValue}</span>
+                            <span className="font-bold text-slate-700">{item.dateValue}</span>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </div>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -1766,21 +2294,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 10: REWARD DETAILS (Batch 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_details' && (
-        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-3">
+        <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
           {/* Top Bar with Back Arrow & Store info */}
-          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200">
+          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200">
             <button
               onClick={() => setCurrentScreen('after_scan')}
-              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
               <Coffee className="w-4 h-4 text-amber-200" />
             </div>
             <div>
               <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop • Sector 29</p>
             </div>
           </div>
 
@@ -1789,23 +2317,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <img
               src={selectedReward.image}
               alt={selectedReward.title}
-              className="w-full h-44 object-cover"
+              className="w-full h-48 sm:h-56 object-cover"
             />
-            <div className="p-5 space-y-4">
-              <div>
-                <h3 className="text-base font-black text-slate-900">{selectedReward.title}</h3>
-                <span className="bg-rose-50 text-rose-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full mt-1.5 inline-block border border-rose-100">
-                  Requires 2 Stamps
+            <div className="p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                    {selectedReward.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">{selectedReward.storeName}</p>
+                </div>
+                <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100 self-start sm:self-auto">
+                  Requires {selectedReward.requiresStamps || 2} Stamps
                 </span>
               </div>
 
               {/* Progress */}
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-3 border-t border-slate-100">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
                   <span>Your Progress</span>
                   <span>3 / 5 Stamps</span>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-wrap gap-y-2">
                   {[1, 2, 3].map((n) => (
                     <BeAurexStamp key={n} stamped={true} size="md" />
                   ))}
@@ -1816,12 +2349,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
 
               {/* Validity */}
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 pt-3 border-t border-slate-100">
                 <span className="flex items-center space-x-1.5 text-slate-500">
                   <Clock className="w-4 h-4 text-slate-400" />
                   <span>Valid Till</span>
                 </span>
-                <span className="text-[#74111d]">{selectedReward.validTill}</span>
+                <span className="text-[#74111d] font-bold">{selectedReward.validTill}</span>
               </div>
             </div>
           </div>
@@ -1829,9 +2362,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           {/* Claim Button */}
           <button
             onClick={handleInitiateClaim}
-            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs transition shadow-lg shadow-[#74111d]/20 cursor-pointer"
+            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs sm:text-sm transition shadow-lg shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
           >
-            Claim Now
+            <Gift className="w-4 h-4 text-amber-300" />
+            <span>Claim Now at Counter</span>
           </button>
         </div>
       )}
@@ -1840,16 +2374,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 12: WAITING FOR APPROVAL (Batch 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'waiting_approval' && (
-        <div className="space-y-6 max-w-md w-full mx-auto px-4 pt-3 text-center">
+        <div className="w-full max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-center space-y-6">
           {/* Top Bar */}
-          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200 text-left">
+          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 text-left">
             <button
               onClick={() => setCurrentScreen('reward_details')}
-              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
               <Coffee className="w-4 h-4 text-amber-200" />
             </div>
             <div>
@@ -1859,28 +2393,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           </div>
 
           {/* Hourglass Ring Loader */}
-          <div className="pt-4 flex flex-col items-center">
-            <div className="w-24 h-24 rounded-full border-4 border-rose-100 border-t-[#74111d] flex items-center justify-center animate-spin">
+          <div className="pt-2 flex flex-col items-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-rose-100 border-t-[#74111d] flex items-center justify-center animate-spin">
               <Hourglass className="w-8 h-8 text-[#74111d]" />
             </div>
 
-            <h3 className="text-lg font-black text-slate-900 mt-5">Waiting for Approval</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs">
-              Your request is being reviewed by the merchant.
+            <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-5">Waiting for Merchant Approval</h3>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm">
+              Your claim request is being reviewed by the merchant at the billing counter.
             </p>
           </div>
 
           {/* Large Customer ID Card */}
-          <div className="bg-rose-50/60 border border-rose-200/80 rounded-3xl p-6 text-center space-y-2">
+          <div className="bg-rose-50/70 border border-rose-200/80 rounded-3xl p-6 sm:p-7 text-center space-y-2.5">
             <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-500 font-bold uppercase tracking-wider">
               <CreditCard className="w-4 h-4 text-[#74111d]" />
-              <span>Customer ID</span>
+              <span>Customer Identification</span>
             </div>
-            <div className="text-2xl font-black font-mono text-[#74111d] tracking-widest">
+            <div className="text-2xl sm:text-3xl font-black font-mono text-[#74111d] tracking-widest">
               {customerUser.customerId}
             </div>
-            <p className="text-[11px] text-slate-500 font-medium pt-1">
-              Please share your Customer ID with the cashier.
+            <p className="text-xs text-slate-600 font-medium pt-1">
+              Please share your Customer ID with the cashier to verify your reward.
             </p>
           </div>
 
@@ -1892,7 +2426,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             }}
             className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
           >
-            [Simulate Instant Approval]
+            [Simulate Instant Cashier Approval]
           </button>
         </div>
       )}
@@ -1901,16 +2435,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 13: CONGRATULATIONS / REWARD CLAIMED (Batch 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_congrats' && (
-        <div className="space-y-5 max-w-md w-full mx-auto px-4 pt-3 text-center">
+        <div className="w-full max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-center space-y-6">
           {/* Top Bar */}
-          <div className="flex items-center space-x-3 pb-2 border-b border-slate-200 text-left">
+          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 text-left">
             <button
               onClick={() => setCurrentScreen('home')}
-              className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer"
+              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
-            <div className="w-8 h-8 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
               <Coffee className="w-4 h-4 text-amber-200" />
             </div>
             <div>
@@ -1924,25 +2458,25 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
               <Check className="w-10 h-10 stroke-[3]" />
             </div>
-            <h3 className="text-xl font-black text-emerald-600 mt-4">Reward Claimed!</h3>
-            <p className="text-xs font-bold text-slate-600 mt-1">Enjoy your reward 🎉</p>
+            <h3 className="text-xl sm:text-2xl font-black text-emerald-600 mt-4">Reward Claimed!</h3>
+            <p className="text-xs sm:text-sm font-bold text-slate-600 mt-1">Enjoy your reward 🎉</p>
           </div>
 
           {/* Voucher Summary Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs text-left space-y-3">
-            <div className="flex items-center space-x-3">
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs text-left space-y-3">
+            <div className="flex items-center space-x-3.5">
               <img
                 src={selectedReward.image}
                 alt={selectedReward.title}
-                className="w-14 h-14 rounded-2xl object-cover shrink-0"
+                className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xs"
               />
               <div className="min-w-0">
-                <h4 className="text-xs font-black text-slate-900 leading-snug">{selectedReward.title}</h4>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Ka-feen Coffee</p>
+                <h4 className="text-sm font-black text-slate-900 leading-snug">{selectedReward.title}</h4>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">Ka-feen Coffee</p>
               </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-600">
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600">
               <span className="flex items-center space-x-1.5 text-slate-400">
                 <Clock className="w-3.5 h-3.5" />
                 <span>Approved On</span>
@@ -1954,9 +2488,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           {/* Done CTA */}
           <button
             onClick={() => setCurrentScreen('home')}
-            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs transition shadow-lg shadow-[#74111d]/20 cursor-pointer"
+            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs sm:text-sm transition shadow-lg shadow-[#74111d]/20 cursor-pointer"
           >
-            Done
+            Done &amp; Return to Home
           </button>
         </div>
       )}
@@ -1965,211 +2499,295 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 9: PROFILE (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'profile' && (
-        <div className="space-y-4 max-w-md w-full mx-auto px-4 pt-4">
-          {/* Top Bar */}
-          <div className="flex items-center justify-between pb-1">
-            <div className="flex items-center space-x-2">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+          
+          {/* Top Header Card */}
+          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center space-x-3">
               <button
                 onClick={() => setCurrentScreen('home')}
-                className="p-1 text-slate-700 hover:text-slate-900 cursor-pointer -ml-2"
+                className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer sm:hidden"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">Profile</h2>
-            </div>
-            <div className="w-8 h-8 rounded-full border border-slate-200 text-slate-600 flex items-center justify-center">
-              <User className="w-4 h-4" />
-            </div>
-          </div>
-
-          {/* User Profile Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-full bg-rose-100 text-[#74111d] font-black text-lg flex items-center justify-center shrink-0">
-              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base font-black text-slate-900 leading-tight">{customerUser.name}</h3>
-              <div className="flex items-center space-x-1.5 mt-0.5 text-xs text-slate-500 font-mono">
-                <span>Customer ID: {customerUser.customerId}</span>
-                <button
-                  onClick={() => handleCopyCustomer(customerUser.customerId)}
-                  className="hover:text-slate-900 cursor-pointer"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                </button>
-                {copiedId && <span className="text-[10px] text-emerald-600 font-sans font-bold">Copied!</span>}
+              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center shrink-0 shadow-xs">
+                <User className="w-5 h-5 text-[#74111d]" />
               </div>
-            </div>
-          </div>
-
-          {/* Refer & Earn Rewards Card (Shows Customer Profit & Invite CTA) */}
-          <div className="bg-gradient-to-br from-[#74111d] via-[#8c1725] to-[#550c14] text-white rounded-3xl p-5 shadow-lg relative overflow-hidden space-y-4">
-            {/* Background glowing shapes */}
-            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
-            <div className="absolute -left-6 -top-6 w-24 h-24 bg-white/5 rounded-full blur-lg pointer-events-none" />
-
-            {/* Header with Gift badge */}
-            <div className="flex items-start justify-between relative z-10">
-              <div className="space-y-1">
-                <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[10px] font-black uppercase tracking-wider">
-                  <Gift className="w-3 h-3 text-amber-300" />
-                  <span>Refer &amp; Earn Profit</span>
-                </div>
-                <h3 className="text-base font-black tracking-tight text-white pt-1">
-                  Invite Friends, Get Free Rewards!
-                </h3>
-                <p className="text-xs text-rose-100/90 leading-relaxed max-w-xs">
-                  Share your link with friends. When they scan &amp; join, you earn direct profits on your account.
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                  Customer Profile &amp; Referrals
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                  Manage your account, view referral earnings, and share invite links
                 </p>
               </div>
             </div>
 
-            {/* Profit Breakdown Matrix */}
-            <div className="grid grid-cols-2 gap-2.5 relative z-10 pt-1">
-              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3">
-                <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">Your Profit</span>
-                <p className="text-sm font-black text-white mt-0.5">+1 Free Stamp</p>
-                <p className="text-[10px] text-rose-200 mt-0.5 font-medium">+ ₹50 Wallet Credit / friend</p>
-              </div>
-              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3">
-                <span className="text-[10px] font-bold text-emerald-300 uppercase block tracking-wider">Friend's Profit</span>
-                <p className="text-sm font-black text-white mt-0.5">10% OFF</p>
-                <p className="text-[10px] text-rose-200 mt-0.5 font-medium">Instant welcome discount</p>
-              </div>
-            </div>
-
-            {/* Your Referral Stats */}
-            <div className="bg-black/25 rounded-2xl p-3 flex items-center justify-around text-center border border-white/10 relative z-10">
-              <div>
-                <span className="text-[10px] text-rose-200 block font-medium">Invited</span>
-                <span className="text-base font-black text-amber-300">{customerUser.referralCount || 0} friends</span>
-              </div>
-              <div className="h-6 w-px bg-white/20"></div>
-              <div>
-                <span className="text-[10px] text-rose-200 block font-medium">Bonus Stamps</span>
-                <span className="text-base font-black text-white">{customerUser.referralCount || 0} stamps</span>
-              </div>
-              <div className="h-6 w-px bg-white/20"></div>
-              <div>
-                <span className="text-[10px] text-rose-200 block font-medium">Cash Profit</span>
-                <span className="text-base font-black text-emerald-300">₹{customerUser.referralEarnings || 0}</span>
-              </div>
-            </div>
-
-            {/* Referral Code & Copy Bar */}
-            <div className="bg-white/10 border border-white/20 rounded-2xl p-2.5 flex items-center justify-between relative z-10">
-              <div className="pl-2">
-                <span className="text-[9px] uppercase tracking-wider text-rose-200 block font-bold">Your Referral Code</span>
-                <span className="font-mono text-sm font-black text-white tracking-widest">{customerUser.referralCode || 'BEAUREX-8F4A'}</span>
-              </div>
-              <button
-                onClick={() => handleCopyReferralCode(customerUser.referralCode || 'BEAUREX-8F4A')}
-                className="bg-white text-[#74111d] hover:bg-rose-50 font-black px-3.5 py-2 rounded-xl text-xs transition flex items-center space-x-1.5 cursor-pointer shadow-sm shrink-0"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>{copiedReferral ? 'Copied!' : 'Copy Code'}</span>
-              </button>
-            </div>
-
-            {/* Action Buttons: WhatsApp Share & Native Invite */}
-            <div className="grid grid-cols-2 gap-2 relative z-10 pt-1">
-              <button
-                onClick={handleWhatsAppShare}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
-              >
-                <MessageCircle className="w-4 h-4 fill-white" />
-                <span>Share WhatsApp</span>
-              </button>
-              <button
-                onClick={handleShareReferral}
-                className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black py-3 px-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>Invite &amp; Earn</span>
-              </button>
+            <div className="flex items-center space-x-2">
+              <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold px-3 py-1.5 rounded-2xl flex items-center space-x-1.5">
+                <Crown className="w-4 h-4 text-amber-500 fill-amber-500" />
+                <span>{customerUser.tier}</span>
+              </span>
             </div>
           </div>
 
-          {/* Contact Details List */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-2 shadow-xs divide-y divide-slate-100">
-            <div className="flex items-center space-x-3.5 p-3.5">
-              <Phone className="w-4 h-4 text-slate-400" />
-              <span className="text-xs font-bold text-slate-800">{customerUser.phone}</span>
-            </div>
-            <div className="flex items-center space-x-3.5 p-3.5">
-              <Mail className="w-4 h-4 text-slate-400" />
-              <span className="text-xs font-bold text-slate-800">{customerUser.email}</span>
-            </div>
-          </div>
+          {/* 2-Column Responsive Layout: Left (5 cols) Profile & Actions, Right (7 cols) Refer & Earn Hero */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            
+            {/* Left Column (5 cols): Profile Info, Contact, Policies & Logout */}
+            <div className="lg:col-span-5 space-y-5">
+              
+              {/* User Profile Card */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 rounded-2xl bg-rose-100 text-[#74111d] font-black text-xl flex items-center justify-center shrink-0 shadow-xs ring-2 ring-[#74111d]/20">
+                    {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight truncate">
+                      {customerUser.name}
+                    </h3>
+                    <div className="flex items-center space-x-1.5 mt-1 text-xs text-slate-500 font-mono">
+                      <span>ID: {customerUser.customerId}</span>
+                      <button
+                        onClick={() => handleCopyCustomer(customerUser.customerId)}
+                        className="hover:text-slate-900 cursor-pointer p-0.5"
+                        title="Copy Customer ID"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                      {copiedId && <span className="text-[10px] text-emerald-600 font-sans font-bold">Copied!</span>}
+                    </div>
+                  </div>
+                </div>
 
-          {/* Settings / Policies Navigation Rows */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-2 shadow-xs divide-y divide-slate-100">
-            <div 
-              onClick={() => {
-                setLegalModalTab('privacy');
-                setLegalModalOpen(true);
-              }}
-              className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
-            >
-              <div className="flex items-center space-x-3.5">
-                <ShieldCheck className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-bold text-slate-800">Privacy Policy</span>
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                  <div className="bg-slate-50 rounded-2xl p-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Member Since</span>
+                    <span className="text-xs font-bold text-slate-800">{customerUser.memberSince}</span>
+                  </div>
+                  <div className="bg-slate-50 rounded-2xl p-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Membership</span>
+                    <span className="text-xs font-bold text-amber-700">{customerUser.tier}</span>
+                  </div>
+                </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
+
+              {/* Contact Details List */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-3 shadow-xs divide-y divide-slate-100">
+                <div className="flex items-center space-x-3.5 p-3.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Phone Number</span>
+                    <span className="text-xs font-bold text-slate-800">{customerUser.phone}</span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3.5 p-3.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Email Address</span>
+                    <span className="text-xs font-bold text-slate-800">{customerUser.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Settings / Policies Navigation Rows */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-2.5 shadow-xs divide-y divide-slate-100">
+                <div 
+                  onClick={() => {
+                    setLegalModalTab('privacy');
+                    setLegalModalOpen(true);
+                  }}
+                  className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <ShieldCheck className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs font-bold text-slate-800">Privacy Policy</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </div>
+
+                <div 
+                  onClick={() => {
+                    setLegalModalTab('terms');
+                    setLegalModalOpen(true);
+                  }}
+                  className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <FileText className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs font-bold text-slate-800">Terms &amp; Conditions</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </div>
+
+                <div 
+                  onClick={handleLogout}
+                  className="flex items-center justify-between p-3.5 hover:bg-rose-50/50 rounded-2xl cursor-pointer transition"
+                >
+                  <div className="flex items-center space-x-3.5 text-rose-600">
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-xs font-black">Logout</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-rose-600" />
+                </div>
+              </div>
+
             </div>
 
-            <div 
-              onClick={() => {
-                setLegalModalTab('terms');
-                setLegalModalOpen(true);
-              }}
-              className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
-            >
-              <div className="flex items-center space-x-3.5">
-                <FileText className="w-4 h-4 text-slate-400" />
-                <span className="text-xs font-bold text-slate-800">Terms &amp; Conditions</span>
+            {/* Right Column (7 cols): Refer & Earn Card + How Referrals Work Guide */}
+            <div className="lg:col-span-7 space-y-5">
+              
+              {/* Refer & Earn Rewards Card (Shows Customer Profit & Invite CTA) */}
+              <div className="bg-gradient-to-br from-[#74111d] via-[#8c1725] to-[#550c14] text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden space-y-5">
+                {/* Background glowing shapes */}
+                <div className="absolute -right-6 -bottom-6 w-44 h-44 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
+                <div className="absolute -left-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-lg pointer-events-none" />
+
+                {/* Header with Gift badge */}
+                <div className="flex items-start justify-between relative z-10">
+                  <div className="space-y-1.5">
+                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[10px] font-black uppercase tracking-wider">
+                      <Gift className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Refer &amp; Earn Profit</span>
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-black tracking-tight text-white pt-1">
+                      Invite Friends, Get Free Stamps &amp; Cash!
+                    </h3>
+                    <p className="text-xs sm:text-sm text-rose-100/90 leading-relaxed max-w-lg">
+                      Share your unique referral code. When your friends join and scan, they get 10% off and you receive direct profit on your account.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Profit Breakdown Matrix */}
+                <div className="grid grid-cols-2 gap-3 relative z-10 pt-1">
+                  <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 sm:p-4">
+                    <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">Your Profit</span>
+                    <p className="text-base sm:text-lg font-black text-white mt-1">+1 Free Stamp</p>
+                    <p className="text-xs text-rose-200 mt-0.5 font-medium">+ ₹50 Wallet Credit / friend</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 sm:p-4">
+                    <span className="text-[10px] font-bold text-emerald-300 uppercase block tracking-wider">Friend's Profit</span>
+                    <p className="text-base sm:text-lg font-black text-white mt-1">10% OFF</p>
+                    <p className="text-xs text-rose-200 mt-0.5 font-medium">Instant welcome voucher</p>
+                  </div>
+                </div>
+
+                {/* Your Referral Stats */}
+                <div className="bg-black/25 rounded-2xl p-3.5 sm:p-4 flex items-center justify-around text-center border border-white/10 relative z-10">
+                  <div>
+                    <span className="text-[10px] text-rose-200 block font-medium">Invited</span>
+                    <span className="text-lg font-black text-amber-300">{customerUser.referralCount || 0} friends</span>
+                  </div>
+                  <div className="h-7 w-px bg-white/20"></div>
+                  <div>
+                    <span className="text-[10px] text-rose-200 block font-medium">Bonus Stamps</span>
+                    <span className="text-lg font-black text-white">{customerUser.referralCount || 0} stamps</span>
+                  </div>
+                  <div className="h-7 w-px bg-white/20"></div>
+                  <div>
+                    <span className="text-[10px] text-rose-200 block font-medium">Cash Profit</span>
+                    <span className="text-lg font-black text-emerald-300">₹{customerUser.referralEarnings || 0}</span>
+                  </div>
+                </div>
+
+                {/* Referral Code & Copy Bar */}
+                <div className="bg-white/10 border border-white/20 rounded-2xl p-3 flex items-center justify-between relative z-10">
+                  <div className="pl-2">
+                    <span className="text-[9px] uppercase tracking-wider text-rose-200 block font-bold">Your Referral Code</span>
+                    <span className="font-mono text-sm sm:text-base font-black text-white tracking-widest">{customerUser.referralCode || 'BEAUREX-8F4A'}</span>
+                  </div>
+                  <button
+                    onClick={() => handleCopyReferralCode(customerUser.referralCode || 'BEAUREX-8F4A')}
+                    className="bg-white text-[#74111d] hover:bg-rose-50 font-black px-4 py-2.5 rounded-xl text-xs transition flex items-center space-x-1.5 cursor-pointer shadow-sm shrink-0"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{copiedReferral ? 'Copied!' : 'Copy Code'}</span>
+                  </button>
+                </div>
+
+                {/* Action Buttons: WhatsApp Share & Native Invite */}
+                <div className="grid grid-cols-2 gap-3 relative z-10 pt-1">
+                  <button
+                    onClick={handleWhatsAppShare}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3.5 px-4 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-white shrink-0" />
+                    <span>Share WhatsApp</span>
+                  </button>
+                  <button
+                    onClick={handleShareReferral}
+                    className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black py-3.5 px-4 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                  >
+                    <Share2 className="w-4 h-4 shrink-0" />
+                    <span>Invite &amp; Earn</span>
+                  </button>
+                </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
+
+              {/* How Referrals Work Explainer Card */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+                <h4 className="text-sm font-black text-slate-900">How It Works in 3 Easy Steps</h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-slate-50 rounded-2xl p-3.5 space-y-1.5">
+                    <div className="w-7 h-7 rounded-xl bg-[#74111d] text-white text-xs font-black flex items-center justify-center">
+                      1
+                    </div>
+                    <h5 className="text-xs font-black text-slate-900">Share Your Code</h5>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Send your link or referral code to friends via WhatsApp or social apps.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-2xl p-3.5 space-y-1.5">
+                    <div className="w-7 h-7 rounded-xl bg-[#74111d] text-white text-xs font-black flex items-center justify-center">
+                      2
+                    </div>
+                    <h5 className="text-xs font-black text-slate-900">Friend Visits &amp; Scans</h5>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      Your friend joins with your code and gets 10% instant discount at checkout.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-2xl p-3.5 space-y-1.5">
+                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white text-xs font-black flex items-center justify-center">
+                      3
+                    </div>
+                    <h5 className="text-xs font-black text-slate-900">Earn Profit</h5>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                      You instantly receive +1 Free Stamp and ₹50 profit credited to your account!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            <div 
-              onClick={handleLogout}
-              className="flex items-center justify-between p-3.5 hover:bg-rose-50/50 rounded-2xl cursor-pointer transition"
-            >
-              <div className="flex items-center space-x-3.5 text-rose-600">
-                <LogOut className="w-4 h-4" />
-                <span className="text-xs font-black">Logout</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-rose-600" />
-            </div>
           </div>
 
         </div>
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* PERSISTENT BOTTOM NAVIGATION BAR (Screens 5, 7, 8, 9) */}
+      {/* PERSISTENT BOTTOM NAVIGATION BAR (Screens 5, 7, 8, 9) - Mobile Only */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen !== 'scan' && (
-        <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-white border-t border-slate-200/90 px-8 py-2 flex items-center justify-around shadow-2xl">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-6 py-2 flex items-center justify-around shadow-2xl md:hidden">
           {/* Home Tab */}
           <button
             onClick={() => setCurrentScreen('home')}
-            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 ${
               currentScreen === 'home' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
             <Home className="w-5 h-5" />
             <span className="text-[10px] font-black mt-1">Home</span>
-          </button>
-
-          {/* Center Floating Red Scan Button */}
-          <button
-            onClick={openScanScreen}
-            className="-mt-7 w-14 h-14 rounded-full bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
-            aria-label="Scan QR Code"
-          >
-            <QrCode className="w-6 h-6 stroke-[2.5]" />
           </button>
 
           {/* Rewards Tab */}
@@ -2178,12 +2796,41 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               setRewardsSubTab('to_claim');
               setCurrentScreen('rewards');
             }}
-            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 relative ${
               currentScreen === 'rewards' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Gift className="w-5 h-5" />
+            <div className="relative">
+              <Gift className="w-5 h-5" />
+              {rewardHistory.length > 0 && (
+                <span className="absolute -top-1 -right-2.5 w-4 h-4 rounded-full bg-[#74111d] text-white text-[9px] font-black flex items-center justify-center">
+                  {rewardHistory.length}
+                </span>
+              )}
+            </div>
             <span className="text-[10px] font-black mt-1">Rewards</span>
+          </button>
+
+          {/* Center Floating Red Scan Button */}
+          <div className="flex-1 flex justify-center">
+            <button
+              onClick={openScanScreen}
+              className="-mt-7 w-14 h-14 rounded-full bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
+              aria-label="Scan QR Code"
+            >
+              <QrCode className="w-6 h-6 stroke-[2.5]" />
+            </button>
+          </div>
+
+          {/* Profile & Refer Tab */}
+          <button
+            onClick={() => setCurrentScreen('profile')}
+            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 ${
+              currentScreen === 'profile' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <User className="w-5 h-5" />
+            <span className="text-[10px] font-black mt-1">Profile</span>
           </button>
         </nav>
       )}

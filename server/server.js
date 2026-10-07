@@ -165,7 +165,7 @@ app.use(async (req, res, next) => {
 // Start server if run directly (local development / container)
 if (process.env.VERCEL !== '1' && require.main === module) {
   connectDB();
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 BeAurex API Server listening on port ${PORT}`);
     console.log(`   Health Check: http://localhost:${PORT}/api/health`);
   });
