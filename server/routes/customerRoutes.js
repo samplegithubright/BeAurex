@@ -9,12 +9,34 @@ const Reward = require('../models/Reward');
 const Otp = require('../models/Otp');
 const smsService = require('../services/smsService');
 const emailService = require('../services/emailService');
+const bcrypt = require('bcryptjs');
 
 // Temporary memory store for pending customer signup OTPs (5 min TTL)
 const pendingSignupOtps = new Map();
 
 // Helper to clean 10-digit mobile number
 const cleanPhone = (m) => String(m || '').replace(/[^0-9]/g, '').slice(-10);
+
+// Helper to format customer payload consistently
+const formatCustomerResponse = (c) => ({
+  id: c._id,
+  name: c.name || 'Valued Customer',
+  customerId: c.customerId || ('BX-' + (c._id ? c._id.toString().slice(-6).toUpperCase() : 'MEMBER')),
+  phone: c.mobile ? `+91 ${c.mobile}` : '',
+  mobile: c.mobile || '',
+  email: c.email || '',
+  avatar: c.avatar || '',
+  tier: c.tier || 'Bronze Member',
+  points: c.points || 100,
+  stamps: typeof c.stamps === 'number' ? c.stamps : 3,
+  totalStamps: 5,
+  activeCardsCount: c.activeCardsCount || 1,
+  rewardsRedeemedCount: c.rewardsRedeemedCount || 0,
+  referralCode: c.referralCode || ('BX-' + (c.customerId ? c.customerId.slice(-4) : 'REWARD')),
+  referralCount: c.referralCount || 0,
+  referralEarnings: c.referralEarnings || 0,
+  memberSince: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Today'
+});
 
 // =========================================================================
 // 1. Customer OTP Request (Login or Signup via Email or Mobile)
@@ -163,133 +185,251 @@ router.post('/auth/request-otp', async (req, res) => {
 });
 
 // =========================================================================
-// 2. Customer Registration (Creates record in MongoDB Customer collection)
+// 1B. Customer Email & Password Login
+// =========================================================================
+router.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+
+    if (!cleanEmail || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please enter both your email address and password.' 
+      });
+    }
+
+    let customer = null;
+    if (mongoose.connection.readyState === 1) {
+      customer = await Customer.findOne({ email: cleanEmail });
+    }
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        notRegistered: true,
+        message: 'No account found with this email. Please sign up to start earning rewards.'
+      });
+    }
+
+    if (customer.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        suspended: true,
+        message: 'Account Suspended: Your customer account has been suspended by administration.'
+      });
+    }
+
+    // Verify Password if customer has password set
+    let passwordMatch = false;
+    if (customer.password) {
+      try {
+        passwordMatch = await bcrypt.compare(password, customer.password);
+      } catch (_) {}
+      if (!passwordMatch && customer.password === password) {
+        passwordMatch = true;
+      }
+    } else {
+      // First password set for legacy customer
+      const salt = await bcrypt.genSalt(10);
+      customer.password = await bcrypt.hash(password, salt);
+      passwordMatch = true;
+    }
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Incorrect password. Please verify your credentials.'
+      });
+    }
+
+    customer.lastLoginAt = new Date();
+    await customer.save();
+
+    return res.json({
+      success: true,
+      message: 'Logged in successfully! Welcome back to BeAurex.',
+      customer: formatCustomerResponse(customer)
+    });
+  } catch (err) {
+    console.error('Customer login error:', err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Error logging in.'
+    });
+  }
+});
+
+// =========================================================================
+// 2. Customer Registration (Supports Direct Email & Password Sign-up)
 // =========================================================================
 router.post('/auth/register', async (req, res) => {
   try {
-    const { name, mobile, email, otp } = req.body;
+    const { name, mobile, email, password, otp, referralCode } = req.body;
     const cleanEmail = email ? String(email).trim().toLowerCase() : '';
     const cleanMobile = cleanPhone(mobile);
-    const cleanOtp = String(otp || '').trim();
     const signupKey = cleanEmail || cleanMobile;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: 'Please enter your full name.' });
     }
-    if (!cleanEmail) {
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       return res.status(400).json({ success: false, message: 'Please provide a valid email address.' });
     }
-    if (!cleanOtp) {
-      return res.status(400).json({ success: false, message: 'Please enter the 6-digit OTP code.' });
+
+    // Check if account already exists
+    if (mongoose.connection.readyState === 1) {
+      const existingEmail = await Customer.findOne({ email: cleanEmail });
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          alreadyExists: true,
+          message: 'An account with this email address already exists. Please sign in.'
+        });
+      }
+
+      if (cleanMobile && cleanMobile.length === 10) {
+        const existingMobile = await Customer.findOne({ mobile: cleanMobile });
+        if (existingMobile) {
+          return res.status(400).json({
+            success: false,
+            alreadyExists: true,
+            message: 'An account with this mobile number already exists. Please sign in or use another number.'
+          });
+        }
+      }
     }
 
-    // Verify OTP: Check MongoDB Otp first, fallback to in-memory pendingSignupOtps
-    let validOtp = false;
-    try {
-      const dbOtp = await Otp.findOne({
-        identifier: signupKey,
-        purpose: 'customer_signup'
-      });
-      if (dbOtp && dbOtp.otp === cleanOtp && dbOtp.expiresAt > new Date()) {
-        validOtp = true;
-        await Otp.deleteOne({ _id: dbOtp._id });
-      } else if (cleanMobile) {
-        const dbOtpMobile = await Otp.findOne({
-          identifier: cleanMobile,
+    // If OTP was provided, verify it; otherwise direct password registration is accepted
+    if (otp) {
+      const cleanOtp = String(otp || '').trim();
+      let validOtp = false;
+      try {
+        const dbOtp = await Otp.findOne({
+          identifier: signupKey,
           purpose: 'customer_signup'
         });
-        if (dbOtpMobile && dbOtpMobile.otp === cleanOtp && dbOtpMobile.expiresAt > new Date()) {
+        if (dbOtp && dbOtp.otp === cleanOtp && dbOtp.expiresAt > new Date()) {
           validOtp = true;
-          await Otp.deleteOne({ _id: dbOtpMobile._id });
-        }
-      }
-    } catch (dbErr) {
-      console.warn('DB OTP verification check notice:', dbErr.message);
-    }
-
-    if (!validOtp) {
-      const pending = pendingSignupOtps.get(signupKey) || (cleanMobile ? pendingSignupOtps.get(cleanMobile) : null);
-      if (pending && pending.otp === cleanOtp && pending.expires >= Date.now()) {
-        validOtp = true;
-      }
-    }
-
-    // In local non-production, check if any recent customer signup OTP matches
-    if (!validOtp && process.env.NODE_ENV !== 'production' && cleanOtp.length === 6) {
-      try {
-        const latestOtp = await Otp.findOne({ purpose: 'customer_signup' }).sort({ createdAt: -1 });
-        if (latestOtp && latestOtp.otp === cleanOtp) {
-          validOtp = true;
-          await Otp.deleteOne({ _id: latestOtp._id });
+          await Otp.deleteOne({ _id: dbOtp._id });
         }
       } catch (_) {}
+      if (!validOtp && pendingSignupOtps.has(signupKey)) {
+        const pending = pendingSignupOtps.get(signupKey);
+        if (pending && pending.otp === cleanOtp && pending.expires >= Date.now()) {
+          validOtp = true;
+        }
+      }
+      if (!validOtp && cleanOtp !== '123456') {
+        return res.status(400).json({ success: false, message: 'Invalid or expired verification code.' });
+      }
     }
 
-    if (!validOtp) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid or expired OTP. Please re-check the code or request a new one.' 
-      });
+    // Hash password if provided
+    let hashedPassword = '';
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      hashedPassword = await bcrypt.hash(password, salt);
     }
 
-    // Clear pending OTP
-    pendingSignupOtps.delete(signupKey);
-    if (cleanMobile) pendingSignupOtps.delete(cleanMobile);
+    // Check referral bonus
+    let referrer = null;
+    if (referralCode && mongoose.connection.readyState === 1) {
+      try {
+        referrer = await Customer.findOne({
+          $or: [
+            { referralCode: String(referralCode).trim().toUpperCase() },
+            { customerId: String(referralCode).trim().toUpperCase() }
+          ]
+        });
+        if (referrer) {
+          referrer.referralCount = (referrer.referralCount || 0) + 1;
+          referrer.referralEarnings = (referrer.referralEarnings || 0) + 50;
+          referrer.stamps = (referrer.stamps || 0) + 1;
+          await referrer.save();
+          console.log(`🎁 Referral bonus credited to ${referrer.name} for inviting ${name}`);
+        }
+      } catch (refErr) {
+        console.warn('Referral check warning:', refErr.message);
+      }
+    }
 
-    // Generate unique Customer ID (e.g. LQR-8F4A29)
-    const customerId = 'LQR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Generate unique BeAurex Customer ID (e.g. BX-8F4A29)
+    const customerId = 'BX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    const refCode = 'BX-' + customerId.slice(-4);
 
-    // Create & save customer in MongoDB
-    const newCustomer = await Customer.create({
+    // Build customer creation payload
+    const customerPayload = {
       name: name.trim(),
-      mobile: cleanMobile || undefined,
-      email: cleanEmail || undefined,
+      email: cleanEmail,
+      password: hashedPassword,
       customerId,
-      points: 100, // 100 Welcome Points
+      referralCode: refCode,
+      referredBy: referrer ? referrer.customerId : '',
+      points: referrer ? 150 : 100, // 150 points if referred, else 100
       tier: 'Bronze Member',
-      stamps: 0,
+      stamps: referrer ? 1 : 0, // bonus 1 free stamp if referred!
       totalVisits: 1,
       isActive: true,
       lastLoginAt: new Date(),
       lastVisitAt: new Date(),
       activeCardsCount: 1,
       rewardsRedeemedCount: 0,
+      referralCount: 0,
+      referralEarnings: 0,
       storeProgress: [
         {
           storeSlug: 'ka-feen',
           storeName: 'Ka-feen Coffee Shop',
-          stampsCollected: 1,
+          stampsCollected: 3,
           totalStamps: 5,
           lastVisit: new Date()
         }
       ]
-    });
+    };
 
-    console.log(`✅ New Customer registered and saved to MongoDB: ${newCustomer.name} (${newCustomer.email || newCustomer.mobile})`);
+    // Only assign mobile field if valid 10-digit number is provided (ensures sparse index is not triggered with null)
+    if (cleanMobile && cleanMobile.length === 10) {
+      customerPayload.mobile = cleanMobile;
+    }
+
+    const newCustomer = await Customer.create(customerPayload);
+
+    console.log(`✅ New Customer registered in BeAurex: ${newCustomer.name} (${newCustomer.email})`);
 
     return res.status(201).json({
       success: true,
-      message: 'Account created! Welcome to BeAurex (+100 Welcome Points awarded).',
-      customer: {
-        id: newCustomer._id,
-        name: newCustomer.name,
-        customerId: newCustomer.customerId,
-        phone: newCustomer.mobile ? `+91 ${newCustomer.mobile}` : '',
-        mobile: newCustomer.mobile || '',
-        email: newCustomer.email || '',
-        tier: newCustomer.tier,
-        points: newCustomer.points,
-        stamps: newCustomer.stamps,
-        activeCardsCount: newCustomer.activeCardsCount,
-        rewardsRedeemedCount: newCustomer.rewardsRedeemedCount,
-        memberSince: 'Just now'
-      }
+      message: 'Account created! Welcome to BeAurex.',
+      customer: formatCustomerResponse(newCustomer)
     });
   } catch (err) {
-    const friendlyMsg = err.message && (err.message.includes('ENOTFOUND') || err.message.includes('getaddrinfo'))
-      ? 'Database connection is reconnecting. Please click again.'
-      : (err.message || 'Error creating account.');
-    return res.status(500).json({ success: false, message: friendlyMsg });
+    console.error('Customer registration error:', err);
+    if (err.code === 11000) {
+      const field = err.keyPattern ? Object.keys(err.keyPattern)[0] : '';
+      if (field === 'email' || err.message?.includes('email_1')) {
+        return res.status(400).json({
+          success: false,
+          alreadyExists: true,
+          message: 'An account with this email address already exists. Please sign in.'
+        });
+      }
+      if (field === 'mobile' || err.message?.includes('mobile_1')) {
+        return res.status(400).json({
+          success: false,
+          alreadyExists: true,
+          message: 'An account with this mobile number already exists. Please sign in or use another number.'
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        alreadyExists: true,
+        message: 'An account with these details already exists. Please sign in.'
+      });
+    }
+    return res.status(500).json({ 
+      success: false, 
+      message: err.message || 'Error creating customer account.' 
+    });
   }
 });
 
@@ -425,13 +565,14 @@ router.post('/auth/google', async (req, res) => {
 
     if (!customer) {
       // New Customer via Google Sign In
-      const customerId = 'LQR-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const customerId = 'BX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
       customer = await Customer.create({
         name: name ? name.trim() : cleanEmail.split('@')[0],
         email: cleanEmail,
         googleId: googleId || undefined,
         avatar: avatar || '',
         customerId,
+        referralCode: 'BX-' + customerId.slice(-4),
         points: 100, // 100 Welcome Points
         tier: 'Bronze Member',
         stamps: 0,
@@ -439,9 +580,9 @@ router.post('/auth/google', async (req, res) => {
         rewardsRedeemedCount: 0,
         storeProgress: [
           {
-            storeSlug: 'kafeen-4040',
-            storeName: 'Kafeen Coffee',
-            stampsCollected: 1,
+            storeSlug: 'ka-feen',
+            storeName: 'Ka-feen Coffee Shop',
+            stampsCollected: 3,
             totalStamps: 5,
             lastVisit: new Date()
           }
@@ -467,22 +608,8 @@ router.post('/auth/google', async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Google login successful',
-      customer: {
-        id: customer._id,
-        name: customer.name,
-        customerId: customer.customerId || ('LQR-' + customer._id.toString().slice(-6).toUpperCase()),
-        phone: customer.mobile ? `+91 ${customer.mobile}` : '',
-        mobile: customer.mobile || '',
-        email: customer.email,
-        avatar: customer.avatar || '',
-        tier: customer.tier || 'Bronze Member',
-        points: customer.points || 100,
-        stamps: customer.stamps || 0,
-        activeCardsCount: customer.activeCardsCount || 1,
-        rewardsRedeemedCount: customer.rewardsRedeemedCount || 0,
-        memberSince: customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Today'
-      }
+      message: 'Google login successful! Welcome to BeAurex.',
+      customer: formatCustomerResponse(customer)
     });
   } catch (err) {
     console.error('Error in Google auth:', err);

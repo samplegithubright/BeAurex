@@ -218,8 +218,8 @@ export default function TeamManagement() {
     } catch (e) {}
     if (saved && saved.length > 0) return saved;
 
-    // Seed if MWdemo (User 1696)
-    if (agentKey === '1696' || agentProfile.name === 'MWdemo') {
+    // Seed if Rajesh Sharma / MWdemo (User 1696)
+    if (agentKey === '1696' || agentProfile.name === 'Rajesh Sharma' || agentProfile.name === 'MWdemo') {
       return [
         { id: 'ref_714', storeName: 'MW-714 Connaught Cafe', category: 'Cafe & Dining', owner: 'Ramesh Gupta', phone: '98765 43210', city: 'Connaught Place, Delhi', date: '18 Sep 2026', plan: 'Professional Plan', commission: '₹1,500', status: 'PAID' },
         { id: 'ref_711', storeName: 'MW-711 Organic Supermart', category: 'Grocery', owner: 'Anita Rao', phone: '98112 23399', city: 'Indiranagar, Bengaluru', date: '24 Sep 2026', plan: 'Professional Plan', commission: '₹1,500', status: 'PAID' },
@@ -227,8 +227,8 @@ export default function TeamManagement() {
       ];
     }
 
-    // Seed if test JX (User 1648)
-    if (agentKey === '1648' || agentProfile.name === 'test JX') {
+    // Seed if Pooja Nair / test JX (User 1648)
+    if (agentKey === '1648' || agentProfile.name === 'Pooja Nair' || agentProfile.name === 'test JX') {
       return [
         { id: 'ref_679', storeName: 'MW-679 Urban Fitness Hub', category: 'Fitness & Gym', owner: 'Vikram Joshi', phone: '97112 23344', city: 'Koregaon Park, Pune', date: '01 Oct 2026', plan: 'Legacy Pro', commission: '₹2,000', status: 'PAID' }
       ];
@@ -449,19 +449,29 @@ export default function TeamManagement() {
   // =========================================================================
   const [referralSubTab, setReferralSubTab] = useState('referred_users'); // 'referred_users' | 'bank_details'
   
-  // Exact 10 Referred Users from Image 2
-  const [referredUsers, setReferredUsers] = useState([
-    { id: '1728', mwFrId: 'N/A', email: 'sewuzeittaza-5637@yopmail.com', userType: 'MW', name: 'sew', number: '4565246586', joinedOn: '03-07-2026', dateCreated: '-', validityDate: '-', mwStatus: '7 Day Trial', paymentStatus: 'Unpaid' },
-    { id: '1727', mwFrId: 'FR - 1727', email: 'butohidayo-9038@yopmail.com', userType: 'Franchise', name: 'buto', number: '3214567944', joinedOn: '03-07-2026', dateCreated: '-', validityDate: '-', mwStatus: '7 Day Trial', paymentStatus: 'Unpaid' },
-    { id: '1590', mwFrId: '605', isMwLink: true, email: 'thisistest@yopmail.com', userType: 'MW', name: 'this is', number: '9182736461', joinedOn: '26-12-2025', dateCreated: '27-12-2025', validityDate: '27-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
-    { id: '1589', mwFrId: 'N/A', email: 'akhitestkrm@yopmail.com', userType: 'MW', name: 'akhitest reffer by krm', number: '9192939192', joinedOn: '26-12-2025', dateCreated: '-', validityDate: '-', mwStatus: '7 Day Trial', paymentStatus: 'Unpaid' },
-    { id: '1587', mwFrId: '601', isMwLink: true, email: 'calev91750@fftube.com', userType: 'MW', name: 'dsfd', number: '4565464567', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
-    { id: '1586', mwFrId: '597', isMwLink: true, email: 'jatite5118@roratu.com', userType: 'MW', name: 'asas', number: '9999999789', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
-    { id: '1075', mwFrId: '587', isMwLink: true, email: 'gonav80663@nctime.com', userType: 'MW', name: 'test', number: '6300000000', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '30-12-2025', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
-    { id: '1074', mwFrId: '586', isMwLink: true, email: 'najib87498@gamintor.com', userType: 'MW', name: 'test ajay', number: '9800321450', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
-    { id: '1072', mwFrId: '584', isMwLink: true, email: 'yorep81550@roratu.com', userType: 'MW', name: 'test mw', number: '9658732140', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' },
-    { id: '1068', mwFrId: '581', isMwLink: true, email: 'pebes73509@arugy.com', userType: 'MW', name: 'temp test', number: '9654823170', joinedOn: '22-12-2025', dateCreated: '22-12-2025', validityDate: '22-12-2026', mwStatus: 'Inactive', paymentStatus: 'Unpaid' }
-  ]);
+  // Exact 10 Referred Users (Clean Real Data)
+  const initialReferredUsers = [
+    { id: '1728', mwFrId: 'MW - 737', isMwLink: true, email: 'rohit.verma@gmail.com', userType: 'MW', name: 'Rohit Verma', number: '9876543210', joinedOn: '03-07-2026', dateCreated: '03-07-2026', validityDate: '03-07-2027', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+    { id: '1727', mwFrId: 'FR - 1727', isMwLink: true, email: 'ananya.deshmukh@gmail.com', userType: 'Franchise', name: 'Ananya Deshmukh', number: '9822012345', joinedOn: '03-07-2026', dateCreated: '03-07-2026', validityDate: '03-07-2027', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+    { id: '1590', mwFrId: '605', isMwLink: true, email: 'siddharth.mehta@outlook.com', userType: 'MW', name: 'Siddharth Mehta', number: '9819054321', joinedOn: '26-12-2025', dateCreated: '27-12-2025', validityDate: '27-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+    { id: '1589', mwFrId: 'MW - 732', isMwLink: true, email: 'kavita.reddy@gmail.com', userType: 'MW', name: 'Kavita Reddy', number: '9849011223', joinedOn: '26-12-2025', dateCreated: '26-12-2025', validityDate: '26-12-2026', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+    { id: '1587', mwFrId: '601', isMwLink: true, email: 'vikram.singh@gmail.com', userType: 'MW', name: 'Vikram Singh', number: '9810123456', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+    { id: '1586', mwFrId: '597', isMwLink: true, email: 'priya.nair@gmail.com', userType: 'MW', name: 'Priya Nair', number: '9848033221', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+    { id: '1075', mwFrId: '587', isMwLink: true, email: 'arjun.sharma@yahoo.com', userType: 'MW', name: 'Arjun Sharma', number: '9833045678', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '30-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+    { id: '1074', mwFrId: '586', isMwLink: true, email: 'ajay.kapoor@gmail.com', userType: 'MW', name: 'Ajay Kapoor', number: '9800321450', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+    { id: '1072', mwFrId: '584', isMwLink: true, email: 'manish.joshi@gmail.com', userType: 'MW', name: 'Manish Joshi', number: '9658732140', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+    { id: '1068', mwFrId: '581', isMwLink: true, email: 'deepak.verma@gmail.com', userType: 'MW', name: 'Deepak Verma', number: '9654823170', joinedOn: '22-12-2025', dateCreated: '22-12-2025', validityDate: '22-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' }
+  ];
+
+  const [referredUsers, setReferredUsers] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('beaurex_team_referred_users') || '[]');
+      if (Array.isArray(saved) && saved.length > 0 && !JSON.stringify(saved).includes('yopmail') && !JSON.stringify(saved).includes('thisistest') && !JSON.stringify(saved).includes('akhitest')) {
+        return saved;
+      }
+    } catch (_) {}
+    return initialReferredUsers;
+  });
 
   const [selectedMwPreviewModal, setSelectedMwPreviewModal] = useState({ isOpen: false, item: null });
 
@@ -799,6 +809,62 @@ export default function TeamManagement() {
     });
   };
 
+  // Delete Referred User with confirmation modal
+  const handleDeleteReferredUser = (userId) => {
+    const target = referredUsers.find(u => u.id === userId);
+    requestConfirm({
+      title: 'Permission Required: Delete Referred User',
+      message: `Are you sure you want to delete referred user "${target?.name || userId}"?`,
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = referredUsers.filter(u => u.id !== userId);
+        setReferredUsers(updated);
+        try {
+          localStorage.setItem('beaurex_team_referred_users', JSON.stringify(updated));
+        } catch (e) {}
+      }
+    });
+  };
+
+  // Delete CRM Customer Lead with confirmation modal
+  const handleDeleteCrmCustomer = (customerId) => {
+    const target = crmCustomers.find(c => c.id === customerId);
+    requestConfirm({
+      title: 'Permission Required: Delete Customer Lead',
+      message: `Are you sure you want to delete CRM lead "${target?.name || 'Customer'}"?`,
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: () => {
+        const updatedList = crmCustomers.filter(c => c.id !== customerId);
+        setCrmCustomers(updatedList);
+        try {
+          localStorage.setItem(`beaurex_team_crm_${agentKey}`, JSON.stringify(updatedList));
+          localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updatedList));
+        } catch (e) {}
+        fetch(`/api/admin/crm/customers/${customerId}`, { method: 'DELETE' }).catch(() => {});
+      }
+    });
+  };
+
+  // Delete Store Referral with confirmation modal
+  const handleDeleteStoreReferral = (referralId) => {
+    const target = referrals.find(r => r.id === referralId);
+    requestConfirm({
+      title: 'Permission Required: Delete Store Referral',
+      message: `Are you sure you want to remove referred store "${target?.storeName || 'Store'}"?`,
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: () => {
+        const updated = referrals.filter(r => r.id !== referralId);
+        setReferrals(updated);
+        try {
+          localStorage.setItem(`beaurex_team_referrals_${agentKey}`, JSON.stringify(updated));
+        } catch (e) {}
+      }
+    });
+  };
+
   // Sync referrals & CRM customers whenever logged-in agent profile changes
   useEffect(() => {
     const key = agentProfile.userId || agentProfile.email || 'default';
@@ -810,13 +876,13 @@ export default function TeamManagement() {
     } catch (e) {}
     if (savedRefs && savedRefs.length > 0) {
       setReferrals(savedRefs);
-    } else if (key === '1696' || agentProfile.name === 'MWdemo') {
+    } else if (key === '1696' || agentProfile.name === 'Rajesh Sharma' || agentProfile.name === 'MWdemo') {
       setReferrals([
         { id: 'ref_714', storeName: 'MW-714 Connaught Cafe', category: 'Cafe & Dining', owner: 'Ramesh Gupta', phone: '98765 43210', city: 'Connaught Place, Delhi', date: '18 Sep 2026', plan: 'Professional Plan', commission: '₹1,500', status: 'PAID' },
         { id: 'ref_711', storeName: 'MW-711 Organic Supermart', category: 'Grocery', owner: 'Anita Rao', phone: '98112 23399', city: 'Indiranagar, Bengaluru', date: '24 Sep 2026', plan: 'Professional Plan', commission: '₹1,500', status: 'PAID' },
         { id: 'ref_710', storeName: 'MW-710 Glamour Spa', category: 'Salon & Wellness', owner: 'Pooja Mehta', phone: '98990 01122', city: 'Bandra West, Mumbai', date: '28 Sep 2026', plan: 'Standard Plan', commission: '₹1,000', status: 'PAID' }
       ]);
-    } else if (key === '1648' || agentProfile.name === 'test JX') {
+    } else if (key === '1648' || agentProfile.name === 'Pooja Nair' || agentProfile.name === 'test JX') {
       setReferrals([
         { id: 'ref_679', storeName: 'MW-679 Urban Fitness Hub', category: 'Fitness & Gym', owner: 'Vikram Joshi', phone: '97112 23344', city: 'Koregaon Park, Pune', date: '01 Oct 2026', plan: 'Legacy Pro', commission: '₹2,000', status: 'PAID' }
       ]);
@@ -856,7 +922,7 @@ export default function TeamManagement() {
           lastUpdated: '09-09-2026 13:54',
           phone: '9811223344',
           businessType: 'Retail',
-          followups: [{ id: 'f1', dateTime: '09-09-2026 13:54', method: 'Call', status: 'Important', comments: 'ggn' }]
+          followups: [{ id: 'f1', dateTime: '09-09-2026 13:54', method: 'Call', status: 'Important', comments: 'Store setup inquiry.' }]
         },
         {
           id: 'crm_2',
@@ -891,7 +957,7 @@ export default function TeamManagement() {
           followups: [{ id: 'f3', dateTime: '03-10-2026 17:40', method: 'Call', status: 'Closed Won', comments: 'Setup completed. Standee dispatched.' }]
         }
       ]);
-    } else if (key === '1696' || agentProfile.name === 'MWdemo') {
+    } else if (key === '1696' || agentProfile.name === 'Rajesh Sharma' || agentProfile.name === 'MWdemo') {
       setCrmCustomers([
         {
           id: 'crm_mw1',
@@ -908,6 +974,25 @@ export default function TeamManagement() {
           phone: '9152115001',
           businessType: 'Retail',
           followups: [{ id: 'f_mw1', dateTime: '18-09-2026 14:00', method: 'Call', status: 'Important', comments: 'Stores 714, 711 active. Renewal discussed.' }]
+        }
+      ]);
+    } else if (key === '1648' || agentProfile.name === 'Pooja Nair' || agentProfile.name === 'test JX') {
+      setCrmCustomers([
+        {
+          id: 'crm_jx1',
+          name: 'Urban Fitness Pune',
+          approachedFor: 'Gym Standee Setup',
+          followupMethod: 'Visit',
+          status: 'Closed Won',
+          source: 'Direct',
+          email: 'vikram@urbanfitness.in',
+          companyName: 'Urban Fitness Hub',
+          website: '—',
+          address: 'Koregaon Park, Pune',
+          lastUpdated: '01-10-2026 16:30',
+          phone: '9711223344',
+          businessType: 'Fitness & Gym',
+          followups: [{ id: 'f_jx1', dateTime: '01-10-2026 16:30', method: 'Visit', status: 'Closed Won', comments: 'Setup finished and membership cards delivered.' }]
         }
       ]);
     } else {
@@ -1705,13 +1790,23 @@ export default function TeamManagement() {
                             <div className="text-[11px] text-slate-400">{r.category} • {r.city}</div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-black text-slate-900">{r.commission}</div>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                            r.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {r.status}
-                          </span>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right">
+                            <div className="font-black text-slate-900">{r.commission}</div>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              r.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            }`}>
+                              {r.status}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteStoreReferral(r.id)}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                            title="Delete Store Referral"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1856,6 +1951,7 @@ export default function TeamManagement() {
                                 <th className="py-3 px-3">Validity Date</th>
                                 <th className="py-3 px-3 text-center">MW Status</th>
                                 <th className="py-3 px-3 text-center">User Payment Status</th>
+                                <th className="py-3 px-3 text-center">Action</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 bg-white">
@@ -1942,6 +2038,18 @@ export default function TeamManagement() {
                                       <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold inline-block">
                                         {u.paymentStatus}
                                       </span>
+                                    </td>
+
+                                    {/* 12. Action: Delete User */}
+                                    <td className="py-3.5 px-3 text-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteReferredUser(u.id)}
+                                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                        title="Delete Referred User"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
                                     </td>
                                   </tr>
                                 ))}
@@ -2615,6 +2723,14 @@ export default function TeamManagement() {
                                   >
                                     <RotateCcw className="w-3.5 h-3.5" />
                                     <span>Follow up</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteCrmCustomer(c.id)}
+                                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition cursor-pointer inline-flex items-center"
+                                    title="Delete Customer Lead"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               </td>

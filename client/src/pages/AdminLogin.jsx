@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import BrowserFrame from '../components/BrowserFrame';
+import LegalPolicyModal from '../components/LegalPolicyModal';
 import { 
   Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, BarChart3, Sliders, Clock, 
   Store, Sparkles, ArrowRight, Check, ArrowLeft, AlertCircle, MapPin, Tag,
@@ -9,6 +10,10 @@ import {
 
 export default function AdminLogin({ initialMode = 'signin' }) {
   const navigate = useNavigate();
+
+  // Legal Policy modal state
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalModalTab, setLegalModalTab] = useState('privacy');
 
   // Top Auth Mode: 'signin' or 'signup'
   const [authMode, setAuthMode] = useState(() => {
@@ -838,26 +843,6 @@ export default function AdminLogin({ initialMode = 'signin' }) {
                 <span>{loading ? 'Creating Account...' : 'Create Account & Start Free Trial'}</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setSignupForm({
-                    businessName: 'Royal Sweets & Cafe',
-                    category: 'CAFE_RESTAURANT',
-                    city: 'Delhi NCR',
-                    email: 'owner@royalsweets.com',
-                    mobile: '9876543210',
-                    password: 'LoyalQR@2026'
-                  });
-                  setTimeout(() => {
-                    handleSignup();
-                  }, 100);
-                }}
-                className="w-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-[#74111d] font-bold py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center space-x-2"
-              >
-                <span>⚡ 1-Tap Demo Store Registration (Instant Access)</span>
-              </button>
-
               <div className="text-center text-xs text-slate-500 pt-3">
                 Already registered?{' '}
                 <button
@@ -875,8 +860,30 @@ export default function AdminLogin({ initialMode = 'signin' }) {
         </div>
 
         <div className="text-[11px] text-slate-400 text-center mt-6">
-          By continuing, you agree to BeAurex <a href="#" className="text-slate-600 underline">Terms of Service</a> and <a href="#" className="text-slate-600 underline">Privacy Policy</a>.
+          By continuing, you agree to BeAurex{' '}
+          <button 
+            type="button" 
+            onClick={() => { setLegalModalTab('terms'); setLegalModalOpen(true); }}
+            className="text-slate-600 underline hover:text-slate-900 cursor-pointer"
+          >
+            Terms of Service
+          </button>{' '}
+          and{' '}
+          <button 
+            type="button" 
+            onClick={() => { setLegalModalTab('privacy'); setLegalModalOpen(true); }}
+            className="text-slate-600 underline hover:text-slate-900 cursor-pointer"
+          >
+            Privacy Policy
+          </button>.
         </div>
+
+        {/* Synchronized Legal Policy Modal */}
+        <LegalPolicyModal
+          isOpen={legalModalOpen}
+          onClose={() => setLegalModalOpen(false)}
+          initialTab={legalModalTab}
+        />
       </div>
     </BrowserFrame>
   );

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import MerchantOnboardingModal from '../components/MerchantOnboardingModal';
 import ActionConfirmModal from '../components/ActionConfirmModal';
+import LegalPolicyModal from '../components/LegalPolicyModal';
 import QRCode from 'qrcode';
 
 export default function MerchantDashboard() {
@@ -474,6 +475,8 @@ export default function MerchantDashboard() {
   const [ownerModalOpen, setOwnerModalOpen] = useState(false);
   const [downloadAppModalOpen, setDownloadAppModalOpen] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+  const [legalPolicyModalOpen, setLegalPolicyModalOpen] = useState(false);
+  const [legalPolicyModalTab, setLegalPolicyModalTab] = useState('privacy');
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [updatePasswordModalOpen, setUpdatePasswordModalOpen] = useState(false);
   const [passwordChangeForm, setPasswordChangeForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -1567,12 +1570,11 @@ export default function MerchantDashboard() {
   const scratchWinnersCount = winners.filter(w => w.type === 'scratch').length;
   const pendingClaimsCount = winners.filter(w => w.status === 'ACTION_REQUIRED').length;
 
-  // Primary Workflow Navigation (Matching Screens 8, 9, 12, 13 + Deals & Coupons)
+  // Primary Workflow Navigation (Matching Screens 8, 9, 12, 13)
   const coreNavItems = [
     { id: 'home', label: 'Home Dashboard', icon: Home, badge: 'Main' },
     { id: 'rewards', label: 'Rewards Workflow', icon: Gift, badge: pendingRedemptions.length > 0 ? `${pendingRedemptions.length} New` : null },
     { id: 'create_offer', label: 'Create Offer', icon: PlusCircle },
-    { id: 'merchant_deals', label: 'Deals & Coupons', icon: Tag, badge: `${platformDeals.filter(d => d.status === 'Active').length} Active` },
     { id: 'profile', label: 'Store Profile', icon: User },
   ];
 
@@ -2890,69 +2892,7 @@ export default function MerchantDashboard() {
                 </p>
               </div>
 
-              {/* Card 0: Platform Deals & Coupons Option (Super Admin Deals) */}
-              {platformDeals && platformDeals.length > 0 && (
-                <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-3xl p-5 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#74111d] text-white flex items-center justify-center font-black">
-                        <Tag className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="font-black text-xs sm:text-sm text-slate-900">
-                          Super Admin Deals & Coupons Available ({platformDeals.filter(d => d.status === 'Active').length})
-                        </h3>
-                        <p className="text-[11px] text-slate-500 font-medium">
-                          Select any platform promotion below to auto-populate your offer template
-                        </p>
-                      </div>
-                    </div>
-                    <span className="bg-red-100 text-[#74111d] text-[10px] font-black px-2.5 py-1 rounded-full border border-red-200">
-                      {platformDeals.filter(d => d.status === 'Active').length} Active
-                    </span>
-                  </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                    {platformDeals.filter(d => d.status === 'Active').map((deal) => (
-                      <div
-                        key={deal.id}
-                        className="bg-white border border-red-100 rounded-2xl p-3 shadow-xs flex flex-col justify-between hover:border-red-300 transition"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-black text-xs text-slate-900">{deal.dealName}</span>
-                            <span className="font-mono text-[9px] font-bold bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-200">
-                              {deal.couponCode}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-600 font-medium">
-                            {deal.planName} • {deal.discountPercentage > 0 ? `${deal.discountPercentage}% OFF` : `₹${deal.discountAmount} OFF`} {deal.bonusAmount > 0 ? `+ ₹${deal.bonusAmount} Bonus` : ''}
-                          </p>
-                          <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
-                            Valid till: {deal.validityDate || 'Lifetime'} • {deal.state}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOfferTitle(`${deal.dealName} - ${deal.discountPercentage > 0 ? `${deal.discountPercentage}% OFF` : `₹${deal.discountAmount} Flat OFF`}`);
-                            setOfferDescription(`Promotional Deal Code: ${deal.couponCode}. Valid for ${deal.planName}. Enjoy exclusive customer rewards!`);
-                            setStampsCount(5);
-                            setRewardType('DISCOUNT_PERCENT');
-                            setDiscountValue(deal.discountPercentage || 20);
-                            setCopiedToast(true);
-                            setTimeout(() => setCopiedToast(false), 3000);
-                          }}
-                          className="mt-2.5 w-full py-1.5 px-3 bg-[#74111d] hover:bg-[#5c0d16] text-white rounded-xl text-[11px] font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
-                        >
-                          <Sparkles className="w-3 h-3 text-amber-300" />
-                          <span>Use Deal Template</span>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Card 1: Upload Offer Image Banner */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-3">
@@ -3130,111 +3070,7 @@ export default function MerchantDashboard() {
           )}
 
           {/* ============================================================= */}
-          {/* TAB: DEALS & COUPONS (Super Admin Platform Deals for Merchant) */}
-          {/* ============================================================= */}
-          {activeTab === 'merchant_deals' && (
-            <div className="space-y-6 pb-20 animate-in fade-in duration-200 max-w-4xl mx-auto">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#74111d] to-[#9c1827] text-white rounded-3xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-                  <div>
-                    <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold uppercase tracking-wider mb-1">
-                      <Tag className="w-4 h-4" />
-                      <span>Promotional Campaigns</span>
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-                      Available Platform Deals & Coupons
-                    </h2>
-                    <p className="text-rose-100 text-xs sm:text-sm font-medium mt-1">
-                      Choose from {platformDeals.filter(d => d.status === 'Active').length} active deals created by Super Admin to incentivize your customers
-                    </p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl p-4 text-center">
-                    <span className="text-3xl font-black text-white block">
-                      {platformDeals.filter(d => d.status === 'Active').length}
-                    </span>
-                    <span className="text-[10px] font-bold text-rose-200 uppercase tracking-wider">
-                      Active Deals
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Deals Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {platformDeals.filter(d => d.status === 'Active').map((deal) => (
-                  <div key={deal.id} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col justify-between hover:shadow-md transition">
-                    <div>
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                            {deal.planName}
-                          </span>
-                          <h3 className="font-black text-base text-slate-900 mt-1.5">{deal.dealName}</h3>
-                        </div>
-                        <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl">
-                          <span className="font-mono text-xs font-black text-slate-800">{deal.couponCode}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard?.writeText(deal.couponCode);
-                              setCopiedToast(true);
-                              setTimeout(() => setCopiedToast(false), 3000);
-                            }}
-                            className="text-slate-400 hover:text-slate-700 cursor-pointer p-0.5"
-                            title="Copy code"
-                          >
-                            <Copy className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2 py-3 border-y border-slate-100 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-500 font-medium">Customer Discount</span>
-                          <span className="font-black text-emerald-600">
-                            {deal.discountPercentage > 0 ? `${deal.discountPercentage}% OFF` : `₹${deal.discountAmount} Flat Discount`}
-                          </span>
-                        </div>
-                        {deal.bonusAmount > 0 && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-500 font-medium">Referrer Bonus</span>
-                            <span className="font-bold text-amber-600">+ ₹{deal.bonusAmount}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-500 font-medium">Target State</span>
-                          <span className="font-semibold text-slate-700">{deal.state}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-500 font-medium">Validity</span>
-                          <span className="font-mono text-slate-600">{deal.validityDate || 'Lifetime'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOfferTitle(`${deal.dealName} - ${deal.discountPercentage > 0 ? `${deal.discountPercentage}% OFF` : `₹${deal.discountAmount} Flat OFF`}`);
-                          setOfferDescription(`Promotional Deal Code: ${deal.couponCode}. Valid for ${deal.planName}. Enjoy exclusive customer rewards!`);
-                          setStampsCount(5);
-                          setRewardType('DISCOUNT_PERCENT');
-                          setDiscountValue(deal.discountPercentage || 20);
-                          setActiveTab('create_offer');
-                        }}
-                        className="flex-1 py-2.5 px-4 bg-[#74111d] hover:bg-[#5c0d16] text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md shadow-[#74111d]/20"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                        <span>Apply Deal to My Store</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* ============================================================= */}
           {/* SCREEN 6 & 13: MERCHANT PROFILE & SETTINGS (Matching media_1791290845928.png) */}
@@ -5186,6 +5022,31 @@ export default function MerchantDashboard() {
                 <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Secured</span>
               </div>
 
+              <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalPolicyModalTab('privacy');
+                    setLegalPolicyModalOpen(true);
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center space-x-1"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Privacy Policy</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLegalPolicyModalTab('terms');
+                    setLegalPolicyModalOpen(true);
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center space-x-1"
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Terms &amp; Conditions</span>
+                </button>
+              </div>
+
               <button
                 onClick={() => setPrivacyModalOpen(false)}
                 className="w-full bg-slate-900 text-white font-black py-2.5 rounded-xl transition text-xs cursor-pointer mt-2"
@@ -5843,20 +5704,6 @@ export default function MerchantDashboard() {
         </button>
         )}
 
-        <button
-          onClick={() => setActiveTab('merchant_deals')}
-          className={`flex flex-col items-center space-y-1 transition cursor-pointer relative ${
-            activeTab === 'merchant_deals' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <div className={`p-1.5 rounded-xl transition ${activeTab === 'merchant_deals' ? 'bg-red-50 text-[#74111d]' : ''}`}>
-            <Tag className="w-5 h-5" />
-          </div>
-          <span className={`text-[10px] font-bold ${activeTab === 'merchant_deals' ? 'font-black' : ''}`}>Deals</span>
-          {platformDeals.filter(d => d.status === 'Active').length > 0 && (
-            <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-600 ring-2 ring-white"></span>
-          )}
-        </button>
 
         {isFeatureVisible('profile_tab') && (
         <button
@@ -5872,6 +5719,13 @@ export default function MerchantDashboard() {
         </button>
         )}
       </nav>
+
+      {/* Platform Synchronized Legal Policy Modal */}
+      <LegalPolicyModal
+        isOpen={legalPolicyModalOpen}
+        onClose={() => setLegalPolicyModalOpen(false)}
+        initialTab={legalPolicyModalTab}
+      />
 
     </div>
   );

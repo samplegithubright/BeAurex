@@ -7,6 +7,7 @@ const SystemConfig = require('../models/SystemConfig');
 const DATA_DIR = path.join(__dirname, '../data');
 const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'system_config.json');
+const LEGAL_FILE = path.join(DATA_DIR, 'legal_policies.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -169,9 +170,84 @@ const initialConfig = {
   ]
 };
 
+// 3. Initial / Default Legal Policies (Privacy Policy & Terms of Service)
+const initialPolicies = {
+  privacy: {
+    type: 'Privacy Policy',
+    title: 'Privacy Policy',
+    status: 'Published',
+    lastUpdated: 'May 24, 2026 08:20 AM',
+    version: '1.0',
+    publishedBy: 'Super Admin',
+    publishedOn: 'May 24, 2026 08:20 AM',
+    content: `BeAurex Platform Privacy Policy (v1.0)
+
+At BeAurex, we value your privacy and are committed to protecting your personal information and commercial integrity.
+
+1. Information We Collect
+We collect necessary information to provide and operate digital loyalty programs:
+• Merchant Business Information (Store name, business category, counter address, contact details)
+• Customer Profile Data (Name, email address, customer ID, phone number if provided)
+• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)
+• Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)
+
+2. How We Use Your Information
+We use information strictly for:
+• Operating customer rewards and digital stamp issuance
+• Validating customer reward claims at merchant physical counters
+• Preventing fraudulent or duplicate scans
+• Facilitating peer-to-peer customer referral rewards
+• Account security and service announcements
+
+3. Zero Third-Party Selling Guarantee
+BeAurex NEVER sells, rents, or shares customer or merchant personal contact information with third-party advertisers, data brokers, or marketing networks.
+
+4. Data Security & Storage
+All communication between apps and BeAurex servers is protected using 256-bit TLS/SSL encryption. Data is stored in secure, SOC2-compliant cloud database infrastructure with automated backups and firewall filtering.
+
+5. Your Rights & Data Deletion
+Customers and merchants have full control over their account data. You may request account review, data export, or complete account deletion at any time by contacting our privacy compliance desk at support@beaurex.com. Requests are processed within 48 business hours.`
+  },
+  terms: {
+    type: 'Terms & Conditions',
+    title: 'Terms & Conditions',
+    status: 'Published',
+    lastUpdated: 'May 24, 2026 08:20 AM',
+    version: '1.0',
+    publishedBy: 'Super Admin',
+    publishedOn: 'May 24, 2026 08:20 AM',
+    content: `BeAurex Platform Terms & Conditions (v1.0)
+
+Welcome to BeAurex. These Terms and Conditions govern your access to and usage of the BeAurex loyalty platform, merchant dashboard, counter standee QR codes, and customer web experience.
+
+1. Acceptance of Terms
+By accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.
+
+2. Merchant Obligations & Counter Conduct
+• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.
+• Merchants must not manipulate scan telemetry or create counterfeit QR displays.
+• Counter staff must verify the 6-character Customer ID before confirming reward redemptions.
+
+3. Customer Rewards & Points Policy
+• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
+• Stamps and points carry no direct legal tender cash value outside designated partner stores.
+• Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.
+
+4. Platform Availability & Fair Use
+• BeAurex strives for 99.9% platform availability. Periodic system maintenance will be communicated in advance.
+• Automated bots, GPS spoofing, automated QR scan spamming, and rate-limit circumvention are strictly prohibited and will result in immediate account termination.
+
+5. Subscription & Billing Terms
+• Merchants choosing paid subscription plans are billed according to their chosen billing period (Annual / 3-Year / Lifetime).
+• Standee acrylic kits are dispatched within 2-3 business days upon account activation.
+• Any disputes regarding subscription billing must be raised within 14 calendar days to support@beaurex.com.`
+  }
+};
+
 // In-Memory Caches
 let memoryPlans = [...initialPlans];
 let memoryConfig = { ...initialConfig };
+let memoryPolicies = { ...initialPolicies };
 
 // Helper: Read JSON from file
 function readJsonFile(filePath, fallback) {
@@ -198,10 +274,12 @@ function writeJsonFile(filePath, data) {
 // Load initial state from file or defaults
 memoryPlans = readJsonFile(PLANS_FILE, initialPlans);
 memoryConfig = readJsonFile(CONFIG_FILE, initialConfig);
+memoryPolicies = readJsonFile(LEGAL_FILE, initialPolicies);
 
 // Save to disk to ensure files exist
 if (!fs.existsSync(PLANS_FILE)) writeJsonFile(PLANS_FILE, memoryPlans);
 if (!fs.existsSync(CONFIG_FILE)) writeJsonFile(CONFIG_FILE, memoryConfig);
+if (!fs.existsSync(LEGAL_FILE)) writeJsonFile(LEGAL_FILE, memoryPolicies);
 
 // Helper to check if Mongo is ready
 function isMongoConnected() {
@@ -233,7 +311,8 @@ async function syncWithMongo() {
     if (!dbConfig) {
       await SystemConfig.create({
         ...memoryConfig,
-        plansConfig: memoryPlans
+        plansConfig: memoryPlans,
+        legalPolicies: memoryPolicies
       }).catch(() => {});
     } else {
       memoryConfig = {
@@ -241,6 +320,17 @@ async function syncWithMongo() {
         ...dbConfig
       };
       writeJsonFile(CONFIG_FILE, memoryConfig);
+
+      // 3. Sync Legal Policies with MongoDB
+      if (dbConfig.legalPolicies && (dbConfig.legalPolicies.privacy || dbConfig.legalPolicies.terms)) {
+        memoryPolicies = {
+          ...memoryPolicies,
+          ...dbConfig.legalPolicies
+        };
+        writeJsonFile(LEGAL_FILE, memoryPolicies);
+      } else {
+        await SystemConfig.findOneAndUpdate({}, { legalPolicies: memoryPolicies }).catch(() => {});
+      }
     }
   } catch (err) {
     console.warn('[SystemStore] Mongo sync notice:', err.message);
@@ -490,6 +580,72 @@ const systemStore = {
         provider: cfg.emailProvider || 'SMTP'
       }
     };
+  },
+
+  // Get all Legal Policies (Privacy Policy & Terms of Service)
+  async getLegalPolicies() {
+    if (isMongoConnected()) {
+      try {
+        const dbConfig = await SystemConfig.findOne().lean();
+        if (dbConfig && dbConfig.legalPolicies && (dbConfig.legalPolicies.privacy || dbConfig.legalPolicies.terms)) {
+          memoryPolicies = {
+            ...memoryPolicies,
+            ...dbConfig.legalPolicies
+          };
+          writeJsonFile(LEGAL_FILE, memoryPolicies);
+          return memoryPolicies;
+        }
+      } catch (e) {}
+    }
+    return memoryPolicies;
+  },
+
+  // Get single policy ('privacy' | 'terms')
+  async getLegalPolicy(type) {
+    const policies = await this.getLegalPolicies();
+    const key = type === 'terms' ? 'terms' : 'privacy';
+    return policies[key] || initialPolicies[key];
+  },
+
+  // Save Legal Policies (used by Super Admin to update across all portals)
+  async saveLegalPolicies(updates) {
+    if (!updates) return memoryPolicies;
+    const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+
+    if (updates.privacy) {
+      memoryPolicies.privacy = {
+        ...memoryPolicies.privacy,
+        ...updates.privacy,
+        lastUpdated: updates.privacy.lastUpdated || now
+      };
+    }
+    if (updates.terms) {
+      memoryPolicies.terms = {
+        ...memoryPolicies.terms,
+        ...updates.terms,
+        lastUpdated: updates.terms.lastUpdated || now
+      };
+    }
+    if (updates.type && (updates.type === 'privacy' || updates.type === 'terms')) {
+      const k = updates.type;
+      memoryPolicies[k] = {
+        ...memoryPolicies[k],
+        ...updates,
+        lastUpdated: updates.lastUpdated || now
+      };
+    }
+
+    writeJsonFile(LEGAL_FILE, memoryPolicies);
+
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { legalPolicies: memoryPolicies }, { upsert: true }).catch(() => {});
+      } catch (err) {
+        console.warn('[SystemStore] DB write error for legal policies:', err.message);
+      }
+    }
+
+    return memoryPolicies;
   }
 };
 

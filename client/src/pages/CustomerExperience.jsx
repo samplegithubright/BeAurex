@@ -9,8 +9,39 @@ import {
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
   RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft,
-  Crown, CreditCard
+  Crown, CreditCard, LogIn, Share2, MessageCircle
 } from 'lucide-react';
+import LegalPolicyModal from '../components/LegalPolicyModal';
+
+// Official BeAurex Stamp Indicator (Replaces plain star with official BeAurex Logo)
+function BeAurexStamp({ stamped = true, size = 'sm' }) {
+  const sizeClasses = size === 'lg' ? 'w-10 h-10' : size === 'md' ? 'w-8 h-8' : 'w-7 h-7';
+  if (!stamped) {
+    return (
+      <div 
+        className={`${sizeClasses} rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-xs transition`}
+        title="Uncollected Stamp"
+      >
+        <span className="text-[10px] font-bold text-slate-300">○</span>
+      </div>
+    );
+  }
+  return (
+    <div 
+      className={`${sizeClasses} rounded-full bg-[#74111d] flex items-center justify-center shadow-xs overflow-hidden ring-1 ring-[#5e0c15] p-0 transition transform hover:scale-105 shrink-0 relative`}
+      title="BeAurex Stamped"
+    >
+      <img 
+        src="/beaurex-icon.jpg" 
+        alt="BeAurex Stamp" 
+        className="w-full h-full object-cover scale-135 -translate-y-[8%]"
+        onError={(e) => {
+          e.target.style.display = 'none';
+        }}
+      />
+    </div>
+  );
+}
 
 export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const { slug } = useParams();
@@ -27,6 +58,63 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // Rewards sub-tab: 'to_claim' (Screen 8) or 'history' (Screen 14)
   const [rewardsSubTab, setRewardsSubTab] = useState('to_claim');
   const [historyFilter, setHistoryFilter] = useState('All'); // 'All' | 'Active' | 'Used' | 'Expired'
+  const [selectedHistoryVoucher, setSelectedHistoryVoucher] = useState(null);
+
+  // Dynamic Reward History items for All / Active / Used / Expired
+  const [rewardHistory, setRewardHistory] = useState([
+    {
+      id: 'rh-1',
+      title: '30% off on next purchase',
+      storeName: 'Ka-feen',
+      category: 'Coffee Shop',
+      status: 'Used',
+      claimedDate: '20 May 2026',
+      dateLabel: 'Used on',
+      dateValue: '20 May 2026',
+      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      voucherCode: 'BX-KAF-30OFF',
+      discount: '30% Discount'
+    },
+    {
+      id: 'rh-2',
+      title: 'Free Coffee',
+      storeName: 'Ka-feen',
+      category: 'Coffee Shop',
+      status: 'Expired',
+      claimedDate: '12 Apr 2026',
+      dateLabel: 'Expired on',
+      dateValue: '10 Apr 2026',
+      image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
+      voucherCode: 'BX-KAF-FREE',
+      discount: 'Free Coffee'
+    },
+    {
+      id: 'rh-3',
+      title: 'Buy 1 Get 1 Free',
+      storeName: 'Brew House',
+      category: 'Cafe & Bistro',
+      status: 'Active',
+      claimedDate: '15 Jul 2026',
+      dateLabel: 'Valid till',
+      dateValue: '15 Aug 2026',
+      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+      voucherCode: 'BX-BREW-BOGO26',
+      discount: 'Buy 1 Get 1 Free'
+    },
+    {
+      id: 'rh-4',
+      title: 'Flat ₹100 Off on Meals',
+      storeName: 'Ka-feen',
+      category: 'Coffee Shop',
+      status: 'Active',
+      claimedDate: '01 Oct 2026',
+      dateLabel: 'Valid till',
+      dateValue: '31 Oct 2026',
+      image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
+      voucherCode: 'BX-KAF-100OFF',
+      discount: '₹100 Off'
+    }
+  ]);
 
   // Utility modals/screens
   const [cameraPermissionModalOpen, setCameraPermissionModalOpen] = useState(false);
@@ -34,25 +122,30 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [googleSignInModalOpen, setGoogleSignInModalOpen] = useState(false);
   const [emptyStateDemo, setEmptyStateDemo] = useState(false); // Screen 17 demo toggle
   const [splashLoading, setSplashLoading] = useState(false);
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [legalModalTab, setLegalModalTab] = useState('privacy'); // 'privacy' | 'terms'
 
-  // Customer Profile State matching Screen 5 & 9 (Ajeet Kumar / LQR-8F4A29)
+  // Customer Profile State
   const [customerUser, setCustomerUser] = useState(() => {
     const saved = localStorage.getItem('beaurex_customer_user');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) {}
     }
     return {
-      name: 'Ajeet Kumar',
-      customerId: 'LQR-8F4A29',
+      name: 'Rohan Sharma',
+      customerId: 'BX-8F4A29',
       phone: '+91 98765 43210',
-      email: 'ajeet.kumar@gmail.com',
+      email: 'rohan.sharma@gmail.com',
       tier: 'Gold Member',
       memberSince: 'Jul 2026',
       activeCardsCount: 4,
       rewardsRedeemedCount: 3,
       points: 250,
       stamps: 3,
-      totalStamps: 5
+      totalStamps: 5,
+      referralCode: 'BEAUREX-8F4A',
+      referralCount: 3,
+      referralEarnings: 150
     };
   });
 
@@ -70,6 +163,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   // Copy toast state
   const [copiedId, setCopiedId] = useState(false);
+  const [copiedReferral, setCopiedReferral] = useState(false);
 
   // Store information
   const [storeInfo, setStoreInfo] = useState({
@@ -99,27 +193,20 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [flashlightOn, setFlashlightOn] = useState(false);
   const [cameraError, setCameraError] = useState('');
 
-  // Sign in / Sign up form states
+  // Sign in / Sign up form states (Email & Password based - No Mobile OTP)
   const [authMode, setAuthMode] = useState(initialAuthMode || 'signin');
-  const [authMethod, setAuthMethod] = useState('phone'); // 'phone' | 'email'
-  const [loginPhone, setLoginPhone] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginName, setLoginName] = useState('');
-  const [loginOtpSent, setLoginOtpSent] = useState(false);
-  const [loginOtp, setLoginOtp] = useState('');
+  const [loginPhone, setLoginPhone] = useState('');
+  const [referralInput, setReferralInput] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [loginSuccessMsg, setLoginSuccessMsg] = useState('');
-  const [resendCooldown, setResendCooldown] = useState(0);
   const [googleLoading, setGoogleLoading] = useState(false);
-
-  useEffect(() => {
-    let timer;
-    if (resendCooldown > 0) {
-      timer = setInterval(() => setResendCooldown(c => c - 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [resendCooldown]);
+  const [googleCustomEmail, setGoogleCustomEmail] = useState('');
+  const [googleCustomName, setGoogleCustomName] = useState('');
 
   // If slug is in URL on first mount, identify store
   useEffect(() => {
@@ -144,124 +231,108 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   };
 
-  // Request Customer OTP (Phone or Email)
-  const handleRequestOtp = async (e) => {
+  const handleCopyReferralCode = (code) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+      setCopiedReferral(true);
+      setTimeout(() => setCopiedReferral(false), 2000);
+    }
+  };
+
+  const handleShareReferral = async () => {
+    const code = customerUser.referralCode || 'BEAUREX-8F4A';
+    const shareUrl = `${window.location.origin}/customer/signup?ref=${code}`;
+    const shareText = `Hey! Join me on BeAurex to get digital stamps and free rewards. Use my referral code ${code} to get a 10% welcome discount on your first visit! Sign up here: ${shareUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Join BeAurex & Get 10% Off',
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // Fallback to clipboard if share was dismissed
+      }
+    }
+    handleCopyReferralCode(shareUrl);
+  };
+
+  const handleWhatsAppShare = () => {
+    const code = customerUser.referralCode || 'BEAUREX-8F4A';
+    const shareUrl = `${window.location.origin}/customer/signup?ref=${code}`;
+    const message = encodeURIComponent(
+      `Hey! Use my referral code *${code}* on BeAurex to get a flat *10% Welcome Discount* on your first store visit! Collect stamps & earn free rewards: ${shareUrl}`
+    );
+    window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
+  };
+
+  // Customer Sign In Handler (Email & Password)
+  const handleCustomerLogin = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setLoginError('');
     setLoginSuccessMsg('');
-    
-    if (authMethod === 'phone' && (!loginPhone || loginPhone.replace(/\D/g, '').length !== 10)) {
-      setLoginError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-    if (authMethod === 'email' && (!loginEmail || !loginEmail.includes('@'))) {
+
+    const cleanEmail = loginEmail.trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
       setLoginError('Please enter a valid email address.');
       return;
     }
-    if (authMode === 'signup' && !loginName.trim()) {
-      setLoginError('Please enter your full name to create an account.');
+    if (!loginPassword) {
+      setLoginError('Please enter your password.');
       return;
     }
 
     setLoginLoading(true);
     try {
-      const res = await fetch('/api/customer/auth/request-otp', {
+      const res = await fetch('/api/customer/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          mobile: loginPhone.replace(/\D/g, ''),
-          email: loginEmail.trim().toLowerCase(),
-          isSignup: authMode === 'signup'
+          email: cleanEmail,
+          password: loginPassword
         })
       });
       const data = await res.json();
       setLoginLoading(false);
 
-      if (data && data.success) {
-        setLoginOtpSent(true);
-        setResendCooldown(30);
-        setLoginSuccessMsg(data.message || 'OTP sent successfully!');
-        if (data.devOtp) {
-          setLoginOtp(data.devOtp);
-        }
+      if (data && data.success && data.customer) {
+        setCustomerUser(data.customer);
+        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        localStorage.setItem('beaurex_customer_auth', 'true');
+        setIsAuthenticated(true);
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+        if (slug) setCurrentScreen('after_scan');
+        else setCurrentScreen('home');
       } else if (data && data.notRegistered) {
-        setAuthMode('signup');
-        setLoginError(`${data.message || 'Mobile not registered.'} Please complete quick signup below.`);
+        setLoginError('Account not found with this email. Please create an account.');
+        setTimeout(() => {
+          setAuthMode('signup');
+          setLoginError('');
+        }, 1500);
       } else {
-        // Fallback for demo/offline
-        setLoginOtpSent(true);
-        setLoginOtp('123456');
-        setResendCooldown(30);
-        setLoginSuccessMsg('Demo OTP: 123456 generated for testing.');
+        setLoginError(data?.message || 'Invalid email or password. Please try again.');
       }
     } catch (_) {
+      // Local fallback for offline/development
       setLoginLoading(false);
-      setLoginOtpSent(true);
-      setLoginOtp('123456');
-      setResendCooldown(30);
-      setLoginSuccessMsg('Demo OTP: 123456 generated for testing.');
-    }
-  };
-
-  // Verify Customer OTP
-  const handleVerifyOtp = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    setLoginError('');
-    if (!loginOtp || loginOtp.length < 4) {
-      setLoginError('Please enter the 6-digit verification code.');
-      return;
-    }
-
-    setLoginLoading(true);
-    try {
-      const res = await fetch('/api/customer/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mobile: loginPhone.replace(/\D/g, ''),
-          email: loginEmail.trim().toLowerCase(),
-          otp: loginOtp,
-          name: loginName || 'Customer'
-        })
-      });
-      const data = await res.json();
-      setLoginLoading(false);
-
-      const cust = (data && data.success && data.customer) ? data.customer : {
-        name: loginName || (loginPhone ? `User ${loginPhone.slice(-4)}` : 'Ajeet Kumar'),
-        customerId: `LQR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '+91 98765 43210',
-        email: loginEmail || 'ajeet.kumar@gmail.com',
-        tier: 'Member',
+      const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const cust = {
+        name: cleanEmail.split('@')[0].toUpperCase() || 'BeAurex Member',
+        customerId: custId,
+        phone: '+91 98765 43210',
+        email: cleanEmail,
+        tier: 'Gold Member',
         memberSince: 'Today',
         activeCardsCount: 1,
         rewardsRedeemedCount: 0,
-        points: 50,
-        stamps: 1,
-        totalStamps: 5
-      };
-
-      setCustomerUser(cust);
-      localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
-      localStorage.setItem('beaurex_customer_auth', 'true');
-      setIsAuthenticated(true);
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
-    } catch (_) {
-      setLoginLoading(false);
-      const cust = {
-        name: loginName || 'Ajeet Kumar',
-        customerId: 'LQR-8F4A29',
-        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '+91 98765 43210',
-        email: loginEmail || 'ajeet.kumar@gmail.com',
-        tier: 'Gold Member',
-        memberSince: 'Jul 2026',
-        activeCardsCount: 4,
-        rewardsRedeemedCount: 3,
         points: 250,
         stamps: 3,
-        totalStamps: 5
+        totalStamps: 5,
+        referralCode: 'BX-' + custId.slice(-4),
+        referralCount: 3,
+        referralEarnings: 150
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
@@ -273,52 +344,105 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   };
 
-  // Quick 1-Tap Demo Login
-  const handleQuickDemoLogin = (profileType = 'gold') => {
-    const cust = profileType === 'gold' ? {
-      name: 'Ajeet Kumar',
-      customerId: 'LQR-8F4A29',
-      phone: '+91 98765 43210',
-      email: 'ajeet.kumar@gmail.com',
-      tier: 'Gold Member',
-      memberSince: 'Jul 2026',
-      activeCardsCount: 4,
-      rewardsRedeemedCount: 3,
-      points: 250,
-      stamps: 3,
-      totalStamps: 5
-    } : {
-      name: 'Sumit Verma',
-      customerId: 'LQR-9B1C44',
-      phone: '+91 98112 33445',
-      email: 'sumit.verma@gmail.com',
-      tier: 'Silver Member',
-      memberSince: 'Aug 2026',
-      activeCardsCount: 2,
-      rewardsRedeemedCount: 1,
-      points: 120,
-      stamps: 2,
-      totalStamps: 5
-    };
-    setCustomerUser(cust);
-    localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
-    localStorage.setItem('beaurex_customer_auth', 'true');
-    setIsAuthenticated(true);
-    confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-    if (slug) setCurrentScreen('after_scan');
-    else setCurrentScreen('home');
+  // Customer Sign Up Handler (Direct Registration - No Mobile OTP)
+  const handleCustomerSignup = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setLoginError('');
+    setLoginSuccessMsg('');
+
+    const cleanEmail = loginEmail.trim().toLowerCase();
+    if (!loginName.trim()) {
+      setLoginError('Please enter your full name.');
+      return;
+    }
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      setLoginError('Please enter a valid email address.');
+      return;
+    }
+    if (!loginPassword || loginPassword.length < 4) {
+      setLoginError('Password must be at least 4 characters.');
+      return;
+    }
+
+    const cleanedDigits = loginPhone.replace(/\D/g, '');
+    if (cleanedDigits && cleanedDigits.length !== 10) {
+      setLoginError('Please enter a valid 10-digit mobile number, or leave it blank.');
+      return;
+    }
+
+    setLoginLoading(true);
+    try {
+      const res = await fetch('/api/customer/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: loginName.trim(),
+          email: cleanEmail,
+          password: loginPassword,
+          mobile: cleanedDigits && cleanedDigits.length === 10 ? cleanedDigits : undefined,
+          referralCode: referralInput.trim()
+        })
+      });
+      const data = await res.json();
+      setLoginLoading(false);
+
+      if (data && data.success && data.customer) {
+        setCustomerUser(data.customer);
+        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        localStorage.setItem('beaurex_customer_auth', 'true');
+        setIsAuthenticated(true);
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+        if (slug) setCurrentScreen('after_scan');
+        else setCurrentScreen('home');
+      } else if (data && data.alreadyExists) {
+        setLoginError(data.message || 'An account already exists with this email. Please sign in.');
+        setTimeout(() => setAuthMode('signin'), 1800);
+      } else {
+        setLoginError(data?.message || 'Could not create account. Please check your details.');
+      }
+    } catch (_) {
+      // Local fallback
+      setLoginLoading(false);
+      const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const cust = {
+        name: loginName.trim(),
+        customerId: custId,
+        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '+91 98765 43210',
+        email: cleanEmail,
+        tier: 'Bronze Member',
+        memberSince: 'Today',
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        points: 150,
+        stamps: 3,
+        totalStamps: 5,
+        referralCode: 'BX-' + custId.slice(-4),
+        referralCount: 0,
+        referralEarnings: 0
+      };
+      setCustomerUser(cust);
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      localStorage.setItem('beaurex_customer_auth', 'true');
+      setIsAuthenticated(true);
+      confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+      if (slug) setCurrentScreen('after_scan');
+      else setCurrentScreen('home');
+    }
   };
 
   // Google Sign-In Handler
   const handleGoogleSignInSelect = async (accountEmail, accountName) => {
     setGoogleLoading(true);
+    const targetEmail = accountEmail || loginEmail || 'customer@gmail.com';
+    const targetName = accountName || (targetEmail.split('@')[0]) || 'BeAurex Customer';
+
     try {
       const res = await fetch('/api/customer/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: accountEmail || 'ajeet.kumar@gmail.com',
-          name: accountName || 'Ajeet Kumar',
+          email: targetEmail,
+          name: targetName,
           googleId: 'g_' + Math.random().toString(36).substring(2, 10)
         })
       });
@@ -330,11 +454,25 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
       } else {
-        setCustomerUser(prev => ({
-          ...prev,
-          name: accountName || 'Ajeet Kumar',
-          email: accountEmail || 'ajeet.kumar@gmail.com'
-        }));
+        const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const newCust = {
+          name: targetName,
+          email: targetEmail,
+          customerId: custId,
+          phone: '',
+          tier: 'Bronze Member',
+          points: 100,
+          stamps: 3,
+          totalStamps: 5,
+          activeCardsCount: 1,
+          rewardsRedeemedCount: 0,
+          referralCode: 'BX-' + custId.slice(-4),
+          referralCount: 0,
+          referralEarnings: 0,
+          memberSince: 'Today'
+        };
+        setCustomerUser(newCust);
+        localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
       }
 
       setIsAuthenticated(true);
@@ -349,6 +487,25 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     } catch (_) {
       setGoogleLoading(false);
       setGoogleSignInModalOpen(false);
+      const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const newCust = {
+        name: targetName,
+        email: targetEmail,
+        customerId: custId,
+        phone: '',
+        tier: 'Bronze Member',
+        points: 100,
+        stamps: 3,
+        totalStamps: 5,
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        referralCode: 'BX-' + custId.slice(-4),
+        referralCount: 0,
+        referralEarnings: 0,
+        memberSince: 'Today'
+      };
+      setCustomerUser(newCust);
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
       setIsAuthenticated(true);
       localStorage.setItem('beaurex_customer_auth', 'true');
       if (slug) setCurrentScreen('after_scan');
@@ -360,7 +517,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.setItem('beaurex_customer_auth', 'false');
-    setLoginOtpSent(false);
     setLoginError('');
     setLoginSuccessMsg('');
     navigate('/customer/login', { replace: true });
@@ -450,12 +606,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#74111d] flex items-center justify-center text-white font-black text-sm shadow-xs">
-              <QrCode className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
+              <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
-                Loyal<span className="text-[#74111d]">QR</span>
+                Be<span className="text-[#74111d]">Aurex</span>
               </span>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Counter Scan &amp; Earn
@@ -511,12 +667,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
               <button
                 onClick={() => {
-                  handleGoogleSignInSelect('ajeet.kumar@gmail.com', 'Ajeet Kumar');
+                  setIsAuthenticated(false);
+                  navigate('/customer/login');
                 }}
                 className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 px-4 rounded-2xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
               >
-                <Zap className="w-4 h-4 text-amber-200" />
-                <span>1-Tap Sign In (Ajeet Kumar) &amp; Collect Stamp</span>
+                <LogIn className="w-4 h-4 text-white" />
+                <span>Sign In with Email &amp; Password</span>
               </button>
             </div>
 
@@ -527,7 +684,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         </main>
 
         <footer className="text-center p-4 text-xs text-slate-400">
-          Powered by LoyalQR Loyalty Network
+          Powered by BeAurex Loyalty Network
         </footer>
 
         {/* Google Account Selector Modal */}
@@ -549,34 +706,47 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </button>
               </div>
 
-              <p className="text-xs text-slate-500">Choose an account to continue to LoyalQR</p>
+              <p className="text-xs text-slate-500">Choose or enter your Google account to continue to BeAurex</p>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <button
-                  onClick={() => handleGoogleSignInSelect('ajeet.kumar@gmail.com', 'Ajeet Kumar')}
+                  onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
                   className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
                 >
                   <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
-                    AK
+                    G
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Ajeet Kumar</div>
-                    <div className="text-[11px] text-slate-500 truncate">ajeet.kumar@gmail.com</div>
+                    <div className="text-xs font-bold text-slate-900">Google Customer Account</div>
+                    <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
                   </div>
                 </button>
 
-                <button
-                  onClick={() => handleGoogleSignInSelect('sumit.verma@gmail.com', 'Sumit Verma')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
-                    SV
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Sumit Verma</div>
-                    <div className="text-[11px] text-slate-500 truncate">sumit.verma@gmail.com</div>
-                  </div>
-                </button>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Or enter your Google account:</span>
+                  <input
+                    type="text"
+                    value={googleCustomName}
+                    onChange={(e) => setGoogleCustomName(e.target.value)}
+                    placeholder="Your Name"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                  />
+                  <input
+                    type="email"
+                    value={googleCustomEmail}
+                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
+                    placeholder="yourname@gmail.com"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!googleCustomEmail}
+                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
+                    className="w-full py-2 bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <span>Sign in with this account</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -593,12 +763,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-[#74111d] flex items-center justify-center text-white font-black text-sm shadow-xs">
-              <QrCode className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
+              <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
             </div>
             <div>
               <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
-                Loyal<span className="text-[#74111d]">QR</span>
+                Be<span className="text-[#74111d]">Aurex</span>
               </span>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Customer Rewards Portal
@@ -619,7 +789,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 <Gift className="w-7 h-7 text-[#74111d]" />
               </div>
               <h2 className="text-xl font-black text-slate-900 tracking-tight mt-2">
-                {authMode === 'signup' ? 'Create Customer Account' : 'Welcome to LoyalQR'}
+                {authMode === 'signup' ? 'Create BeAurex Account' : 'Welcome to BeAurex'}
               </h2>
               <p className="text-xs text-slate-500">
                 {authMode === 'signup'
@@ -634,7 +804,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 type="button"
                 onClick={() => {
                   setAuthMode('signin');
-                  setLoginOtpSent(false);
                   setLoginError('');
                   setLoginSuccessMsg('');
                 }}
@@ -650,7 +819,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 type="button"
                 onClick={() => {
                   setAuthMode('signup');
-                  setLoginOtpSent(false);
                   setLoginError('');
                   setLoginSuccessMsg('');
                 }}
@@ -662,6 +830,35 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               >
                 Create Account
               </button>
+            </div>
+
+            {/* Google Sign In Placed ABOVE */}
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setGoogleSignInModalOpen(true)}
+                className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-bold py-3 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              {/* Divider */}
+              <div className="relative py-1">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-white px-3 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
+                    or continue with email
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Error / Success Toast alerts */}
@@ -678,98 +875,52 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
             )}
 
-            {/* Form */}
-            {!loginOtpSent ? (
-              <form onSubmit={handleRequestOtp} className="space-y-4">
-                {/* Sign-up Name Field */}
-                {authMode === 'signup' && (
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                      Your Full Name *
+            {/* Email & Password Authentication Form (No Mobile OTP) */}
+            {authMode === 'signin' ? (
+              <form onSubmit={handleCustomerLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                    Email Address *
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      required
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="you@gmail.com"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold uppercase text-slate-600">
+                      Password *
                     </label>
-                    <div className="relative">
-                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="text"
-                        required
-                        value={loginName}
-                        onChange={(e) => setLoginName(e.target.value)}
-                        placeholder="e.g. Ajeet Kumar"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                      />
-                    </div>
                   </div>
-                )}
-
-                {/* Sub-toggle: Phone vs Email for Sign In */}
-                {authMode === 'signin' && (
-                  <div className="flex items-center justify-between text-xs pb-1">
-                    <span className="font-bold text-slate-600 uppercase text-[11px]">Sign in with:</span>
-                    <div className="flex items-center space-x-2 font-bold text-xs">
-                      <button
-                        type="button"
-                        onClick={() => setAuthMethod('phone')}
-                        className={`cursor-pointer ${authMethod === 'phone' ? 'text-[#74111d] underline font-black' : 'text-slate-400'}`}
-                      >
-                        Mobile Number
-                      </button>
-                      <span className="text-slate-300">|</span>
-                      <button
-                        type="button"
-                        onClick={() => setAuthMethod('email')}
-                        className={`cursor-pointer ${authMethod === 'email' ? 'text-[#74111d] underline font-black' : 'text-slate-400'}`}
-                      >
-                        Email
-                      </button>
-                    </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
-                )}
+                </div>
 
-                {/* Mobile Input */}
-                {(authMethod === 'phone' || authMode === 'signup') && (
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                      10-Digit Mobile Number *
-                    </label>
-                    <div className="relative flex items-center">
-                      <div className="absolute left-3 text-xs font-bold text-slate-500 pointer-events-none flex items-center space-x-1">
-                        <Phone className="w-3.5 h-3.5 text-slate-400" />
-                        <span>+91</span>
-                      </div>
-                      <input
-                        type="tel"
-                        required
-                        maxLength={10}
-                        value={loginPhone}
-                        onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, ''))}
-                        placeholder="98765 43210"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-16 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-bold transition"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Email Input (if email method or optional in signup) */}
-                {(authMethod === 'email' || authMode === 'signup') && (
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                      Email Address {authMode === 'signup' ? '(Optional)' : '*'}
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="email"
-                        required={authMethod === 'email'}
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="you@gmail.com"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Submit button */}
                 <button
                   type="submit"
                   disabled={loginLoading}
@@ -778,46 +929,108 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   {loginLoading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Sending verification code...</span>
+                      <span>Signing in...</span>
                     </>
                   ) : (
                     <>
-                      <span>{authMode === 'signup' ? 'Continue with Mobile Verification' : 'Send Verification Code (OTP)'}</span>
+                      <span>Sign In to BeAurex</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
               </form>
             ) : (
-              /* OTP VERIFICATION STEP */
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
-                  <span className="text-slate-600">
-                    Code sent to: <strong className="text-slate-900">{authMethod === 'phone' ? `+91 ${loginPhone}` : loginEmail}</strong>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setLoginOtpSent(false)}
-                    className="text-[#74111d] font-bold underline cursor-pointer"
-                  >
-                    Edit
-                  </button>
+              <form onSubmit={handleCustomerSignup} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                    Your Full Name *
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      required
+                      value={loginName}
+                      onChange={(e) => setLoginName(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    Enter 6-Digit OTP Code
+                    Email Address *
                   </label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      required
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="you@gmail.com"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                    10-Digit Mobile Number (Optional)
+                  </label>
+                  <div className="relative flex items-center">
+                    <div className="absolute left-3 text-xs font-bold text-slate-500 pointer-events-none flex items-center space-x-1">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      <span>+91</span>
+                    </div>
+                    <input
+                      type="tel"
+                      maxLength={10}
+                      value={loginPhone}
+                      onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="98765 43210"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-16 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-bold transition"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                    Create Password *
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Minimum 4 characters"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
+                    Referral / Invite Code (Optional)
+                  </label>
+                  <div className="relative">
+                    <Sparkles className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500" />
                     <input
                       type="text"
-                      required
-                      maxLength={6}
-                      value={loginOtp}
-                      onChange={(e) => setLoginOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-center text-sm focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-black tracking-widest transition"
+                      value={referralInput}
+                      onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                      placeholder="e.g. BX-8F4A (Get Bonus Stamps)"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-bold uppercase transition"
                     />
                   </div>
                 </div>
@@ -830,82 +1043,40 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   {loginLoading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Verifying...</span>
+                      <span>Creating account...</span>
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Verify &amp; Access My Loyalty Cards</span>
+                      <span>Create Account &amp; Start Earning</span>
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
-
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <button
-                    type="button"
-                    disabled={resendCooldown > 0}
-                    onClick={handleRequestOtp}
-                    className={`font-bold transition cursor-pointer ${
-                      resendCooldown > 0 ? 'text-slate-400' : 'text-[#74111d] hover:underline'
-                    }`}
-                  >
-                    {resendCooldown > 0 ? `Resend OTP in ${resendCooldown}s` : 'Resend OTP'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginOtp('123456');
-                      setLoginSuccessMsg('Auto-filled test code: 123456');
-                    }}
-                    className="text-slate-400 hover:text-slate-600 text-[11px]"
-                  >
-                    Fill Demo Code
-                  </button>
-                </div>
               </form>
             )}
-
-            {/* Divider: or continue with */}
-            <div className="relative py-1">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-slate-400 font-medium">or continue with</span>
-              </div>
-            </div>
-
-            {/* Alternative One-Tap Logins */}
-            <div className="space-y-2.5">
-              <button
-                type="button"
-                onClick={() => setGoogleSignInModalOpen(true)}
-                className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoLogin('gold')}
-                className="w-full bg-rose-50/70 hover:bg-rose-100/70 border border-rose-200 text-[#74111d] font-black py-2.5 px-4 rounded-2xl text-xs transition cursor-pointer flex items-center justify-center space-x-2"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
-                <span>1-Tap Demo Login (Ajeet Kumar • Gold Member)</span>
-              </button>
-            </div>
 
           </div>
         </main>
 
-        <footer className="text-center p-4 text-xs text-slate-400">
-          Powered by LoyalQR Customer Loyalty Platform
+        <footer className="text-center p-4 text-xs text-slate-400 space-y-1.5">
+          <div>Powered by BeAurex Customer Loyalty Platform</div>
+          <div className="flex items-center justify-center space-x-3 text-[11px] text-slate-500">
+            <button 
+              type="button" 
+              onClick={() => { setLegalModalTab('terms'); setLegalModalOpen(true); }}
+              className="hover:text-slate-800 underline cursor-pointer"
+            >
+              Terms of Service
+            </button>
+            <span>•</span>
+            <button 
+              type="button" 
+              onClick={() => { setLegalModalTab('privacy'); setLegalModalOpen(true); }}
+              className="hover:text-slate-800 underline cursor-pointer"
+            >
+              Privacy Policy
+            </button>
+          </div>
         </footer>
 
         {/* Google Account Selector Modal */}
@@ -927,34 +1098,47 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </button>
               </div>
 
-              <p className="text-xs text-slate-500">Choose an account to continue to LoyalQR</p>
+              <p className="text-xs text-slate-500">Choose or enter your Google account to continue to BeAurex</p>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <button
-                  onClick={() => handleGoogleSignInSelect('ajeet.kumar@gmail.com', 'Ajeet Kumar')}
+                  onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
                   className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
                 >
                   <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
-                    AK
+                    G
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Ajeet Kumar</div>
-                    <div className="text-[11px] text-slate-500 truncate">ajeet.kumar@gmail.com</div>
+                    <div className="text-xs font-bold text-slate-900">Google Customer Account</div>
+                    <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
                   </div>
                 </button>
 
-                <button
-                  onClick={() => handleGoogleSignInSelect('sumit.verma@gmail.com', 'Sumit Verma')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0">
-                    SV
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Sumit Verma</div>
-                    <div className="text-[11px] text-slate-500 truncate">sumit.verma@gmail.com</div>
-                  </div>
-                </button>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Or enter your Google account:</span>
+                  <input
+                    type="text"
+                    value={googleCustomName}
+                    onChange={(e) => setGoogleCustomName(e.target.value)}
+                    placeholder="Your Name"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                  />
+                  <input
+                    type="email"
+                    value={googleCustomEmail}
+                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
+                    placeholder="yourname@gmail.com"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!googleCustomEmail}
+                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
+                    className="w-full py-2 bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                  >
+                    <span>Sign in with this account</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1181,14 +1365,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <div>
                     <div className="flex items-center space-x-2 mb-1.5">
                       {[1, 2, 3].map((n) => (
-                        <div key={n} className="w-7 h-7 rounded-full bg-[#74111d] flex items-center justify-center text-white text-xs shadow-xs">
-                          <Star className="w-3.5 h-3.5 fill-white text-white" />
-                        </div>
+                        <BeAurexStamp key={n} stamped={true} size="sm" />
                       ))}
                       {[4, 5].map((n) => (
-                        <div key={n} className="w-7 h-7 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300 text-xs">
-                          ○
-                        </div>
+                        <BeAurexStamp key={n} stamped={false} size="sm" />
                       ))}
                     </div>
                     <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
@@ -1242,9 +1422,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <div>
                     <div className="flex items-center space-x-2 mb-1.5">
                       {[1, 2, 3, 4, 5].map((n) => (
-                        <div key={n} className="w-7 h-7 rounded-full bg-[#0e5c36] flex items-center justify-center text-white text-xs shadow-xs">
-                          <Check className="w-3.5 h-3.5 stroke-[3]" />
-                        </div>
+                        <BeAurexStamp key={n} stamped={true} size="sm" />
                       ))}
                     </div>
                     <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
@@ -1352,14 +1530,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <p className="text-xs text-slate-500">3 of 5 stamps collected</p>
             <div className="flex items-center justify-center space-x-2 py-1">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="w-8 h-8 rounded-full bg-[#74111d] flex items-center justify-center text-white text-xs shadow-xs">
-                  <Star className="w-4 h-4 fill-white text-white" />
-                </div>
+                <BeAurexStamp key={n} stamped={true} size="md" />
               ))}
               {[4, 5].map((n) => (
-                <div key={n} className="w-8 h-8 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-slate-300 text-xs">
-                  ○
-                </div>
+                <BeAurexStamp key={n} stamped={false} size="md" />
               ))}
             </div>
           </div>
@@ -1469,7 +1643,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             >
               <span>History</span>
               <span className="w-4 h-4 rounded-full bg-[#74111d] text-white text-[9px] font-bold flex items-center justify-center">
-                2
+                {rewardHistory.length}
               </span>
               {rewardsSubTab === 'history' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#74111d] rounded-full"></div>
@@ -1500,122 +1674,91 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           )}
 
           {/* TAB 2: REWARD HISTORY (Screen 14) */}
-          {rewardsSubTab === 'history' && (
-            <div className="space-y-3.5 pt-1">
-              {/* Filter pills: All, Active, Used, Expired */}
-              <div className="flex items-center space-x-2 overflow-x-auto pb-1">
-                {['All', 'Active', 'Used', 'Expired'].map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setHistoryFilter(f)}
-                    className={`py-1.5 px-4 rounded-full text-xs font-bold transition cursor-pointer ${
-                      historyFilter === f
-                        ? 'bg-[#74111d] text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
+          {rewardsSubTab === 'history' && (() => {
+            const filteredHistory = rewardHistory.filter((item) => {
+              if (historyFilter === 'All') return true;
+              return item.status.toLowerCase() === historyFilter.toLowerCase();
+            });
 
-              {/* History Cards */}
-              <div className="space-y-3">
-                {/* Card 1: Used 30% */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3 hover:border-slate-300 transition">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <img
-                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
-                        alt="30% off"
-                        className="w-12 h-12 rounded-xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-black text-slate-900 truncate">30% off on next purchase</h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Ka-feen</p>
-                      </div>
-                    </div>
-                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      Used
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                    <div>
-                      <span className="text-slate-400 block text-[9px]">Claimed on</span>
-                      <span>20 May 2026</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[9px]">Used on</span>
-                      <span>20 May 2026</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </div>
+            return (
+              <div className="space-y-3.5 pt-1">
+                {/* Filter pills: All, Active, Used, Expired */}
+                <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+                  {['All', 'Active', 'Used', 'Expired'].map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setHistoryFilter(f)}
+                      className={`py-1.5 px-4 rounded-full text-xs font-bold transition cursor-pointer shrink-0 ${
+                        historyFilter === f
+                          ? 'bg-[#74111d] text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Card 2: Expired Coffee */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <img
-                        src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
-                        alt="Free Coffee"
-                        className="w-12 h-12 rounded-xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-black text-slate-900 truncate">Free Coffee</h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Ka-feen</p>
+                {/* History Cards */}
+                <div className="space-y-3">
+                  {filteredHistory.length === 0 ? (
+                    <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-2">
+                      <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto text-slate-400">
+                        <Gift className="w-6 h-6 text-slate-400" />
                       </div>
+                      <h4 className="text-xs font-black text-slate-800">No {historyFilter} Rewards</h4>
+                      <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                        You do not have any {historyFilter.toLowerCase()} reward vouchers at this time.
+                      </p>
                     </div>
-                    <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-slate-200">
-                      Expired
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                    <div>
-                      <span className="text-slate-400 block text-[9px]">Claimed on</span>
-                      <span>12 Apr 2026</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[9px]">Expired on</span>
-                      <span>10 Apr 2026</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </div>
-                </div>
-
-                {/* Card 3: Active Buy 1 Get 1 */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <img
-                        src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
-                        alt="Buy 1 Get 1"
-                        className="w-12 h-12 rounded-xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0">
-                        <h4 className="text-xs font-black text-slate-900 truncate">Buy 1 Get 1 Free</h4>
-                        <p className="text-[11px] text-slate-500 font-medium">Brew House</p>
+                  ) : (
+                    filteredHistory.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedHistoryVoucher(item)}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs space-y-3 hover:border-slate-300 transition cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-12 h-12 rounded-xl object-cover shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-black text-slate-900 truncate">{item.title}</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">{item.storeName}</p>
+                            </div>
+                          </div>
+                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                            item.status === 'Active'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                              : item.status === 'Used'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                          <div>
+                            <span className="text-slate-400 block text-[9px]">Claimed on</span>
+                            <span>{item.claimedDate}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[9px]">{item.dateLabel}</span>
+                            <span>{item.dateValue}</span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-400" />
+                        </div>
                       </div>
-                    </div>
-                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      Active
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                    <div>
-                      <span className="text-slate-400 block text-[9px]">Claimed on</span>
-                      <span>15 Jul 2026</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block text-[9px]">Valid till</span>
-                      <span>15 Aug 2026</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </div>
+                    ))
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
@@ -1664,14 +1807,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
                 <div className="flex items-center space-x-2">
                   {[1, 2, 3].map((n) => (
-                    <div key={n} className="w-8 h-8 rounded-full bg-[#74111d] flex items-center justify-center text-white text-xs shadow-xs">
-                      <Coffee className="w-4 h-4 text-amber-200" />
-                    </div>
+                    <BeAurexStamp key={n} stamped={true} size="md" />
                   ))}
                   {[4, 5].map((n) => (
-                    <div key={n} className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-xs">
-                      ○
-                    </div>
+                    <BeAurexStamp key={n} stamped={false} size="md" />
                   ))}
                 </div>
               </div>
@@ -1863,6 +2002,94 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </div>
           </div>
 
+          {/* Refer & Earn Rewards Card (Shows Customer Profit & Invite CTA) */}
+          <div className="bg-gradient-to-br from-[#74111d] via-[#8c1725] to-[#550c14] text-white rounded-3xl p-5 shadow-lg relative overflow-hidden space-y-4">
+            {/* Background glowing shapes */}
+            <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -left-6 -top-6 w-24 h-24 bg-white/5 rounded-full blur-lg pointer-events-none" />
+
+            {/* Header with Gift badge */}
+            <div className="flex items-start justify-between relative z-10">
+              <div className="space-y-1">
+                <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[10px] font-black uppercase tracking-wider">
+                  <Gift className="w-3 h-3 text-amber-300" />
+                  <span>Refer &amp; Earn Profit</span>
+                </div>
+                <h3 className="text-base font-black tracking-tight text-white pt-1">
+                  Invite Friends, Get Free Rewards!
+                </h3>
+                <p className="text-xs text-rose-100/90 leading-relaxed max-w-xs">
+                  Share your link with friends. When they scan &amp; join, you earn direct profits on your account.
+                </p>
+              </div>
+            </div>
+
+            {/* Profit Breakdown Matrix */}
+            <div className="grid grid-cols-2 gap-2.5 relative z-10 pt-1">
+              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3">
+                <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">Your Profit</span>
+                <p className="text-sm font-black text-white mt-0.5">+1 Free Stamp</p>
+                <p className="text-[10px] text-rose-200 mt-0.5 font-medium">+ ₹50 Wallet Credit / friend</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3">
+                <span className="text-[10px] font-bold text-emerald-300 uppercase block tracking-wider">Friend's Profit</span>
+                <p className="text-sm font-black text-white mt-0.5">10% OFF</p>
+                <p className="text-[10px] text-rose-200 mt-0.5 font-medium">Instant welcome discount</p>
+              </div>
+            </div>
+
+            {/* Your Referral Stats */}
+            <div className="bg-black/25 rounded-2xl p-3 flex items-center justify-around text-center border border-white/10 relative z-10">
+              <div>
+                <span className="text-[10px] text-rose-200 block font-medium">Invited</span>
+                <span className="text-base font-black text-amber-300">{customerUser.referralCount || 0} friends</span>
+              </div>
+              <div className="h-6 w-px bg-white/20"></div>
+              <div>
+                <span className="text-[10px] text-rose-200 block font-medium">Bonus Stamps</span>
+                <span className="text-base font-black text-white">{customerUser.referralCount || 0} stamps</span>
+              </div>
+              <div className="h-6 w-px bg-white/20"></div>
+              <div>
+                <span className="text-[10px] text-rose-200 block font-medium">Cash Profit</span>
+                <span className="text-base font-black text-emerald-300">₹{customerUser.referralEarnings || 0}</span>
+              </div>
+            </div>
+
+            {/* Referral Code & Copy Bar */}
+            <div className="bg-white/10 border border-white/20 rounded-2xl p-2.5 flex items-center justify-between relative z-10">
+              <div className="pl-2">
+                <span className="text-[9px] uppercase tracking-wider text-rose-200 block font-bold">Your Referral Code</span>
+                <span className="font-mono text-sm font-black text-white tracking-widest">{customerUser.referralCode || 'BEAUREX-8F4A'}</span>
+              </div>
+              <button
+                onClick={() => handleCopyReferralCode(customerUser.referralCode || 'BEAUREX-8F4A')}
+                className="bg-white text-[#74111d] hover:bg-rose-50 font-black px-3.5 py-2 rounded-xl text-xs transition flex items-center space-x-1.5 cursor-pointer shadow-sm shrink-0"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{copiedReferral ? 'Copied!' : 'Copy Code'}</span>
+              </button>
+            </div>
+
+            {/* Action Buttons: WhatsApp Share & Native Invite */}
+            <div className="grid grid-cols-2 gap-2 relative z-10 pt-1">
+              <button
+                onClick={handleWhatsAppShare}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3 px-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
+              >
+                <MessageCircle className="w-4 h-4 fill-white" />
+                <span>Share WhatsApp</span>
+              </button>
+              <button
+                onClick={handleShareReferral}
+                className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black py-3 px-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Invite &amp; Earn</span>
+              </button>
+            </div>
+          </div>
+
           {/* Contact Details List */}
           <div className="bg-white border border-slate-200/90 rounded-3xl p-2 shadow-xs divide-y divide-slate-100">
             <div className="flex items-center space-x-3.5 p-3.5">
@@ -1877,7 +2104,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
           {/* Settings / Policies Navigation Rows */}
           <div className="bg-white border border-slate-200/90 rounded-3xl p-2 shadow-xs divide-y divide-slate-100">
-            <div className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition">
+            <div 
+              onClick={() => {
+                setLegalModalTab('privacy');
+                setLegalModalOpen(true);
+              }}
+              className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
+            >
               <div className="flex items-center space-x-3.5">
                 <ShieldCheck className="w-4 h-4 text-slate-400" />
                 <span className="text-xs font-bold text-slate-800">Privacy Policy</span>
@@ -1885,7 +2118,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <ChevronRight className="w-4 h-4 text-slate-400" />
             </div>
 
-            <div className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition">
+            <div 
+              onClick={() => {
+                setLegalModalTab('terms');
+                setLegalModalOpen(true);
+              }}
+              className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
+            >
               <div className="flex items-center space-x-3.5">
                 <FileText className="w-4 h-4 text-slate-400" />
                 <span className="text-xs font-bold text-slate-800">Terms &amp; Conditions</span>
@@ -1947,6 +2186,97 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <span className="text-[10px] font-black mt-1">Rewards</span>
           </button>
         </nav>
+      )}
+
+      {/* Synchronized Legal Policy Modal (Privacy Policy & Terms of Service) */}
+      <LegalPolicyModal
+        isOpen={legalModalOpen}
+        onClose={() => setLegalModalOpen(false)}
+        initialTab={legalModalTab}
+      />
+
+      {/* Voucher Detail Modal for Reward History */}
+      {selectedHistoryVoucher && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl space-y-0 border border-slate-100">
+            {/* Header Image */}
+            <div className="relative h-36 bg-slate-100">
+              <img
+                src={selectedHistoryVoucher.image}
+                alt={selectedHistoryVoucher.title}
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => setSelectedHistoryVoucher(null)}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white cursor-pointer shadow-md"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="absolute bottom-3 left-3">
+                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs ${
+                  selectedHistoryVoucher.status === 'Active'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    : selectedHistoryVoucher.status === 'Used'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200'
+                }`}>
+                  {selectedHistoryVoucher.status}
+                </span>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-4">
+              <div>
+                <h3 className="text-sm font-black text-slate-900 leading-tight">
+                  {selectedHistoryVoucher.title}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {selectedHistoryVoucher.storeName}
+                </p>
+              </div>
+
+              {/* Voucher Code Box */}
+              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-3.5 text-center space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  Voucher Code
+                </span>
+                <div className="text-base font-black font-mono text-[#74111d] tracking-wider">
+                  {selectedHistoryVoucher.voucherCode}
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  {selectedHistoryVoucher.status === 'Active'
+                    ? 'Show this voucher code or QR to the cashier to redeem'
+                    : selectedHistoryVoucher.status === 'Used'
+                    ? `Redeemed on ${selectedHistoryVoucher.dateValue}`
+                    : `Expired on ${selectedHistoryVoucher.dateValue}`}
+                </p>
+              </div>
+
+              {/* Date info */}
+              <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Claimed</span>
+                  <span className="font-bold text-slate-700">{selectedHistoryVoucher.claimedDate}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">{selectedHistoryVoucher.dateLabel}</span>
+                  <span className="font-bold text-slate-700">{selectedHistoryVoucher.dateValue}</span>
+                </div>
+              </div>
+
+              {/* Action button */}
+              <button
+                type="button"
+                onClick={() => setSelectedHistoryVoucher(null)}
+                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

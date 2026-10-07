@@ -5,7 +5,7 @@ const customerSchema = new mongoose.Schema({
     type: String,
     required: false,
     trim: true,
-    sparse: true
+    index: { unique: true, sparse: true }
   },
   name: {
     type: String,
@@ -13,10 +13,30 @@ const customerSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    default: '',
+    required: false,
     trim: true,
     lowercase: true,
+    index: { unique: true, sparse: true }
+  },
+  password: {
+    type: String,
+    default: ''
+  },
+  referralCode: {
+    type: String,
     sparse: true
+  },
+  referredBy: {
+    type: String,
+    default: ''
+  },
+  referralCount: {
+    type: Number,
+    default: 0
+  },
+  referralEarnings: {
+    type: Number,
+    default: 0
   },
   googleId: {
     type: String,

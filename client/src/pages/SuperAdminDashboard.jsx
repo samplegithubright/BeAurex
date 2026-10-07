@@ -360,6 +360,34 @@ export default function SuperAdminDashboard() {
         }
       })
       .catch(() => {});
+
+    // Fetch synchronized legal policies across portals
+    fetch('/api/admin/policies')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.policies) {
+          if (data.policies.privacy) {
+            setPolicyData(prev => ({ ...prev, privacy: data.policies.privacy }));
+            setPrivacyPolicyData({
+              version: data.policies.privacy.version || '1.0',
+              lastUpdated: data.policies.privacy.lastUpdated || '',
+              content: data.policies.privacy.content || ''
+            });
+          }
+          if (data.policies.terms) {
+            setPolicyData(prev => ({ ...prev, terms: data.policies.terms }));
+            setTermsData({
+              version: data.policies.terms.version || '1.0',
+              lastUpdated: data.policies.terms.lastUpdated || '',
+              content: data.policies.terms.content || ''
+            });
+          }
+          try {
+            localStorage.setItem('beaurex_legal_policies', JSON.stringify(data.policies));
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const showFeatureToast = (msg) => {
@@ -481,56 +509,81 @@ export default function SuperAdminDashboard() {
   // POLICY EDITOR STATE (Image 2 - Privacy Policy & Terms)
   // =========================================================
   const [policySubTab, setPolicySubTab] = useState('privacy'); // 'privacy' | 'terms'
-  const [policyData, setPolicyData] = useState({
-    privacy: {
-      type: 'Privacy Policy',
-      status: 'Published',
-      lastUpdated: 'May 24, 2025 08:20 AM',
-      version: '1.0',
-      publishedBy: 'Super Admin',
-      publishedOn: 'May 24, 2025 08:20 AM',
-      content: `Privacy Policy
+  const [policyData, setPolicyData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_legal_policies');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      privacy: {
+        type: 'Privacy Policy',
+        status: 'Published',
+        lastUpdated: 'May 24, 2026 08:20 AM',
+        version: '1.0',
+        publishedBy: 'Super Admin',
+        publishedOn: 'May 24, 2026 08:20 AM',
+        content: `BeAurex Platform Privacy Policy (v1.0)
 
-At LoyalQR, we value your privacy and are committed to protecting your personal information.
-This Privacy Policy explains how we collect, use, disclose and safeguard your information when you use our platform.
+At BeAurex, we value your privacy and are committed to protecting your personal information and commercial integrity.
 
 1. Information We Collect
-We may collect information about you in a variety of ways. The information we may collect includes:
-• Personal Data (such as name, email address, phone number)
-• Business Information
-• Usage Data
-• Cookies and Tracking Technologies
+We collect necessary information to provide and operate digital loyalty programs:
+• Merchant Business Information (Store name, business category, counter address, contact details)
+• Customer Profile Data (Name, email address, customer ID, phone number if provided)
+• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)
+• Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)
 
 2. How We Use Your Information
-We use the information we collect in the following ways:
-• To provide, operate and maintain our platform
-• To improve, personalize and expand our platform
-• To communicate with you, including customer support
-• To send you important updates and information`
-    },
-    terms: {
-      type: 'Terms & Conditions',
-      status: 'Published',
-      lastUpdated: 'May 24, 2025 08:20 AM',
-      version: '1.0',
-      publishedBy: 'Super Admin',
-      publishedOn: 'May 24, 2025 08:20 AM',
-      content: `Terms & Conditions
+We use information strictly for:
+• Operating customer rewards and digital stamp issuance
+• Validating customer reward claims at merchant physical counters
+• Preventing fraudulent or duplicate scans
+• Facilitating peer-to-peer customer referral rewards
+• Account security and service announcements
 
-Welcome to LoyalQR. These Terms and Conditions govern your access to and use of our loyalty platform, merchant dashboard, and customer redemption engine.
+3. Zero Third-Party Selling Guarantee
+BeAurex NEVER sells, rents, or shares customer or merchant personal contact information with third-party advertisers, data brokers, or marketing networks.
+
+4. Data Security & Storage
+All communication between apps and BeAurex servers is protected using 256-bit TLS/SSL encryption. Data is stored in secure, SOC2-compliant cloud database infrastructure with automated backups and firewall filtering.
+
+5. Your Rights & Data Deletion
+Customers and merchants have full control over their account data. You may request account review, data export, or complete account deletion at any time by contacting our privacy compliance desk at support@beaurex.com. Requests are processed within 48 business hours.`
+      },
+      terms: {
+        type: 'Terms & Conditions',
+        status: 'Published',
+        lastUpdated: 'May 24, 2026 08:20 AM',
+        version: '1.0',
+        publishedBy: 'Super Admin',
+        publishedOn: 'May 24, 2026 08:20 AM',
+        content: `BeAurex Platform Terms & Conditions (v1.0)
+
+Welcome to BeAurex. These Terms and Conditions govern your access to and usage of the BeAurex loyalty platform, merchant dashboard, counter standee QR codes, and customer web experience.
 
 1. Acceptance of Terms
-By accessing or using our loyalty platform, merchant dashboard, or QR redemption engine, you agree to be bound by these Terms and Conditions and our Privacy Policy.
+By accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.
 
-2. Merchant Responsibilities
-Merchants agree to honor all issued points, stamps, and rewards presented by verified customers. Tampering with scan telemetry or creating duplicate counter standees is strictly prohibited.
+2. Merchant Obligations & Counter Conduct
+• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.
+• Merchants must not manipulate scan telemetry or create counterfeit QR displays.
+• Counter staff must verify the 6-character Customer ID before confirming reward redemptions.
 
-3. Customer Rewards & Points
-Reward points hold no direct cash value outside the specified redemption benefits at participating merchant outlets. LoyalQR reserves the right to audit suspicious coin activities.
+3. Customer Rewards & Points Policy
+• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
+• Stamps and points carry no direct legal tender cash value outside designated partner stores.
+• Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.
 
 4. Platform Availability & Fair Use
-We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate limit abuses and ensures equitable scan processing across all registered counters.`
-    }
+• BeAurex strives for 99.9% platform availability. Periodic system maintenance will be communicated in advance.
+• Automated bots, GPS spoofing, automated QR scan spamming, and rate-limit circumvention are strictly prohibited and will result in immediate account termination.
+
+5. Subscription & Billing Terms
+• Merchants choosing paid subscription plans are billed according to their chosen billing period (Annual / 3-Year / Lifetime).
+• Standee acrylic kits are dispatched within 2-3 business days upon account activation.
+• Any disputes regarding subscription billing must be raised within 14 calendar days to support@beaurex.com.`
+      }
+    };
   });
   const [policyPreviewModalOpen, setPolicyPreviewModalOpen] = useState(false);
   const [policyToast, setPolicyToast] = useState('');
@@ -540,30 +593,65 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
     setTimeout(() => setPolicyToast(''), 3500);
   };
 
-  const handleSavePolicyDraft = () => {
-    const now = 'May 24, 2025 08:20 AM';
-    setPolicyData(prev => ({
-      ...prev,
-      [policySubTab]: {
-        ...prev[policySubTab],
-        status: 'Draft',
-        lastUpdated: now
-      }
-    }));
+  const handleSavePolicyDraft = async () => {
+    const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const updatedSub = {
+      ...policyData[policySubTab],
+      status: 'Draft',
+      lastUpdated: now
+    };
+    const newPolicyData = {
+      ...policyData,
+      [policySubTab]: updatedSub
+    };
+    setPolicyData(newPolicyData);
+
+    try {
+      localStorage.setItem('beaurex_legal_policies', JSON.stringify(newPolicyData));
+      window.dispatchEvent(new Event('beaurex_policy_updated'));
+      await fetch('/api/admin/policies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPolicyData)
+      });
+    } catch (_) {}
+
     showPolicyToast(`Draft saved successfully for ${policySubTab === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions'}.`);
   };
 
-  const handlePublishPolicy = () => {
-    const now = 'May 24, 2025 08:20 AM';
-    setPolicyData(prev => ({
-      ...prev,
-      [policySubTab]: {
-        ...prev[policySubTab],
-        status: 'Published',
-        lastUpdated: now,
-        publishedOn: now
-      }
-    }));
+  const handlePublishPolicy = async () => {
+    const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const updatedSub = {
+      ...policyData[policySubTab],
+      status: 'Published',
+      lastUpdated: now,
+      publishedOn: now
+    };
+    const newPolicyData = {
+      ...policyData,
+      [policySubTab]: updatedSub
+    };
+    setPolicyData(newPolicyData);
+
+    // Keep settings modal states in sync
+    if (policySubTab === 'privacy') {
+      setPrivacyPolicyData({ version: updatedSub.version, lastUpdated: now, content: updatedSub.content });
+    } else {
+      setTermsData({ version: updatedSub.version, lastUpdated: now, content: updatedSub.content });
+    }
+
+    try {
+      localStorage.setItem('beaurex_legal_policies', JSON.stringify(newPolicyData));
+      window.dispatchEvent(new Event('beaurex_policy_updated'));
+      await fetch('/api/admin/policies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newPolicyData)
+      });
+    } catch (err) {
+      console.warn('Policy publish sync error:', err);
+    }
+
     showPolicyToast(`Published ${policySubTab === 'privacy' ? 'Privacy Policy' : 'Terms & Conditions'} successfully! Now live across all portals.`);
   };
 
@@ -888,154 +976,154 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
   const initialReferralsData = [
     {
       id: '01739',
-      userEmail: '15072026@yopmail.com',
-      userName: 'akhilesh test',
-      userNumber: '5845545622',
-      referredTo: 'MW - 737',
+      userEmail: 'rohit.verma@gmail.com',
+      userName: 'Rohit Verma',
+      userNumber: '9811223344',
+      referredTo: 'MW - 737 (Connaught Cafe)',
       referralAmt: 150,
       refund: 'None',
-      paymentStatus: 'Not Eligible',
+      paymentStatus: 'Paid',
       details: {
-        referredUser: 'tou\ntouyoteinoxou-2879@yopmail.com',
+        referredUser: 'Pooja Sharma\npooja.sharma@gmail.com',
         referralDate: '20-07-2026',
-        userPaymentStatus: 'Not Paid',
+        userPaymentStatus: 'Paid',
         totalAmount: 150,
-        paidAmount: 0,
-        pendingAmount: 150,
-        status: 'Pending'
+        paidAmount: 150,
+        pendingAmount: 0,
+        status: 'Completed'
       }
     },
     {
-      id: '-',
-      userEmail: 'akhilesh.vis17@gmail.com',
-      userName: '-',
-      userNumber: '-',
-      referredTo: 'FR - 1734',
+      id: '01738',
+      userEmail: 'ananya.deshmukh@outlook.com',
+      userName: 'Ananya Deshmukh',
+      userNumber: '9822334455',
+      referredTo: 'FR - 1734 (Organic Supermart)',
       referralAmt: 1500,
       refund: 'None',
-      paymentStatus: 'Not Eligible',
+      paymentStatus: 'Eligible',
       details: {
-        referredUser: 'priya\npriya.mumbai@yopmail.com',
+        referredUser: 'Kunal Rao\nkunal.rao@gmail.com',
         referralDate: '19-07-2026',
-        userPaymentStatus: 'Not Paid',
+        userPaymentStatus: 'Paid',
         totalAmount: 1500,
         paidAmount: 0,
         pendingAmount: 1500,
-        status: 'Pending'
+        status: 'Pending Approval'
       }
     },
     {
-      id: '-',
-      userEmail: 'akhilesh.vis17@gmail.com',
-      userName: '-',
-      userNumber: '-',
-      referredTo: 'MW - 732',
+      id: '01737',
+      userEmail: 'siddharth.mehta@gmail.com',
+      userName: 'Siddharth Mehta',
+      userNumber: '9833445566',
+      referredTo: 'MW - 732 (Ka-feen Cafe)',
       referralAmt: 150,
       refund: 'None',
-      paymentStatus: 'Not Eligible',
+      paymentStatus: 'Paid',
       details: {
-        referredUser: 'sumit\nsumit.delhi@yopmail.com',
+        referredUser: 'Meera Sen\nmeera.sen@gmail.com',
         referralDate: '18-07-2026',
-        userPaymentStatus: 'Not Paid',
+        userPaymentStatus: 'Paid',
         totalAmount: 150,
-        paidAmount: 0,
-        pendingAmount: 150,
-        status: 'Pending'
+        paidAmount: 150,
+        pendingAmount: 0,
+        status: 'Completed'
       }
     },
     {
-      id: '-',
-      userEmail: 'akhilesh.vis17@gmail.com',
-      userName: '-',
-      userNumber: '-',
-      referredTo: 'FR - 1732',
+      id: '01736',
+      userEmail: 'kavita.reddy@gmail.com',
+      userName: 'Kavita Reddy',
+      userNumber: '9844556677',
+      referredTo: 'FR - 1732 (Urban Fitness)',
       referralAmt: 1500,
       refund: 'None',
-      paymentStatus: 'Not Eligible',
+      paymentStatus: 'Eligible',
       details: {
-        referredUser: 'ankit\nankit.fitness@yopmail.com',
+        referredUser: 'Sunil Nair\nsunil.nair@gmail.com',
         referralDate: '17-07-2026',
-        userPaymentStatus: 'Not Paid',
+        userPaymentStatus: 'Paid',
         totalAmount: 1500,
         paidAmount: 0,
         pendingAmount: 1500,
-        status: 'Pending'
+        status: 'Pending Approval'
       }
     },
     {
       id: '01641',
-      userEmail: 'cdmwkr@yopmail.com',
-      userName: 'cd',
-      userNumber: '9658746895',
-      referredTo: 'MW - brappekabenne-1654...',
+      userEmail: 'neha.kapoor@gmail.com',
+      userName: 'Neha Kapoor',
+      userNumber: '9855667788',
+      referredTo: 'MW - 710 (Glamour Salon)',
       referralAmt: 150,
       refund: 'None',
       paymentStatus: 'Not Eligible',
       details: {
-        referredUser: 'neha\nneha.salon@yopmail.com',
+        referredUser: 'Aarav Joshi\naarav.joshi@gmail.com',
         referralDate: '16-07-2026',
         userPaymentStatus: 'Not Paid',
         totalAmount: 150,
         paidAmount: 0,
         pendingAmount: 150,
-        status: 'Pending'
+        status: 'Awaiting Merchant Plan'
       }
     },
     {
-      id: '-',
-      userEmail: 'krmwtmtest@yopmail.com',
-      userName: '-',
-      userNumber: '-',
-      referredTo: 'MW - sewuzeittaza-5637@...',
+      id: '01640',
+      userEmail: 'arjun.sharma@gmail.com',
+      userName: 'Arjun Sharma',
+      userNumber: '9866778899',
+      referredTo: 'MW - 679 (Chai Chaska Bar)',
       referralAmt: 150,
       refund: 'None',
-      paymentStatus: 'Not Eligible',
+      paymentStatus: 'Paid',
       details: {
-        referredUser: 'raj\nrajesh.cafe@yopmail.com',
+        referredUser: 'Tanvi Gupta\ntanvi.gupta@gmail.com',
         referralDate: '15-07-2026',
-        userPaymentStatus: 'Not Paid',
+        userPaymentStatus: 'Paid',
         totalAmount: 150,
-        paidAmount: 0,
-        pendingAmount: 150,
-        status: 'Pending'
+        paidAmount: 150,
+        pendingAmount: 0,
+        status: 'Completed'
       }
     },
     {
-      id: '-',
-      userEmail: 'krmwtmtest@yopmail.com',
-      userName: '-',
-      userNumber: '-',
-      referredTo: 'FR - 1727',
+      id: '01639',
+      userEmail: 'priya.singh@gmail.com',
+      userName: 'Priya Singh',
+      userNumber: '9877889900',
+      referredTo: 'FR - 1727 (Royal Bakers)',
       referralAmt: 1500,
       refund: 'None',
       paymentStatus: 'Not Eligible',
       details: {
-        referredUser: 'vikram\nvikram.retail@yopmail.com',
+        referredUser: 'Rishi Varma\nrishi.varma@gmail.com',
         referralDate: '14-07-2026',
         userPaymentStatus: 'Not Paid',
         totalAmount: 1500,
         paidAmount: 0,
         pendingAmount: 1500,
-        status: 'Pending'
+        status: 'Awaiting Merchant Plan'
       }
     },
     {
-      id: '-',
-      userEmail: 'akhilesh.vis17@gmail.com',
-      userName: '-',
-      userNumber: '-',
-      referredTo: 'FR - 1718',
-      referralAmt: 1500,
+      id: '01638',
+      userEmail: 'manish.tiwari@gmail.com',
+      userName: 'Manish Tiwari',
+      userNumber: '9888990011',
+      referredTo: 'MW - 654 (Spice Junction)',
+      referralAmt: 150,
       refund: 'None',
-      paymentStatus: 'Not Eligible',
+      paymentStatus: 'Paid',
       details: {
-        referredUser: 'deepak\ndeepak.spa@yopmail.com',
-        referralDate: '13-07-2026',
-        userPaymentStatus: 'Not Paid',
-        totalAmount: 1500,
-        paidAmount: 0,
-        pendingAmount: 1500,
-        status: 'Pending'
+        referredUser: 'Deepak Roy\ndeepak.roy@gmail.com',
+        referralDate: '12-07-2026',
+        userPaymentStatus: 'Paid',
+        totalAmount: 150,
+        paidAmount: 150,
+        pendingAmount: 0,
+        status: 'Completed'
       }
     }
   ];
@@ -1043,10 +1131,18 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
   const [referralsList, setReferralsList] = useState(() => {
     try {
       const saved = localStorage.getItem('loyalqr_admin_referrals');
-      return saved ? JSON.parse(saved) : initialReferralsData;
-    } catch {
-      return initialReferralsData;
-    }
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Clean out legacy test cache (yopmail, akhilesh test, etc.)
+        if (Array.isArray(parsed) && parsed.length > 0 && !JSON.stringify(parsed).includes('yopmail') && !JSON.stringify(parsed).includes('akhilesh')) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    try {
+      localStorage.setItem('loyalqr_admin_referrals', JSON.stringify(initialReferralsData));
+    } catch (_) {}
+    return initialReferralsData;
   });
   const [referralSearch, setReferralSearch] = useState('');
   const [selectedReferralDetailModal, setSelectedReferralDetailModal] = useState(null);
@@ -1054,6 +1150,29 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
   const [addReferralModalOpen, setAddReferralModalOpen] = useState(false);
   const [newReferralInput, setNewReferralInput] = useState({ userEmail: '', userName: '', userNumber: '', referredTo: '', referralAmt: 150 });
   const [referralToast, setReferralToast] = useState('');
+
+  // Delete Referral Record Handler
+  const handleDeleteReferral = (refId) => {
+    const item = referralsList.find(r => r.id === refId);
+    const targetLabel = item?.userName && item.userName !== '-' ? item.userName : (item?.userEmail || refId);
+    requestConfirm({
+      title: 'Permission Required: Delete Referral Record',
+      message: `Are you sure you want to permanently delete the referral record for "${targetLabel}" (ID: ${refId})? This action cannot be undone.`,
+      confirmText: 'Yes, Delete Record',
+      type: 'danger',
+      onConfirm: () => {
+        setReferralsList(prev => {
+          const updated = prev.filter(r => r.id !== refId);
+          try {
+            localStorage.setItem('loyalqr_admin_referrals', JSON.stringify(updated));
+          } catch (_) {}
+          return updated;
+        });
+        setReferralToast('Referral record deleted successfully.');
+        setTimeout(() => setReferralToast(''), 4000);
+      }
+    });
+  };
 
   // =========================================================================
   // Manage Deals & Coupons State (Image 1: All Created Deals Table & Modals)
@@ -1093,23 +1212,23 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
       id: 'deal_img_3',
       planType: 'Franchise',
       state: 'All',
-      dealName: 'test05',
-      couponCode: '0511',
+      dealName: 'Festive Gold Discount',
+      couponCode: 'FESTIVE2026',
       createdAt: '11-05-2026',
       bonusAmount: 0,
       discountAmount: 5999,
       discountPercentage: 0,
       validityDate: '12-05-2026',
       usedCount: 2,
-      maxUsage: 5,
+      maxUsage: 50,
       status: 'Active'
     },
     {
       id: 'deal_img_4',
       planType: 'Franchise',
       state: 'All',
-      dealName: 'TEST FE',
-      couponCode: 'TEST01',
+      dealName: 'Franchise Partner Saver',
+      couponCode: 'PARTNER30',
       createdAt: '03-04-2026',
       bonusAmount: 0,
       discountAmount: 29999,
@@ -1123,7 +1242,7 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
       id: 'deal_img_5',
       planType: 'MiniWebsite',
       state: 'All',
-      dealName: 'sale 450',
+      dealName: 'Sale Special 450',
       couponCode: 'SALE450',
       createdAt: '03-04-2026',
       bonusAmount: 0,
@@ -1138,15 +1257,15 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
       id: 'deal_img_6',
       planType: 'Franchise',
       state: 'All',
-      dealName: 'testprice',
-      couponCode: 'PTEST',
+      dealName: 'Retail Launch Special',
+      couponCode: 'RETAIL1000',
       createdAt: '09-12-2025',
       bonusAmount: 0,
       discountAmount: 29999,
       discountPercentage: 0,
       validityDate: '10-12-2025',
       usedCount: 1,
-      maxUsage: 5,
+      maxUsage: 50,
       status: 'Active'
     },
     {
@@ -1274,10 +1393,17 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
   const [platformDeals, setPlatformDeals] = useState(() => {
     try {
       const saved = localStorage.getItem('loyalqr_platform_deals');
-      return saved ? JSON.parse(saved) : initialPlatformDeals;
-    } catch {
-      return initialPlatformDeals;
-    }
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && !JSON.stringify(parsed).includes('test05') && !JSON.stringify(parsed).includes('TEST FE') && !JSON.stringify(parsed).includes('testprice')) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    try {
+      localStorage.setItem('loyalqr_platform_deals', JSON.stringify(initialPlatformDeals));
+    } catch (_) {}
+    return initialPlatformDeals;
   });
 
   const [dealCustomerMappingModalOpen, setDealCustomerMappingModalOpen] = useState(false);
@@ -1415,36 +1541,32 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
 
   const [privacyPolicyData, setPrivacyPolicyData] = useState(() => {
     try {
-      const saved = localStorage.getItem('loyalqr_privacy_policy');
-      return saved ? JSON.parse(saved) : {
-        version: '1.0',
-        lastUpdated: 'May 24, 2025 08:20 AM',
-        content: `BeAurex Platform Privacy Policy (v1.0)\n\nWe prioritize customer and merchant data security above all else.\n\n1. Data Collection: We collect merchant business name, phone number, and transaction telemetry solely for reward issuance and counter fraud prevention.\n2. Security: All traffic is encrypted using 256-bit TLS/SSL certificates and stored in SOC2-compliant MongoDB database clusters.\n3. Third-party Sharing: Customer phone numbers are never shared or sold to third-party advertisers.\n4. Deletion Rights: Merchants and shoppers can request account or phone deletion with 48 business hours turnaround.`
-      };
-    } catch {
-      return {
-        version: '1.0',
-        lastUpdated: 'May 24, 2025 08:20 AM',
-        content: 'BeAurex Privacy Policy'
-      };
-    }
+      const saved = localStorage.getItem('beaurex_legal_policies');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.privacy) return parsed.privacy;
+      }
+    } catch (_) {}
+    return {
+      version: '1.0',
+      lastUpdated: 'May 24, 2026 08:20 AM',
+      content: `BeAurex Platform Privacy Policy (v1.0)\n\nWe prioritize customer and merchant data security above all else.\n\n1. Data Collection: We collect merchant business name, phone number, and transaction telemetry solely for reward issuance and counter fraud prevention.\n2. Security: All traffic is encrypted using 256-bit TLS/SSL certificates and stored in SOC2-compliant MongoDB database clusters.\n3. Third-party Sharing: Customer phone numbers are never shared or sold to third-party advertisers.\n4. Deletion Rights: Merchants and shoppers can request account or phone deletion with 48 business hours turnaround.`
+    };
   });
 
   const [termsData, setTermsData] = useState(() => {
     try {
-      const saved = localStorage.getItem('loyalqr_terms');
-      return saved ? JSON.parse(saved) : {
-        version: '1.0',
-        lastUpdated: 'May 24, 2025 07:45 AM',
-        content: `BeAurex Platform Terms & Conditions (v1.0)\n\n1. Merchant Eligibility: Any registered business, café, retail store, salon, or service provider is eligible to use the loyalty engine.\n2. Fair Usage: System accounts must not be used for fraudulent scans or manufactured reward cycles.\n3. Subscription & Renewals: Free trial terms are active for 2-3 calendar days. Subscription plans renew based on merchant selection.`
-      };
-    } catch {
-      return {
-        version: '1.0',
-        lastUpdated: 'May 24, 2025 07:45 AM',
-        content: 'BeAurex Terms and Conditions'
-      };
-    }
+      const saved = localStorage.getItem('beaurex_legal_policies');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.terms) return parsed.terms;
+      }
+    } catch (_) {}
+    return {
+      version: '1.0',
+      lastUpdated: 'May 24, 2026 08:20 AM',
+      content: `BeAurex Platform Terms & Conditions (v1.0)\n\n1. Merchant Eligibility: Any registered business, café, retail store, salon, or service provider is eligible to use the loyalty engine.\n2. Fair Usage: System accounts must not be used for fraudulent scans or manufactured reward cycles.\n3. Subscription & Renewals: Free trial terms are active for 2-3 calendar days. Subscription plans renew based on merchant selection.`
+    };
   });
 
   // Helper to trigger toast
@@ -1549,110 +1671,117 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
 
 
   // Teams Management State (Matching user screenshot)
+  const initialTeamMembers = [
+    {
+      userId: '1696',
+      name: 'Rajesh Sharma',
+      email: 'rajesh.sharma@beaurex.com',
+      mobile: '9810123456',
+      mwId: '714, 711, 710',
+      totalMwCreated: 3,
+      totalSales: '₹4,500',
+      district: 'Central Delhi',
+      state: 'Delhi',
+      status: 'ACTIVE',
+      lastLogin: 'Today, 10:15 AM',
+      hasReferral: true,
+      hasCustomerTracker: true,
+      password: 'Password@123'
+    },
+    {
+      userId: '1694',
+      name: 'Sneha Verma',
+      email: 'sneha.verma@beaurex.com',
+      mobile: '9820234567',
+      mwId: '725, 719',
+      totalMwCreated: 2,
+      totalSales: '₹3,000',
+      district: 'Mumbai Suburban',
+      state: 'Maharashtra',
+      status: 'ACTIVE',
+      lastLogin: 'Yesterday, 04:30 PM',
+      hasReferral: true,
+      hasCustomerTracker: true,
+      password: 'Password@123'
+    },
+    {
+      userId: '1687',
+      name: 'Amit Patel',
+      email: 'amit.patel@beaurex.com',
+      mobile: '9830345678',
+      mwId: '702',
+      totalMwCreated: 1,
+      totalSales: '₹1,500',
+      district: 'Ahmedabad',
+      state: 'Gujarat',
+      status: 'ACTIVE',
+      lastLogin: '05 Oct 2026',
+      hasReferral: true,
+      hasCustomerTracker: true,
+      password: 'Password@123'
+    },
+    {
+      userId: '1648',
+      name: 'Pooja Nair',
+      email: 'pooja.nair@beaurex.com',
+      mobile: '9840456789',
+      mwId: '679',
+      totalMwCreated: 1,
+      totalSales: '₹2,000',
+      district: 'Bengaluru Urban',
+      state: 'Karnataka',
+      status: 'ACTIVE',
+      lastLogin: '04 Oct 2026',
+      hasReferral: true,
+      hasCustomerTracker: true,
+      password: 'Password@123'
+    },
+    {
+      userId: '1642',
+      name: 'Vikram Malhotra',
+      email: 'vikram.m@beaurex.com',
+      mobile: '9850567890',
+      mwId: '660',
+      totalMwCreated: 1,
+      totalSales: '₹1,500',
+      district: 'Pune',
+      state: 'Maharashtra',
+      status: 'ACTIVE',
+      lastLogin: '03 Oct 2026',
+      hasReferral: true,
+      hasCustomerTracker: true,
+      password: 'Password@123'
+    },
+    {
+      userId: '1619',
+      name: 'Kavita Reddy',
+      email: 'kavita.reddy@beaurex.com',
+      mobile: '9860678901',
+      mwId: '654',
+      totalMwCreated: 1,
+      totalSales: '₹1,000',
+      district: 'Hyderabad',
+      state: 'Telangana',
+      status: 'ACTIVE',
+      lastLogin: '02 Oct 2026',
+      hasReferral: true,
+      hasCustomerTracker: true,
+      password: 'Password@123'
+    }
+  ];
+
   const [teamMembers, setTeamMembers] = useState(() => {
     let saved = [];
     try {
       saved = JSON.parse(localStorage.getItem('beaurex_created_teams') || '[]');
-    } catch (e) {}
-    if (saved && saved.length > 0) return saved;
-    return [
-      {
-        userId: '1696',
-        name: 'MWdemo',
-        email: 'demo@miniwebsite.in',
-        mobile: '9152115001',
-        mwId: '714, 711, 710',
-        totalMwCreated: 3,
-        totalSales: '0',
-        district: '—',
-        state: '—',
-        status: 'ACTIVE',
-        lastLogin: 'Never',
-        hasReferral: true,
-        hasCustomerTracker: true,
-        password: 'Password@123'
-      },
-      {
-        userId: '1694',
-        name: 'temp032',
-        email: 'magottinussa-1803@yopmail.com',
-        mobile: '8476457132',
-        mwId: '—',
-        totalMwCreated: 0,
-        totalSales: '0',
-        district: '—',
-        state: '—',
-        status: 'ACTIVE',
-        lastLogin: 'Never',
-        hasReferral: false,
-        hasCustomerTracker: false,
-        password: 'Password@123'
-      },
-      {
-        userId: '1687',
-        name: 'testteam1',
-        email: 'testteam1@yopmail.com',
-        mobile: '8978675645',
-        mwId: '—',
-        totalMwCreated: 0,
-        totalSales: '0',
-        district: '—',
-        state: '—',
-        status: 'ACTIVE',
-        lastLogin: 'Never',
-        hasReferral: false,
-        hasCustomerTracker: false,
-        password: 'Password@123'
-      },
-      {
-        userId: '1648',
-        name: 'test JX',
-        email: 'testjx@gmail.com',
-        mobile: '—',
-        mwId: '679',
-        totalMwCreated: 1,
-        totalSales: '0',
-        district: '—',
-        state: '—',
-        status: 'ACTIVE',
-        lastLogin: 'Never',
-        hasReferral: true,
-        hasCustomerTracker: true,
-        password: 'Password@123'
-      },
-      {
-        userId: '1642',
-        name: 'tdmwkr',
-        email: 'tdmwkr@yopmail.com',
-        mobile: '—',
-        mwId: '660',
-        totalMwCreated: 1,
-        totalSales: '0',
-        district: '—',
-        state: '—',
-        status: 'ACTIVE',
-        lastLogin: 'Never',
-        hasReferral: false,
-        hasCustomerTracker: false,
-        password: 'Password@123'
-      },
-      {
-        userId: '1619',
-        name: 'testTEam',
-        email: 'testteam@yopmail.com',
-        mobile: '7864238746',
-        mwId: '654',
-        totalMwCreated: 1,
-        totalSales: '0',
-        district: '—',
-        state: '—',
-        status: 'ACTIVE',
-        lastLogin: 'Never',
-        hasReferral: true,
-        hasCustomerTracker: true,
-        password: 'Password@123'
+      if (Array.isArray(saved) && saved.length > 0 && !JSON.stringify(saved).includes('yopmail') && !JSON.stringify(saved).includes('testteam') && !JSON.stringify(saved).includes('temp032') && !JSON.stringify(saved).includes('MWdemo')) {
+        return saved;
       }
-    ];
+    } catch (e) {}
+    try {
+      localStorage.setItem('beaurex_created_teams', JSON.stringify(initialTeamMembers));
+    } catch (_) {}
+    return initialTeamMembers;
   });
 
   // Create Team Member Form State
@@ -1858,14 +1987,14 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
       } catch (e) {}
     }
     // Seed fallbacks for demo accounts
-    if (member.userId === '1696' || member.name === 'MWdemo') {
+    if (member.userId === '1696' || member.name === 'Rajesh Sharma' || member.name === 'MWdemo') {
       return [
         { id: 'ref_714', storeName: 'MW-714 Connaught Cafe', category: 'Cafe & Dining', owner: 'Ramesh Gupta', phone: '98765 43210', city: 'Connaught Place, Delhi', date: '18 Sep 2026', plan: 'Professional Plan', commission: '₹1,500', status: 'PAID' },
         { id: 'ref_711', storeName: 'MW-711 Organic Supermart', category: 'Grocery', owner: 'Anita Rao', phone: '98112 23399', city: 'Indiranagar, Bengaluru', date: '24 Sep 2026', plan: 'Professional Plan', commission: '₹1,500', status: 'PAID' },
         { id: 'ref_710', storeName: 'MW-710 Glamour Spa', category: 'Salon & Wellness', owner: 'Pooja Mehta', phone: '98990 01122', city: 'Bandra West, Mumbai', date: '28 Sep 2026', plan: 'Standard Plan', commission: '₹1,000', status: 'PAID' }
       ];
     }
-    if (member.userId === '1648' || member.name === 'test JX') {
+    if (member.userId === '1648' || member.name === 'Pooja Nair' || member.name === 'test JX') {
       return [
         { id: 'ref_679', storeName: 'MW-679 Urban Fitness Hub', category: 'Fitness & Gym', owner: 'Vikram Joshi', phone: '97112 23344', city: 'Koregaon Park, Pune', date: '01 Oct 2026', plan: 'Legacy Pro', commission: '₹2,000', status: 'PAID' }
       ];
@@ -1967,7 +2096,7 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
         }
       ];
     }
-    if (member.userId === '1696' || member.name === 'MWdemo') {
+    if (member.userId === '1696' || member.name === 'Rajesh Sharma' || member.name === 'MWdemo') {
       return [
         {
           id: 'crm_mw1',
@@ -1989,7 +2118,7 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
         }
       ];
     }
-    if (member.userId === '1648' || member.name === 'test JX') {
+    if (member.userId === '1648' || member.name === 'Pooja Nair' || member.name === 'test JX') {
       return [
         {
           id: 'crm_jx1',
@@ -2012,6 +2141,62 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
       ];
     }
     return [];
+  };
+
+  const [crmRefreshTrigger, setCrmRefreshTrigger] = useState(0);
+
+  // Delete CRM Lead from Member's Customer Manager
+  const handleDeleteCrmLead = (member, lead) => {
+    if (!member || !lead) return;
+    requestConfirm({
+      title: 'Permission Required: Delete CRM Lead',
+      message: `Are you sure you want to delete lead "${lead.name}"?`,
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: () => {
+        const currentLeads = getMemberCrmLeads(member);
+        const updated = currentLeads.filter(l => l.id !== lead.id);
+        const keys = [
+          `beaurex_team_crm_${member.userId}`,
+          `beaurex_team_crm_${member.email}`,
+          `beaurex_team_crm_${member.name}`
+        ];
+        keys.forEach(k => {
+          try { localStorage.setItem(k, JSON.stringify(updated)); } catch(e) {}
+        });
+        if (member.userId === '4482' || member.name === 'Aarav Sharma') {
+          try { localStorage.setItem('beaurex_team_crm_customers', JSON.stringify(updated)); } catch(e) {}
+        }
+        setCrmRefreshTrigger(prev => prev + 1);
+        try {
+          fetch(`/api/admin/crm/customers/${lead.id}`, { method: 'DELETE' }).catch(() => {});
+        } catch(e) {}
+      }
+    });
+  };
+
+  // Delete Store Referral from Member's Referral Tracker
+  const handleDeleteMemberReferral = (member, referral) => {
+    if (!member || !referral) return;
+    requestConfirm({
+      title: 'Permission Required: Delete Store Referral',
+      message: `Are you sure you want to remove referred store "${referral.storeName || 'Store'}"?`,
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: () => {
+        const currentRefs = getMemberReferrals(member);
+        const updated = currentRefs.filter(r => r.id !== referral.id);
+        const keys = [
+          `beaurex_team_referrals_${member.userId}`,
+          `beaurex_team_referrals_${member.email}`,
+          `beaurex_team_referrals_${member.name}`
+        ];
+        keys.forEach(k => {
+          try { localStorage.setItem(k, JSON.stringify(updated)); } catch(e) {}
+        });
+        setCrmRefreshTrigger(prev => prev + 1);
+      }
+    });
   };
 
   // Export referred stores to CSV
@@ -3246,6 +3431,7 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
     const term = searchMerchant.toLowerCase();
     const matchTerm = (
       m.businessName?.toLowerCase().includes(term) ||
+      m.email?.toLowerCase().includes(term) ||
       m.city?.toLowerCase().includes(term) ||
       m.mobile?.includes(term) ||
       m.plan?.toLowerCase().includes(term) ||
@@ -4098,7 +4284,15 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-slate-400 font-mono">{m.mobile} • {m.city || 'India'}</div>
+                                {m.email && (
+                                  <div className="text-[11px] text-slate-600 font-medium truncate max-w-xs flex items-center space-x-1 mt-0.5" title={m.email}>
+                                    <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <span className="truncate">{m.email}</span>
+                                  </div>
+                                )}
+                                <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                  {m.mobile ? `${m.mobile} • ` : ''}{m.city || 'Delhi NCR'}
+                                </div>
                               </td>
 
                               {/* TOTAL PAYMENT */}
@@ -5322,8 +5516,14 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                               <tr key={p.id || p._id} className="hover:bg-slate-50/80 transition">
                                 <td className="py-3.5 px-4">
                                   <div className="font-extrabold text-slate-900">{p.businessName}</div>
-                                  <div className="text-[11px] text-slate-500 font-mono">
-                                    {p.mobile} • {p.city || 'India'}
+                                  {p.email && (
+                                    <div className="text-[11px] text-slate-600 font-medium truncate max-w-xs flex items-center space-x-1 mt-0.5" title={p.email}>
+                                      <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                      <span className="truncate">{p.email}</span>
+                                    </div>
+                                  )}
+                                  <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                                    {p.mobile ? `${p.mobile} • ` : ''}{p.city || 'Delhi NCR'}
                                   </div>
                                 </td>
 
@@ -6764,11 +6964,12 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                         <th className="py-3 px-4 text-right">REFERRAL AMT.</th>
                         <th className="py-3 px-4 text-center">REFUND</th>
                         <th className="py-3 px-4 text-center">MW PAYMENT STATUS</th>
+                        <th className="py-3 px-4 text-center">ACTION</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredReferrals.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-rose-50/40 transition">
+                        <tr key={item.id || idx} className="hover:bg-rose-50/40 transition">
                           <td className="py-3 px-4 font-mono font-bold text-slate-600">
                             {item.id}
                           </td>
@@ -6809,6 +7010,16 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                             }`}>
                               {item.paymentStatus}
                             </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteReferral(item.id)}
+                              className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                              title="Delete Referral Record"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -11410,14 +11621,36 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                   </div>
 
                   <form
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
                       const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                       const updated = { ...privacyPolicyData, lastUpdated: now };
                       setPrivacyPolicyData(updated);
-                      try { localStorage.setItem('loyalqr_privacy_policy', JSON.stringify(updated)); } catch {}
+
+                      const fullUpdate = {
+                        privacy: {
+                          ...policyData.privacy,
+                          version: updated.version,
+                          content: updated.content,
+                          lastUpdated: now,
+                          status: 'Published'
+                        }
+                      };
+                      setPolicyData(prev => ({ ...prev, privacy: fullUpdate.privacy }));
+
+                      try {
+                        const allPolicies = { ...policyData, ...fullUpdate };
+                        localStorage.setItem('beaurex_legal_policies', JSON.stringify(allPolicies));
+                        window.dispatchEvent(new Event('beaurex_policy_updated'));
+                        await fetch('/api/admin/policies', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(fullUpdate)
+                        });
+                      } catch (_) {}
+
                       setSettingsActiveModal(null);
-                      showSettingsToast('Privacy Policy updated & published!');
+                      showSettingsToast('Privacy Policy updated & published across all portals!');
                     }}
                     className="space-y-4"
                   >
@@ -11496,14 +11729,36 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                   </div>
 
                   <form
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
                       const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                       const updated = { ...termsData, lastUpdated: now };
                       setTermsData(updated);
-                      try { localStorage.setItem('loyalqr_terms', JSON.stringify(updated)); } catch {}
+
+                      const fullUpdate = {
+                        terms: {
+                          ...policyData.terms,
+                          version: updated.version,
+                          content: updated.content,
+                          lastUpdated: now,
+                          status: 'Published'
+                        }
+                      };
+                      setPolicyData(prev => ({ ...prev, terms: fullUpdate.terms }));
+
+                      try {
+                        const allPolicies = { ...policyData, ...fullUpdate };
+                        localStorage.setItem('beaurex_legal_policies', JSON.stringify(allPolicies));
+                        window.dispatchEvent(new Event('beaurex_policy_updated'));
+                        await fetch('/api/admin/policies', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(fullUpdate)
+                        });
+                      } catch (_) {}
+
                       setSettingsActiveModal(null);
-                      showSettingsToast('Terms & Conditions updated & published!');
+                      showSettingsToast('Terms & Conditions updated & published across all portals!');
                     }}
                     className="space-y-4"
                   >
@@ -12305,6 +12560,7 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                           <th className="py-2.5 px-3">Plan Subscribed</th>
                           <th className="py-2.5 px-3 text-right">Commission</th>
                           <th className="py-2.5 px-3 text-center">Payout</th>
+                          <th className="py-2.5 px-3 text-center">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -12338,6 +12594,16 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                               }`}>
                                 {r.status || 'PENDING'}
                               </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMemberReferral(selectedReferralMember, r)}
+                                className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                title="Delete Store Referral"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -12533,17 +12799,27 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                                   {lead.lastUpdated || 'Recent'}
                                 </td>
                                 <td className="py-2.5 px-3 text-right">
-                                  <button
-                                    onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
-                                    className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition inline-flex items-center space-x-1 cursor-pointer ${
-                                      isExpanded
-                                        ? 'bg-[#74111d] text-white border-[#74111d]'
-                                        : 'bg-rose-50 text-[#74111d] border-rose-200 hover:bg-rose-100'
-                                    }`}
-                                  >
-                                    <span>Notes ({followupsList.length})</span>
-                                    {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                                  </button>
+                                  <div className="inline-flex items-center space-x-1.5 justify-end">
+                                    <button
+                                      onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
+                                      className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition inline-flex items-center space-x-1 cursor-pointer ${
+                                        isExpanded
+                                          ? 'bg-[#74111d] text-white border-[#74111d]'
+                                          : 'bg-rose-50 text-[#74111d] border-rose-200 hover:bg-rose-100'
+                                      }`}
+                                    >
+                                      <span>Notes ({followupsList.length})</span>
+                                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteCrmLead(selectedCustomerTrackerMember, lead)}
+                                      className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                                      title="Delete CRM Lead"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
 
@@ -13304,11 +13580,22 @@ We strive to provide 99.9% uptime. Fair-play device fingerprinting prevents rate
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
-                      <span>{viewMerchantModal.city}</span>
-                      <span>•</span>
-                      <span>{viewMerchantModal.mobile}</span>
-                      <span>•</span>
-                      <span>{viewMerchantModal.email}</span>
+                      {viewMerchantModal.city && <span>{viewMerchantModal.city}</span>}
+                      {viewMerchantModal.mobile && (
+                        <>
+                          <span>•</span>
+                          <span>{viewMerchantModal.mobile}</span>
+                        </>
+                      )}
+                      {viewMerchantModal.email && (
+                        <>
+                          <span>•</span>
+                          <span className="text-[#74111d] font-bold flex items-center space-x-1">
+                            <Mail className="w-3 h-3" />
+                            <span>{viewMerchantModal.email}</span>
+                          </span>
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>

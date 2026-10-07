@@ -1760,6 +1760,29 @@ router.post('/config/test-email', async (req, res) => {
   }
 });
 
+// Legal Policies Management (Super Admin Policy Editor & Settings Modals)
+router.get('/policies', async (req, res) => {
+  try {
+    const policies = await systemStore.getLegalPolicies();
+    res.json({ success: true, policies });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/policies', async (req, res) => {
+  try {
+    const updated = await systemStore.saveLegalPolicies(req.body);
+    res.json({
+      success: true,
+      message: 'Legal policies published and synchronized across all portals successfully!',
+      policies: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // =========================================================================
 // 7. TEAM ACCOUNTS & STAFF MANAGEMENT
 // =========================================================================

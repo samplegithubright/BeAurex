@@ -112,7 +112,12 @@ const systemConfigSchema = new mongoose.Schema({
       expiresAt: String,
       isActive: { type: Boolean, default: true }
     }
-  ]
+  ],
+  // Legal Policies (Privacy Policy & Terms of Service)
+  legalPolicies: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('SystemConfig', systemConfigSchema);

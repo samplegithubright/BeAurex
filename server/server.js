@@ -78,6 +78,25 @@ app.get('/api/public/plans', async (req, res) => {
   }
 });
 
+// Public endpoint for live Legal Policies (Privacy Policy & Terms of Service)
+app.get('/api/public/policies', async (req, res) => {
+  try {
+    const policies = await systemStore.getLegalPolicies();
+    res.json({ success: true, policies });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/public/policies/:type', async (req, res) => {
+  try {
+    const policy = await systemStore.getLegalPolicy(req.params.type);
+    res.json({ success: true, policy });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Serve frontend build if exists
 const fs = require('fs');
 const clientDistPath = path.join(__dirname, '../client/dist');
@@ -88,6 +107,21 @@ if (fs.existsSync(clientDistPath)) {
       res.sendFile(path.join(clientDistPath, 'index.html'));
     }
   });
+}
+
+// Safeguard: Ensure Customer mobile and email indexes are sparse so optional mobile sign-up never fails
+async function ensureSparseCustomerIndexes() {
+  try {
+    const Customer = require('./models/Customer');
+    const indexes = await Customer.collection.indexes();
+    const mobileIndex = indexes.find(idx => idx.name === 'mobile_1' || (idx.key && idx.key.mobile));
+    if (mobileIndex && !mobileIndex.sparse) {
+      console.log('🔄 Sanitizing Customer mobile index to be sparse...');
+      await Customer.collection.dropIndex(mobileIndex.name);
+      await Customer.collection.createIndex({ mobile: 1 }, { unique: true, sparse: true });
+      console.log('✅ Customer mobile index is now sparse.');
+    }
+  } catch (_) {}
 }
 
 // Database connection caching for serverless environments (Vercel) & traditional servers
@@ -110,6 +144,7 @@ async function connectDB() {
     const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
     console.log('✅ Connected to MongoDB Atlas at', safeUri);
     try { ensureDemoMerchant(); } catch (_) {}
+    try { ensureSparseCustomerIndexes(); } catch (_) {}
     return m;
   }).catch((err) => {
     console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
