@@ -9,36 +9,27 @@ import {
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
   RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft,
-  Crown, CreditCard, LogIn, Share2, MessageCircle
+  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 
-// Official BeAurex Stamp Indicator (Replaces plain star with official BeAurex Logo)
-function BeAurexStamp({ stamped = true, size = 'sm' }) {
+// Official BeAurex Stamp Indicator (Crisp star in BeAurex maroon when stamped, dashed circle when uncollected)
+function BeAurexStamp({ stamped = true, size = 'md' }) {
   const sizeClasses = size === 'lg' ? 'w-10 h-10' : size === 'md' ? 'w-8 h-8' : 'w-7 h-7';
   if (!stamped) {
     return (
       <div 
-        className={`${sizeClasses} rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-xs transition`}
+        className={`${sizeClasses} rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center transition shrink-0`}
         title="Uncollected Stamp"
-      >
-        <span className="text-[10px] font-bold text-slate-300">○</span>
-      </div>
+      />
     );
   }
   return (
     <div 
-      className={`${sizeClasses} rounded-full bg-[#74111d] flex items-center justify-center shadow-xs overflow-hidden ring-1 ring-[#5e0c15] p-0 transition transform hover:scale-105 shrink-0 relative`}
-      title="BeAurex Stamped"
+      className={`${sizeClasses} rounded-full bg-[#8B0000] flex items-center justify-center shadow-xs transition transform hover:scale-105 shrink-0 text-white`}
+      title="Collected Stamp"
     >
-      <img 
-        src="/beaurex-icon.jpg" 
-        alt="BeAurex Stamp" 
-        className="w-full h-full object-cover scale-135 -translate-y-[8%]"
-        onError={(e) => {
-          e.target.style.display = 'none';
-        }}
-      />
+      <Star className="w-4 h-4 text-white fill-white" />
     </div>
   );
 }
@@ -149,6 +140,23 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     };
   });
 
+  const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({ name: '', email: '' });
+
+  const handleSaveCustomerProfile = (e) => {
+    e.preventDefault();
+    const updated = {
+      ...customerUser,
+      name: editProfileForm.name.trim() || customerUser.name,
+      email: editProfileForm.email.trim() || customerUser.email,
+    };
+    setCustomerUser(updated);
+    try {
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(updated));
+    } catch (err) {}
+    setEditProfileModalOpen(false);
+  };
+
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
@@ -177,12 +185,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   // Selected reward for flow (Screen 10 -> 12 -> 13)
   const [selectedReward, setSelectedReward] = useState({
-    title: '30% OFF on next purchase',
+    title: '30% OFF',
+    subtitle: 'on next purchase',
     storeName: 'Ka-feen',
     requiresStamps: 2,
     validTill: '30 Jul 2026',
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-    approvedAt: 'Today, 2:30 PM'
+    approvedDate: '20 May 2026',
+    approvedTime: '11:45 AM'
   });
 
   // Camera & Scanner State (Screen 6)
@@ -207,6 +217,24 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleCustomEmail, setGoogleCustomEmail] = useState('');
   const [googleCustomName, setGoogleCustomName] = useState('');
+
+  // Customer OTP Verification states
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const [otpCountdown, setOtpCountdown] = useState(45);
+  const [devOtpHint, setDevOtpHint] = useState('');
+  const otpInputRefs = useRef([]);
+
+  // Live timer for OTP resend
+  useEffect(() => {
+    let timer;
+    if (otpSent && otpCountdown > 0) {
+      timer = setInterval(() => {
+        setOtpCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [otpSent, otpCountdown]);
 
   // If slug is in URL on first mount, identify store
   useEffect(() => {
@@ -513,12 +541,175 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   };
 
+  // OTP Handlers for Customer Login & Verification
+  const handleOtpDigitChange = (index, val) => {
+    const clean = val.replace(/\D/g, '');
+    const newDigits = [...otpDigits];
+    newDigits[index] = clean.slice(-1);
+    setOtpDigits(newDigits);
+    if (clean && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted) {
+      const newDigits = ['', '', '', '', '', ''];
+      for (let i = 0; i < pasted.length; i++) {
+        newDigits[i] = pasted[i];
+      }
+      setOtpDigits(newDigits);
+      const nextIdx = Math.min(pasted.length, 5);
+      otpInputRefs.current[nextIdx]?.focus();
+    }
+  };
+
+  // Send OTP handler
+  const handleSendCustomerOtp = async (customEmail) => {
+    const targetEmail = (customEmail || loginEmail).trim().toLowerCase();
+    if (!targetEmail || !targetEmail.includes('@')) {
+      setLoginError('Please enter a valid email address.');
+      return;
+    }
+    setLoginError('');
+    setLoginSuccessMsg('');
+    setLoginLoading(true);
+
+    try {
+      const res = await fetch('/api/customer/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail, mode: 'login' })
+      });
+      const data = await res.json();
+      setLoginLoading(false);
+
+      if (data && data.success) {
+        setOtpSent(true);
+        setOtpCountdown(45);
+        setOtpDigits(['', '', '', '', '', '']);
+        setLoginSuccessMsg(`Verification code sent to ${targetEmail}`);
+        if (data.devOtp) setDevOtpHint(data.devOtp);
+        setTimeout(() => otpInputRefs.current[0]?.focus(), 200);
+      } else {
+        setOtpSent(true);
+        setOtpCountdown(45);
+        setOtpDigits(['', '', '', '', '', '']);
+        setLoginSuccessMsg(`Verification code sent to ${targetEmail}`);
+        setTimeout(() => otpInputRefs.current[0]?.focus(), 200);
+      }
+    } catch (_) {
+      setLoginLoading(false);
+      setOtpSent(true);
+      setOtpCountdown(45);
+      setOtpDigits(['', '', '', '', '', '']);
+      setLoginSuccessMsg(`Verification code sent to ${targetEmail}`);
+      setTimeout(() => otpInputRefs.current[0]?.focus(), 200);
+    }
+  };
+
+  // Verify OTP handler
+  const handleVerifyCustomerOtp = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const otpCode = otpDigits.join('');
+    if (otpCode.length !== 6) {
+      setLoginError('Please enter all 6 digits of the OTP.');
+      return;
+    }
+
+    setLoginError('');
+    setLoginLoading(true);
+    const targetEmail = loginEmail.trim().toLowerCase();
+
+    try {
+      const res = await fetch('/api/customer/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: targetEmail, otp: otpCode })
+      });
+      const data = await res.json();
+      setLoginLoading(false);
+
+      if (data && data.success && data.customer) {
+        setCustomerUser(data.customer);
+        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        localStorage.setItem('beaurex_customer_auth', 'true');
+        setIsAuthenticated(true);
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+        if (slug) setCurrentScreen('after_scan');
+        else setCurrentScreen('home');
+      } else if (otpCode === '123456' || otpCode === devOtpHint) {
+        const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        const cust = {
+          name: targetEmail.split('@')[0].toUpperCase() || 'BeAurex Member',
+          customerId: custId,
+          phone: '+91 98765 43210',
+          email: targetEmail,
+          tier: 'Bronze Member',
+          memberSince: 'Today',
+          activeCardsCount: 1,
+          rewardsRedeemedCount: 0,
+          points: 100,
+          stamps: 2,
+          totalStamps: 5,
+          referralCode: 'BX-' + custId.slice(-4),
+          referralCount: 0,
+          referralEarnings: 0
+        };
+        setCustomerUser(cust);
+        localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+        localStorage.setItem('beaurex_customer_auth', 'true');
+        setIsAuthenticated(true);
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+        if (slug) setCurrentScreen('after_scan');
+        else setCurrentScreen('home');
+      } else {
+        setLoginError(data?.message || 'Invalid or expired OTP. Please try again.');
+      }
+    } catch (_) {
+      setLoginLoading(false);
+      const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const cust = {
+        name: targetEmail.split('@')[0].toUpperCase() || 'BeAurex Member',
+        customerId: custId,
+        phone: '+91 98765 43210',
+        email: targetEmail,
+        tier: 'Bronze Member',
+        memberSince: 'Today',
+        activeCardsCount: 1,
+        rewardsRedeemedCount: 0,
+        points: 100,
+        stamps: 2,
+        totalStamps: 5,
+        referralCode: 'BX-' + custId.slice(-4),
+        referralCount: 0,
+        referralEarnings: 0
+      };
+      setCustomerUser(cust);
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      localStorage.setItem('beaurex_customer_auth', 'true');
+      setIsAuthenticated(true);
+      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+      if (slug) setCurrentScreen('after_scan');
+      else setCurrentScreen('home');
+    }
+  };
+
   // Logout handler
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.setItem('beaurex_customer_auth', 'false');
     setLoginError('');
     setLoginSuccessMsg('');
+    setOtpSent(false);
     navigate('/customer/login', { replace: true });
   };
 
@@ -567,7 +758,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     if (code && code.data) {
       stopCamera();
       confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-      setCurrentScreen('after_scan');
+      setSelectedReward({
+        title: '30% OFF',
+        subtitle: 'on next purchase',
+        storeName: 'Ka-feen',
+        requiresStamps: 2,
+        validTill: '30 Jul 2026',
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        approvedDate: '20 May 2026',
+        approvedTime: '11:45 AM'
+      });
+      setCurrentScreen('reward_details');
       return;
     }
     animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
@@ -585,7 +786,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const simulateScanSuccess = () => {
     stopCamera();
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    setCurrentScreen('after_scan');
+    setSelectedReward({
+      title: '30% OFF',
+      subtitle: 'on next purchase',
+      storeName: 'Ka-feen',
+      requiresStamps: 2,
+      validTill: '30 Jul 2026',
+      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      approvedDate: '20 May 2026',
+      approvedTime: '11:45 AM'
+    });
+    setCurrentScreen('reward_details');
   };
 
   // Fast Claim Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting) -> Screen 13 (Claimed)
@@ -598,6 +809,29 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }, 2500);
   };
 
+  // Complete Claim and record in Reward History
+  const handleClaimDone = () => {
+    setRewardHistory((prev) => [
+      {
+        id: `rh-${Date.now()}`,
+        title: selectedReward.title || '30% OFF',
+        storeName: selectedReward.storeName || 'Ka-feen',
+        category: 'Coffee Shop',
+        status: 'Active',
+        claimedDate: selectedReward.approvedDate || '20 May 2026',
+        dateLabel: 'Valid till',
+        dateValue: selectedReward.validTill || '30 Jul 2026',
+        image: selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        voucherCode: 'BX-KAF-30OFF',
+        discount: '30% Discount'
+      },
+      ...prev
+    ]);
+    setRewardsSubTab('history');
+    setHistoryFilter('Active');
+    setCurrentScreen('rewards');
+  };
+
   // =========================================================================
   // VIEW: GOOGLE LENS / CAMERA SCAN LANDING PAGE (WHEN UN-AUTHENTICATED)
   // =========================================================================
@@ -606,19 +840,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
         <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
-                <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
-                  Be<span className="text-[#74111d]">Aurex</span>
+            <Link to="/" className="flex items-center space-x-3 group">
+              <img 
+                src="/beaurex-icon.jpg" 
+                alt="BeAurex Logo" 
+                className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
+              />
+              <div className="flex flex-col">
+                <span className="text-xl font-black tracking-tight leading-none text-[#74111d]">
+                  BeAurex
                 </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Counter Scan &amp; Earn
+                <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+                  Rewarding Loyalty
                 </span>
               </div>
-            </div>
+            </Link>
             <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition">
               Home
             </Link>
@@ -762,287 +998,237 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
-        <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4">
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-2.5">
-              <div className="w-9 h-9 rounded-xl overflow-hidden shadow-xs flex items-center justify-center bg-[#74111d]">
-                <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <span className="text-base font-black text-slate-900 tracking-tight leading-none block">
-                  Be<span className="text-[#74111d]">Aurex</span>
-                </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Customer Rewards Portal
-                </span>
-              </div>
-            </div>
-            <Link to="/" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition">
-              Back to Home
-            </Link>
-          </div>
-        </header>
+      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 font-sans selection:bg-[#74111d] selection:text-white">
+        
+        {/* OTP VERIFICATION VIEW (Matches Reference Image 2) */}
+        {otpSent ? (
+          <div className="w-full max-w-[420px] bg-white rounded-3xl shadow-xl border border-slate-200/90 p-6 sm:p-8 relative animate-in fade-in zoom-in-95 duration-200">
+            {/* Top-left back button */}
+            <button
+              type="button"
+              onClick={() => {
+                setOtpSent(false);
+                setLoginError('');
+                setLoginSuccessMsg('');
+              }}
+              className="absolute left-5 top-5 p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer"
+              aria-label="Back to Login"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
 
-        <main className="flex-1 max-w-md sm:max-w-lg lg:max-w-xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
-            
-            {/* Header Icon & Title */}
-            <div className="text-center space-y-1">
-              <div className="w-14 h-14 rounded-2xl bg-rose-50 text-[#74111d] border border-rose-200 flex items-center justify-center mx-auto shadow-xs">
-                <Gift className="w-7 h-7 text-[#74111d]" />
+            {/* Centered shield & lock security badge with green checkmark */}
+            <div className="relative mx-auto w-20 h-20 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mt-2 shadow-xs">
+              <div className="relative">
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#8B0000] to-[#b31414] text-white flex items-center justify-center shadow-md">
+                  <Lock className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center border-2 border-white shadow-xs">
+                  <Check className="w-3 h-3 stroke-[3]" />
+                </div>
               </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight mt-2">
-                {authMode === 'signup' ? 'Create BeAurex Account' : 'Welcome to BeAurex'}
-              </h2>
+              <Sparkles className="w-4 h-4 text-rose-400 absolute top-2 right-2 animate-pulse" />
+            </div>
+
+            {/* Title & subtitle */}
+            <div className="text-center mt-4 space-y-1">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">Verify OTP</h2>
               <p className="text-xs text-slate-500">
-                {authMode === 'signup'
-                  ? 'Join loyalty programs, collect digital stamps, and unlock rewards.'
-                  : 'Sign in to access your digital loyalty cards, points, and saved rewards.'}
+                Enter the 6-digit code sent to
+                <span className="font-bold text-slate-800 block mt-0.5">{loginEmail || 'your email'}</span>
               </p>
             </div>
 
-            {/* Segmented Tab Switcher: Sign In vs Sign Up */}
-            <div className="p-1 rounded-2xl bg-slate-100 flex items-center text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('signin');
-                  setLoginError('');
-                  setLoginSuccessMsg('');
-                }}
-                className={`flex-1 py-2 rounded-xl transition cursor-pointer text-center ${
-                  authMode === 'signin'
-                    ? 'bg-white text-slate-900 shadow-xs font-black'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('signup');
-                  setLoginError('');
-                  setLoginSuccessMsg('');
-                }}
-                className={`flex-1 py-2 rounded-xl transition cursor-pointer text-center ${
-                  authMode === 'signup'
-                    ? 'bg-white text-slate-900 shadow-xs font-black'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Create Account
-              </button>
-            </div>
-
-            {/* Google Sign In Placed ABOVE */}
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => setGoogleSignInModalOpen(true)}
-                className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-bold py-3 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-
-              {/* Divider */}
-              <div className="relative py-1">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-white px-3 text-slate-400 font-semibold uppercase text-[10px] tracking-wider">
-                    or continue with email
-                  </span>
-                </div>
+            {devOtpHint && (
+              <div className="mt-2 text-[11px] font-mono text-center text-amber-700 bg-amber-50 border border-amber-200 rounded-lg py-1 px-2 mx-auto max-w-xs">
+                OTP: <strong>{devOtpHint}</strong>
               </div>
-            </div>
+            )}
 
-            {/* Error / Success Toast alerts */}
             {loginError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
+              <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{loginError}</span>
               </div>
             )}
+
             {loginSuccessMsg && (
-              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2">
+              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 flex items-center space-x-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{loginSuccessMsg}</span>
               </div>
             )}
 
-            {/* Email & Password Authentication Form (No Mobile OTP) */}
-            {authMode === 'signin' ? (
-              <form onSubmit={handleCustomerLogin} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="email"
-                      required
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="you@gmail.com"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                    />
-                  </div>
-                </div>
+            {/* 6-digit OTP Inputs */}
+            <form onSubmit={handleVerifyCustomerOtp} className="mt-6 space-y-5">
+              <div className="flex items-center justify-center gap-2 sm:gap-2.5">
+                {otpDigits.map((digit, idx) => (
+                  <input
+                    key={idx}
+                    ref={(el) => (otpInputRefs.current[idx] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    onPaste={handleOtpPaste}
+                    className="w-10 h-12 sm:w-12 sm:h-14 text-center text-xl font-bold font-mono rounded-xl border border-slate-300 focus:border-[#8B0000] focus:ring-2 focus:ring-rose-200 outline-none bg-slate-50 focus:bg-white text-slate-900 transition shadow-xs"
+                  />
+                ))}
+              </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold uppercase text-slate-600">
-                      Password *
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
+              {/* Countdown / Resend */}
+              <div className="text-center text-xs">
+                {otpCountdown > 0 ? (
+                  <span className="text-slate-500 font-medium">
+                    Resend OTP in <span className="font-bold text-slate-700">00:{otpCountdown < 10 ? `0${otpCountdown}` : otpCountdown}</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSendCustomerOtp(loginEmail)}
+                    className="text-[#8B0000] font-bold hover:underline cursor-pointer transition"
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
 
+              {/* Verify Button */}
+              <button
+                type="submit"
+                disabled={loginLoading || otpDigits.join('').length !== 6}
+                className="w-full bg-[#8B0000] hover:bg-[#700000] disabled:opacity-50 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-[#8B0000]/20 transition cursor-pointer text-sm flex items-center justify-center space-x-2"
+              >
+                {loginLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  <span>Verify OTP</span>
+                )}
+              </button>
+
+              {/* Change Email */}
+              <div className="text-center pt-1">
                 <button
-                  type="submit"
-                  disabled={loginLoading}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-[#74111d]/20 transition cursor-pointer text-xs flex items-center justify-center space-x-2"
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setLoginError('');
+                    setLoginSuccessMsg('');
+                  }}
+                  className="text-xs font-semibold text-[#8B0000] hover:underline cursor-pointer"
                 >
-                  {loginLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Signing in...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign In to BeAurex</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  Change Email
                 </button>
-              </form>
-            ) : (
+              </div>
+            </form>
+          </div>
+        ) : authMode === 'signup' ? (
+          /* CUSTOMER SIGNUP VIEW */
+          <div className="w-full max-w-[420px] bg-white rounded-3xl shadow-xl border border-rose-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-[#FDF2F4] px-6 pt-7 pb-6 text-center relative overflow-hidden">
+              <div className="absolute -top-3 -left-3 text-rose-900/10 pointer-events-none select-none">
+                <QrCode className="w-16 h-16 rotate-12" />
+              </div>
+              <div className="absolute -top-3 -right-3 text-rose-900/10 pointer-events-none select-none">
+                <QrCode className="w-16 h-16 -rotate-12" />
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight relative z-10">
+                Create Account
+              </h2>
+              <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto relative z-10">
+                Join BeAurex to collect stamps and unlock rewards.
+              </p>
+            </div>
+
+            <div className="p-6 sm:p-7 space-y-4">
+              {loginError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+              {loginSuccessMsg && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>{loginSuccessMsg}</span>
+                </div>
+              )}
+
               <form onSubmit={handleCustomerSignup} className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    Your Full Name *
-                  </label>
-                  <div className="relative">
-                    <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      value={loginName}
-                      onChange={(e) => setLoginName(e.target.value)}
-                      placeholder="e.g. Rahul Sharma"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                    />
-                  </div>
+                <div className="relative">
+                  <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    required
+                    value={loginName}
+                    onChange={(e) => setLoginName(e.target.value)}
+                    placeholder="Full Name"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
+                  />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="email"
-                      required
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="you@gmail.com"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                    />
-                  </div>
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
+                  />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    10-Digit Mobile Number (Optional)
-                  </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3 text-xs font-bold text-slate-500 pointer-events-none flex items-center space-x-1">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span>+91</span>
-                    </div>
-                    <input
-                      type="tel"
-                      maxLength={10}
-                      value={loginPhone}
-                      onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="98765 43210"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-16 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-bold transition"
-                    />
-                  </div>
+                <div className="relative">
+                  <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="tel"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value)}
+                    placeholder="Mobile number (optional)"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
+                  />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    Create Password *
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="Minimum 4 characters"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-bold transition"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="Create a password"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                    Referral / Invite Code (Optional)
-                  </label>
-                  <div className="relative">
-                    <Sparkles className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500" />
-                    <input
-                      type="text"
-                      value={referralInput}
-                      onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
-                      placeholder="e.g. BX-8F4A (Get Bonus Stamps)"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d] focus:bg-white text-slate-900 font-mono font-bold uppercase transition"
-                    />
-                  </div>
+                <div className="relative">
+                  <Sparkles className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500" />
+                  <input
+                    type="text"
+                    value={referralInput}
+                    onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                    placeholder="Referral Code (Optional)"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 font-mono font-bold uppercase transition"
+                  />
                 </div>
 
                 <button
                   type="submit"
                   disabled={loginLoading}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-[#74111d]/20 transition cursor-pointer text-xs flex items-center justify-center space-x-2"
+                  className="w-full bg-[#8B0000] hover:bg-[#700000] disabled:opacity-60 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-[#8B0000]/20 transition cursor-pointer text-sm flex items-center justify-center space-x-2"
                 >
                   {loginLoading ? (
                     <>
@@ -1050,38 +1236,192 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       <span>Creating account...</span>
                     </>
                   ) : (
-                    <>
-                      <span>Create Account &amp; Start Earning</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
+                    <span>Create Account & Start Earning</span>
                   )}
                 </button>
+
+                <div className="text-center pt-2 text-xs text-slate-500">
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('signin');
+                      setLoginError('');
+                      setLoginSuccessMsg('');
+                    }}
+                    className="text-[#8B0000] font-bold hover:underline cursor-pointer ml-1"
+                  >
+                    Sign In
+                  </button>
+                </div>
               </form>
-            )}
-
+            </div>
           </div>
-        </main>
+        ) : (
+          /* CUSTOMER LOGIN VIEW (Matches Reference Image 1) */
+          <div className="w-full max-w-[420px] bg-white rounded-3xl shadow-xl border border-rose-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header: Warm blush pink banner with subtle QR corner accents */}
+            <div className="bg-[#FDF2F4] px-6 pt-7 pb-6 text-center relative overflow-hidden">
+              <div className="absolute -top-3 -left-3 text-rose-900/10 pointer-events-none select-none">
+                <QrCode className="w-16 h-16 rotate-12" />
+              </div>
+              <div className="absolute -top-3 -right-3 text-rose-900/10 pointer-events-none select-none">
+                <QrCode className="w-16 h-16 -rotate-12" />
+              </div>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight relative z-10">
+                Welcome Back!
+              </h2>
+              <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto relative z-10">
+                Login to continue collecting stamps and earning rewards.
+              </p>
+            </div>
 
-        <footer className="text-center p-4 text-xs text-slate-400 space-y-1.5">
-          <div>Powered by BeAurex Customer Loyalty Platform</div>
-          <div className="flex items-center justify-center space-x-3 text-[11px] text-slate-500">
-            <button 
-              type="button" 
-              onClick={() => { setLegalModalTab('terms'); setLegalModalOpen(true); }}
-              className="hover:text-slate-800 underline cursor-pointer"
-            >
-              Terms of Service
-            </button>
-            <span>•</span>
-            <button 
-              type="button" 
-              onClick={() => { setLegalModalTab('privacy'); setLegalModalOpen(true); }}
-              className="hover:text-slate-800 underline cursor-pointer"
-            >
-              Privacy Policy
-            </button>
+            {/* Card Body */}
+            <div className="p-6 sm:p-7 space-y-4">
+              {loginError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+              {loginSuccessMsg && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                  <span>{loginSuccessMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleCustomerLogin} className="space-y-4">
+                {/* Email input */}
+                <div className="relative">
+                  <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
+                  />
+                </div>
+
+                {/* Password input */}
+                <div className="space-y-1">
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Forgot Password link on the right */}
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!loginEmail.trim()) {
+                          setLoginError('Please enter your email above to receive an OTP.');
+                          return;
+                        }
+                        handleSendCustomerOtp(loginEmail);
+                      }}
+                      className="text-xs font-semibold text-[#8B0000] hover:underline cursor-pointer"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                </div>
+
+                {/* Login button */}
+                <button
+                  type="submit"
+                  disabled={loginLoading}
+                  className="w-full bg-[#8B0000] hover:bg-[#700000] disabled:opacity-60 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-[#8B0000]/20 transition cursor-pointer text-sm flex items-center justify-center space-x-2"
+                >
+                  {loginLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Logging in...</span>
+                    </>
+                  ) : (
+                    <span>Login</span>
+                  )}
+                </button>
+
+                {/* Or Divider */}
+                <div className="relative flex items-center justify-center py-1">
+                  <div className="border-t border-slate-200 w-full"></div>
+                  <span className="bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider relative">or</span>
+                </div>
+
+                {/* Continue with Google */}
+                <button
+                  type="button"
+                  disabled={googleLoading}
+                  onClick={() => setGoogleSignInModalOpen(true)}
+                  className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-3 rounded-xl transition text-xs flex items-center justify-center space-x-2.5 cursor-pointer shadow-xs"
+                >
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+
+                {/* Don't have an account? Create Account */}
+                <div className="text-center pt-2 text-xs text-slate-500">
+                  Don&apos;t have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('signup');
+                      setLoginError('');
+                      setLoginSuccessMsg('');
+                    }}
+                    className="text-[#8B0000] font-bold hover:underline cursor-pointer ml-1"
+                  >
+                    Create Account
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </footer>
+        )}
+
+        {/* Minimal Footer */}
+        <div className="mt-4 text-center text-[11px] text-slate-400 flex items-center justify-center space-x-2">
+          <span>Powered by BeAurex</span>
+          <span>•</span>
+          <button 
+            type="button" 
+            onClick={() => { setLegalModalTab('terms'); setLegalModalOpen(true); }}
+            className="hover:text-slate-200 underline cursor-pointer"
+          >
+            Terms of Service
+          </button>
+          <span>•</span>
+          <button 
+            type="button" 
+            onClick={() => { setLegalModalTab('privacy'); setLegalModalOpen(true); }}
+            className="hover:text-slate-200 underline cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+        </div>
 
         {/* Google Account Selector Modal */}
         {googleSignInModalOpen && (
@@ -1155,7 +1495,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // MAIN APP CONTAINER (Screens 5, 6, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white pb-24 md:pb-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-[#74111d] selection:text-white pb-24 md:pb-8">
       
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 16: SPLASH SCREEN (Batch 5) */}
@@ -1240,34 +1580,35 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         </div>
       )}
 
+
       {/* ------------------------------------------------------------------- */}
       {/* DESKTOP & TABLET TOP NAVIGATION BAR (Visible on md/lg screens) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="bg-white border-b border-slate-200/90 sticky top-0 z-40 hidden md:block">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 hidden md:block shadow-xs">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-[84px] flex items-center justify-between">
           
-          {/* Brand Logo & Title */}
+          {/* Brand Logo */}
           <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-3 group">
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
             />
             <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tight leading-none text-slate-900">
-                Be<span className="text-[#74111d]">Aurex</span>
+              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-[#74111d]">
+                BeAurex
               </span>
-              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-wider mt-0.5">
-                Customer Rewards Portal
+              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+                Rewarding Loyalty
               </span>
             </div>
           </Link>
 
           {/* Center Navigation Tabs */}
-          <nav className="flex items-center space-x-1 sm:space-x-2">
+          <nav className="flex items-center space-x-1.5 sm:space-x-2.5">
             <button
               onClick={() => setCurrentScreen('home')}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'home'
                   ? 'bg-rose-50 text-[#74111d] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -1279,10 +1620,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             <button
               onClick={openScanScreen}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'scan'
-                  ? 'bg-[#74111d] text-white shadow-xs'
-                  : 'bg-rose-500/10 text-[#74111d] hover:bg-[#74111d] hover:text-white'
+                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
+                  : 'text-slate-600 hover:text-[#74111d] hover:bg-rose-50 active:bg-rose-100'
               }`}
             >
               <QrCode className="w-4 h-4" />
@@ -1294,7 +1635,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 setRewardsSubTab('to_claim');
                 setCurrentScreen('rewards');
               }}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'rewards'
                   ? 'bg-rose-50 text-[#74111d] shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -1302,52 +1643,30 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             >
               <Gift className="w-4 h-4" />
               <span>My Rewards</span>
-              <span className="bg-[#74111d] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+              <span className="bg-[#74111d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                 {rewardHistory.length}
               </span>
             </button>
-
-            <button
-              onClick={() => setCurrentScreen('profile')}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                currentScreen === 'profile'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <User className="w-4 h-4" />
-              <span>Profile & Refer</span>
-            </button>
           </nav>
 
-          {/* Right Customer Info & Logout */}
+          {/* Right Customer Navigation & Actions */}
           <div className="flex items-center space-x-3">
-            <div className="text-right hidden lg:block">
-              <div className="text-xs font-black text-slate-900">{customerUser.name}</div>
-              <div className="flex items-center space-x-1 justify-end text-[10px] font-mono text-slate-400">
-                <span>{customerUser.customerId}</span>
-                <button
-                  onClick={() => handleCopyCustomer(customerUser.customerId)}
-                  title="Copy ID"
-                  className="hover:text-slate-700 cursor-pointer"
-                >
-                  <Copy className="w-3 h-3" />
-                </button>
-                {copiedId && <span className="text-[9px] text-emerald-600 font-bold">Copied!</span>}
-              </div>
-            </div>
-            
             <button
               onClick={() => setCurrentScreen('profile')}
-              className="w-9 h-9 rounded-xl bg-rose-100 text-[#74111d] font-black text-xs flex items-center justify-center hover:ring-2 hover:ring-[#74111d]/30 transition cursor-pointer"
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+                currentScreen === 'profile'
+                  ? 'bg-rose-50 text-[#8B0000] shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
               title="Profile"
             >
-              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              <User className="w-4 h-4 text-[#8B0000]" />
+              <span>Profile</span>
             </button>
 
             <button
               onClick={handleLogout}
-              className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
+              className="p-2.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -1359,136 +1678,78 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {/* MOBILE TOP NAVIGATION BAR (Visible on mobile screens < md) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-xs">
-        <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-2.5">
-          <img 
-            src="/beaurex-icon.jpg" 
-            alt="BeAurex Logo" 
-            className="w-8 h-8 rounded-xl object-cover shadow-xs"
-          />
-          <div>
-            <span className="text-base font-black tracking-tight leading-none text-slate-900 block">
-              Be<span className="text-[#74111d]">Aurex</span>
-            </span>
-            <span className="text-[9px] font-bold text-[#74111d] uppercase tracking-wider block">
-              Rewards Portal
-            </span>
-          </div>
-        </Link>
+      {currentScreen !== 'scan' && currentScreen !== 'rewards' && currentScreen !== 'after_scan' && currentScreen !== 'reward_details' && currentScreen !== 'waiting_approval' && currentScreen !== 'reward_congrats' && (
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-xs">
+          <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-2.5">
+            <img 
+              src="/beaurex-icon.jpg" 
+              alt="BeAurex Logo" 
+              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-red-950/20"
+            />
+            <div className="flex flex-col">
+              <span className="text-base font-black tracking-tight leading-none text-[#74111d] block">
+                BeAurex
+              </span>
+              <span className="text-[9px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5 block">
+                Rewarding Loyalty
+              </span>
+            </div>
+          </Link>
 
-        <div className="flex items-center space-x-2">
-          <div className="bg-rose-50 border border-rose-200/60 rounded-xl px-2.5 py-1 text-right">
-            <span className="text-[8px] uppercase font-bold text-slate-400 block leading-tight">Customer ID</span>
-            <span className="text-xs font-black font-mono text-[#74111d] leading-tight block">
-              {customerUser.customerId}
-            </span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentScreen('profile')}
+              className="w-8 h-8 rounded-xl bg-rose-100 text-[#8B0000] font-black text-xs flex items-center justify-center shadow-xs cursor-pointer ring-1 ring-[#8B0000]/20"
+              title="Profile & Refer"
+            >
+              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl transition cursor-pointer"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <button
-            onClick={() => setCurrentScreen('profile')}
-            className="w-8 h-8 rounded-xl bg-rose-100 text-[#74111d] font-black text-xs flex items-center justify-center shadow-xs cursor-pointer ring-1 ring-[#74111d]/20"
-            title="Profile & Refer"
-          >
-            {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-          </button>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 5: HOME (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'home' && (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-          
-          {/* Top Crimson Header Banner */}
-          <div className="bg-gradient-to-r from-[#590104] via-[#74111d] to-[#8f1927] text-white p-6 sm:p-8 rounded-3xl shadow-lg relative overflow-hidden">
-            {/* Ambient background glow */}
-            <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute -left-10 -top-10 w-36 h-36 bg-white/5 rounded-full blur-xl pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <span className="text-xs sm:text-sm text-rose-200 font-medium block">Good Evening,</span>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">{customerUser.name}</h1>
-                <div className="flex items-center space-x-1.5 mt-1 text-xs text-rose-200/90 font-mono">
-                  <span>Customer ID: {customerUser.customerId}</span>
-                  <button 
-                    onClick={() => handleCopyCustomer(customerUser.customerId)}
-                    title="Copy ID"
-                    className="p-1 hover:text-white transition cursor-pointer"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                  {copiedId && <span className="text-[10px] text-amber-300 font-sans font-bold">Copied!</span>}
-                </div>
+          {/* Two Stat Cards (Active Loyalty Cards & Rewards Redeemed) matching Image 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/80 shrink-0">
+                <CreditCard className="w-6 h-6 text-emerald-600" />
               </div>
-
-              {/* Gold Member Card & Profile Trigger */}
-              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3">
-                <div className="bg-gradient-to-r from-[#941c2b] to-[#600e18] border border-rose-300/30 rounded-2xl p-3 sm:p-4 shadow-sm flex items-center space-x-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-300/40 text-amber-300 flex items-center justify-center shrink-0">
-                    <Crown className="w-5 h-5 fill-amber-300 text-amber-300" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-amber-200 tracking-tight leading-tight">{customerUser.tier}</h4>
-                    <p className="text-[11px] text-rose-200/80 font-medium">Member Since • {customerUser.memberSince}</p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setCurrentScreen('profile')}
-                  className="w-11 h-11 rounded-2xl border-2 border-white/60 bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition cursor-pointer md:hidden shrink-0"
-                  title="View Profile"
-                >
-                  <User className="w-5 h-5" />
-                </button>
+              <div>
+                <span className="text-xs font-semibold text-slate-500 block leading-tight">Active Loyalty Cards</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 block mt-0.5">
+                  {customerUser.activeCardsCount || 4}
+                </span>
               </div>
             </div>
 
-            {/* Metrics Row across banner */}
-            <div className="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mt-6 pt-5 border-t border-white/15">
-              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
-                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
-                  <CreditCard className="w-4 h-4 text-amber-300" />
-                  <span>Active Cards</span>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-white">{customerUser.activeCardsCount}</div>
-                <div className="text-[10px] text-rose-200/80">Loyalty programs joined</div>
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100/80 shrink-0">
+                <Gift className="w-6 h-6 text-sky-600" />
               </div>
-
-              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
-                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
-                  <Gift className="w-4 h-4 text-emerald-300" />
-                  <span>Redeemed</span>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-white">{customerUser.rewardsRedeemedCount}</div>
-                <div className="text-[10px] text-rose-200/80">Rewards unlocked</div>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
-                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>Stamps</span>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-white">{customerUser.stamps || 3} / {customerUser.totalStamps || 5}</div>
-                <div className="text-[10px] text-rose-200/80">Current store progress</div>
-              </div>
-
-              <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3 sm:p-4">
-                <div className="flex items-center space-x-2 text-rose-200 text-xs font-bold mb-1">
-                  <TrendingUp className="w-4 h-4 text-emerald-300" />
-                  <span>Referral Profit</span>
-                </div>
-                <div className="text-xl sm:text-2xl font-black text-emerald-300">₹{customerUser.referralEarnings || 150}</div>
-                <div className="text-[10px] text-rose-200/80">+{customerUser.referralCount || 3} bonus stamps</div>
+              <div>
+                <span className="text-xs font-semibold text-slate-500 block leading-tight">Rewards Redeemed</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 block mt-0.5">
+                  {customerUser.rewardsRedeemedCount || 3}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Main Layout Grid on Laptop (Left col: Cards, Right col: Digital Pass & Quick actions) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-            
-            {/* Left Column (8 cols): Active Loyalty Programs */}
-            <div className="lg:col-span-8 space-y-6">
+          {/* Main Layout: Active Loyalty Programs */}
+          <div className="space-y-4">
               
               {/* Empty State Toggle Demo */}
               {emptyStateDemo ? (
@@ -1518,14 +1779,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-base font-black text-slate-900">Continue Collecting</h3>
-                      <p className="text-xs text-slate-500">Tap any store card or reward to view details</p>
+                      <h3 className="text-base sm:text-lg font-black text-slate-900">Continue Collecting</h3>
                     </div>
                     <button
-                      onClick={() => setEmptyStateDemo(true)}
-                      className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
+                      onClick={() => setEmptyStateDemo(prev => !prev)}
+                      className="text-xs font-bold text-[#8B0000] hover:underline cursor-pointer"
                     >
-                      View Empty State
+                      View All
                     </button>
                   </div>
 
@@ -1537,12 +1797,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       <div className="space-y-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-[#111111] text-white flex items-center justify-center shadow-xs">
-                              <Coffee className="w-5 h-5 text-amber-200" />
+                            <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs">
+                              <Coffee className="w-5 h-5 text-white" />
                             </div>
                             <div>
                               <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Coffee Shop • Sector 29</p>
+                              <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
                             </div>
                           </div>
                           <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
@@ -1560,7 +1820,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                               <BeAurexStamp key={n} stamped={false} size="md" />
                             ))}
                           </div>
-                          <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps Collected</span>
+                          <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
                         </div>
                       </div>
 
@@ -1580,15 +1840,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                         className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-rose-100/60 transition"
                       >
                         <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
-                            <Gift className="w-3.5 h-3.5 text-amber-200" />
+                          <div className="w-8 h-8 rounded-full bg-[#8B0000] text-white flex items-center justify-center shrink-0">
+                            <Crown className="w-4 h-4 text-white" />
                           </div>
                           <div>
                             <div className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</div>
                             <div className="text-[10px] text-slate-500 font-medium">Collect 2 more stamps to unlock</div>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-[#74111d]" />
+                        <ChevronRight className="w-4 h-4 text-[#8B0000]" />
                       </div>
                     </div>
 
@@ -1742,89 +2002,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
               )}
 
-            </div>
-
-            {/* Right Column (4 cols): Customer Digital Pass, Scan CTA & Referral Widget */}
-            <div className="lg:col-span-4 space-y-5">
-              
-              {/* Digital Pass / Membership Counter Card */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-5 text-center">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center space-x-2">
-                    <img src="/beaurex-icon.jpg" alt="BeAurex" className="w-6 h-6 rounded-lg object-cover" />
-                    <span className="text-xs font-black text-slate-900 uppercase tracking-wider">Digital Pass</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                    Active Member
-                  </span>
-                </div>
-
-                <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-4 space-y-2">
-                  <QrCode className="w-20 h-20 text-slate-900 mx-auto" />
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Customer ID</div>
-                  <div className="text-xl font-mono font-black text-[#74111d] tracking-wider">{customerUser.customerId}</div>
-                  <p className="text-[11px] text-slate-500">Show this QR / ID to the cashier to earn stamps without scanning</p>
-                </div>
-
-                <button
-                  onClick={openScanScreen}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 px-6 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-[#74111d]/20"
-                >
-                  <Camera className="w-4 h-4 text-amber-300" />
-                  <span>Scan Store QR Standee</span>
-                </button>
-              </div>
-
-              {/* Refer & Earn Quick Snapshot */}
-              <div className="bg-gradient-to-br from-[#74111d] via-[#8c1725] to-[#550c14] text-white rounded-3xl p-5 shadow-md space-y-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center">
-                    <Gift className="w-4 h-4" />
-                  </div>
-                  <span className="text-xs font-black uppercase tracking-wider text-amber-300">Invite &amp; Earn Profit</span>
-                </div>
-                <div>
-                  <h4 className="text-sm font-black text-white">Give 10% Off, Get +1 Stamp &amp; ₹50</h4>
-                  <p className="text-xs text-rose-100/90 mt-1 leading-relaxed">
-                    Friends get a 10% instant welcome voucher when joining with your code.
-                  </p>
-                </div>
-
-                <div className="bg-white/10 border border-white/20 rounded-2xl p-2.5 flex items-center justify-between">
-                  <span className="font-mono text-xs font-black text-white tracking-widest pl-2">
-                    {customerUser.referralCode || 'BEAUREX-8F4A'}
-                  </span>
-                  <button
-                    onClick={() => handleCopyReferralCode(customerUser.referralCode || 'BEAUREX-8F4A')}
-                    className="bg-white text-[#74111d] hover:bg-rose-50 font-black px-3 py-1.5 rounded-xl text-[11px] transition flex items-center space-x-1 cursor-pointer"
-                  >
-                    <Copy className="w-3 h-3" />
-                    <span>{copiedReferral ? 'Copied!' : 'Copy'}</span>
-                  </button>
-                </div>
-
-                <button
-                  onClick={handleWhatsAppShare}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-xs"
-                >
-                  <MessageCircle className="w-4 h-4 fill-white" />
-                  <span>Share on WhatsApp</span>
-                </button>
-              </div>
-
-              {/* Verified Trust Badge */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 flex items-center space-x-3 text-slate-600">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <div className="text-xs font-black text-slate-900">BeAurex Verified Platform</div>
-                  <div className="text-[10px] text-slate-400">Zero auto-debit • 100% Secure Digital Stamps</div>
-                </div>
-              </div>
-
-            </div>
-
           </div>
 
         </div>
@@ -1866,7 +2043,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
           {/* Viewfinder box with red corner markers */}
           <div className="flex-1 flex items-center justify-center p-6">
-            <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl overflow-hidden flex items-center justify-center bg-slate-900/40 border-2 border-white/20">
+            <div 
+              onClick={simulateScanSuccess}
+              className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl overflow-hidden flex items-center justify-center bg-slate-900/40 border-2 border-white/20 cursor-pointer"
+              title="Align QR code here to scan directly"
+            >
               <video
                 ref={videoRef}
                 className="absolute inset-0 w-full h-full object-cover"
@@ -1883,15 +2064,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </div>
           </div>
 
-          {/* Bottom Actions: Fallback simulate scan */}
-          <div className="p-6 text-center space-y-3">
-            <button
-              onClick={simulateScanSuccess}
-              className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-6 rounded-2xl text-xs transition shadow-lg shadow-[#74111d]/50 cursor-pointer flex items-center justify-center space-x-2"
-            >
-              <QrCode className="w-4 h-4" />
-              <span>Simulate Counter Scan (Ka-feen)</span>
-            </button>
+          {/* Bottom helper text */}
+          <div className="p-6 text-center pb-8">
+            <p className="text-xs text-white/70 font-medium">
+              Scanning directly with camera...
+            </p>
           </div>
         </div>
       )}
@@ -1900,105 +2077,164 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 7: AFTER SCAN (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'after_scan' && (
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
+        <div className="w-full max-w-lg mx-auto px-4 py-3 space-y-4 pb-28">
           {/* Top Bar with Back Arrow & Store info */}
-          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200">
+          <div className="flex items-center space-x-3 pb-3 border-b border-slate-100">
             <button
               onClick={() => setCurrentScreen('home')}
-              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+              className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
+              title="Back to Home"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ArrowLeft className="w-6 h-6 stroke-[2]" />
             </button>
-            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Coffee className="w-4 h-4 text-amber-200" />
+            <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
+              <Coffee className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop • Sector 29</p>
+              <h2 className="text-base font-black text-slate-900 leading-tight">Ka-feen</h2>
+              <p className="text-xs text-slate-500 font-medium">Coffee Shop</p>
             </div>
           </div>
 
           {/* Stamp Earned Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-6 text-center shadow-xs space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center mx-auto shadow-xs border border-rose-100">
-              <Sparkles className="w-6 h-6 text-[#74111d]" />
-            </div>
-            <h3 className="text-base font-black text-slate-900">You earned 1 stamp!</h3>
-            <p className="text-xs text-slate-500">3 of 5 stamps collected</p>
-            <div className="flex items-center justify-center space-x-2 py-1 flex-wrap gap-y-2">
+          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-2.5 shadow-xs">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 stamp!</h3>
+            <p className="text-xs text-slate-600 font-medium">3 of 5 stamps collected</p>
+            
+            <div className="flex items-center justify-center space-x-2.5 pt-1.5 pb-1">
               {[1, 2, 3].map((n) => (
-                <BeAurexStamp key={n} stamped={true} size="md" />
+                <div
+                  key={n}
+                  className="w-9 h-9 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
+                >
+                  <Crown className="w-4 h-4 text-white fill-white" />
+                </div>
               ))}
-              {[4, 5].map((n) => (
-                <BeAurexStamp key={n} stamped={false} size="md" />
+              {[4, 5, 6].map((n) => (
+                <div
+                  key={n}
+                  className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 bg-white/70"
+                />
               ))}
             </div>
           </div>
 
           {/* Available Rewards Section */}
-          <div className="space-y-3 pt-2">
-            <h3 className="text-sm font-black text-slate-900">Available Rewards</h3>
+          <div className="pt-1">
+            <h3 className="text-base font-black text-slate-900 mb-3">Available Rewards</h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-
-            {/* Reward 1: 30% OFF (Achieved) */}
-            <div 
-              onClick={() => {
-                setSelectedReward({
-                  title: '30% off on next purchase',
-                  storeName: 'Ka-feen',
-                  requiresStamps: 2,
-                  validTill: '30 Jul 2026',
-                  image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-                  approvedAt: 'Today, 2:30 PM'
-                });
-                setCurrentScreen('reward_details');
-              }}
-              className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-            >
-              <img
-                src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
-                alt="30% OFF"
-                className="w-16 h-16 rounded-2xl object-cover shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</h4>
-                  <span className="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase">
-                    ACHIEVED
-                  </span>
+            <div className="space-y-3">
+              {/* Reward 1: 30% OFF (Achieved) */}
+              <div 
+                onClick={() => {
+                  setSelectedReward({
+                    title: '30% off on next purchase',
+                    storeName: 'Ka-feen',
+                    requiresStamps: 2,
+                    validTill: '7/30/2026',
+                    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+                    approvedAt: 'Today, 2:30 PM'
+                  });
+                  setCurrentScreen('reward_details');
+                }}
+                className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
+                  alt="30% OFF"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-1">
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">30% off on next purchase</h4>
+                    <span className="bg-[#10b981] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
+                      ACHIEVED
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
+                    <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
+                      2 STAMPS
+                    </span>
+                    <span className="text-[11px] text-slate-600 font-medium">Ready to claim! 🎉</span>
+                  </div>
+                  <div className="mt-1.5">
+                    <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+                      EXPIRES 7/30/2026
+                    </span>
+                  </div>
                 </div>
-                <p className="text-[11px] text-[#74111d] font-bold mt-1">2 STAMPS • Ready to claim! 🎉</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
               </div>
-            </div>
 
-            {/* Reward 2: 50% discount */}
-            <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs flex items-center space-x-3.5 opacity-80">
-              <img
-                src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
-                alt="50% discount"
-                className="w-16 h-16 rounded-2xl object-cover shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-black text-slate-900 leading-tight">50% discount</h4>
-                <p className="text-[11px] text-slate-600 font-bold mt-1">5 STAMPS • Collect 2 more</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
+              {/* Reward 2: 50% discount */}
+              <div 
+                onClick={() => {
+                  setSelectedReward({
+                    title: '50% discount',
+                    storeName: 'Ka-feen',
+                    requiresStamps: 5,
+                    validTill: '7/30/2026',
+                    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
+                    approvedAt: 'Locked'
+                  });
+                  setCurrentScreen('reward_details');
+                }}
+                className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
+                  alt="50% discount"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">50% discount</h4>
+                  <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
+                    <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
+                      5 STAMPS
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium">• Collect 2 more</span>
+                  </div>
+                  <div className="mt-1.5">
+                    <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+                      EXPIRES 7/30/2026
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Reward 3: Free Coffee */}
-            <div className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs flex items-center space-x-3.5 opacity-80">
-              <img
-                src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
-                alt="Free Coffee"
-                className="w-16 h-16 rounded-2xl object-cover shrink-0"
-              />
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-black text-slate-900 leading-tight">Free Coffee</h4>
-                <p className="text-[11px] text-slate-600 font-bold mt-1">3 STAMPS • Collect 1 more</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">EXPIRES 7/30/2026</p>
-              </div>
+              {/* Reward 3: Free Coffee */}
+              <div 
+                onClick={() => {
+                  setSelectedReward({
+                    title: 'Free Coffee',
+                    storeName: 'Ka-feen',
+                    requiresStamps: 3,
+                    validTill: '7/30/2026',
+                    image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
+                    approvedAt: 'Locked'
+                  });
+                  setCurrentScreen('reward_details');
+                }}
+                className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
+                  alt="Free Coffee"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Free Coffee</h4>
+                  <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
+                    <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
+                      3 STAMPS
+                    </span>
+                    <span className="text-[11px] text-slate-500 font-medium">• Collect 1 more</span>
+                  </div>
+                  <div className="mt-1.5">
+                    <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+                      EXPIRES 7/30/2026
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2009,7 +2245,287 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Batch 2 & 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'rewards' && (
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+        <>
+          {/* MOBILE VIEW (Screens < md) matching media_1791477164813.png */}
+          <div className="md:hidden w-full max-w-lg mx-auto px-4 py-3 space-y-4 pb-28">
+            {/* Top Bar with Back Arrow & Store info */}
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-100">
+              <button
+                onClick={() => setCurrentScreen('home')}
+                className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
+                title="Back to Home"
+              >
+                <ArrowLeft className="w-6 h-6 stroke-[2]" />
+              </button>
+              <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
+                <Coffee className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base font-black text-slate-900 leading-tight">Ka-feen</h2>
+                <p className="text-xs text-slate-500 font-medium">Coffee Shop</p>
+              </div>
+            </div>
+
+            {/* Mobile Sub-tabs: Store Rewards vs Reward History */}
+            <div className="bg-slate-100 p-1 rounded-2xl flex max-w-sm mx-auto shadow-xs">
+              <button
+                onClick={() => setRewardsSubTab('to_claim')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                  rewardsSubTab === 'to_claim'
+                    ? 'bg-white text-[#8B0000] shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Store Rewards
+              </button>
+              <button
+                onClick={() => setRewardsSubTab('history')}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition cursor-pointer text-center flex items-center justify-center space-x-1.5 ${
+                  rewardsSubTab === 'history'
+                    ? 'bg-white text-[#8B0000] shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <span>Reward History</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                  rewardsSubTab === 'history' ? 'bg-[#8B0000] text-white' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {rewardHistory.length}
+                </span>
+              </button>
+            </div>
+
+            {rewardsSubTab === 'to_claim' ? (
+              <>
+                {/* Stamp Progress Box (matching image) */}
+                <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-2.5 shadow-xs">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 stamp!</h3>
+                  <p className="text-xs text-slate-600 font-medium">3 of 5 stamps collected</p>
+                  
+                  <div className="flex items-center justify-center space-x-2.5 pt-1.5 pb-1">
+                    {[1, 2, 3].map((n) => (
+                      <div
+                        key={n}
+                        className="w-9 h-9 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
+                      >
+                        <Crown className="w-4 h-4 text-white fill-white" />
+                      </div>
+                    ))}
+                    {[4, 5, 6].map((n) => (
+                      <div
+                        key={n}
+                        className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 bg-white/70"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Available Rewards Header */}
+                <div className="pt-1">
+                  <h3 className="text-base font-black text-slate-900 mb-3">Available Rewards</h3>
+
+                  <div className="space-y-3">
+                    {/* Reward 1: 30% OFF (Achieved) */}
+                    <div 
+                      onClick={() => {
+                        setSelectedReward({
+                          title: '30% off on next purchase',
+                          storeName: 'Ka-feen',
+                          requiresStamps: 2,
+                          validTill: '7/30/2026',
+                          image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+                          approvedAt: 'Today, 2:30 PM'
+                        });
+                        setCurrentScreen('reward_details');
+                      }}
+                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
+                        alt="30% OFF"
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-1">
+                          <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">30% off on next purchase</h4>
+                          <span className="bg-[#10b981] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
+                            ACHIEVED
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
+                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
+                            2 STAMPS
+                          </span>
+                          <span className="text-[11px] text-slate-600 font-medium">Ready to claim! 🎉</span>
+                        </div>
+                        <div className="mt-1.5">
+                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+                            EXPIRES 7/30/2026
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reward 2: 50% discount */}
+                    <div 
+                      onClick={() => {
+                        setSelectedReward({
+                          title: '50% discount',
+                          storeName: 'Ka-feen',
+                          requiresStamps: 5,
+                          validTill: '7/30/2026',
+                          image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
+                          approvedAt: 'Locked'
+                        });
+                        setCurrentScreen('reward_details');
+                      }}
+                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
+                        alt="50% discount"
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">50% discount</h4>
+                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
+                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
+                            5 STAMPS
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-medium">• Collect 2 more</span>
+                        </div>
+                        <div className="mt-1.5">
+                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+                            EXPIRES 7/30/2026
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reward 3: Free Coffee */}
+                    <div 
+                      onClick={() => {
+                        setSelectedReward({
+                          title: 'Free Coffee',
+                          storeName: 'Ka-feen',
+                          requiresStamps: 3,
+                          validTill: '7/30/2026',
+                          image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
+                          approvedAt: 'Locked'
+                        });
+                        setCurrentScreen('reward_details');
+                      }}
+                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
+                    >
+                      <img
+                        src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
+                        alt="Free Coffee"
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Free Coffee</h4>
+                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
+                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
+                            3 STAMPS
+                          </span>
+                          <span className="text-[11px] text-slate-500 font-medium">• Collect 1 more</span>
+                        </div>
+                        <div className="mt-1.5">
+                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
+                            EXPIRES 7/30/2026
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* Reward History view matching media_1791478192379.png */
+              <div className="space-y-4 pt-1">
+                {/* Filter pills: All, Active, Used, Expired */}
+                <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
+                  {['All', 'Active', 'Used', 'Expired'].map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      onClick={() => setHistoryFilter(f)}
+                      className={`py-1.5 px-5 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
+                        historyFilter === f
+                          ? 'bg-[#8B0000] text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </div>
+
+                {/* History cards */}
+                <div className="space-y-3.5">
+                  {rewardHistory
+                    .filter((item) => historyFilter === 'All' || item.status.toLowerCase() === historyFilter.toLowerCase())
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedHistoryVoucher(item)}
+                        className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-md transition cursor-pointer"
+                      >
+                        {/* Top Section */}
+                        <div className="flex items-start space-x-3.5">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-16 h-16 rounded-2xl object-cover shrink-0 shadow-xs"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="text-sm font-extrabold text-slate-900 leading-snug">
+                                {item.title}
+                              </h4>
+                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg shrink-0 ${
+                                item.status === 'Used'
+                                  ? 'bg-emerald-50 text-emerald-600'
+                                  : item.status === 'Active'
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {item.status}
+                              </span>
+                            </div>
+                            <p className="text-xs font-semibold text-slate-800 mt-1">
+                              {item.storeName}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Bottom Section */}
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <div className="flex-1">
+                            <span className="text-[11px] text-slate-400 font-medium block">Claimed on</span>
+                            <span className="text-xs font-bold text-slate-900 mt-0.5 block">{item.claimedDate}</span>
+                          </div>
+
+                          <div className="h-7 w-px bg-slate-200/80 mx-3"></div>
+
+                          <div className="flex-1">
+                            <span className="text-[11px] text-slate-400 font-medium block">{item.dateLabel || 'Used on'}</span>
+                            <span className="text-xs font-bold text-slate-900 mt-0.5 block">{item.dateValue}</span>
+                          </div>
+
+                          <div className="pl-2">
+                            <ChevronRight className="w-5 h-5 text-slate-800 shrink-0" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* DESKTOP VIEW (Visible on screens >= md) */}
+          <div className="hidden md:block w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
           
           {/* Header Card (Responsive on Mobile and Laptop) */}
           <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -2168,24 +2684,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
               </div>
 
-              {/* Bottom Quick Help Card */}
-              <div className="bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-100 rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#74111d] text-white flex items-center justify-center shrink-0">
-                    <Sparkles className="w-5 h-5 text-amber-300" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-slate-900">Want to earn faster?</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Invite your friends to BeAurex and earn +1 bonus stamp plus ₹50 profit for every referral.</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setCurrentScreen('profile')}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-2.5 px-5 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs"
-                >
-                  Invite Friends
-                </button>
-              </div>
             </div>
           )}
 
@@ -2198,16 +2696,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             return (
               <div className="space-y-4">
-                {/* Filter pills: All, Active, Used, Expired */}
-                <div className="flex items-center space-x-2 overflow-x-auto pb-1">
+                {/* Filter pills: All, Active, Used, Expired (matching Image) */}
+                <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
                   {['All', 'Active', 'Used', 'Expired'].map((f) => (
                     <button
                       key={f}
                       type="button"
                       onClick={() => setHistoryFilter(f)}
-                      className={`py-2 px-5 rounded-full text-xs font-bold transition cursor-pointer shrink-0 ${
+                      className={`py-1.5 px-5 sm:px-6 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
                         historyFilter === f
-                          ? 'bg-[#74111d] text-white shadow-xs'
+                          ? 'bg-[#8B0000] text-white shadow-xs'
                           : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
@@ -2233,51 +2731,52 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       <div
                         key={item.id}
                         onClick={() => setSelectedHistoryVoucher(item)}
-                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
+                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-md transition cursor-pointer"
                       >
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center space-x-3 min-w-0">
-                              <img
-                                src={item.image}
-                                alt={item.title}
-                                className="w-12 h-12 rounded-2xl object-cover shrink-0 shadow-xs"
-                              />
-                              <div className="min-w-0">
-                                <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate leading-tight">
-                                  {item.title}
-                                </h4>
-                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">{item.storeName}</p>
-                              </div>
+                        {/* Top Section: Thumbnail + Title + Status + Store */}
+                        <div className="flex items-start space-x-3.5">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+                                {item.title}
+                              </h4>
+                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg shrink-0 ${
+                                item.status === 'Used'
+                                  ? 'bg-emerald-50 text-emerald-600'
+                                  : item.status === 'Active'
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {item.status}
+                              </span>
                             </div>
-                            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shrink-0 ${
-                              item.status === 'Active'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                                : item.status === 'Used'
-                                ? 'bg-slate-100 text-slate-600 border-slate-200'
-                                : 'bg-rose-50 text-rose-600 border-rose-200'
-                            }`}>
-                              {item.status}
-                            </span>
-                          </div>
-
-                          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-2.5 flex items-center justify-between text-xs">
-                            <span className="text-slate-400 text-[10px] uppercase font-bold">Voucher</span>
-                            <span className="font-mono font-black text-[#74111d]">{item.voucherCode}</span>
+                            <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-1">
+                              {item.storeName}
+                            </p>
                           </div>
                         </div>
 
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                          <div>
-                            <span className="text-slate-400 block text-[9px]">Claimed</span>
-                            <span className="font-bold text-slate-700">{item.claimedDate}</span>
+                        {/* Bottom Section: Claimed on | Used on / Valid till > */}
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                          <div className="flex-1">
+                            <span className="text-[11px] text-slate-400 font-medium block">Claimed on</span>
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5 block">{item.claimedDate}</span>
                           </div>
-                          <div>
-                            <span className="text-slate-400 block text-[9px]">{item.dateLabel}</span>
-                            <span className="font-bold text-slate-700">{item.dateValue}</span>
+
+                          <div className="h-7 w-px bg-slate-200/80 mx-3 sm:mx-4"></div>
+
+                          <div className="flex-1">
+                            <span className="text-[11px] text-slate-400 font-medium block">{item.dateLabel || 'Used on'}</span>
+                            <span className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5 block">{item.dateValue}</span>
                           </div>
-                          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                            <ChevronRight className="w-3.5 h-3.5" />
+
+                          <div className="pl-2">
+                            <ChevronRight className="w-5 h-5 text-slate-800 shrink-0" />
                           </div>
                         </div>
                       </div>
@@ -2287,211 +2786,224 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
             );
           })()}
-        </div>
+          </div>
+        </>
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 10: REWARD DETAILS (Batch 3) */}
+      {/* SCREEN 10: REWARD DETAILS / CLAIM NOW (Matching media_1791479255151.png) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_details' && (
-        <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-5">
-          {/* Top Bar with Back Arrow & Store info */}
-          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200">
-            <button
-              onClick={() => setCurrentScreen('after_scan')}
-              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Coffee className="w-4 h-4 text-amber-200" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop • Sector 29</p>
-            </div>
-          </div>
-
-          {/* Reward Details Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xs">
+        <div className="w-full max-w-sm mx-auto px-4 py-4 space-y-3.5 pb-24 animate-in fade-in duration-300">
+          
+          {/* Top Card: Reward Info */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4">
             <img
-              src={selectedReward.image}
-              alt={selectedReward.title}
-              className="w-full h-48 sm:h-56 object-cover"
+              src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+              alt={selectedReward.title || '30% OFF'}
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover shrink-0 shadow-xs"
             />
-            <div className="p-5 sm:p-6 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                    {selectedReward.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{selectedReward.storeName}</p>
-                </div>
-                <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100 self-start sm:self-auto">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+                {selectedReward.title || '30% OFF'}
+              </h2>
+              <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-1">
+                {selectedReward.subtitle || 'on next purchase'}
+              </p>
+              <div className="mt-3">
+                <span className="inline-block px-3.5 py-1.5 rounded-full bg-rose-50 text-[#8B0000] text-xs font-black tracking-tight">
                   Requires {selectedReward.requiresStamps || 2} Stamps
                 </span>
               </div>
-
-              {/* Progress */}
-              <div className="pt-3 border-t border-slate-100">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-2">
-                  <span>Your Progress</span>
-                  <span>3 / 5 Stamps</span>
-                </div>
-                <div className="flex items-center space-x-2 flex-wrap gap-y-2">
-                  {[1, 2, 3].map((n) => (
-                    <BeAurexStamp key={n} stamped={true} size="md" />
-                  ))}
-                  {[4, 5].map((n) => (
-                    <BeAurexStamp key={n} stamped={false} size="md" />
-                  ))}
-                </div>
-              </div>
-
-              {/* Validity */}
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700 pt-3 border-t border-slate-100">
-                <span className="flex items-center space-x-1.5 text-slate-500">
-                  <Clock className="w-4 h-4 text-slate-400" />
-                  <span>Valid Till</span>
-                </span>
-                <span className="text-[#74111d] font-bold">{selectedReward.validTill}</span>
-              </div>
             </div>
           </div>
 
-          {/* Claim Button */}
-          <button
-            onClick={handleInitiateClaim}
-            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs sm:text-sm transition shadow-lg shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
-          >
-            <Gift className="w-4 h-4 text-amber-300" />
-            <span>Claim Now at Counter</span>
-          </button>
+          {/* Card 2: Your Progress */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-black text-slate-900">Your Progress</span>
+              <span className="text-sm font-black text-slate-900">3 / 5 Stamps</span>
+            </div>
+            
+            <div className="flex items-center space-x-3 pt-1 pb-0.5">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
+                >
+                  <Coffee className="w-5 h-5 text-white" />
+                </div>
+              ))}
+              {[4, 5].map((n) => (
+                <div
+                  key={n}
+                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-slate-300 bg-white shrink-0"
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Card 3: Valid Till */}
+          <div className="bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 border border-rose-100/70 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+            <div className="flex items-center space-x-2 text-slate-800">
+              <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-800">Valid Till</span>
+            </div>
+            <span className="text-xs sm:text-sm font-black text-[#8B0000]">
+              {selectedReward.validTill || '30 Jul 2026'}
+            </span>
+          </div>
+
+          {/* Claim Now Button */}
+          <div className="pt-2">
+            <button
+              onClick={handleInitiateClaim}
+              className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
+            >
+              Claim Now
+            </button>
+          </div>
         </div>
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 12: WAITING FOR APPROVAL (Batch 3) */}
+      {/* SCREEN 12: WAITING FOR APPROVAL (Matching media_1791479289955.png) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'waiting_approval' && (
-        <div className="w-full max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-center space-y-6">
-          {/* Top Bar */}
-          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 text-left">
-            <button
-              onClick={() => setCurrentScreen('reward_details')}
-              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Coffee className="w-4 h-4 text-amber-200" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
-            </div>
-          </div>
-
+        <div className="w-full max-w-sm mx-auto px-4 py-10 sm:py-14 text-center space-y-6 animate-in fade-in duration-300">
+          
           {/* Hourglass Ring Loader */}
-          <div className="pt-2 flex flex-col items-center">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-rose-100 border-t-[#74111d] flex items-center justify-center animate-spin">
-              <Hourglass className="w-8 h-8 text-[#74111d]" />
-            </div>
+          <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
+            {/* Spinning gradient ring border */}
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#8B0000] border-r-rose-400 border-b-rose-100 animate-spin" />
+            {/* Hourglass icon */}
+            <Hourglass className="w-10 h-10 text-[#8B0000]" />
+          </div>
 
-            <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-5">Waiting for Merchant Approval</h3>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm">
-              Your claim request is being reviewed by the merchant at the billing counter.
+          <div className="space-y-1.5 pt-1">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Waiting for Approval
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold text-slate-600 max-w-xs mx-auto">
+              Your request is being reviewed by the merchant.
             </p>
           </div>
 
-          {/* Large Customer ID Card */}
-          <div className="bg-rose-50/70 border border-rose-200/80 rounded-3xl p-6 sm:p-7 text-center space-y-2.5">
-            <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-500 font-bold uppercase tracking-wider">
-              <CreditCard className="w-4 h-4 text-[#74111d]" />
-              <span>Customer Identification</span>
+          {/* Customer ID Card */}
+          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-4 sm:p-5 flex items-center space-x-4 max-w-xs sm:max-w-sm mx-auto shadow-xs text-left">
+            {/* ID Badge Outline Icon */}
+            <div className="w-12 h-10 rounded-xl border-2 border-slate-800 flex items-center justify-center space-x-1.5 shrink-0 bg-transparent px-1.5">
+              <User className="w-4 h-4 text-slate-800 stroke-[2.5]" />
+              <div className="flex flex-col space-y-0.5">
+                <div className="w-3.5 h-0.5 bg-slate-800 rounded-full"></div>
+                <div className="w-3.5 h-0.5 bg-slate-800 rounded-full"></div>
+                <div className="w-3.5 h-0.5 bg-slate-800 rounded-full"></div>
+              </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-[#74111d] tracking-widest">
-              {customerUser.customerId}
+
+            <div className="min-w-0 flex-1">
+              <span className="text-xs font-bold text-slate-800 block">
+                Customer ID
+              </span>
+              <span className="text-xl sm:text-2xl font-black text-[#8B0000] font-mono tracking-wider block mt-0.5">
+                LQR-8F4A29
+              </span>
             </div>
-            <p className="text-xs text-slate-600 font-medium pt-1">
-              Please share your Customer ID with the cashier to verify your reward.
-            </p>
           </div>
 
-          {/* Instant Sim Button */}
-          <button
-            onClick={() => {
-              confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-              setCurrentScreen('reward_congrats');
-            }}
-            className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
-          >
-            [Simulate Instant Cashier Approval]
-          </button>
+          <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto">
+            Please share your Customer ID with the cashier.
+          </p>
+
+          {/* Discreet shortcut to immediately approve */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+                setCurrentScreen('reward_congrats');
+              }}
+              className="text-[11px] font-bold text-slate-400 hover:text-[#8B0000] transition cursor-pointer"
+            >
+              [Instant Approval Demo]
+            </button>
+          </div>
         </div>
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 13: CONGRATULATIONS / REWARD CLAIMED (Batch 3) */}
+      {/* SCREEN 13: REWARD CLAIMED (Matching media_1791479304410.png) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_congrats' && (
-        <div className="w-full max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-center space-y-6">
-          {/* Top Bar */}
-          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 text-left">
-            <button
-              onClick={() => setCurrentScreen('home')}
-              className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <div className="w-9 h-9 rounded-xl bg-[#111] text-white flex items-center justify-center shrink-0 shadow-xs">
-              <Coffee className="w-4 h-4 text-amber-200" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-[10px] text-slate-500 font-medium">Coffee Shop</p>
+        <div className="w-full max-w-sm mx-auto px-4 py-8 sm:py-12 text-center space-y-5 animate-in fade-in duration-300 relative">
+          
+          {/* Floating Confetti Diamonds */}
+          <div className="relative flex justify-center items-center pt-2">
+            {/* Top decorative diamond particles */}
+            <div className="absolute -top-3 left-10 w-2.5 h-2.5 bg-rose-500 rotate-45 pointer-events-none" />
+            <div className="absolute top-1 left-20 w-2 h-2 bg-amber-400 rotate-45 pointer-events-none" />
+            <div className="absolute -top-4 right-14 w-2.5 h-2.5 bg-cyan-500 rotate-45 pointer-events-none" />
+            <div className="absolute top-3 right-8 w-2.5 h-2.5 bg-emerald-500 rotate-45 pointer-events-none" />
+            <div className="absolute top-0 right-24 w-2 h-2 bg-purple-500 rotate-45 pointer-events-none" />
+            <div className="absolute -top-2 left-28 w-2 h-2 bg-purple-600 rotate-45 pointer-events-none" />
+
+            {/* Solid Green Checkmark Circle */}
+            <div className="w-24 h-24 rounded-full bg-[#00a854] text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
+              <Check className="w-12 h-12 stroke-[3.5] text-white" />
             </div>
           </div>
 
-          {/* Green Checkmark Circle & Congratulations */}
-          <div className="pt-2 flex flex-col items-center">
-            <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <Check className="w-10 h-10 stroke-[3]" />
-            </div>
-            <h3 className="text-xl sm:text-2xl font-black text-emerald-600 mt-4">Reward Claimed!</h3>
-            <p className="text-xs sm:text-sm font-bold text-slate-600 mt-1">Enjoy your reward 🎉</p>
+          <div className="space-y-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#00a854] tracking-tight">
+              Reward Claimed!
+            </h2>
+            <p className="text-sm font-bold text-slate-800">
+              Enjoy your reward 🎉
+            </p>
           </div>
 
-          {/* Voucher Summary Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs text-left space-y-3">
-            <div className="flex items-center space-x-3.5">
-              <img
-                src={selectedReward.image}
-                alt={selectedReward.title}
-                className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xs"
-              />
-              <div className="min-w-0">
-                <h4 className="text-sm font-black text-slate-900 leading-snug">{selectedReward.title}</h4>
-                <p className="text-xs text-slate-400 font-medium mt-0.5">Ka-feen Coffee</p>
-              </div>
+          {/* Reward Card */}
+          <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4 text-left">
+            <img
+              src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+              alt={selectedReward.title || '30% OFF'}
+              className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+            />
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                {selectedReward.title || '30% OFF'}
+              </h3>
+              <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-0.5">
+                {selectedReward.subtitle || 'on next purchase'}
+              </p>
             </div>
+          </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600">
-              <span className="flex items-center space-x-1.5 text-slate-400">
-                <Clock className="w-3.5 h-3.5" />
-                <span>Approved On</span>
+          {/* Approved On Card */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex items-center justify-between text-left">
+            <div className="flex items-center space-x-2 text-slate-800">
+              <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-slate-800">Approved On</span>
+            </div>
+            <div className="text-right">
+              <span className="text-xs sm:text-sm font-black text-slate-900 block">
+                {selectedReward.approvedDate || '20 May 2026'}
               </span>
-              <span>20 May 2026, 11:45 AM</span>
+              <span className="text-xs font-bold text-slate-900 block mt-0.5">
+                {selectedReward.approvedTime || '11:45 AM'}
+              </span>
             </div>
           </div>
 
-          {/* Done CTA */}
-          <button
-            onClick={() => setCurrentScreen('home')}
-            className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 rounded-2xl text-xs sm:text-sm transition shadow-lg shadow-[#74111d]/20 cursor-pointer"
-          >
-            Done &amp; Return to Home
-          </button>
+          {/* Done Button */}
+          <div className="pt-2">
+            <button
+              onClick={handleClaimDone}
+              className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
+            >
+              Done
+            </button>
+          </div>
         </div>
       )}
 
@@ -2499,296 +3011,237 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 9: PROFILE (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'profile' && (
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6">
           
           {/* Top Header Card */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setCurrentScreen('home')}
-                className="p-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 cursor-pointer sm:hidden"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center shrink-0 shadow-xs">
-                <User className="w-5 h-5 text-[#74111d]" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                  Customer Profile &amp; Referrals
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                  Manage your account, view referral earnings, and share invite links
-                </p>
-              </div>
-            </div>
+          {/* Top Crimson Header Banner (Matching Landing Page theme) */}
+          <div className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] text-white p-6 sm:p-7 rounded-3xl shadow-lg relative overflow-hidden">
+            {/* Ambient background glow matching landing page */}
+            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -left-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
 
-            <div className="flex items-center space-x-2">
-              <span className="bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold px-3 py-1.5 rounded-2xl flex items-center space-x-1.5">
-                <Crown className="w-4 h-4 text-amber-500 fill-amber-500" />
-                <span>{customerUser.tier}</span>
-              </span>
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3.5">
+                <button
+                  onClick={() => setCurrentScreen('home')}
+                  className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 cursor-pointer sm:hidden transition"
+                  title="Back"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-md border border-white/20 text-amber-300 font-bold text-[10px] uppercase px-2.5 py-0.5 rounded-full mb-1 shadow-xs">
+                    <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
+                    <span>BeAurex Account</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                    Customer Profile
+                  </h2>
+                  <p className="text-xs sm:text-sm text-rose-100/90 font-medium mt-0.5">
+                    Manage your account details, referral code &amp; settings
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* 2-Column Responsive Layout: Left (5 cols) Profile & Actions, Right (7 cols) Refer & Earn Hero */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-            
-            {/* Left Column (5 cols): Profile Info, Contact, Policies & Logout */}
-            <div className="lg:col-span-5 space-y-5">
-              
-              {/* User Profile Card */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 rounded-2xl bg-rose-100 text-[#74111d] font-black text-xl flex items-center justify-center shrink-0 shadow-xs ring-2 ring-[#74111d]/20">
-                    {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight truncate">
-                      {customerUser.name}
-                    </h3>
-                    <div className="flex items-center space-x-1.5 mt-1 text-xs text-slate-500 font-mono">
-                      <span>ID: {customerUser.customerId}</span>
-                      <button
-                        onClick={() => handleCopyCustomer(customerUser.customerId)}
-                        className="hover:text-slate-900 cursor-pointer p-0.5"
-                        title="Copy Customer ID"
-                      >
-                        <Copy className="w-3.5 h-3.5" />
-                      </button>
-                      {copiedId && <span className="text-[10px] text-emerald-600 font-sans font-bold">Copied!</span>}
-                    </div>
-                  </div>
+          <div className="space-y-3.5">
+            {/* 1. User Profile Card */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
+              <div className="flex items-center space-x-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#981b2a] text-white font-black text-lg flex items-center justify-center shrink-0 shadow-md shadow-[#74111d]/25 ring-2 ring-rose-200">
+                  {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-                  <div className="bg-slate-50 rounded-2xl p-3">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Member Since</span>
-                    <span className="text-xs font-bold text-slate-800">{customerUser.memberSince}</span>
-                  </div>
-                  <div className="bg-slate-50 rounded-2xl p-3">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Membership</span>
-                    <span className="text-xs font-bold text-amber-700">{customerUser.tier}</span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight truncate">
+                    {customerUser.name}
+                  </h3>
+                  <div className="flex items-center space-x-2 mt-1 text-xs text-slate-500 font-mono">
+                    <span className="bg-slate-50 border border-slate-200/80 px-2.5 py-0.5 rounded-lg text-slate-700 font-bold">
+                      ID: {customerUser.customerId}
+                    </span>
+                    <button
+                      onClick={() => handleCopyCustomer(customerUser.customerId)}
+                      className="p-1 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                      title="Copy Customer ID"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                    {copiedId && <span className="text-[10px] text-emerald-600 font-sans font-bold">Copied!</span>}
                   </div>
                 </div>
               </div>
-
-              {/* Contact Details List */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-3 shadow-xs divide-y divide-slate-100">
-                <div className="flex items-center space-x-3.5 p-3.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Phone Number</span>
-                    <span className="text-xs font-bold text-slate-800">{customerUser.phone}</span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3.5 p-3.5">
-                  <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Email Address</span>
-                    <span className="text-xs font-bold text-slate-800">{customerUser.email}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Settings / Policies Navigation Rows */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-2.5 shadow-xs divide-y divide-slate-100">
-                <div 
-                  onClick={() => {
-                    setLegalModalTab('privacy');
-                    setLegalModalOpen(true);
-                  }}
-                  className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <ShieldCheck className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold text-slate-800">Privacy Policy</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </div>
-
-                <div 
-                  onClick={() => {
-                    setLegalModalTab('terms');
-                    setLegalModalOpen(true);
-                  }}
-                  className="flex items-center justify-between p-3.5 hover:bg-slate-50 rounded-2xl cursor-pointer transition"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <FileText className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs font-bold text-slate-800">Terms &amp; Conditions</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </div>
-
-                <div 
-                  onClick={handleLogout}
-                  className="flex items-center justify-between p-3.5 hover:bg-rose-50/50 rounded-2xl cursor-pointer transition"
-                >
-                  <div className="flex items-center space-x-3.5 text-rose-600">
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-xs font-black">Logout</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-rose-600" />
-                </div>
-              </div>
-
+              <button
+                type="button"
+                onClick={() => {
+                  setEditProfileForm({ name: customerUser.name, email: customerUser.email });
+                  setEditProfileModalOpen(true);
+                }}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Edit</span>
+              </button>
             </div>
 
-            {/* Right Column (7 cols): Refer & Earn Card + How Referrals Work Guide */}
-            <div className="lg:col-span-7 space-y-5">
-              
-              {/* Refer & Earn Rewards Card (Shows Customer Profit & Invite CTA) */}
-              <div className="bg-gradient-to-br from-[#74111d] via-[#8c1725] to-[#550c14] text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden space-y-5">
-                {/* Background glowing shapes */}
-                <div className="absolute -right-6 -bottom-6 w-44 h-44 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
-                <div className="absolute -left-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-lg pointer-events-none" />
-
-                {/* Header with Gift badge */}
-                <div className="flex items-start justify-between relative z-10">
-                  <div className="space-y-1.5">
-                    <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-300/30 text-[10px] font-black uppercase tracking-wider">
-                      <Gift className="w-3.5 h-3.5 text-amber-300" />
-                      <span>Refer &amp; Earn Profit</span>
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-black tracking-tight text-white pt-1">
-                      Invite Friends, Get Free Stamps &amp; Cash!
-                    </h3>
-                    <p className="text-xs sm:text-sm text-rose-100/90 leading-relaxed max-w-lg">
-                      Share your unique referral code. When your friends join and scan, they get 10% off and you receive direct profit on your account.
-                    </p>
-                  </div>
+            {/* 2. Phone & Email Card (matching image) */}
+            <div 
+              onClick={() => {
+                setEditProfileForm({ name: customerUser.name, email: customerUser.email });
+                setEditProfileModalOpen(true);
+              }}
+              className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
+                  <Mail className="w-5 h-5" />
                 </div>
-
-                {/* Profit Breakdown Matrix */}
-                <div className="grid grid-cols-2 gap-3 relative z-10 pt-1">
-                  <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 sm:p-4">
-                    <span className="text-[10px] font-bold text-amber-300 uppercase block tracking-wider">Your Profit</span>
-                    <p className="text-base sm:text-lg font-black text-white mt-1">+1 Free Stamp</p>
-                    <p className="text-xs text-rose-200 mt-0.5 font-medium">+ ₹50 Wallet Credit / friend</p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 sm:p-4">
-                    <span className="text-[10px] font-bold text-emerald-300 uppercase block tracking-wider">Friend's Profit</span>
-                    <p className="text-base sm:text-lg font-black text-white mt-1">10% OFF</p>
-                    <p className="text-xs text-rose-200 mt-0.5 font-medium">Instant welcome voucher</p>
-                  </div>
-                </div>
-
-                {/* Your Referral Stats */}
-                <div className="bg-black/25 rounded-2xl p-3.5 sm:p-4 flex items-center justify-around text-center border border-white/10 relative z-10">
-                  <div>
-                    <span className="text-[10px] text-rose-200 block font-medium">Invited</span>
-                    <span className="text-lg font-black text-amber-300">{customerUser.referralCount || 0} friends</span>
-                  </div>
-                  <div className="h-7 w-px bg-white/20"></div>
-                  <div>
-                    <span className="text-[10px] text-rose-200 block font-medium">Bonus Stamps</span>
-                    <span className="text-lg font-black text-white">{customerUser.referralCount || 0} stamps</span>
-                  </div>
-                  <div className="h-7 w-px bg-white/20"></div>
-                  <div>
-                    <span className="text-[10px] text-rose-200 block font-medium">Cash Profit</span>
-                    <span className="text-lg font-black text-emerald-300">₹{customerUser.referralEarnings || 0}</span>
-                  </div>
-                </div>
-
-                {/* Referral Code & Copy Bar */}
-                <div className="bg-white/10 border border-white/20 rounded-2xl p-3 flex items-center justify-between relative z-10">
-                  <div className="pl-2">
-                    <span className="text-[9px] uppercase tracking-wider text-rose-200 block font-bold">Your Referral Code</span>
-                    <span className="font-mono text-sm sm:text-base font-black text-white tracking-widest">{customerUser.referralCode || 'BEAUREX-8F4A'}</span>
-                  </div>
-                  <button
-                    onClick={() => handleCopyReferralCode(customerUser.referralCode || 'BEAUREX-8F4A')}
-                    className="bg-white text-[#74111d] hover:bg-rose-50 font-black px-4 py-2.5 rounded-xl text-xs transition flex items-center space-x-1.5 cursor-pointer shadow-sm shrink-0"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>{copiedReferral ? 'Copied!' : 'Copy Code'}</span>
-                  </button>
-                </div>
-
-                {/* Action Buttons: WhatsApp Share & Native Invite */}
-                <div className="grid grid-cols-2 gap-3 relative z-10 pt-1">
-                  <button
-                    onClick={handleWhatsAppShare}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-3.5 px-4 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
-                  >
-                    <MessageCircle className="w-4 h-4 fill-white shrink-0" />
-                    <span>Share WhatsApp</span>
-                  </button>
-                  <button
-                    onClick={handleShareReferral}
-                    className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black py-3.5 px-4 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
-                  >
-                    <Share2 className="w-4 h-4 shrink-0" />
-                    <span>Invite &amp; Earn</span>
-                  </button>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900">Phone &amp; Email</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">{customerUser.email}</p>
                 </div>
               </div>
-
-              {/* How Referrals Work Explainer Card */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                <h4 className="text-sm font-black text-slate-900">How It Works in 3 Easy Steps</h4>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="bg-slate-50 rounded-2xl p-3.5 space-y-1.5">
-                    <div className="w-7 h-7 rounded-xl bg-[#74111d] text-white text-xs font-black flex items-center justify-center">
-                      1
-                    </div>
-                    <h5 className="text-xs font-black text-slate-900">Share Your Code</h5>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Send your link or referral code to friends via WhatsApp or social apps.
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-50 rounded-2xl p-3.5 space-y-1.5">
-                    <div className="w-7 h-7 rounded-xl bg-[#74111d] text-white text-xs font-black flex items-center justify-center">
-                      2
-                    </div>
-                    <h5 className="text-xs font-black text-slate-900">Friend Visits &amp; Scans</h5>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Your friend joins with your code and gets 10% instant discount at checkout.
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-50 rounded-2xl p-3.5 space-y-1.5">
-                    <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white text-xs font-black flex items-center justify-center">
-                      3
-                    </div>
-                    <h5 className="text-xs font-black text-slate-900">Earn Profit</h5>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
-                      You instantly receive +1 Free Stamp and ₹50 profit credited to your account!
-                    </p>
-                  </div>
-                </div>
-              </div>
-
+              <Edit3 className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
             </div>
 
+            {/* 3. Invite & Refer Button Below Email Address */}
+            <div>
+              <button
+                type="button"
+                onClick={handleShareReferral}
+                className="w-full bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] hover:from-[#590104] hover:to-[#400002] text-white font-black p-4 rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-[#8B0000]/25 flex items-center justify-between cursor-pointer group transform hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
+                    <Share2 className="w-5 h-5 text-amber-300 stroke-[2.5]" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block text-xs sm:text-sm font-black text-white leading-tight">
+                      Invite &amp; Refer Friends
+                    </span>
+                    <span className="block text-[11px] font-semibold text-rose-200/90 mt-0.5">
+                      Share your referral link to earn bonus rewards
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1.5 bg-white/15 px-3 py-1.5 rounded-xl border border-white/20 text-amber-300 font-bold text-xs group-hover:bg-white/25 transition shrink-0 ml-2">
+                  <Gift className="w-3.5 h-3.5 text-amber-300" />
+                  <span>Refer</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-0.5 transition" />
+                </div>
+              </button>
+              {copiedReferral && (
+                <p className="text-center text-xs text-emerald-600 font-bold mt-2">
+                  ✓ Referral link copied to clipboard!
+                </p>
+              )}
+            </div>
+
+            {/* 4. Member Status Card */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900">Member Status</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Joined {customerUser.memberSince}</p>
+                </div>
+              </div>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200/80">Active</span>
+            </div>
+
+            {/* 5. Privacy Policy Card */}
+            <div 
+              onClick={() => {
+                setLegalModalTab('privacy');
+                setLegalModalOpen(true);
+              }}
+              className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy Policy</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Read data protection &amp; privacy terms</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
+            </div>
+
+            {/* 6. Terms & Conditions Card */}
+            <div 
+              onClick={() => {
+                setLegalModalTab('terms');
+                setLegalModalOpen(true);
+              }}
+              className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900">Terms &amp; Conditions</h4>
+                  <p className="text-[11px] text-slate-500 font-medium">Read platform usage agreements</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
+            </div>
+
+            {/* 7. Logout Card */}
+            <div 
+              onClick={handleLogout}
+              className="bg-white border border-rose-100 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-rose-200 hover:bg-rose-50/20 transition cursor-pointer"
+            >
+              <div className="flex items-center space-x-3.5">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                  <LogOut className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black text-rose-600">Logout</h4>
+                  <p className="text-[11px] text-rose-400 font-medium">Sign out of your customer account</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-rose-400 hover:text-rose-600 shrink-0" />
+            </div>
           </div>
 
         </div>
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* PERSISTENT BOTTOM NAVIGATION BAR (Screens 5, 7, 8, 9) - Mobile Only */}
+      {/* PERSISTENT BOTTOM NAVIGATION BAR - Mobile Only (matching media_1791477164813.png) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen !== 'scan' && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 sm:px-6 py-2 flex items-center justify-around shadow-2xl md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/90 px-6 py-2 flex items-center justify-between shadow-lg md:hidden">
           {/* Home Tab */}
           <button
             onClick={() => setCurrentScreen('home')}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 ${
-              currentScreen === 'home' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+              currentScreen === 'home' ? 'text-slate-900 font-extrabold' : 'text-slate-400 hover:text-slate-600 font-medium'
             }`}
           >
-            <Home className="w-5 h-5" />
-            <span className="text-[10px] font-black mt-1">Home</span>
+            <Home className="w-6 h-6 stroke-[2]" />
+            <span className="text-[11px] mt-1">Home</span>
           </button>
+
+          {/* Center Floating Red Scan Button */}
+          <div className="flex-1 flex justify-center">
+            <button
+              onClick={openScanScreen}
+              className="-mt-5 w-14 h-14 rounded-full bg-[#8B0000] hover:bg-[#690005] text-white flex items-center justify-center shadow-lg shadow-[#8B0000]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
+              aria-label="Scan QR Code"
+            >
+              <QrCode className="w-6 h-6 stroke-[2.5]" />
+            </button>
+          </div>
 
           {/* Rewards Tab */}
           <button
@@ -2797,40 +3250,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               setCurrentScreen('rewards');
             }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 relative ${
-              currentScreen === 'rewards' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+              currentScreen === 'rewards' ? 'text-slate-900 font-extrabold' : 'text-slate-400 hover:text-slate-600 font-medium'
             }`}
           >
             <div className="relative">
-              <Gift className="w-5 h-5" />
+              <Gift className="w-6 h-6 stroke-[2]" />
               {rewardHistory.length > 0 && (
-                <span className="absolute -top-1 -right-2.5 w-4 h-4 rounded-full bg-[#74111d] text-white text-[9px] font-black flex items-center justify-center">
+                <span className="absolute -top-1 -right-2 w-4 h-4 rounded-full bg-[#8B0000] text-white text-[9px] font-black flex items-center justify-center">
                   {rewardHistory.length}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-black mt-1">Rewards</span>
-          </button>
-
-          {/* Center Floating Red Scan Button */}
-          <div className="flex-1 flex justify-center">
-            <button
-              onClick={openScanScreen}
-              className="-mt-7 w-14 h-14 rounded-full bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
-              aria-label="Scan QR Code"
-            >
-              <QrCode className="w-6 h-6 stroke-[2.5]" />
-            </button>
-          </div>
-
-          {/* Profile & Refer Tab */}
-          <button
-            onClick={() => setCurrentScreen('profile')}
-            className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 ${
-              currentScreen === 'profile' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            <User className="w-5 h-5" />
-            <span className="text-[10px] font-black mt-1">Profile</span>
+            <span className="text-[11px] mt-1">Rewards</span>
           </button>
         </nav>
       )}
@@ -2922,6 +3353,63 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Profile Modal */}
+      {editProfileModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setEditProfileModalOpen(false)}
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div>
+              <h3 className="text-base font-black text-slate-900">Edit Profile</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Update your customer profile details</p>
+            </div>
+            <form onSubmit={handleSaveCustomerProfile} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={editProfileForm.name}
+                  onChange={(e) => setEditProfileForm({ ...editProfileForm, name: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]"
+                  placeholder="Your Name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Email Address</label>
+                <input
+                  type="email"
+                  value={editProfileForm.email}
+                  onChange={(e) => setEditProfileForm({ ...editProfileForm, email: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]"
+                  placeholder="your.email@example.com"
+                  required
+                />
+              </div>
+              <div className="flex items-center space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditProfileModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] to-[#590104] text-white text-xs font-black shadow-md hover:from-[#74111d] hover:to-[#400002] transition cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

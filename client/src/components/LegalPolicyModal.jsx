@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, FileText, X, Check, Copy, Clock, Award, 
-  ExternalLink, ChevronRight, CheckCircle2 
+  ShieldCheck, FileText, X, Check, Award, 
+  ExternalLink, ChevronRight 
 } from 'lucide-react';
 
 // Fallback BeAurex default policies in case server is unreachable offline
@@ -85,7 +85,6 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
     } catch (_) {}
     return DEFAULT_POLICIES;
   });
-  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Sync tab when initialTab changes
@@ -146,14 +145,6 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
   if (!isOpen) return null;
 
   const currentDoc = policies[activeTab] || DEFAULT_POLICIES[activeTab];
-
-  const handleCopy = () => {
-    if (navigator.clipboard && currentDoc.content) {
-      navigator.clipboard.writeText(currentDoc.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   // Format content text with clean headings & bullet points
   const renderFormattedContent = (text) => {
@@ -269,28 +260,6 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
           </div>
         </div>
 
-        {/* Document Metadata Bar */}
-        <div className="bg-slate-50 border-b border-slate-200/80 px-6 py-2.5 flex items-center justify-between text-[11px] text-slate-500 font-medium shrink-0">
-          <div className="flex items-center space-x-1.5">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Last Updated: <strong className="text-slate-700 font-bold">{currentDoc.lastUpdated || 'May 2026'}</strong></span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <span className="inline-flex items-center space-x-1 text-emerald-700 font-bold">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              <span>{currentDoc.status || 'Published & Active'}</span>
-            </span>
-            <button
-              onClick={handleCopy}
-              className="text-[#74111d] hover:text-[#550c14] font-bold flex items-center space-x-1 cursor-pointer transition"
-              title="Copy text"
-            >
-              <Copy className="w-3 h-3" />
-              <span>{copied ? 'Copied!' : 'Copy'}</span>
-            </button>
-          </div>
-        </div>
-
         {/* Scrollable Content Area */}
         <div className="p-6 sm:p-7 overflow-y-auto flex-1 font-sans space-y-2 selection:bg-rose-100">
           {loading ? (
@@ -304,25 +273,14 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
         </div>
 
         {/* Bottom Actions */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200 shrink-0 flex items-center justify-between gap-3">
-          <p className="text-[10px] text-slate-400 hidden sm:block">
-            Managed &amp; audited via BeAurex Super Admin console
-          </p>
-          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
-            <button
-              onClick={onClose}
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer"
-            >
-              Close
-            </button>
-            <button
-              onClick={onClose}
-              className="flex-1 sm:flex-none px-6 py-2.5 bg-[#74111d] hover:bg-[#550c14] text-white rounded-xl text-xs font-black shadow-md shadow-[#74111d]/20 transition flex items-center justify-center space-x-1.5 cursor-pointer"
-            >
-              <Check className="w-3.5 h-3.5" />
-              <span>I Understand &amp; Agree</span>
-            </button>
-          </div>
+        <div className="p-4 bg-slate-50 border-t border-slate-200 shrink-0 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2.5 bg-[#74111d] hover:bg-[#550c14] text-white font-bold rounded-xl text-xs transition cursor-pointer shadow-xs"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

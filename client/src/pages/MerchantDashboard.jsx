@@ -7,7 +7,8 @@ import {
   ArrowUpRight, Utensils, FileSpreadsheet, Play, ShieldCheck, LogOut, Info, Layers, 
   Stamp, Edit3, Share2, CheckCheck, CreditCard, ShoppingBag, Eye, Trash2, ChevronDown,
   MapPin, Mail, Globe, RefreshCw, HelpCircle, Camera, Shield, Menu, KeyRound, EyeOff, Lock, User, Printer,
-  Home, Crown, Percent, Repeat, PlusCircle, ArrowLeft, Award, Coins, Tag
+  Home, Crown, Percent, Repeat, PlusCircle, ArrowLeft, Award, Coins, Tag,
+  FileText, Image as ImageIcon
 } from 'lucide-react';
 import ActionConfirmModal from '../components/ActionConfirmModal';
 import LegalPolicyModal from '../components/LegalPolicyModal';
@@ -270,28 +271,38 @@ export default function MerchantDashboard() {
     const vStr = String(voucherType || '').toLowerCase();
     if (vStr === 'coffee' || vStr.includes('coffee')) {
       return (
-        <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-2xl bg-gradient-to-b from-[#2b1810] to-[#150a06] text-amber-100 flex flex-col items-center justify-center p-1.5 shrink-0 shadow-sm border border-amber-950/40 relative overflow-hidden text-center">
-          <span className="text-[10px] font-black uppercase tracking-wider text-amber-200 leading-tight">FREE</span>
-          <span className="text-[11px] font-black uppercase tracking-wider text-white leading-tight">COFFEE</span>
-          <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center mt-1.5">
-            <Coffee className="w-3.5 h-3.5 text-amber-300" />
+        <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-b from-[#26150e] to-[#120804] text-white flex flex-col items-center justify-between p-2 shrink-0 shadow-xs border border-amber-950/40 relative overflow-hidden text-center">
+          <div className="flex flex-col items-center leading-tight">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-200">FREE</span>
+            <span className="text-xs font-black uppercase tracking-wider text-white">COFFEE</span>
           </div>
+          {/* Coffee cup illustration on saucer */}
+          <div className="my-auto flex flex-col items-center">
+            <div className="w-9 h-7 bg-white rounded-b-xl border-t-2 border-amber-900/40 relative shadow-xs flex items-center justify-center">
+              <div className="w-6 h-2 bg-amber-900/70 rounded-full" />
+              <div className="w-3 h-4 border-2 border-white rounded-r-md absolute -right-2 top-0.5" />
+            </div>
+            <div className="w-11 h-1.5 bg-white/70 rounded-full mt-0.5 shadow-2xs" />
+          </div>
+          <span className="text-[8px] text-amber-200/60 font-mono tracking-widest uppercase">PERK</span>
         </div>
       );
     } else if (vStr === '20' || vStr.includes('20%')) {
       return (
-        <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-2xl bg-gradient-to-b from-[#0e3b24] to-[#072415] text-emerald-100 flex flex-col items-center justify-center p-1.5 shrink-0 shadow-sm border border-emerald-900/40 relative overflow-hidden text-center">
-          <span className="text-base sm:text-lg font-black leading-none text-white font-mono">20%</span>
-          <span className="text-xs sm:text-sm font-black leading-tight text-emerald-200 font-mono">OFF</span>
-          <span className="text-[8px] font-bold text-emerald-400/80 mt-1 uppercase tracking-widest">PERK</span>
+        <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-b from-[#0e4d2a] to-[#062915] text-white flex flex-col items-center justify-center p-2 shrink-0 shadow-xs border border-emerald-900/40 relative overflow-hidden text-center">
+          <div className="w-5 h-5 rounded-full bg-emerald-400/20 text-emerald-200 flex items-center justify-center text-[10px] font-bold mb-1">✓</div>
+          <span className="text-2xl sm:text-3xl font-black leading-none text-white font-sans">20%</span>
+          <span className="text-sm font-black leading-tight text-emerald-200 font-sans">OFF</span>
+          <span className="text-[8px] font-bold text-emerald-400/80 mt-1 uppercase tracking-widest">DISCOUNT</span>
         </div>
       );
     } else {
       return (
-        <div className="w-16 h-20 sm:w-20 sm:h-24 rounded-2xl bg-gradient-to-b from-[#74111d] to-[#45080f] text-white flex flex-col items-center justify-center p-1.5 shrink-0 shadow-sm border border-red-950/40 relative overflow-hidden text-center">
-          <span className="text-base sm:text-lg font-black leading-none text-white font-mono">30%</span>
-          <span className="text-xs sm:text-sm font-black leading-tight text-rose-200 font-mono">OFF</span>
-          <span className="text-[7px] font-bold text-amber-300 mt-1 uppercase tracking-widest">LIMITED TIME</span>
+        <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-b from-[#800d1a] to-[#45070e] text-white flex flex-col items-center justify-center p-2 shrink-0 shadow-xs border border-red-950/40 relative overflow-hidden text-center">
+          <div className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-bold mb-1">%</div>
+          <span className="text-2xl sm:text-3xl font-black leading-none text-white font-sans">30%</span>
+          <span className="text-sm font-black leading-tight text-rose-200 font-sans">OFF</span>
+          <span className="text-[8px] font-bold text-amber-300 mt-1 uppercase tracking-widest">LIMITED TIME</span>
         </div>
       );
     }
@@ -303,12 +314,14 @@ export default function MerchantDashboard() {
     reward: null
   });
 
-  // Screen 12: Create Offer State
+  // Screen 12: Create Offer State (Matching media_1791467973803.png)
   const [offerBanner, setOfferBanner] = useState('');
-  const [offerTitle, setOfferTitle] = useState('Free Cold Coffee on 5th Visit');
-  const [offerDescription, setOfferDescription] = useState('Buy 4 coffees and get 5th cup of Cold Coffee absolutely free.');
+  const [offerImageRemoved, setOfferImageRemoved] = useState(false);
+  const [offerTitle, setOfferTitle] = useState('30% OFF on Next Purchase');
+  const [offerDescription, setOfferDescription] = useState('Get 30% off on your next purchase. Thank you for being our loyal customer!');
   const [offerStampsRequired, setOfferStampsRequired] = useState(5);
   const [offerValidity, setOfferValidity] = useState('30 Days');
+  const [showOfferPreview, setShowOfferPreview] = useState(true);
   const [offerSuccessModalOpen, setOfferSuccessModalOpen] = useState(false);
   const offerBannerInputRef = useRef(null);
 
@@ -318,9 +331,19 @@ export default function MerchantDashboard() {
       const reader = new FileReader();
       reader.onload = (event) => {
         setOfferBanner(event.target?.result);
+        setOfferImageRemoved(false);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleResetOrNewOffer = () => {
+    setOfferTitle('Special Loyalty Reward');
+    setOfferDescription('Collect stamps on every purchase to unlock this special reward!');
+    setOfferStampsRequired(5);
+    setOfferValidity('30 Days');
+    setOfferBanner('');
+    setOfferImageRemoved(false);
   };
 
   const handleSaveOfferProgram = (e) => {
@@ -1607,129 +1630,146 @@ export default function MerchantDashboard() {
       />
 
       {/* ========================================================= */}
-      {/* TOP FULL COLOR CRIMSON BRAND HEADER (media_1791292785991.png) */}
-      {/* 100% Full Color - Sticky Fixed to top edge on scroll */}
       {/* ========================================================= */}
-      <header className="sticky top-0 inset-x-0 z-40 w-full bg-gradient-to-b from-[#74111d] via-[#650f19] to-[#540a13] text-white shadow-xl border-b border-white/10">
-        {/* Ambient lighting effect */}
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -top-10 left-10 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* THEME COLOR HEADER (Crimson #74111d Brand Header) */}
+      {/* Normal nav bar links without pill container */}
+      {/* ========================================================= */}
+      <header className="sticky top-0 inset-x-0 z-40 w-full bg-gradient-to-r from-[#690005] via-[#74111d] to-[#590104] border-b border-[#5e0c15] shadow-md">
         
-        {/* Top Brand Bar */}
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5 pb-5 sm:pb-6 relative z-10 space-y-3.5">
-          
-          {/* Row 1: Brand BeAurex MERCHANT HUB + Top Right Controls */}
-          <div className="flex items-center justify-between">
-            {/* Logo: BeAurex MERCHANT HUB */}
-            <Link to="/" className="flex items-center space-x-2.5 sm:space-x-3 group">
-              <div className="relative">
-                <img 
-                  src="/beaurex-icon.jpg" 
-                  alt="BeAurex Logo" 
-                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-lg shadow-black/40 border border-white/25 group-hover:scale-105 group-hover:border-white/50 transition-all duration-300"
-                />
-                <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg sm:text-xl font-black tracking-tight leading-none text-white drop-shadow-xs">
-                  BeAurex
-                </span>
-                <span className="text-[9px] sm:text-[10px] font-black text-rose-200/90 uppercase tracking-widest mt-1">
-                  MERCHANT HUB
-                </span>
-              </div>
-            </Link>
+        {/* MOBILE HEADER */}
+        <div className="md:hidden px-4 py-3 relative z-10 flex items-center justify-between">
+          <div className="flex items-center space-x-2.5 min-w-0">
+            {/* Store Icon */}
+            <div 
+              onClick={() => storeLogoInputRef.current?.click()}
+              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 shadow-xs flex items-center justify-center overflow-hidden shrink-0 cursor-pointer p-0.5"
+              title="Change store logo"
+            >
+              {storeLogo ? (
+                <img src={storeLogo} alt={storeName} className="w-full h-full object-cover rounded-xl" />
+              ) : (
+                <Store className="w-5 h-5 text-white" />
+              )}
+            </div>
 
-            {/* Top Right Actions */}
-            <div className="flex items-center space-x-2 sm:space-x-2.5">
-              <button
-                onClick={() => setActiveTab('profile')}
-                className={`h-9 px-3 rounded-xl border flex items-center space-x-2 text-xs font-bold transition-all shadow-xs cursor-pointer group shrink-0 ${
-                  activeTab === 'profile' 
-                    ? 'bg-white text-[#74111d] border-white shadow-rose-950/40' 
-                    : 'border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-xs'
-                }`}
-                title="Store Profile & Settings"
-              >
-                <User className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span className="hidden sm:inline">Profile</span>
-              </button>
-
-              <button
-                onClick={handleMerchantLogout}
-                className="h-9 px-3 rounded-xl border border-white/20 bg-white/10 hover:bg-rose-900/60 hover:border-rose-400/50 text-white/90 hover:text-white flex items-center space-x-2 text-xs font-bold transition-all shadow-xs cursor-pointer group shrink-0 backdrop-blur-xs"
-                title="Logout"
-              >
-                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform text-rose-200" />
-                <span className="hidden sm:inline">Logout</span>
-              </button>
+            {/* Store Name & Portal Title */}
+            <div className="min-w-0">
+              <h1 className="text-base font-black text-white tracking-tight truncate leading-tight">
+                {storeName || 'Ka-feen Café'}
+              </h1>
+              <span className="text-[9px] font-bold text-red-200 uppercase tracking-wider block mt-0.5">
+                Store Owner Portal
+              </span>
             </div>
           </div>
 
-          {/* Row 2: Store Identity Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-white/10">
-            {/* Store Avatar & Name & Status */}
-            <div className="flex items-center space-x-3.5 sm:space-x-4">
-              {/* Circular Store Logo with Upload Trigger */}
-              <div 
-                onClick={() => storeLogoInputRef.current?.click()}
-                className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white ring-2 ring-white/50 ring-offset-2 ring-offset-[#650f19] shadow-xl flex items-center justify-center overflow-hidden cursor-pointer group shrink-0 transition-transform hover:scale-105"
-                title="Click to upload/change store logo"
-              >
-                {storeLogo ? (
-                  <img src={storeLogo} alt={storeName} className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center text-[#74111d] font-black text-sm sm:text-base">
-                    {getStoreInitials(storeName)}
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-                  <Camera className="w-4 h-4 text-white drop-shadow-md" />
-                </div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#8B0000] border-2 border-white rounded-full flex items-center justify-center text-white shadow-md">
-                  <Camera className="w-2.5 h-2.5" />
-                </div>
-              </div>
+          {/* Profile Button on the Right */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('profile')}
+            className={`w-9 h-9 rounded-xl border flex items-center justify-center transition cursor-pointer shrink-0 ${
+              activeTab === 'profile'
+                ? 'bg-white text-[#74111d] border-white shadow-xs'
+                : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
+            }`}
+            title="Store Profile & Settings"
+          >
+            <User className="w-4 h-4" />
+          </button>
+        </div>
 
-              {/* Store Name & Live Status Badge */}
-              <div>
-                <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight text-white capitalize drop-shadow-xs flex items-center space-x-2">
-                  <span>{storeName || 'Store'}</span>
-                </h1>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${subscriptionInfo.isExpired ? 'bg-red-400' : 'bg-emerald-400'}`}></span>
-                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${subscriptionInfo.isExpired ? 'bg-red-500' : 'bg-emerald-400'}`}></span>
-                  </span>
-                  <span className={`font-black text-xs tracking-wide ${subscriptionInfo.isExpired ? 'text-red-300' : 'text-emerald-300'}`}>
-                    {subscriptionInfo.isExpired ? 'Store Offline' : 'Counter Online'}
-                  </span>
-                </div>
+        {/* DESKTOP / LAPTOP HEADER */}
+        <div className="hidden md:block max-w-[1200px] mx-auto px-6 lg:px-8 py-3 relative z-10">
+          <div className="flex items-center justify-between gap-6">
+            
+            {/* Left: Store Identity */}
+            <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => storeLogoInputRef.current?.click()}>
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 shadow-md flex items-center justify-center overflow-hidden shrink-0 p-0.5 hover:scale-105 transition-all">
+                {storeLogo ? (
+                  <img src={storeLogo} alt={storeName} className="w-full h-full object-cover rounded-xl" />
+                ) : (
+                  <Store className="w-6 h-6 text-white" />
+                )}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
+                  {storeName || 'Royal Sweets & Cafe'}
+                </span>
+                <span className="text-[10px] font-bold text-red-200 uppercase tracking-widest mt-1">
+                  Store Owner Portal
+                </span>
               </div>
             </div>
 
-            {/* Plan Badges and Luxury Upgrade CTA */}
-            <div className="flex items-center space-x-2.5 sm:space-x-3">
-              <span className={`text-[11px] sm:text-xs font-black uppercase px-3 py-1.5 rounded-full border backdrop-blur-md flex items-center space-x-1.5 shadow-xs ${
-                subscriptionInfo.isExpired 
-                  ? 'bg-red-500/20 text-red-200 border-red-400/30' 
-                  : subscriptionInfo.status === 'TRIAL'
-                  ? 'bg-amber-500/20 text-amber-200 border-amber-300/40 shadow-amber-900/20'
-                  : 'bg-emerald-500/20 text-emerald-200 border-emerald-300/40'
-              }`}>
-                {subscriptionInfo.isExpired 
-                  ? 'Trial Expired' 
-                  : subscriptionInfo.status === 'TRIAL' 
-                  ? `3-DAY TRIAL (${subscriptionInfo.daysRemaining ?? 3}D LEFT)` 
-                  : `${subscriptionInfo.tier} Plan`}
-              </span>
+            {/* Center: Simple Normal Navigation Links (No Line, No Pill) */}
+            <div className="flex items-center space-x-7 sm:space-x-8">
+              <button
+                type="button"
+                onClick={() => setActiveTab('home')}
+                className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
+                  activeTab === 'home'
+                    ? 'text-white font-black'
+                    : 'text-white/75 hover:text-white font-semibold'
+                }`}
+              >
+                <Home className={`w-4 h-4 ${activeTab === 'home' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
+                <span>Home</span>
+              </button>
 
               <button
-                onClick={() => setBuyPlanModalOpen(true)}
-                className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer border border-amber-200/50"
+                type="button"
+                onClick={() => setActiveTab('rewards')}
+                className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap relative ${
+                  activeTab === 'rewards'
+                    ? 'text-white font-black'
+                    : 'text-white/75 hover:text-white font-semibold'
+                }`}
               >
-                <Crown className="w-3.5 h-3.5 text-slate-950 fill-slate-950" />
-                <span>{subscriptionInfo.status === 'TRIAL' ? 'Buy Plan' : 'Pro Plan'}</span>
+                <Gift className={`w-4 h-4 ${activeTab === 'rewards' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
+                <span>Rewards</span>
+                {pendingRedemptions.length > 0 && (
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-0.5" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('create_offer')}
+                className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
+                  activeTab === 'create_offer'
+                    ? 'text-white font-black'
+                    : 'text-white/75 hover:text-white font-semibold'
+                }`}
+              >
+                <PlusCircle className={`w-4 h-4 ${activeTab === 'create_offer' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
+                <span>Create Offer</span>
+              </button>
+            </div>
+
+            {/* Right: Profile & High-Contrast Logout */}
+            <div className="flex items-center space-x-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab('profile')}
+                className={`h-9 px-3.5 rounded-xl border flex items-center space-x-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                  activeTab === 'profile'
+                    ? 'bg-white text-[#74111d] border-white shadow-xs font-black'
+                    : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
+                }`}
+                title="Store Profile & Settings"
+              >
+                <User className="w-4 h-4" />
+                <span>Profile</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleMerchantLogout}
+                className="h-9 px-4 rounded-xl bg-white text-[#74111d] hover:bg-rose-50 font-black flex items-center space-x-1.5 text-xs transition-all shadow-md shadow-black/25 hover:-translate-y-0.5 cursor-pointer whitespace-nowrap"
+                title="Logout"
+              >
+                <LogOut className="w-3.5 h-3.5 text-[#74111d]" />
+                <span>Logout</span>
               </button>
             </div>
           </div>
@@ -1737,12 +1777,12 @@ export default function MerchantDashboard() {
 
         {/* Trial Expired Alert Banner */}
         {subscriptionInfo.isExpired && (
-          <div className="bg-red-950/90 border-t border-red-800/50 px-4 py-2 text-center text-xs font-bold text-red-200 flex items-center justify-center space-x-2">
-            <AlertTriangle className="w-4 h-4 text-amber-300 animate-pulse" />
+          <div className="bg-rose-50 border-t border-rose-200 px-4 py-2 text-center text-xs font-bold text-rose-800 flex items-center justify-center space-x-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600 animate-pulse" />
             <span>3-DAY TRIAL EXPIRED — STORE OFFLINE: Please buy a subscription plan to bring your store back online.</span>
             <button 
               onClick={() => setBuyPlanModalOpen(true)}
-              className="ml-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider cursor-pointer"
+              className="ml-2 bg-gradient-to-r from-[#74111d] to-[#981b2a] hover:from-[#5e0c15] hover:to-[#801321] text-white font-black px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider cursor-pointer shadow-xs"
             >
               Renew Now
             </button>
@@ -1753,8 +1793,8 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {/* MAIN DASHBOARD CONTENT AREA */}
       {/* ========================================================= */}
-      <div className="flex-1 w-full min-w-0 flex flex-col pb-24">
-        <main className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1200px] w-full mx-auto">
+      <div className="flex-1 w-full min-w-0 flex flex-col pb-20 md:pb-12">
+        <main className="p-3.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-[1100px] w-full mx-auto">
 
           {/* ============================================================= */}
           {/* PILLAR 1: SCANS (LIVE COUNTER TRAFFIC FEED) */}
@@ -1903,162 +1943,127 @@ export default function MerchantDashboard() {
                     {/* ============================================================= */}
           {/* SCREEN 9, 10, 11: REWARDS WORKFLOW (Pending, Approved, Declined) */}
           {/* ============================================================= */}
+          {/* ============================================================= */}
+          {/* SCREEN 9, 10, 11: REWARDS WORKFLOW (Matching media_1791468660903.png) */}
+          {/* ============================================================= */}
           {activeTab === 'rewards' && (
-            <div className="space-y-6 pb-20 animate-in fade-in duration-200">
+            <div className="space-y-4 sm:space-y-5 pb-24 md:pb-12 max-w-xl mx-auto animate-in fade-in duration-200">
               
-              {/* Header Title */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Customer Rewards & Redemptions</h2>
-                  <p className="text-xs text-slate-500 mt-1">Review stamp card completion claims, approve discounts, or verify with PIN</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => setActiveTab('create_offer')}
-                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-[#74111d]/20 cursor-pointer"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>Create Offer</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 3-Tab Segmented Control (Screen 9, 10, 11) */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none">
+              {/* 3-Tab Segmented Control (Screen 9, 10, 11 - Matching media_1791468660903.png) */}
+              <div className="bg-slate-100/90 p-1 rounded-2xl flex items-center justify-between border border-slate-200/80 shadow-2xs">
+                {/* Pending Tab */}
                 <button
+                  type="button"
                   onClick={() => setRewardsViewTab('pending')}
-                  className={`py-2 px-5 rounded-full text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shrink-0 ${
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
                     rewardsViewTab === 'pending'
-                      ? 'bg-[#74111d] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-white text-[#74111d] border border-rose-300 shadow-xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <span>Pending</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    rewardsViewTab === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                  }`}>
-                    {pendingRedemptions.length}
-                  </span>
+                  {pendingRedemptions.length > 0 && (
+                    <span className={`w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center ${
+                      rewardsViewTab === 'pending' ? 'bg-[#74111d] text-white' : 'bg-slate-300 text-slate-700'
+                    }`}>
+                      {pendingRedemptions.length}
+                    </span>
+                  )}
                 </button>
 
+                {/* Approved Tab */}
                 <button
+                  type="button"
                   onClick={() => setRewardsViewTab('approved')}
-                  className={`py-2 px-5 rounded-full text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shrink-0 ${
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
                     rewardsViewTab === 'approved'
-                      ? 'bg-[#74111d] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-[#74111d] text-white shadow-xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <span>Approved</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    rewardsViewTab === 'approved' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                  }`}>
-                    {approvedRedemptions.length}
-                  </span>
                 </button>
 
+                {/* Declined Tab */}
                 <button
+                  type="button"
                   onClick={() => setRewardsViewTab('declined')}
-                  className={`py-2 px-5 rounded-full text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 shrink-0 ${
+                  className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
                     rewardsViewTab === 'declined'
-                      ? 'bg-[#74111d] text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-[#74111d] text-white shadow-xs font-black'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <span>Declined</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    rewardsViewTab === 'declined' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-                  }`}>
-                    {declinedRedemptions.length}
-                  </span>
                 </button>
               </div>
 
               {/* Subheading matching Screen 9, 10, 11 */}
-              <div className="flex items-center justify-between pt-1">
-                <h3 className="text-sm font-black text-slate-800">
+              <div className="flex items-center justify-between pt-1 px-0.5">
+                <h3 className="text-sm sm:text-base font-bold text-slate-800">
                   {rewardsViewTab === 'pending' && 'Pending Requests'}
                   {rewardsViewTab === 'approved' && 'Approved Rewards'}
                   {rewardsViewTab === 'declined' && 'Declined Requests'}
                 </h3>
-              </div>
-
-              {/* Search Bar for Redemptions */}
-              <div className="relative max-w-md">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={rewardSearchQuery}
-                  onChange={(e) => setRewardSearchQuery(e.target.value)}
-                  placeholder="Search customer name or ID..."
-                  className="w-full bg-white border border-slate-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 shadow-xs"
-                />
+                <span className="text-xs text-slate-400 font-medium">
+                  {rewardsViewTab === 'pending' && `${pendingRedemptions.length} requests`}
+                  {rewardsViewTab === 'approved' && `${approvedRedemptions.length} rewards`}
+                  {rewardsViewTab === 'declined' && `${declinedRedemptions.length} declined`}
+                </span>
               </div>
 
               {/* TAB 1: PENDING REDEMPTIONS (Screen 9) */}
               {rewardsViewTab === 'pending' && (
                 <div className="space-y-3.5">
-                  {pendingRedemptions.filter(item => 
-                    !rewardSearchQuery || 
-                    item.customerName.toLowerCase().includes(rewardSearchQuery.toLowerCase()) || 
-                    item.customerId.toLowerCase().includes(rewardSearchQuery.toLowerCase()) ||
-                    item.rewardTitle.toLowerCase().includes(rewardSearchQuery.toLowerCase())
-                  ).length === 0 ? (
-                    <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center text-slate-400">
+                  {pendingRedemptions.length === 0 ? (
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center text-slate-400 shadow-xs">
                       <Gift className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                      <p className="text-sm font-bold text-slate-600">No pending redemption claims</p>
+                      <p className="text-sm font-bold text-slate-700">No pending redemption claims</p>
                       <p className="text-xs text-slate-400 mt-0.5">When customers complete all stamps on their card, their claim will appear here</p>
                     </div>
                   ) : (
-                    pendingRedemptions
-                      .filter(item => 
-                        !rewardSearchQuery || 
-                        item.customerName.toLowerCase().includes(rewardSearchQuery.toLowerCase()) || 
-                        item.customerId.toLowerCase().includes(rewardSearchQuery.toLowerCase()) ||
-                        item.rewardTitle.toLowerCase().includes(rewardSearchQuery.toLowerCase())
-                      )
-                      .map((item) => (
-                        <div key={item.id} className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition flex flex-col gap-3.5">
-                          <div className="flex items-center space-x-3.5">
-                            {/* Left Voucher Thumbnail */}
-                            {renderVoucherTile(item.voucherType || item.rewardTitle)}
+                    pendingRedemptions.map((item) => (
+                      <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3.5">
+                        <div className="flex items-start space-x-3.5 sm:space-x-4">
+                          {/* Left Voucher Thumbnail */}
+                          {renderVoucherTile(item.voucherType || item.rewardTitle)}
 
-                            {/* Middle Claim Info */}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-black text-slate-900 leading-snug">{item.customerName}</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">{item.customerId}</p>
-                              <p className="text-xs font-bold text-[#74111d] mt-0.5 truncate">{item.rewardTitle}</p>
-                              
-                              <div className="flex items-center space-x-3 mt-1 text-[11px] text-slate-400">
-                                <span className="flex items-center space-x-1">
-                                  <Clock className="w-3 h-3 text-slate-400" />
-                                  <span>{item.timeAgo}</span>
-                                </span>
-                                <span className="flex items-center space-x-1">
-                                  <Calendar className="w-3 h-3 text-slate-400" />
-                                  <span>{item.expiresIn}</span>
-                                </span>
-                              </div>
+                          {/* Middle Claim Info */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
+                            <p className="text-xs text-slate-400 font-mono font-medium mt-0.5">{item.customerId}</p>
+                            <p className="text-xs sm:text-sm font-bold text-slate-900 mt-1.5 leading-snug">{item.rewardTitle}</p>
+                            
+                            <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1.5">
+                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>{item.timeAgo}</span>
+                            </div>
+                            <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-700 mt-0.5">
+                              <Calendar className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>{item.expiresIn}</span>
                             </div>
                           </div>
-
-                          {/* Action Buttons: Side-by-side Decline and Accept */}
-                          <div className="grid grid-cols-2 gap-2.5 pt-1">
-                            <button
-                              onClick={() => handleDeclineRedemption(item)}
-                              className="border border-rose-300 hover:bg-rose-50 text-rose-600 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                            >
-                              <span>Decline</span>
-                            </button>
-                            <button
-                              onClick={() => handleAcceptRedemption(item)}
-                              className="bg-[#0e5c36] hover:bg-[#0a482a] text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
-                            >
-                              <span>Accept</span>
-                            </button>
-                          </div>
                         </div>
-                      ))
+
+                        {/* Action Buttons: Side-by-side Decline and Accept */}
+                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100/80">
+                          <button
+                            type="button"
+                            onClick={() => handleDeclineRedemption(item)}
+                            className="bg-white hover:bg-rose-50 text-red-700 border border-red-300 font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <span>Decline</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAcceptRedemption(item)}
+                            className="bg-[#0e5c36] hover:bg-[#094728] text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                          >
+                            <span>Accept</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               )}
@@ -2066,49 +2071,39 @@ export default function MerchantDashboard() {
               {/* TAB 2: APPROVED REDEMPTIONS (Screen 10) */}
               {rewardsViewTab === 'approved' && (
                 <div className="space-y-3.5">
-                  {approvedRedemptions.filter(item => 
-                    !rewardSearchQuery || 
-                    item.customerName.toLowerCase().includes(rewardSearchQuery.toLowerCase()) || 
-                    item.customerId.toLowerCase().includes(rewardSearchQuery.toLowerCase()) ||
-                    item.rewardTitle.toLowerCase().includes(rewardSearchQuery.toLowerCase())
-                  ).length === 0 ? (
-                    <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center text-slate-400">
-                      <p className="text-sm font-bold text-slate-600">No approved redemptions yet</p>
+                  {approvedRedemptions.length === 0 ? (
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center text-slate-400 shadow-xs">
+                      <p className="text-sm font-bold text-slate-700">No approved redemptions yet</p>
                     </div>
                   ) : (
-                    approvedRedemptions
-                      .filter(item => 
-                        !rewardSearchQuery || 
-                        item.customerName.toLowerCase().includes(rewardSearchQuery.toLowerCase()) || 
-                        item.customerId.toLowerCase().includes(rewardSearchQuery.toLowerCase()) ||
-                        item.rewardTitle.toLowerCase().includes(rewardSearchQuery.toLowerCase())
-                      )
-                      .map((item) => (
-                        <div key={item.id} className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition flex items-center justify-between gap-3">
-                          <div className="flex items-center space-x-3.5 min-w-0">
-                            {/* Left Voucher Thumbnail */}
-                            {renderVoucherTile(item.voucherType || item.rewardTitle)}
+                    approvedRedemptions.map((item) => (
+                      <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3">
+                        <div className="flex items-start space-x-3.5 sm:space-x-4">
+                          {/* Left Voucher Thumbnail */}
+                          {renderVoucherTile(item.voucherType || item.rewardTitle)}
 
-                            {/* Middle Claim Info */}
-                            <div className="min-w-0">
-                              <h4 className="text-sm font-black text-slate-900 leading-snug">{item.customerName}</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">{item.customerId}</p>
-                              <p className="text-xs font-bold text-slate-800 mt-0.5 truncate">{item.rewardTitle}</p>
-                              <p className="text-[11px] text-slate-400 mt-1 flex items-center space-x-1">
-                                <Clock className="w-3 h-3 text-slate-400" />
-                                <span>Approved on {item.approvedAt}</span>
-                              </p>
+                          {/* Middle Claim Info */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
+                            <p className="text-xs text-slate-400 font-mono font-medium mt-0.5">{item.customerId}</p>
+                            <p className="text-xs sm:text-sm font-bold text-blue-900 mt-1.5 leading-snug">{item.rewardTitle}</p>
+                            
+                            <div className="mt-1.5 text-xs text-slate-500">
+                              <span className="block text-slate-400 text-[11px]">Approved on</span>
+                              <span className="font-semibold text-slate-700">{item.approvedAt}</span>
                             </div>
                           </div>
-
-                          <div className="shrink-0">
-                            <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-bold px-3 py-1.5 rounded-full flex items-center space-x-1">
-                              <span>Approved</span>
-                              <Check className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
                         </div>
-                      ))
+
+                        {/* Bottom Right Approved Badge */}
+                        <div className="flex justify-end pt-1 border-t border-slate-100/80">
+                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5">
+                            <span>Approved</span>
+                            <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[2.5]" />
+                          </span>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               )}
@@ -2116,49 +2111,39 @@ export default function MerchantDashboard() {
               {/* TAB 3: DECLINED REDEMPTIONS (Screen 11) */}
               {rewardsViewTab === 'declined' && (
                 <div className="space-y-3.5">
-                  {declinedRedemptions.filter(item => 
-                    !rewardSearchQuery || 
-                    item.customerName.toLowerCase().includes(rewardSearchQuery.toLowerCase()) || 
-                    item.customerId.toLowerCase().includes(rewardSearchQuery.toLowerCase()) ||
-                    item.rewardTitle.toLowerCase().includes(rewardSearchQuery.toLowerCase())
-                  ).length === 0 ? (
-                    <div className="bg-white border border-slate-200 rounded-3xl p-10 text-center text-slate-400">
-                      <p className="text-sm font-bold text-slate-600">No declined redemption requests</p>
+                  {declinedRedemptions.length === 0 ? (
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center text-slate-400 shadow-xs">
+                      <p className="text-sm font-bold text-slate-700">No declined redemption requests</p>
                     </div>
                   ) : (
-                    declinedRedemptions
-                      .filter(item => 
-                        !rewardSearchQuery || 
-                        item.customerName.toLowerCase().includes(rewardSearchQuery.toLowerCase()) || 
-                        item.customerId.toLowerCase().includes(rewardSearchQuery.toLowerCase()) ||
-                        item.rewardTitle.toLowerCase().includes(rewardSearchQuery.toLowerCase())
-                      )
-                      .map((item) => (
-                        <div key={item.id} className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition flex items-center justify-between gap-3">
-                          <div className="flex items-center space-x-3.5 min-w-0">
-                            {/* Left Voucher Thumbnail */}
-                            {renderVoucherTile(item.voucherType || item.rewardTitle)}
+                    declinedRedemptions.map((item) => (
+                      <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3">
+                        <div className="flex items-start space-x-3.5 sm:space-x-4">
+                          {/* Left Voucher Thumbnail */}
+                          {renderVoucherTile(item.voucherType || item.rewardTitle)}
 
-                            {/* Middle Claim Info */}
-                            <div className="min-w-0">
-                              <h4 className="text-sm font-black text-slate-900 leading-snug">{item.customerName}</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">{item.customerId}</p>
-                              <p className="text-xs font-bold text-slate-600 mt-0.5 truncate">{item.rewardTitle}</p>
-                              <p className="text-[11px] text-rose-600 mt-1 flex items-center space-x-1">
-                                <Clock className="w-3 h-3 text-rose-500" />
-                                <span>Declined on {item.declinedAt}</span>
-                              </p>
+                          {/* Middle Claim Info */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
+                            <p className="text-xs text-slate-400 font-mono font-medium mt-0.5">{item.customerId}</p>
+                            <p className="text-xs sm:text-sm font-bold text-slate-700 mt-1.5 leading-snug">{item.rewardTitle}</p>
+                            
+                            <div className="mt-1.5 text-xs text-rose-600">
+                              <span className="block text-slate-400 text-[11px]">Declined on</span>
+                              <span className="font-semibold text-rose-700">{item.declinedAt}</span>
                             </div>
                           </div>
-
-                          <div className="shrink-0">
-                            <span className="bg-rose-50 text-rose-700 border border-rose-200/80 text-xs font-bold px-3 py-1.5 rounded-full flex items-center space-x-1">
-                              <span>Declined</span>
-                              <X className="w-3.5 h-3.5" />
-                            </span>
-                          </div>
                         </div>
-                      ))
+
+                        {/* Bottom Right Declined Badge */}
+                        <div className="flex justify-end pt-1 border-t border-slate-100/80">
+                          <span className="bg-rose-50 text-rose-800 border border-rose-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5">
+                            <span>Declined</span>
+                            <X className="w-3.5 h-3.5 text-rose-700 stroke-[2.5]" />
+                          </span>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               )}
@@ -2358,211 +2343,200 @@ export default function MerchantDashboard() {
           {/* VIEW 1: HOME TAB (Image 3) */}
           {/* ------------------------------------------------------------- */}
                     {/* ============================================================= */}
-          {/* SCREEN 8: HOME DASHBOARD (Matching Uploaded Screen 8) */}
+          {/* SCREEN 8: HOME DASHBOARD (Matching Uploaded Mockup) */}
+          {/* Responsive for Mobile and Laptop */}
           {/* ============================================================= */}
           {activeTab === 'home' && (
-            <div className="space-y-6 pb-20 animate-in fade-in duration-200">
-              
+            <div className="space-y-4 sm:space-y-6 pb-24 md:pb-12 animate-in fade-in duration-200">
 
-
-              {/* OVERVIEW SECTION (Screen 8) */}
+              {/* OVERVIEW SECTION (Matching Image Header & Period Filter) */}
               {isFeatureVisible('home_overview') && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight">Overview</h2>
-                  
-                  {/* Period Dropdown Filter */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-                      className="bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
-                    >
-                      <span>{overviewPeriod}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                    </button>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="text-base sm:text-xl font-black text-slate-900 tracking-tight">Overview</h2>
+                    
+                    {/* Period Dropdown Filter ("This Month ∨") */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
+                        className="bg-white border border-slate-200/90 hover:border-slate-300 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl shadow-2xs flex items-center space-x-1.5 transition cursor-pointer"
+                      >
+                        <span>{overviewPeriod}</span>
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
 
-                    {periodDropdownOpen && (
-                      <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-20 text-xs font-bold text-slate-700">
-                        {['This Month', 'Today', 'This Week', 'All Time'].map((p) => (
-                          <button
-                            key={p}
-                            onClick={() => { setOverviewPeriod(p); setPeriodDropdownOpen(false); }}
-                            className={`w-full text-left px-3.5 py-2 hover:bg-rose-50 hover:text-[#74111d] transition cursor-pointer ${
-                              overviewPeriod === p ? 'text-[#74111d] font-black bg-rose-50/50' : ''
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        ))}
+                      {periodDropdownOpen && (
+                        <div className="absolute right-0 mt-1 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1 z-30 text-xs font-bold text-slate-700 animate-in fade-in zoom-in-95 duration-100">
+                          {['This Month', 'Today', 'This Week', 'All Time'].map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => { setOverviewPeriod(p); setPeriodDropdownOpen(false); }}
+                              className={`w-full text-left px-3.5 py-2 hover:bg-rose-50 hover:text-[#8B0000] transition cursor-pointer ${
+                                overviewPeriod === p ? 'text-[#8B0000] font-black bg-rose-50/60' : ''
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 4 Overview Metric Cards (2x2 on Mobile, 4-in-a-row on Laptop - Matching media_1791468006886.png) */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+                    {/* Card 1: Total Scans */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
+                        <FileText className="w-6 h-6 text-rose-700 stroke-[2]" />
                       </div>
-                    )}
+                      <div className="min-w-0">
+                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Total Scans</div>
+                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                          {overviewPeriod === 'Today' ? todayStats.scansToday : '2,453'}
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+18.5%</div>
+                      </div>
+                    </div>
+
+                    {/* Card 2: Total Customers */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
+                        <User className="w-6 h-6 text-purple-600 stroke-[2]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Total Customers</div>
+                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                          {overviewPeriod === 'Today' ? (todayStats.completedToday * 2) : '586'}
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+12.3%</div>
+                      </div>
+                    </div>
+
+                    {/* Card 3: Rewards Redeemed */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
+                        <Gift className="w-6 h-6 text-emerald-600 stroke-[2]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Rewards Redeemed</div>
+                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                          {overviewPeriod === 'Today' ? todayStats.completedToday : '128'}
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+15.7%</div>
+                      </div>
+                    </div>
+
+                    {/* Card 4: Repeat Rate */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
+                        <RefreshCw className="w-6 h-6 text-amber-500 stroke-[2]" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Repeat Rate</div>
+                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                          42%
+                        </div>
+                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+8.2%</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* 4 Overview Metric Cards in 2x2 Grid (Screen 8) */}
-                <div className="grid grid-cols-2 gap-3.5 sm:gap-5">
-                  {/* Card 1: Total Scans */}
-                  <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#74111d] flex items-center justify-center">
-                        <QrCode className="w-5 h-5" />
-                      </div>
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full flex items-center space-x-0.5">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>+18.5%</span>
-                      </span>
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                      {overviewPeriod === 'Today' ? todayStats.scansToday : '2,453'}
-                    </div>
-                    <div className="text-xs font-bold text-slate-500 mt-0.5">Total Scans</div>
-                    <div className="text-[10px] text-slate-400 font-medium lowercase">{overviewPeriod}</div>
-                  </div>
-
-                  {/* Card 2: Total Customers */}
-                  <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <Users className="w-5 h-5" />
-                      </div>
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full flex items-center space-x-0.5">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>+12.3%</span>
-                      </span>
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                      {overviewPeriod === 'Today' ? (todayStats.completedToday * 2) : '586'}
-                    </div>
-                    <div className="text-xs font-bold text-slate-500 mt-0.5">Total Customers</div>
-                    <div className="text-[10px] text-slate-400 font-medium lowercase">{overviewPeriod}</div>
-                  </div>
-
-                  {/* Card 3: Rewards Redeemed */}
-                  <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <Gift className="w-5 h-5" />
-                      </div>
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full flex items-center space-x-0.5">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>+15.7%</span>
-                      </span>
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                      {overviewPeriod === 'Today' ? todayStats.completedToday : '128'}
-                    </div>
-                    <div className="text-xs font-bold text-slate-500 mt-0.5">Rewards Redeemed</div>
-                    <div className="text-[10px] text-slate-400 font-medium lowercase">{overviewPeriod}</div>
-                  </div>
-
-                  {/* Card 4: Repeat Rate */}
-                  <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <Repeat className="w-5 h-5" />
-                      </div>
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-[11px] font-black px-2 py-0.5 rounded-full flex items-center space-x-0.5">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>+8.2%</span>
-                      </span>
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                      42%
-                    </div>
-                    <div className="text-xs font-bold text-slate-500 mt-0.5">Repeat Rate</div>
-                    <div className="text-[10px] text-slate-400 font-medium lowercase">{overviewPeriod}</div>
-                  </div>
-                </div>
-              </div>
               )}
 
-              {/* YOUR QR CODE SECTION (Screen 8) */}
+              {/* YOUR QR CODE SECTION (Matching Image with Download & Print buttons) */}
               {isFeatureVisible('home_qr_code') && (
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
-                <div>
-                  <h3 className="text-base font-black text-slate-900 tracking-tight">Your QR Code</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Place this QR code on your store counter for customers to scan and earn stamps.
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-5 pt-1">
-                  {/* Left QR Code Container */}
-                  <div className="w-40 h-40 bg-white rounded-2xl p-2.5 border-2 border-slate-100 flex items-center justify-center shadow-md relative shrink-0">
-                    {merchantQrDataUrl ? (
-                      <img src={merchantQrDataUrl} alt="Store QR Code" className="w-32 h-32 object-contain" />
-                    ) : (
-                      <svg className="w-32 h-32" viewBox="0 0 100 100" fill="currentColor">
-                        <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 10h10v10H40zM50 20h10v10H50zM40 30h10v10H40zM20 40h10v10H20zM30 50h10v10H30zM10 50h10v10H10zM50 50h10v10H50zM60 40h10v10H60zM70 50h10v10H70zM80 40h10v10H80zM40 70h10v10H40zM50 80h10v10H50zM70 70h10v10H70zM80 80h10v10H80zM90 70h10v10H90z"/>
-                      </svg>
-                    )}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-9 h-9 rounded-xl bg-[#74111d] flex items-center justify-center text-white shadow-md border-2 border-white font-black text-xs overflow-hidden">
-                        {storeLogo ? (
-                          <img src={storeLogo} alt="Logo" className="w-full h-full object-cover rounded-xl" />
-                        ) : (
-                          <Coffee className="w-4 h-4 text-amber-200" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Action Buttons */}
-                  <div className="flex flex-col w-full space-y-2.5">
-                    <button
-                      onClick={handleDownload}
-                      className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3 px-5 rounded-2xl shadow-md shadow-[#74111d]/20 transition flex items-center justify-center space-x-2 cursor-pointer"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Download QR</span>
-                    </button>
-
-                    <button
-                      onClick={handlePrintQr}
-                      className="w-full border-2 border-[#74111d] text-[#74111d] hover:bg-rose-50 font-extrabold py-3 px-5 rounded-2xl transition flex items-center justify-center space-x-2 cursor-pointer"
-                    >
-                      <Printer className="w-4 h-4" />
-                      <span>Print QR</span>
-                    </button>
-
-                    <button
-                      onClick={handleCopyLink}
-                      className="w-full text-slate-500 hover:text-slate-800 text-xs font-bold py-1 transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>{copiedToast ? 'Copied Scan Link!' : 'Copy Counter Scan Link'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              )}
-
-              {/* ACTIVE PLAN BANNER (Screen 8) */}
-              {isFeatureVisible('home_plan_banner') && (
-              <div className="bg-gradient-to-r from-rose-50 via-pink-50/70 to-rose-50 border border-rose-200/90 rounded-3xl p-5 flex items-center justify-between shadow-xs">
-                <div className="flex items-center space-x-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center shadow-md shrink-0">
-                    <Crown className="w-6 h-6 text-white" />
-                  </div>
+                <div className="bg-white border border-slate-100/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
                   <div>
-                    <div className="flex items-center space-x-2">
-                      <h4 className="text-sm font-black text-slate-900 leading-snug">Pro Plan</h4>
-                      <span className="bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-full">Active</span>
-                    </div>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">
-                      Valid until 20 Aug 2026 • ₹999 / year
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">Your QR Code</h3>
+                    <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                      Let customers scan to collect stamps
                     </p>
                   </div>
-                </div>
 
-                <button
-                  onClick={() => setUpgradeModalOpen(true)}
-                  className="bg-white hover:bg-rose-50 text-[#74111d] font-black text-xs px-4 py-2.5 rounded-xl shadow-xs border border-rose-200 flex items-center space-x-1 cursor-pointer transition shrink-0"
-                >
-                  <span>Manage</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                  <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-8 pt-1">
+                    {/* Left: QR Code with centered gift badge */}
+                    <div className="w-44 h-44 sm:w-48 sm:h-48 bg-white rounded-2xl p-2.5 border border-slate-100 flex items-center justify-center shadow-xs relative shrink-0">
+                      {merchantQrDataUrl ? (
+                        <img src={merchantQrDataUrl} alt="Store QR Code" className="w-36 h-36 sm:w-40 sm:h-40 object-contain" />
+                      ) : (
+                        <svg className="w-36 h-36" viewBox="0 0 100 100" fill="currentColor">
+                          <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 10h10v10H40zM50 20h10v10H50zM40 30h10v10H40zM20 40h10v10H20zM30 50h10v10H30zM10 50h10v10H10zM50 50h10v10H50zM60 40h10v10H60zM70 50h10v10H70zM80 40h10v10H80zM40 70h10v10H40zM50 80h10v10H50zM70 70h10v10H70zM80 80h10v10H80zM90 70h10v10H90z"/>
+                        </svg>
+                      )}
+                      
+                      {/* Center Gift Box Badge (Exact match to uploaded image) */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#8B0000] flex items-center justify-center text-white shadow-md border-2 border-white">
+                          <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Action Buttons */}
+                    <div className="flex flex-col justify-center w-full sm:max-w-xs space-y-3">
+                      <button
+                        type="button"
+                        onClick={handleDownload}
+                        className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold py-3.5 px-6 rounded-xl sm:rounded-2xl shadow-md shadow-red-950/20 transition flex items-center justify-center space-x-2 cursor-pointer text-sm"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download QR</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handlePrintQr}
+                        className="w-full border border-slate-200 hover:border-[#8B0000] bg-white hover:bg-rose-50/50 text-[#8B0000] font-extrabold py-3.5 px-6 rounded-xl sm:rounded-2xl transition flex items-center justify-center space-x-2 cursor-pointer text-sm shadow-2xs"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>Print QR</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        className="w-full text-slate-400 hover:text-slate-700 text-xs font-bold py-1 transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{copiedToast ? 'Copied Scan Link!' : 'Copy Counter Scan Link'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ACTIVE PLAN BANNER ("You're on Pro Plan" — Exact Match to Image) */}
+              {isFeatureVisible('home_plan_banner') && (
+                <div className="bg-gradient-to-r from-orange-50/70 via-rose-50/80 to-amber-50/70 border border-orange-200/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+                  <div className="flex items-center space-x-3.5">
+                    {/* Glowing Gold Crown */}
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Crown className="w-6 h-6 text-white fill-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm sm:text-base font-black text-slate-900 leading-snug">
+                        You're on Pro Plan
+                      </h4>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        Your plan is active until 20 Aug 2026
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Price Pill Button */}
+                  <button
+                    type="button"
+                    onClick={() => setBuyPlanModalOpen(true)}
+                    className="bg-white hover:bg-rose-50/60 border border-rose-200/60 shadow-2xs px-3.5 py-1.5 rounded-xl flex items-center space-x-1 cursor-pointer transition shrink-0 group"
+                  >
+                    <span className="font-black text-[#8B0000] text-xs sm:text-sm">₹999</span>
+                    <span className="text-slate-500 text-[11px] font-bold">/ year</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-[#8B0000] group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                </div>
               )}
 
             </div>
@@ -2878,190 +2852,278 @@ export default function MerchantDashboard() {
                     {/* ============================================================= */}
           {/* SCREEN 12: CREATE OFFER PROGRAM (Directly Matching Screen 12) */}
           {/* ============================================================= */}
+          {/* ============================================================= */}
+          {/* SCREEN 12: CREATE OFFER PROGRAM (Matching media_1791467973803.png) */}
+          {/* Responsive for Mobile and Laptop */}
+          {/* ============================================================= */}
           {activeTab === 'create_offer' && (
-            <div className="space-y-6 pb-20 animate-in fade-in duration-200 max-w-2xl mx-auto">
+            <div className="space-y-4 sm:space-y-6 pb-24 md:pb-12 max-w-xl mx-auto animate-in fade-in duration-200">
               
-              {/* Header */}
-              <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Create Offer</h2>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                  Design an attractive stamp card loyalty reward program for your customers
-                </p>
-              </div>
+              {/* Main Card Form */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-5">
+                
+                {/* 1. Offer Image */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800">Offer Image</label>
+                  <p className="text-xs text-slate-400 mt-0.5">Upload attractive image for your offer</p>
 
+                  <div className="flex items-center space-x-3 mt-3">
+                    {/* Active Offer Image / Default Red 30% OFF Badge */}
+                    {!offerImageRemoved && (
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl relative overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white flex flex-col items-center justify-center p-2 text-center shadow-xs border border-red-950/20 shrink-0">
+                        {offerBanner ? (
+                          <img src={offerBanner} alt="Offer Banner" className="w-full h-full object-cover rounded-xl" />
+                        ) : (
+                          <>
+                            <span className="text-2xl sm:text-3xl font-black leading-none">30%</span>
+                            <span className="text-sm sm:text-base font-black leading-tight">OFF</span>
+                            <span className="text-[8px] font-bold text-red-200 mt-1 uppercase tracking-wider">LIMITED TIME</span>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOfferBanner('');
+                            setOfferImageRemoved(true);
+                          }}
+                          className="w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center absolute top-1.5 right-1.5 text-xs transition cursor-pointer shadow-xs"
+                          title="Remove image"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
 
+                    {/* Upload Image Box */}
+                    <input 
+                      type="file" 
+                      ref={offerBannerInputRef} 
+                      accept="image/*" 
+                      onChange={handleOfferBannerUpload} 
+                      className="hidden" 
+                    />
+                    <div 
+                      onClick={() => offerBannerInputRef.current?.click()}
+                      className="w-28 h-24 sm:w-32 sm:h-28 rounded-2xl border-2 border-dashed border-slate-300 hover:border-red-400 bg-slate-50/50 flex flex-col items-center justify-center p-2 text-center cursor-pointer transition shrink-0 group"
+                    >
+                      <ImageIcon className="w-6 h-6 text-red-600 mb-1 group-hover:scale-110 transition" />
+                      <span className="text-xs font-bold text-red-700">Upload Image</span>
+                      <span className="text-[9px] text-slate-400 mt-0.5">JPG, PNG up to 5MB</span>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Card 1: Upload Offer Image Banner */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-3">
-                <label className="block text-xs font-black uppercase text-slate-700">
-                  Upload Offer Image Banner
-                </label>
-                <input 
-                  type="file" 
-                  ref={offerBannerInputRef} 
-                  accept="image/*" 
-                  onChange={handleOfferBannerUpload} 
-                  className="hidden" 
-                />
+                {/* 2. Offer Title */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">Offer Title</label>
+                  <div className="relative flex items-center bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus-within:border-red-600 focus-within:ring-1 focus-within:ring-red-600/20 transition">
+                    <input
+                      type="text"
+                      maxLength={100}
+                      value={offerTitle}
+                      onChange={(e) => setOfferTitle(e.target.value)}
+                      placeholder="30% OFF on Next Purchase"
+                      className="w-full text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none bg-transparent pr-14"
+                    />
+                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
+                      {offerTitle.length}/100
+                    </span>
+                  </div>
+                </div>
 
-                {offerBanner ? (
-                  <div className="relative rounded-2xl overflow-hidden border border-slate-200 h-44 bg-slate-100 group">
-                    <img src={offerBanner} alt="Offer Banner" className="w-full h-full object-cover" />
+                {/* 3. Offer Description */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">Offer Description</label>
+                  <div className="relative bg-white border border-slate-200 rounded-xl p-3 focus-within:border-red-600 focus-within:ring-1 focus-within:ring-red-600/20 transition">
+                    <textarea
+                      rows={3}
+                      maxLength={200}
+                      value={offerDescription}
+                      onChange={(e) => setOfferDescription(e.target.value)}
+                      placeholder="Get 30% off on your next purchase. Thank you for being our loyal customer!"
+                      className="w-full text-xs sm:text-sm font-medium text-slate-800 focus:outline-none bg-transparent resize-none pb-4"
+                    />
+                    <span className="absolute bottom-2 right-3 text-xs text-slate-400 font-medium">
+                      {offerDescription.length}/200
+                    </span>
+                  </div>
+                </div>
+
+                {/* 4. Two Columns: Required Stamps & Expiry */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* Left: Required Stamps */}
+                  <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
+                    <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
+                      <User className="w-4 h-4 text-red-700" />
+                      <span>Required Stamps</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-4 my-2">
+                      <button
+                        type="button"
+                        onClick={() => setOfferStampsRequired(Math.max(1, offerStampsRequired - 1))}
+                        className="w-8 h-8 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-lg transition cursor-pointer shadow-2xs"
+                      >
+                        -
+                      </button>
+                      <span className="text-xl font-black text-slate-900 w-8 text-center">{offerStampsRequired}</span>
+                      <button
+                        type="button"
+                        onClick={() => setOfferStampsRequired(Math.min(20, offerStampsRequired + 1))}
+                        className="w-8 h-8 rounded-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold flex items-center justify-center text-lg transition cursor-pointer shadow-xs"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-tight mt-1">
+                      Customer needs to collect {offerStampsRequired} stamps to unlock this offer
+                    </p>
+                  </div>
+
+                  {/* Right: Expiry */}
+                  <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
+                    <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
+                      <Calendar className="w-4 h-4 text-red-700" />
+                      <span>Expiry</span>
+                    </div>
+                    <div className="relative my-2">
+                      <select
+                        value={offerValidity}
+                        onChange={(e) => setOfferValidity(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 appearance-none focus:outline-none focus:border-red-600 cursor-pointer pr-8"
+                      >
+                        <option value="30 Days">30 Days</option>
+                        <option value="60 Days">60 Days</option>
+                        <option value="90 Days">90 Days</option>
+                        <option value="180 Days">6 Months</option>
+                        <option value="365 Days">1 Year</option>
+                        <option value="No Expiry">No Expiry</option>
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-tight mt-1">
+                      Offer will expire after {offerValidity} from creation
+                    </p>
+                  </div>
+                </div>
+
+                {/* 5. Highlight Banner */}
+                <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-red-700 flex items-center justify-center shrink-0">
+                    <Gift className="w-4 h-4 text-red-700" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-700 leading-snug">
+                    This offer will be available for all customers once they collect the required stamps.
+                  </p>
+                </div>
+
+                {/* 6. Action Buttons */}
+                <div className="space-y-2.5 pt-1">
+                  {/* Button 1: Add Another Offer */}
+                  <button
+                    type="button"
+                    onClick={handleResetOrNewOffer}
+                    className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-[#74111d] font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-4 h-4 text-[#74111d]" />
+                    <span>Add Another Offer</span>
+                  </button>
+
+                  {/* Button 2: Save Offer Program */}
+                  <button
+                    type="button"
+                    onClick={handleSaveOfferProgram}
+                    className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                  >
+                    <span>Save Offer Program</span>
+                  </button>
+
+                  {/* Button 3: View Offer Preview */}
+                  <div>
                     <button
                       type="button"
-                      onClick={() => setOfferBanner('')}
-                      className="absolute top-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white p-2 rounded-xl text-xs transition cursor-pointer"
+                      onClick={() => setShowOfferPreview(!showOfferPreview)}
+                      className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-[#74111d]/40 font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-xs"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Eye className="w-4 h-4 text-[#74111d]" />
+                      <span>{showOfferPreview ? 'Hide Offer Preview' : 'View Offer Preview'}</span>
                     </button>
+                    <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                      See how this offer will appear to your customers
+                    </p>
                   </div>
-                ) : (
-                  <div 
-                    onClick={() => offerBannerInputRef.current?.click()}
-                    className="border-2 border-dashed border-rose-300 hover:border-red-500 bg-rose-50/40 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition text-center group"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center mb-2 group-hover:scale-105 transition">
-                      <Camera className="w-6 h-6" />
+                </div>
+
+              </div>
+
+              {/* 7. Offer Preview (As seen by customers) - Matching Image 1 */}
+              {showOfferPreview && (
+                <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+                  <div className="flex items-center space-x-1.5 px-1">
+                    <span className="text-xs font-bold text-[#74111d]">Offer Preview</span>
+                    <span className="text-[11px] text-slate-400 font-medium">(As seen by customers)</span>
+                  </div>
+
+                  {/* Customer View Card */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm space-y-3">
+                    <div className="flex items-start space-x-3 sm:space-x-4">
+                      {/* Left Thumbnail */}
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white shrink-0 flex flex-col items-center justify-center text-center p-1.5 shadow-2xs">
+                        {offerBanner && !offerImageRemoved ? (
+                          <img src={offerBanner} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <>
+                            <span className="text-xl sm:text-2xl font-black leading-none">30%</span>
+                            <span className="text-xs sm:text-sm font-black leading-tight">OFF</span>
+                            <span className="text-[7px] font-bold text-red-200 uppercase tracking-wider mt-0.5">LIMITED TIME</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Right Content */}
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                          {offerTitle || '30% OFF on Next Purchase'}
+                        </h4>
+                        <p className="text-[11px] sm:text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed font-medium">
+                          {offerDescription || 'Get 30% off on your next purchase. Thank you for being our loyal customer!'}
+                        </p>
+
+                        {/* Meta Badges */}
+                        <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] font-bold text-slate-600">
+                          <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
+                            <User className="w-3 h-3 text-slate-500" />
+                            <span>{offerStampsRequired} Stamps Required</span>
+                          </div>
+                          <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
+                            <Calendar className="w-3 h-3 text-slate-500" />
+                            <span>Valid for {offerValidity}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-xs font-black text-slate-900">Upload Offer Banner</span>
-                    <span className="text-[11px] text-slate-400 mt-0.5">Recommended size 800x400 PNG or JPG</span>
-                  </div>
-                )}
-              </div>
 
-              {/* Card 2: Offer Title with Character Counter (Screen 12) */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-black uppercase text-slate-700">
-                    Offer Title
-                  </label>
-                  <span className="text-xs text-slate-400 font-mono">
-                    {offerTitle.length}/100
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  maxLength={100}
-                  value={offerTitle}
-                  onChange={(e) => setOfferTitle(e.target.value)}
-                  placeholder="e.g. Free Cold Coffee on 5th Visit"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-900 font-bold focus:outline-none focus:border-red-600"
-                />
-              </div>
-
-              {/* Card 3: Offer Description with Character Counter (Screen 12) */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-black uppercase text-slate-700">
-                    Offer Description
-                  </label>
-                  <span className="text-xs text-slate-400 font-mono">
-                    {offerDescription.length}/200
-                  </span>
-                </div>
-                <textarea
-                  rows={3}
-                  maxLength={200}
-                  value={offerDescription}
-                  onChange={(e) => setOfferDescription(e.target.value)}
-                  placeholder="e.g. Buy 4 coffees and get 5th cup of Cold Coffee absolutely free."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 font-medium focus:outline-none focus:border-red-600 resize-none"
-                />
-              </div>
-
-              {/* Card 4: Required Stamps Stepper (Screen 12) */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-3">
-                <label className="block text-xs font-black uppercase text-slate-700">
-                  Required Stamps
-                </label>
-                <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-2xl p-3">
-                  <button
-                    type="button"
-                    onClick={() => setOfferStampsRequired(Math.max(1, offerStampsRequired - 1))}
-                    className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-800 font-black text-lg flex items-center justify-center hover:bg-slate-100 transition cursor-pointer shadow-xs"
-                  >
-                    -
-                  </button>
-                  <div className="text-center">
-                    <span className="text-xl font-black text-slate-900">{offerStampsRequired} Stamps</span>
-                    <span className="block text-[10px] text-slate-400 font-medium mt-0.5">Scans needed to unlock reward</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setOfferStampsRequired(Math.min(20, offerStampsRequired + 1))}
-                    className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-800 font-black text-lg flex items-center justify-center hover:bg-slate-100 transition cursor-pointer shadow-xs"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Card 5: Offer Expiry / Validity (Screen 12) */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-2">
-                <label className="block text-xs font-black uppercase text-slate-700">
-                  Offer Validity
-                </label>
-                <select
-                  value={offerValidity}
-                  onChange={(e) => setOfferValidity(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-900 font-bold focus:outline-none focus:border-red-600"
-                >
-                  <option value="30 Days">30 Days</option>
-                  <option value="60 Days">60 Days</option>
-                  <option value="90 Days">90 Days</option>
-                  <option value="180 Days">6 Months</option>
-                  <option value="365 Days">1 Year</option>
-                  <option value="No Expiry">No Expiry</option>
-                </select>
-              </div>
-
-              {/* Live Stamp Card Customer Preview */}
-              <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-red-300">
-                    Customer Wallet Preview
-                  </span>
-                  <span className="text-xs text-slate-400 font-bold">
-                    {storeName}
-                  </span>
-                </div>
-
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black text-white">{offerTitle || 'Reward Title'}</h3>
-                  <p className="text-xs text-slate-300 font-medium">{offerDescription || 'Reward Description'}</p>
-                </div>
-
-                {/* Stamp Circles Grid */}
-                <div className="pt-2 flex flex-wrap gap-2.5">
-                  {Array.from({ length: offerStampsRequired }).map((_, i) => (
-                    <div 
-                      key={i} 
-                      className={`w-10 h-10 rounded-2xl border-2 flex items-center justify-center font-black text-xs ${
-                        i === offerStampsRequired - 1 
-                          ? 'border-amber-400 bg-amber-400/20 text-amber-300' 
-                          : 'border-white/20 bg-white/10 text-white/60'
-                      }`}
-                    >
-                      {i === offerStampsRequired - 1 ? <Gift className="w-4 h-4 text-amber-300" /> : <Coffee className="w-3.5 h-3.5 text-white/60" />}
+                    {/* Customer Bottom Navigation Mockup */}
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-around text-[10px] font-bold">
+                      <div className="flex flex-col items-center space-y-0.5 text-[#74111d]">
+                        <Home className="w-3.5 h-3.5 stroke-[2.5]" />
+                        <span>Home</span>
+                      </div>
+                      <div className="flex flex-col items-center space-y-0.5 text-slate-400">
+                        <Award className="w-3.5 h-3.5" />
+                        <span>Stamps</span>
+                      </div>
+                      <div className="flex flex-col items-center space-y-0.5 text-slate-400">
+                        <Gift className="w-3.5 h-3.5" />
+                        <span>Rewards</span>
+                      </div>
+                      <div className="flex flex-col items-center space-y-0.5 text-slate-400">
+                        <User className="w-3.5 h-3.5" />
+                        <span>Profile</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-
-                <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-white/10">
-                  <span>Validity: {offerValidity}</span>
-                  <span className="text-emerald-400 font-bold">Earn 1 stamp per scan</span>
-                </div>
-              </div>
-
-              {/* Save Offer Button (Screen 12) */}
-              <button
-                type="button"
-                onClick={handleSaveOfferProgram}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-4 px-6 rounded-2xl shadow-lg shadow-[#74111d]/25 transition flex items-center justify-center space-x-2 text-sm cursor-pointer"
-              >
-                <PlusCircle className="w-4 h-4" />
-                <span>Save Offer Program</span>
-              </button>
+              )}
 
             </div>
           )}
@@ -3352,49 +3414,45 @@ export default function MerchantDashboard() {
                   </div>
                 )}
 
-                {/* Row 4: Privacy & Security */}
-                {isFeatureVisible('privacy_security') && (
-                  <div 
-                    onClick={() => setPrivacyModalOpen(true)}
-                    className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
-                  >
-                    <div className="flex items-center space-x-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                        <ShieldCheck className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy & Security</h4>
-                          <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">BETA</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-medium">Control your data</p>
-                      </div>
+                {/* Row 4: Privacy Policy */}
+                <div 
+                  onClick={() => {
+                    setLegalPolicyModalTab('privacy');
+                    setLegalPolicyModalOpen(true);
+                  }}
+                  className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                      <ShieldCheck className="w-5 h-5" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy Policy</h4>
+                      <p className="text-[11px] text-slate-500 font-medium">Read data & privacy policies</p>
+                    </div>
                   </div>
-                )}
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </div>
 
-                {/* Row 5: Help & Support */}
-                {isFeatureVisible('help_support') && (
-                  <div 
-                    onClick={() => setSupportModalOpen(true)}
-                    className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
-                  >
-                    <div className="flex items-center space-x-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
-                        <HelpCircle className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900">Help & Support</h4>
-                          <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">BETA</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-medium">Get help or contact us</p>
-                      </div>
+                {/* Row 5: Terms & Conditions */}
+                <div 
+                  onClick={() => {
+                    setLegalPolicyModalTab('terms');
+                    setLegalPolicyModalOpen(true);
+                  }}
+                  className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                      <FileText className="w-5 h-5" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Terms & Conditions</h4>
+                      <p className="text-[11px] text-slate-500 font-medium">Read user terms & conditions</p>
+                    </div>
                   </div>
-                )}
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </div>
 
               </div>
 
@@ -3865,9 +3923,12 @@ export default function MerchantDashboard() {
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
 
-                {/* Row 4: Privacy & Security */}
+                {/* Row 4: Privacy Policy */}
                 <div 
-                  onClick={() => setPrivacyModalOpen(true)}
+                  onClick={() => {
+                    setLegalPolicyModalTab('privacy');
+                    setLegalPolicyModalOpen(true);
+                  }}
                   className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-3.5">
@@ -3875,31 +3936,28 @@ export default function MerchantDashboard() {
                       <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="flex items-center space-x-2">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy & Security</h4>
-                        <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">BETA</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 font-medium">Control your data</p>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy Policy</h4>
+                      <p className="text-[11px] text-slate-500 font-medium">Read data & privacy policies</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
 
-                {/* Row 5: Help & Support */}
+                {/* Row 5: Terms & Conditions */}
                 <div 
-                  onClick={() => setSupportModalOpen(true)}
+                  onClick={() => {
+                    setLegalPolicyModalTab('terms');
+                    setLegalPolicyModalOpen(true);
+                  }}
                   className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-3.5">
                     <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
-                      <HelpCircle className="w-5 h-5" />
+                      <FileText className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="flex items-center space-x-2">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900">Help & Support</h4>
-                        <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">BETA</span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 font-medium">Get help or contact us</p>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Terms & Conditions</h4>
+                      <p className="text-[11px] text-slate-500 font-medium">Read user terms & conditions</p>
                     </div>
                   </div>
                   <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -5609,64 +5667,55 @@ export default function MerchantDashboard() {
       )}
 
       {/* ========================================================= */}
-      {/* BOTTOM MOBILE/DESKTOP APP NAVIGATION (Screen 8) */}
+      {/* BOTTOM MOBILE APP NAVIGATION (Screen 8 — Hidden on Desktop) */}
       {/* ========================================================= */}
-      <nav className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-2.5 px-6 z-40 flex items-center justify-around shadow-lg">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/90 py-2 px-6 z-40 flex items-center justify-around shadow-lg">
         <button
+          type="button"
           onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center space-y-1 transition cursor-pointer ${
-            activeTab === 'home' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+          className={`flex flex-col items-center space-y-0.5 transition cursor-pointer relative ${
+            activeTab === 'home' ? 'text-[#8B0000]' : 'text-slate-400 hover:text-slate-600'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition ${activeTab === 'home' ? 'bg-red-50 text-[#74111d]' : ''}`}>
-            <Home className="w-5 h-5" />
+          <div className={`p-1 rounded-xl transition ${activeTab === 'home' ? 'text-[#8B0000]' : ''}`}>
+            <Home className={`w-5 h-5 ${activeTab === 'home' ? 'stroke-[2.5]' : ''}`} />
           </div>
-          <span className={`text-[10px] font-bold ${activeTab === 'home' ? 'font-black' : ''}`}>Home</span>
+          <span className={`text-[10px] font-bold ${activeTab === 'home' ? 'font-black text-[#8B0000]' : ''}`}>Home</span>
+          {activeTab === 'home' && <span className="w-6 h-0.5 bg-[#8B0000] rounded-full mt-0.5" />}
         </button>
 
         {isFeatureVisible('rewards_tab') && (
         <button
+          type="button"
           onClick={() => setActiveTab('rewards')}
-          className={`flex flex-col items-center space-y-1 transition cursor-pointer relative ${
-            activeTab === 'rewards' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+          className={`flex flex-col items-center space-y-0.5 transition cursor-pointer relative ${
+            activeTab === 'rewards' ? 'text-[#8B0000]' : 'text-slate-400 hover:text-slate-600'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition ${activeTab === 'rewards' ? 'bg-red-50 text-[#74111d]' : ''}`}>
-            <Gift className="w-5 h-5" />
+          <div className={`p-1 rounded-xl transition ${activeTab === 'rewards' ? 'text-[#8B0000]' : ''}`}>
+            <Gift className={`w-5 h-5 ${activeTab === 'rewards' ? 'stroke-[2.5]' : ''}`} />
           </div>
-          <span className={`text-[10px] font-bold ${activeTab === 'rewards' ? 'font-black' : ''}`}>Rewards</span>
+          <span className={`text-[10px] font-bold ${activeTab === 'rewards' ? 'font-black text-[#8B0000]' : ''}`}>Rewards</span>
           {pendingRedemptions.length > 0 && (
-            <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-red-600 ring-2 ring-white"></span>
+            <span className="absolute top-1 right-3 w-2 h-2 rounded-full bg-red-600 ring-2 ring-white"></span>
           )}
+          {activeTab === 'rewards' && <span className="w-6 h-0.5 bg-[#8B0000] rounded-full mt-0.5" />}
         </button>
         )}
 
         {isFeatureVisible('create_offer_tab') && (
         <button
+          type="button"
           onClick={() => setActiveTab('create_offer')}
-          className={`flex flex-col items-center space-y-1 transition cursor-pointer ${
-            activeTab === 'create_offer' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
+          className={`flex flex-col items-center space-y-0.5 transition cursor-pointer relative ${
+            activeTab === 'create_offer' ? 'text-[#8B0000]' : 'text-slate-400 hover:text-slate-600'
           }`}
         >
-          <div className={`p-1.5 rounded-xl transition ${activeTab === 'create_offer' ? 'bg-red-50 text-[#74111d]' : ''}`}>
-            <PlusCircle className="w-5 h-5" />
+          <div className={`p-1 rounded-xl transition ${activeTab === 'create_offer' ? 'text-[#8B0000]' : ''}`}>
+            <PlusCircle className={`w-5 h-5 ${activeTab === 'create_offer' ? 'stroke-[2.5]' : ''}`} />
           </div>
-          <span className={`text-[10px] font-bold ${activeTab === 'create_offer' ? 'font-black' : ''}`}>Create Offer</span>
-        </button>
-        )}
-
-
-        {isFeatureVisible('profile_tab') && (
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`flex flex-col items-center space-y-1 transition cursor-pointer ${
-            activeTab === 'profile' ? 'text-[#74111d]' : 'text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <div className={`p-1.5 rounded-xl transition ${activeTab === 'profile' ? 'bg-red-50 text-[#74111d]' : ''}`}>
-            <User className="w-5 h-5" />
-          </div>
-          <span className={`text-[10px] font-bold ${activeTab === 'profile' ? 'font-black' : ''}`}>Profile</span>
+          <span className={`text-[10px] font-bold ${activeTab === 'create_offer' ? 'font-black text-[#8B0000]' : ''}`}>Create Offer</span>
+          {activeTab === 'create_offer' && <span className="w-6 h-0.5 bg-[#8B0000] rounded-full mt-0.5" />}
         </button>
         )}
       </nav>
