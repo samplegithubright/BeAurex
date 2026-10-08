@@ -49,5 +49,120 @@
     background-image: radial-gradient(rgba(255, 255, 255, 0.2) 1.5px, transparent 1.5px);
     background-size: 20px 20px;
   }
+
+  /* ======================================================== */
+  /* Modern Business / SaaS Layout & Component Design Tokens  */
+  /* ======================================================== */
+  .saas-container {
+    max-width: 1200px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .saas-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .saas-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .saas-section {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+  @media (min-width: 640px) {
+    .saas-section {
+      padding-top: 5rem;
+      padding-bottom: 5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .saas-section {
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
+  }
+
+  .saas-card {
+    background-color: #ffffff;
+    border-radius: 1rem;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .saas-card:hover {
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+    border-color: rgba(203, 213, 225, 0.9);
+  }
+
+  .saas-btn-primary {
+    background-color: #8B0000;
+    color: #ffffff;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 1px 2px 0 rgba(139, 0, 0, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .saas-btn-primary:hover {
+    background-color: #700000;
+    box-shadow: 0 4px 12px 0 rgba(139, 0, 0, 0.25);
+  }
+
+  .saas-btn-secondary {
+    background-color: #ffffff;
+    color: #334155;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .saas-btn-secondary:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+  }
+
+  /* Custom horizontal scrollbar for data tables */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 9px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 9999px;
+    margin: 0 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+    border: 2px solid #f1f5f9;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
 }
 

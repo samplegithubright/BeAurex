@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Users, Lock, ShieldCheck, Eye, EyeOff, ArrowLeft, ArrowRight, 
-  AlertCircle, CheckCircle2
+  AlertCircle, CheckCircle2, User
 } from 'lucide-react';
 import { ThemeToggle } from '../context/ThemeContext';
 
@@ -233,31 +233,28 @@ export default function TeamAuthGate({ children }) {
       </header>
 
       {/* Centered Auth Card */}
-      <main className="flex-1 flex items-center justify-center p-4 my-8">
-        <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-10 relative overflow-hidden">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-6 my-auto w-full">
+        <div className="w-full max-w-[380px] sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-9 relative overflow-hidden mx-auto">
           
           {/* Top Wine Red Gradient Highlight Bar */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#74111d] via-[#851421] to-rose-500"></div>
 
-          {/* 3D Team Badge */}
-          <div className="flex justify-center mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#851421] text-white flex items-center justify-center shadow-lg shadow-[#74111d]/30 ring-4 ring-rose-100 dark:ring-rose-950/60 transform rotate-1">
-              <Users className="w-8 h-8" />
+          {/* Colorful Team Badge */}
+          <div className="flex justify-center mb-4 sm:mb-5">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/25 ring-4 ring-rose-50 dark:ring-rose-950/40 transform hover:scale-105 transition-transform">
+              <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-sm" />
             </div>
           </div>
 
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <div className="text-center mb-5 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Staff & Team Portal
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1.5 leading-relaxed">
-              Authorized personnel only. Enter the login credentials created in the Super Admin dashboard to access your personal dashboard.
-            </p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-5 p-3.5 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 rounded-xl text-xs text-red-700 dark:text-red-300 font-bold flex items-start space-x-2.5">
+            <div className="mb-5 p-3 sm:p-3.5 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900/60 rounded-xl text-xs text-red-700 dark:text-red-300 font-bold flex items-start space-x-2.5">
               <AlertCircle className="w-4 h-4 shrink-0 text-red-600 mt-0.5" />
               <span>{error}</span>
             </div>
@@ -266,36 +263,36 @@ export default function TeamAuthGate({ children }) {
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1.5 tracking-wide">
-                Staff Email Address or User ID
+              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
+                Email or User ID
               </label>
               <input
                 type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter staff email or User ID (e.g. 1700)"
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] text-slate-900 dark:text-white font-semibold"
+                placeholder="Enter email or User ID"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 sm:py-3.5 text-sm focus:outline-none focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] text-slate-900 dark:text-white font-bold transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1.5 tracking-wide">
-                Staff Password
+              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wide">
+                Password
               </label>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your staff password"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] text-slate-900 dark:text-white font-semibold pr-11"
+                  placeholder="Enter password"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-4 pr-11 py-3 sm:py-3.5 text-sm focus:outline-none focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] text-slate-900 dark:text-white font-bold transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer p-1"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -305,22 +302,19 @@ export default function TeamAuthGate({ children }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#74111d] to-[#851421] hover:from-[#5c0d17] hover:to-[#74111d] text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-[#74111d]/25 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2 disabled:opacity-50 mt-2"
+              className="w-full bg-gradient-to-r from-[#74111d] to-[#851421] hover:from-[#5c0d17] hover:to-[#74111d] text-white font-extrabold py-3 sm:py-3.5 rounded-xl shadow-lg shadow-[#74111d]/25 transition transform hover:-translate-y-0.5 cursor-pointer text-sm sm:text-base flex items-center justify-center space-x-2 disabled:opacity-50 mt-3"
             >
-              <span>{loading ? 'Authenticating Staff...' : 'Sign In to My Dashboard'}</span>
+              <span>{loading ? 'Signing In...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* Authorization Notice */}
-          <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-center">
-            <div className="inline-flex items-center space-x-1.5 text-[11px] font-bold text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#74111d] dark:text-rose-400" />
-              <span>Admin-Provisioned Identity Verification</span>
+          {/* Minimal Footer Notice */}
+          <div className="mt-5 sm:mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+            <div className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Authorized Staff Access</span>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">
-              Need access? Contact your Super Administrator to generate team credentials.
-            </p>
           </div>
         </div>
       </main>

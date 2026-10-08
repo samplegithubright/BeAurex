@@ -302,8 +302,8 @@ export default function TeamManagement() {
       return [
         {
           id: 'crm_1',
-          name: 'MW Sales Lead',
-          approachedFor: 'MW Sales',
+          name: 'Sales Lead',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Important',
           source: 'Direct',
@@ -362,7 +362,7 @@ export default function TeamManagement() {
         {
           id: 'crm_mw1',
           name: 'Delhi Retail Central',
-          approachedFor: 'MW Sales',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Important',
           source: 'Direct',
@@ -404,7 +404,7 @@ export default function TeamManagement() {
     name: '',
     phone: '',
     businessType: 'Retail',
-    approachedFor: 'MW Sales',
+    approachedFor: 'BeAurex Loyalty',
     followupMethod: 'Call',
     status: 'Followup required',
     companyName: '',
@@ -434,7 +434,7 @@ export default function TeamManagement() {
       email: '',
       companyName: '',
       businessType: 'Retail',
-      approachedFor: 'MW Sales',
+      approachedFor: 'BeAurex Loyalty',
       followupMethod: 'Call',
       status: 'Followup required',
       source: 'Direct',
@@ -521,7 +521,7 @@ export default function TeamManagement() {
     } catch (_) {}
     return {
       mw_sales_kit: {
-        title: 'MW Sales Kit',
+        title: 'Sales Kit',
         folders: [
           {
             id: 'doc',
@@ -630,8 +630,27 @@ export default function TeamManagement() {
     setKitsData(newData);
     try {
       localStorage.setItem('beaurex_marketing_kits_data', JSON.stringify(newData));
+      window.dispatchEvent(new Event('storage'));
     } catch (_) {}
   };
+
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if ((!e.key || e.key === 'beaurex_marketing_kits_data')) {
+        try {
+          const saved = localStorage.getItem('beaurex_marketing_kits_data');
+          if (saved) setKitsData(JSON.parse(saved));
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Dynamic counts for each kit tab
+  const salesKitItemCount = (kitsData.mw_sales_kit?.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0);
+  const creatorKitItemCount = (kitsData.creator_kit?.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0);
+  const franchiseKitItemCount = (kitsData.franchise_sales_kit?.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0);
 
   // Helper calculations for current sub-tab
   const currentKit = kitsData[kitSubTab] || kitsData.mw_sales_kit;
@@ -910,8 +929,8 @@ export default function TeamManagement() {
       setCrmCustomers([
         {
           id: 'crm_1',
-          name: 'MW Sales Lead',
-          approachedFor: 'MW Sales',
+          name: 'Sales Lead',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Important',
           source: 'Direct',
@@ -962,7 +981,7 @@ export default function TeamManagement() {
         {
           id: 'crm_mw1',
           name: 'Delhi Retail Central',
-          approachedFor: 'MW Sales',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Important',
           source: 'Direct',
@@ -1085,7 +1104,7 @@ export default function TeamManagement() {
           name: '',
           phone: '',
           businessType: 'Retail',
-          approachedFor: 'MW Sales',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Followup required',
           companyName: '',
@@ -1110,7 +1129,7 @@ export default function TeamManagement() {
         email: customer.email && customer.email !== '—' ? customer.email : '',
         companyName: customer.companyName && customer.companyName !== '—' ? customer.companyName : '',
         businessType: customer.businessType || 'Retail',
-        approachedFor: customer.approachedFor || 'MW Sales',
+        approachedFor: customer.approachedFor || 'BeAurex Loyalty',
         followupMethod: customer.followupMethod || 'Call',
         status: customer.status || 'Followup required',
         source: customer.source || 'Direct',
@@ -1166,7 +1185,7 @@ export default function TeamManagement() {
         email: '',
         companyName: '',
         businessType: 'Retail',
-        approachedFor: 'MW Sales',
+        approachedFor: 'BeAurex Loyalty',
         followupMethod: 'Call',
         status: 'Followup required',
         source: 'Direct',
@@ -1510,15 +1529,6 @@ export default function TeamManagement() {
               </Link>
             </div>
 
-            {/* Status Indicator */}
-            <div className="px-6 py-3 bg-black/20 border-b border-white/10 flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="font-bold text-white text-[11px]">Field Agent Active</span>
-              </div>
-              <span className="text-[10px] font-mono text-red-200 bg-white/10 font-bold px-2 py-0.5 rounded border border-white/10">{agentProfile.id}</span>
-            </div>
-
             {/* Navigation Menu: Exactly the 5 items */}
             <div className="p-4 space-y-1.5">
               <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-red-200/60">
@@ -1609,60 +1619,41 @@ export default function TeamManagement() {
             {activeTab === 'dashboard' && (
               <div className="space-y-6 animate-in fade-in duration-150">
                 
-                {/* Welcome & Quick Share Hero */}
-                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-red-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
-                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="space-y-2 max-w-xl">
-                      <div className="inline-flex items-center space-x-2 bg-red-600/20 border border-red-500/30 text-red-300 text-[11px] font-bold px-3 py-1 rounded-full">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Field Operations Representative</span>
-                      </div>
-                      <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-                        Welcome back, {agentProfile.name}!
-                      </h2>
-                      <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                        You have onboarded <span className="font-bold text-white">{referrals.length} retail stores</span> and connected over <span className="font-bold text-white">{crmCustomers.length} customer leads</span> to digital loyalty programs.
-                      </p>
-                      {agentProfile.mwId && agentProfile.mwId !== '—' && (
-                        <div className="inline-flex items-center space-x-2 bg-white/10 border border-white/20 px-3 py-1 rounded-xl text-xs font-mono text-amber-300">
-                          <Store className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Linked Store Codes (MW ID): <strong>{agentProfile.mwId}</strong></span>
-                        </div>
-                      )}
+                {/* Referral Code (Image 1: Only show referral code as given) */}
+                <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-red-950 rounded-2xl p-4 sm:p-5 text-white shadow-xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3 w-full sm:w-auto">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-red-500/25 shrink-0">
+                      <Sparkles className="w-5 h-5 text-white" />
                     </div>
-
-                    <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col space-y-3 shrink-0 sm:min-w-[280px]">
-                      <div className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    <div>
+                      <span className="text-[11px] font-black text-slate-300 uppercase tracking-wider block">
                         My Referral Code
-                      </div>
-                      <div className="flex items-center justify-between bg-black/30 rounded-xl px-3 py-2 border border-white/10 font-mono text-sm font-bold text-white">
-                        <span>{agentProfile.referralCode}</span>
-                        <button 
-                          onClick={() => copyToClipboard(agentProfile.referralCode, 'code')}
-                          className="hover:text-red-400 p-1 cursor-pointer transition"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => copyToClipboard(referralLink, 'link')}
-                        className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/30 cursor-pointer"
-                      >
-                        <Share2 className="w-3.5 h-3.5" />
-                        <span>Copy Referral Link</span>
-                      </button>
+                      </span>
+                      <span className="text-xs text-slate-400 font-bold">
+                        Partner Referral Identifier
+                      </span>
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-black/40 rounded-xl px-4 py-2 border border-white/10 font-mono text-sm sm:text-base font-black text-white space-x-4 w-full sm:w-auto shadow-inner">
+                    <span>{agentProfile.referralCode}</span>
+                    <button 
+                      onClick={() => copyToClipboard(agentProfile.referralCode, 'code')}
+                      className="hover:text-red-400 text-slate-300 p-1 cursor-pointer transition"
+                      title="Copy Referral Code"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
-                {/* 4 Stat Cards (Dynamic per Agent) */}
+                {/* 4 Stat Cards (Dynamic per Agent with Landing Page Style Icons - Image 2) */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition">
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Referred Stores</span>
-                      <div className="w-8 h-8 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-                        <Store className="w-4 h-4" />
+                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Referred Stores</span>
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
+                        <Store className="w-5 h-5 text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-black text-slate-900">{referrals.length}</div>
@@ -1672,11 +1663,11 @@ export default function TeamManagement() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition">
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Tracked Leads</span>
-                      <div className="w-8 h-8 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center">
-                        <Users className="w-4 h-4" />
+                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Tracked Leads</span>
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+                        <Users className="w-5 h-5 text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-black text-slate-900">{crmCustomers.length}</div>
@@ -1686,11 +1677,11 @@ export default function TeamManagement() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition">
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Total Commission</span>
-                      <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <Wallet className="w-4 h-4" />
+                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Total Commission</span>
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+                        <Wallet className="w-5 h-5 text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-black text-slate-900">
@@ -1701,11 +1692,11 @@ export default function TeamManagement() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 transition">
+                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Conversion Rate</span>
-                      <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <Award className="w-4 h-4" />
+                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Conversion Rate</span>
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
+                        <Award className="w-5 h-5 text-white" />
                       </div>
                     </div>
                     <div className="text-2xl font-black text-slate-900">{referrals.length > 0 ? '71.4%' : '0%'}</div>
@@ -1760,56 +1751,6 @@ export default function TeamManagement() {
                       <span>View My ID Card</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition transform" />
                     </div>
-                  </div>
-                </div>
-
-                {/* Recent Referred Stores Preview */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-base font-black text-slate-900">Recent Merchant Onboardings</h3>
-                      <p className="text-xs text-slate-500">Latest retail stores registered through your referral network</p>
-                    </div>
-                    <button 
-                      onClick={() => setActiveTab('referral_details')}
-                      className="text-xs font-bold text-red-600 hover:underline cursor-pointer"
-                    >
-                      View All
-                    </button>
-                  </div>
-
-                  <div className="divide-y divide-slate-100">
-                    {referrals.slice(0, 4).map((r) => (
-                      <div key={r.id} className="py-3 flex items-center justify-between text-xs">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-bold flex items-center justify-center shrink-0">
-                            <Store className="w-4 h-4 text-slate-600" />
-                          </div>
-                          <div>
-                            <div className="font-black text-slate-900">{r.storeName}</div>
-                            <div className="text-[11px] text-slate-400">{r.category} • {r.city}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-right">
-                            <div className="font-black text-slate-900">{r.commission}</div>
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                              r.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {r.status}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteStoreReferral(r.id)}
-                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                            title="Delete Store Referral"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
 
@@ -1881,12 +1822,12 @@ export default function TeamManagement() {
                 {/* ========================================================= */}
                 {referralSubTab === 'referred_users' && (
                   <div className="space-y-6">
-                    {/* Top Stat Cards (Image 2: Total Sales & Total MW Created) */}
+                    {/* Top Stat Cards (Landing Page Style Gradient Icons & Page-Relevant Metrics) */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Stat Card 1: Total Sales */}
-                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#8B0000] text-white flex items-center justify-center font-black shadow-md shadow-[#74111d]/20">
-                          <Store className="w-6 h-6" />
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition group flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25 shrink-0 group-hover:scale-105 transition-transform">
+                          <Store className="w-6 h-6 text-white" />
                         </div>
                         <div>
                           <p className="text-xs font-bold text-slate-600">Total Sales</p>
@@ -1894,40 +1835,40 @@ export default function TeamManagement() {
                         </div>
                       </div>
 
-                      {/* Stat Card 2: Total MW Created */}
-                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#8B0000] text-white flex items-center justify-center font-black shadow-md shadow-[#74111d]/20">
-                          <CheckCircle2 className="w-6 h-6" />
+                      {/* Stat Card 2: Total Referred Users (Replaced Total MW Created) */}
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:border-slate-300 hover:shadow-md transition group flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/25 shrink-0 group-hover:scale-105 transition-transform">
+                          <Users className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-600">Total MW Created</p>
-                          <h3 className="text-2xl font-black text-slate-900 mt-0.5">7</h3>
+                          <p className="text-xs font-bold text-slate-600">Total Referred Users</p>
+                          <h3 className="text-2xl font-black text-slate-900 mt-0.5">{referredUsers.length}</h3>
                         </div>
                       </div>
                     </div>
 
-                    {/* Table Card (Image 2: Referred Users Table) */}
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    {/* Table Card (SuperAdmin Merchants Design System) */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
                         <div>
                           <h3 className="text-lg font-black text-slate-900 tracking-tight">Referred Users</h3>
-                          <p className="text-xs text-slate-500">Live registry of accounts onboarded under your referral footprint</p>
+                          <p className="text-xs text-slate-500 font-bold mt-0.5">Live registry of accounts onboarded under your referral footprint</p>
                         </div>
 
                         <div className="flex items-center space-x-2 w-full sm:w-auto">
                           <div className="relative flex-1 sm:w-64">
-                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                             <input
                               type="text"
                               value={referralSearch}
                               onChange={(e) => setReferralSearch(e.target.value)}
-                              placeholder="Search user ID, email, MW ID..."
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#74111d]"
+                              placeholder="Search user ID, email, name, phone..."
+                              className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 shadow-2xs font-bold"
                             />
                           </div>
                           <button
                             onClick={() => setShowAddStoreModal(true)}
-                            className="bg-[#74111d] hover:bg-[#851421] text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
+                            className="bg-[#74111d] hover:bg-[#851421] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Onboard Store</span>
@@ -1935,127 +1876,93 @@ export default function TeamManagement() {
                         </div>
                       </div>
 
-                      <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
-                        <div className="overflow-x-auto">
-                          <table className="w-full min-w-[1050px] text-left text-xs border-collapse">
-                            <thead>
-                              <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] font-bold select-none">
-                                <th className="py-3 px-3.5">User ID</th>
-                                <th className="py-3 px-3">MW ID/FR ID</th>
-                                <th className="py-3 px-3.5">User Email</th>
-                                <th className="py-3 px-3">User Type</th>
-                                <th className="py-3 px-3.5">User Name</th>
-                                <th className="py-3 px-3">User Number</th>
-                                <th className="py-3 px-3">Joined On</th>
-                                <th className="py-3 px-3">Date Created</th>
-                                <th className="py-3 px-3">Validity Date</th>
-                                <th className="py-3 px-3 text-center">MW Status</th>
-                                <th className="py-3 px-3 text-center">User Payment Status</th>
-                                <th className="py-3 px-3 text-center">Action</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 bg-white">
-                              {referredUsers
-                                .filter(u => {
-                                  if (!referralSearch) return true;
-                                  const q = referralSearch.toLowerCase();
-                                  return (
-                                    u.id.toLowerCase().includes(q) ||
-                                    u.email.toLowerCase().includes(q) ||
-                                    u.name.toLowerCase().includes(q) ||
-                                    u.mwFrId.toLowerCase().includes(q) ||
-                                    u.number.toLowerCase().includes(q)
-                                  );
-                                })
-                                .map((u) => (
-                                  <tr key={u.id} className="hover:bg-slate-50/80 transition">
-                                    {/* 1. User ID */}
-                                    <td className="py-3.5 px-3.5 font-bold text-slate-800">
-                                      {u.id}
-                                    </td>
+                      {/* Table with SuperAdmin Merchants Horizontal Scrollbar and Bold Typography */}
+                      <div className="overflow-x-auto custom-scrollbar pb-3">
+                        <table className="w-full min-w-[1200px] text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                              <th className="py-3.5 px-4 whitespace-nowrap min-w-[120px]">User ID</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">User Name</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap min-w-[240px]">User Email</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap min-w-[170px]">User Number</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Joined On</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Validity Date</th>
+                              <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[160px]">User Payment Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-white">
+                            {referredUsers
+                              .filter(u => {
+                                if (!referralSearch) return true;
+                                const q = referralSearch.toLowerCase();
+                                return (
+                                  u.id.toLowerCase().includes(q) ||
+                                  u.email.toLowerCase().includes(q) ||
+                                  u.name.toLowerCase().includes(q) ||
+                                  u.number.toLowerCase().includes(q)
+                                );
+                              })
+                              .map((u) => (
+                                <tr key={u.id} className="hover:bg-slate-50/80 transition">
+                                  {/* 1. User ID */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono font-black text-slate-900 text-xs">
+                                    {u.id}
+                                  </td>
 
-                                    {/* 2. MW ID/FR ID (with Eye icon for links) */}
-                                    <td className="py-3.5 px-3">
-                                      {u.isMwLink ? (
-                                        <button
-                                          type="button"
-                                          onClick={() => setSelectedMwPreviewModal({ isOpen: true, item: u })}
-                                          className="text-blue-600 hover:text-blue-800 font-bold inline-flex items-center space-x-1 cursor-pointer transition hover:underline"
-                                          title="View MW Website Details"
-                                        >
-                                          <Eye className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                                          <span>{u.mwFrId}</span>
-                                        </button>
-                                      ) : (
-                                        <span className="font-semibold text-slate-700">{u.mwFrId}</span>
-                                      )}
-                                    </td>
+                                  {/* 2. User Name */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <div className="font-black text-slate-900 text-sm whitespace-nowrap flex items-center space-x-2">
+                                      <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                      <span>{u.name}</span>
+                                    </div>
+                                  </td>
 
-                                    {/* 3. User Email */}
-                                    <td className="py-3.5 px-3.5 font-mono text-slate-700 text-[11px]">
-                                      {u.email}
-                                    </td>
+                                  {/* 3. User Email */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <div className="font-bold text-slate-700 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                      <span>{u.email}</span>
+                                    </div>
+                                  </td>
 
-                                    {/* 4. User Type */}
-                                    <td className="py-3.5 px-3 font-bold text-slate-800">
-                                      {u.userType}
-                                    </td>
+                                  {/* 4. User Number */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                      <span>{u.number}</span>
+                                    </div>
+                                  </td>
 
-                                    {/* 5. User Name */}
-                                    <td className="py-3.5 px-3.5 font-bold text-slate-900">
-                                      {u.name}
-                                    </td>
+                                  {/* 5. Joined On */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <div className="font-mono font-bold text-slate-800 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                      <span>{u.joinedOn}</span>
+                                    </div>
+                                  </td>
 
-                                    {/* 6. User Number */}
-                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
-                                      {u.number}
-                                    </td>
+                                  {/* 6. Validity Date */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap font-mono font-bold text-slate-700 text-xs">
+                                    {u.validityDate}
+                                  </td>
 
-                                    {/* 7. Joined On */}
-                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
-                                      {u.joinedOn}
-                                    </td>
-
-                                    {/* 8. Date Created */}
-                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
-                                      {u.dateCreated}
-                                    </td>
-
-                                    {/* 9. Validity Date */}
-                                    <td className="py-3.5 px-3 font-mono text-slate-600 text-[11px]">
-                                      {u.validityDate}
-                                    </td>
-
-                                    {/* 10. MW Status (Theme pill) */}
-                                    <td className="py-3.5 px-3 text-center">
-                                      <span className="bg-rose-50 text-[#74111d] border border-rose-200 px-2.5 py-1 rounded-md text-[10px] font-bold whitespace-nowrap inline-block">
-                                        {u.mwStatus}
-                                      </span>
-                                    </td>
-
-                                    {/* 11. User Payment Status (Grey pill as shown in Image 2) */}
-                                    <td className="py-3.5 px-3 text-center">
-                                      <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold inline-block">
-                                        {u.paymentStatus}
-                                      </span>
-                                    </td>
-
-                                    {/* 12. Action: Delete User */}
-                                    <td className="py-3.5 px-3 text-center">
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeleteReferredUser(u.id)}
-                                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer"
-                                        title="Delete Referred User"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                            </tbody>
-                          </table>
-                        </div>
+                                  {/* 7. User Payment Status */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                                    <span className={`inline-flex items-center space-x-1.5 font-black px-3 py-1 rounded-xl text-xs whitespace-nowrap shadow-2xs ${
+                                      u.paymentStatus?.toLowerCase() === 'paid'
+                                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
+                                        : 'bg-amber-50 text-amber-800 border border-amber-300'
+                                    }`}>
+                                      <span className={`w-2 h-2 rounded-full ${
+                                        u.paymentStatus?.toLowerCase() === 'paid' ? 'bg-emerald-500' : 'bg-amber-500'
+                                      }`}></span>
+                                      <span>{u.paymentStatus || 'Paid'}</span>
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
@@ -2606,33 +2513,35 @@ export default function TeamManagement() {
                   </div>
                 </div>
 
-                {/* Customer Tracker Table (Matching Image 2 columns) */}
+                {/* Customer Tracker Table (SuperAdmin Merchants Design System) */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1000px] text-left text-xs border-collapse">
+                  <div className="overflow-x-auto custom-scrollbar pb-3">
+                    <table className="w-full min-w-[1650px] text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 text-[11px] font-bold select-none">
-                          <th className="py-3 px-4 uppercase">Approached For</th>
-                          <th className="py-3 px-4 uppercase">Follow-up Method</th>
-                          <th className="py-3 px-4 uppercase text-center">Status</th>
-                          <th className="py-3 px-4 uppercase">Source</th>
-                          <th className="py-3 px-4 uppercase">Email ID</th>
-                          <th className="py-3 px-4 uppercase">Company Name</th>
-                          <th className="py-3 px-4 uppercase">Website</th>
-                          <th className="py-3 px-4 uppercase">Address</th>
-                          <th className="py-3 px-4 uppercase">Last updated</th>
-                          <th className="py-3 px-4 uppercase text-right">Actions</th>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[180px]">Customer Name</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[190px]">Company Name</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Phone Number</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Approached For</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Follow-up Method</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[170px]">Status</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">Source</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Email ID</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[180px]">Website</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">Address</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[170px]">Last Updated</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[220px]">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100 bg-white">
                         {filteredCrmCustomers.length === 0 ? (
                           <tr>
-                            <td colSpan={10} className="py-12 text-center text-slate-400">
+                            <td colSpan={12} className="py-12 text-center text-slate-400">
                               <Users className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                              <p className="font-bold text-xs">No customer leads found matching your search</p>
+                              <p className="font-black text-xs text-slate-500">No customer leads found matching your search</p>
                               <button
                                 onClick={() => setShowAddCustomerModal(true)}
-                                className="mt-3 text-red-600 font-bold hover:underline text-xs"
+                                className="mt-3 text-red-600 font-black hover:underline text-xs cursor-pointer"
                               >
                                 + Add first customer lead
                               </button>
@@ -2640,77 +2549,121 @@ export default function TeamManagement() {
                           </tr>
                         ) : (
                           filteredCrmCustomers.map((c) => (
-                            <tr key={c.id} className="hover:bg-slate-50/70 transition">
+                            <tr key={c.id} className="hover:bg-slate-50/80 transition">
                               
-                              {/* 1. Approached For / Customer Name & Company Name */}
-                              <td className="py-3.5 px-4 font-black text-slate-900">
-                                <div>{c.approachedFor || 'MW Sales'}</div>
-                                <div className="text-[12px] text-slate-900 font-black mt-0.5">
-                                  {c.name}
-                                </div>
-                                <div className="text-[11px] font-bold text-rose-700 flex items-center space-x-1 mt-0.5">
-                                  <Building2 className="w-3 h-3 text-rose-600 inline shrink-0" />
-                                  <span>{c.companyName && c.companyName !== '—' ? c.companyName : 'No Company Name'}</span>
-                                </div>
-                                <div className="text-[10px] text-slate-500 font-normal mt-0.5">
-                                  Phone: <span className="font-mono text-slate-700 font-semibold">{c.phone}</span>
+                              {/* 1. Customer Name */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-black text-slate-900 text-sm whitespace-nowrap flex items-center space-x-2">
+                                  <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span>{c.name}</span>
                                 </div>
                               </td>
 
-                              {/* 2. Follow-up Method */}
-                              <td className="py-3.5 px-4">
-                                <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 text-[10px]">
+                              {/* 2. Company Name */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <Building2 className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                  <span>{c.companyName && c.companyName !== '—' && c.companyName !== '-' ? c.companyName : '—'}</span>
+                                </div>
+                              </td>
+
+                              {/* 3. Phone Number */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span>{c.phone}</span>
+                                </div>
+                              </td>
+
+                              {/* 4. Approached For */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className="font-bold text-slate-800 text-xs whitespace-nowrap">
+                                  {c.approachedFor || 'BeAurex Loyalty'}
+                                </span>
+                              </td>
+
+                              {/* 5. Follow-up Method */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 text-xs whitespace-nowrap shadow-2xs">
                                   {c.followupMethod || 'Call'}
                                 </span>
                               </td>
 
-                              {/* 3. Status */}
-                              <td className="py-3.5 px-4 text-center">
-                                <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                                  c.status === 'Important' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                                  c.status === 'Closed Won' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                                  c.status === 'Hot Lead' ? 'bg-rose-100 text-rose-800 border border-rose-200' :
-                                  'bg-rose-100 text-[#74111d] border border-rose-200'
+                              {/* 6. Status */}
+                              <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                                <span className={`inline-flex items-center space-x-1.5 font-black px-3 py-1 rounded-xl text-xs whitespace-nowrap shadow-2xs ${
+                                  c.status === 'Important' ? 'bg-amber-50 text-amber-800 border border-amber-300' :
+                                  c.status === 'Closed Won' ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' :
+                                  c.status === 'Hot Lead' ? 'bg-rose-50 text-rose-800 border border-rose-300' :
+                                  'bg-rose-50 text-[#74111d] border border-rose-300'
                                 }`}>
-                                  {c.status || 'Followup required'}
+                                  <span className={`w-2 h-2 rounded-full ${
+                                    c.status === 'Important' ? 'bg-amber-500' :
+                                    c.status === 'Closed Won' ? 'bg-emerald-500' :
+                                    c.status === 'Hot Lead' ? 'bg-rose-500' :
+                                    'bg-[#74111d]'
+                                  }`}></span>
+                                  <span>{c.status || 'Followup required'}</span>
                                 </span>
                               </td>
 
-                              {/* 4. Source */}
-                              <td className="py-3.5 px-4 text-slate-600 font-semibold">{c.source || 'Direct'}</td>
-
-                              {/* 5. Email ID */}
-                              <td className="py-3.5 px-4 text-slate-500">{c.email || '—'}</td>
-
-                              {/* 6. Company Name */}
-                              <td className="py-3.5 px-4 text-slate-800 font-bold">{c.companyName || '—'}</td>
-
-                              {/* 7. Website */}
-                              <td className="py-3.5 px-4 text-slate-500">
-                                {c.website && c.website !== '—' ? (
-                                  <a href={c.website} target="_blank" rel="noreferrer" className="text-red-600 hover:underline">
-                                    {c.website.replace('https://', '').replace('http://', '')}
-                                  </a>
-                                ) : '—'}
+                              {/* 7. Source */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span className="font-bold text-slate-700 text-xs whitespace-nowrap">
+                                  {c.source || 'Direct'}
+                                </span>
                               </td>
 
-                              {/* 8. Address */}
-                              <td className="py-3.5 px-4 text-slate-500 max-w-[160px] truncate" title={c.address}>
-                                {c.address || '—'}
+                              {/* 8. Email ID */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span>{c.email || '—'}</span>
+                                </div>
                               </td>
 
-                              {/* 9. Last updated */}
-                              <td className="py-3.5 px-4 font-mono text-slate-500 text-[11px] whitespace-nowrap">
-                                {c.lastUpdated || '09-09-2026 13:54'}
+                              {/* 9. Website */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  {c.website && c.website !== '—' && c.website !== '-' ? (
+                                    <a
+                                      href={c.website.startsWith('http') ? c.website : `https://${c.website}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-red-600 hover:underline"
+                                    >
+                                      {c.website.replace('https://', '').replace('http://', '')}
+                                    </a>
+                                  ) : (
+                                    <span>—</span>
+                                  )}
+                                </div>
                               </td>
 
-                              {/* 10. Actions: Edit button & Followup button */}
-                              <td className="py-3.5 px-4 text-right">
-                                <div className="inline-flex items-center space-x-1.5 justify-end">
+                              {/* 10. Address */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap flex items-center space-x-1.5" title={c.address}>
+                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span>{c.address || '—'}</span>
+                                </div>
+                              </td>
+
+                              {/* 11. Last updated */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-mono font-bold text-slate-700 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span>{c.lastUpdated || '08-10-2026 16:19'}</span>
+                                </div>
+                              </td>
+
+                              {/* 12. Actions */}
+                              <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                                <div className="inline-flex items-center space-x-1.5 justify-center whitespace-nowrap">
                                   <button
                                     type="button"
                                     onClick={() => handleOpenEditCustomer(c)}
-                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer inline-flex items-center space-x-1"
+                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-xl font-black text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs whitespace-nowrap"
                                     title="Edit Customer"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
@@ -2719,7 +2672,7 @@ export default function TeamManagement() {
                                   <button
                                     type="button"
                                     onClick={() => handleOpenFollowup(c)}
-                                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer inline-flex items-center space-x-1"
+                                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl font-black text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs whitespace-nowrap"
                                   >
                                     <RotateCcw className="w-3.5 h-3.5" />
                                     <span>Follow up</span>
@@ -2727,7 +2680,7 @@ export default function TeamManagement() {
                                   <button
                                     type="button"
                                     onClick={() => handleDeleteCrmCustomer(c.id)}
-                                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition cursor-pointer inline-flex items-center"
+                                    className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition cursor-pointer inline-flex items-center shadow-2xs"
                                     title="Delete Customer Lead"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -2886,7 +2839,6 @@ export default function TeamManagement() {
                               onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, approachedFor: e.target.value })}
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600"
                             >
-                              <option value="MW Sales">MW Sales</option>
                               <option value="BeAurex Loyalty">BeAurex Loyalty</option>
                               <option value="Standee Setup">Standee Setup</option>
                               <option value="Digital Menu QR">Digital Menu QR</option>
@@ -3084,7 +3036,7 @@ export default function TeamManagement() {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'MW Sales', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
+                          onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'BeAurex Loyalty', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
                           className="text-slate-400 hover:text-slate-700 p-1 rounded-lg cursor-pointer"
                         >
                           <X className="w-5 h-5" />
@@ -3160,7 +3112,6 @@ export default function TeamManagement() {
                               })}
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
                             >
-                              <option value="MW Sales">MW Sales</option>
                               <option value="BeAurex Loyalty">BeAurex Loyalty</option>
                               <option value="Standee Setup">Standee Setup</option>
                               <option value="Digital Menu QR">Digital Menu QR</option>
@@ -3251,7 +3202,7 @@ export default function TeamManagement() {
                         <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
                           <button
                             type="button"
-                            onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'MW Sales', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
+                            onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'BeAurex Loyalty', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
                             className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
                           >
                             Cancel
@@ -3447,59 +3398,38 @@ export default function TeamManagement() {
                 )}
 
                 {/* Top Header Row with Back to Dashboard Button & Title */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
-                  <div className="flex items-center space-x-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+                  <div className="flex items-center space-x-3 sm:space-x-4">
                     <button
                       onClick={() => setActiveTab('dashboard')}
-                      className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#74111d] bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-xs transition hover:bg-slate-50 cursor-pointer"
+                      className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-700 hover:text-[#74111d] bg-white border border-slate-200 hover:border-rose-200 px-3.5 py-2 rounded-xl shadow-2xs transition hover:bg-rose-50/40 cursor-pointer shrink-0"
                     >
-                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
                       <span>Back to Dashboard</span>
                     </button>
+                    <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
                     <div>
-                      <h2 className="text-xl font-black text-slate-900 tracking-tight">Marketing Kit</h2>
-                      <p className="text-xs text-slate-500">Manage promotional materials and resources for franchisees.</p>
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                        Marketing Kit
+                      </h2>
+                      <p className="text-xs text-slate-500 font-medium">
+                        Manage promotional materials and resources for franchisees.
+                      </p>
                     </div>
                   </div>
 
-                  <span className="text-[11px] font-bold text-[#74111d] bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
+                  <span className="text-xs font-bold text-[#74111d] bg-rose-50 border border-rose-200/80 px-3.5 py-1.5 rounded-full shrink-0 shadow-2xs self-start sm:self-center">
                     Franchise Asset Hub
                   </span>
                 </div>
 
-                {/* Sub-Tabs: MW Sales Kit (14) | Creator Kit (9) | Franchise Sales Kit (16) */}
+                {/* Sub-Tabs: Sales Kit */}
                 <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
                   <button
                     onClick={() => { setKitSubTab('mw_sales_kit'); setOpenFolder(null); }}
-                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
-                      kitSubTab === 'mw_sales_kit'
-                        ? 'bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
+                    className="px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25"
                   >
-                    <span>MW Sales Kit (14)</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setKitSubTab('creator_kit'); setOpenFolder(null); }}
-                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
-                      kitSubTab === 'creator_kit'
-                        ? 'bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
-                  >
-                    <span>Creator Kit (9)</span>
-                  </button>
-
-                  <button
-                    onClick={() => { setKitSubTab('franchise_sales_kit'); setOpenFolder(null); }}
-                    className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
-                      kitSubTab === 'franchise_sales_kit'
-                        ? 'bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25'
-                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                    }`}
-                  >
-                    <span>Franchise Sales Kit (16)</span>
+                    <span>Sales Kit ({salesKitItemCount})</span>
                   </button>
                 </div>
 
@@ -3532,83 +3462,6 @@ export default function TeamManagement() {
                     <div className="text-xs text-rose-200 font-semibold bg-[#49070f]/70 px-3 py-1.5 rounded-lg border border-rose-300/20">
                       All Assets Synced
                     </div>
-                  </div>
-                </div>
-
-                {/* Breadcrumbs and Action Buttons Row */}
-                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  {/* Left: Breadcrumbs */}
-                  <div className="flex items-center space-x-2 text-xs font-black text-slate-700">
-                    <button 
-                      onClick={() => setOpenFolder(null)}
-                      className="hover:text-[#74111d] transition flex items-center space-x-1 cursor-pointer"
-                    >
-                      <span>🏠 {currentKit.title}</span>
-                    </button>
-                    {openFolder && (
-                      <>
-                        <span className="text-slate-400">/</span>
-                        <span className="text-[#74111d] flex items-center space-x-1">
-                          <Folder className="w-3.5 h-3.5 text-amber-500 fill-amber-400 inline" />
-                          <span>{openFolder}</span>
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Right: Action Buttons (+ Add Folder, + Add Images, + Add Video Link, Upload Video, + Add File) */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={() => setAddFolderModalOpen(true)}
-                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
-                      <span>Add Folder</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setNewImageForm({ name: '', targetFolder: openFolder || (currentFolders[0]?.name || ''), size: '2.5 MB', res: '300 DPI High-Res' });
-                        setAddImagesModalOpen(true);
-                      }}
-                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
-                      <span>Add Images</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setNewVideoLinkForm({ name: '', url: '', targetFolder: openFolder || (currentFolders[0]?.name || '') });
-                        setAddVideoLinkModalOpen(true);
-                      }}
-                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
-                      <span>Add Video Link</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setUploadVideoForm({ name: '', size: '25 MB', targetFolder: openFolder || (currentFolders[0]?.name || '') });
-                        setUploadVideoModalOpen(true);
-                      }}
-                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Upload className="w-3.5 h-3.5 text-[#74111d]" />
-                      <span>Upload Video</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setNewFileForm({ name: '', size: '1.5 MB', ext: 'PDF', targetFolder: openFolder || (currentFolders[0]?.name || '') });
-                        setAddFileModalOpen(true);
-                      }}
-                      className="bg-white hover:bg-rose-50/50 hover:border-rose-200 hover:text-[#74111d] text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[#74111d]" />
-                      <span>Add File</span>
-                    </button>
                   </div>
                 </div>
 
@@ -3703,16 +3556,7 @@ export default function TeamManagement() {
                           <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
                             <Folder className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                             <h4 className="text-sm font-bold text-slate-700">This folder is currently empty</h4>
-                            <p className="text-xs text-slate-400 mt-1 mb-4">Upload images, documents or video assets into this folder.</p>
-                            <button
-                              onClick={() => {
-                                setNewImageForm({ name: '', targetFolder: openFolder, size: '2.5 MB', res: '300 DPI High-Res' });
-                                setAddImagesModalOpen(true);
-                              }}
-                              className="bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-xs"
-                            >
-                              + Add Asset Now
-                            </button>
+                            <p className="text-xs text-slate-400 mt-1">Official assets for this folder will be uploaded and managed by the Super Admin.</p>
                           </div>
                         );
                       }
@@ -3780,8 +3624,8 @@ export default function TeamManagement() {
                                 </div>
                               </div>
 
-                              {/* Card Actions */}
-                              <div className="pt-3 border-t border-slate-100 flex items-center space-x-1.5">
+                              {/* Card Actions: View & Download only */}
+                              <div className="pt-3 border-t border-slate-100 flex items-center space-x-2">
                                 <button
                                   onClick={() => setPreviewKitItem(item)}
                                   className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-1.5 rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer"
@@ -3799,14 +3643,6 @@ export default function TeamManagement() {
                                 >
                                   <Download className="w-3 h-3" />
                                   <span>Download</span>
-                                </button>
-
-                                <button
-                                  onClick={() => handleDeleteKitItem(openFolder, item.id)}
-                                  title="Delete Asset"
-                                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>

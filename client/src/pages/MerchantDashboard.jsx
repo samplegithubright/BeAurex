@@ -9,7 +9,6 @@ import {
   MapPin, Mail, Globe, RefreshCw, HelpCircle, Camera, Shield, Menu, KeyRound, EyeOff, Lock, User, Printer,
   Home, Crown, Percent, Repeat, PlusCircle, ArrowLeft, Award, Coins, Tag
 } from 'lucide-react';
-import MerchantOnboardingModal from '../components/MerchantOnboardingModal';
 import ActionConfirmModal from '../components/ActionConfirmModal';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 import QRCode from 'qrcode';
@@ -17,7 +16,6 @@ import QRCode from 'qrcode';
 export default function MerchantDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [merchantProfileModalOpen, setMerchantProfileModalOpen] = useState(false);
-  const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
 
   // Global Action Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -727,12 +725,8 @@ export default function MerchantDashboard() {
     const searchParams = new URLSearchParams(window.location.search);
     const expiredParam = searchParams.get('expired') === 'true';
     const tabParam = searchParams.get('tab');
-    const onboardingParam = searchParams.get('onboarding') === 'true';
     if (expiredParam || tabParam === 'subscription') {
       setUpgradeModalOpen(true);
-    }
-    if (onboardingParam) {
-      setOnboardingModalOpen(true);
     }
 
     // Fetch live scans
@@ -1616,25 +1610,31 @@ export default function MerchantDashboard() {
       {/* TOP FULL COLOR CRIMSON BRAND HEADER (media_1791292785991.png) */}
       {/* 100% Full Color - Sticky Fixed to top edge on scroll */}
       {/* ========================================================= */}
-      <header className="sticky top-0 inset-x-0 z-40 w-full bg-gradient-to-b from-[#74111d] via-[#650f19] to-[#540a13] text-white shadow-xl">
+      <header className="sticky top-0 inset-x-0 z-40 w-full bg-gradient-to-b from-[#74111d] via-[#650f19] to-[#540a13] text-white shadow-xl border-b border-white/10">
         {/* Ambient lighting effect */}
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-rose-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 left-10 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         
         {/* Top Brand Bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5 pb-5 sm:pb-6 relative z-10 space-y-3.5">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5 pb-5 sm:pb-6 relative z-10 space-y-3.5">
           
-          {/* Row 1: Brand [B] BeAurex MERCHANT HUB + Top Right Controls */}
+          {/* Row 1: Brand BeAurex MERCHANT HUB + Top Right Controls */}
           <div className="flex items-center justify-between">
-            {/* Logo from second image: [B] BeAurex MERCHANT HUB */}
+            {/* Logo: BeAurex MERCHANT HUB */}
             <Link to="/" className="flex items-center space-x-2.5 sm:space-x-3 group">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#851421] to-[#a31a2b] border border-white/20 flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-md group-hover:scale-105 transition transform">
-                B
+              <div className="relative">
+                <img 
+                  src="/beaurex-icon.jpg" 
+                  alt="BeAurex Logo" 
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-lg shadow-black/40 border border-white/25 group-hover:scale-105 group-hover:border-white/50 transition-all duration-300"
+                />
+                <div className="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               </div>
               <div className="flex flex-col">
-                <span className="text-base sm:text-lg font-black tracking-tight leading-none text-white">
+                <span className="text-lg sm:text-xl font-black tracking-tight leading-none text-white drop-shadow-xs">
                   BeAurex
                 </span>
-                <span className="text-[9px] sm:text-[10px] font-black text-rose-200 uppercase tracking-widest mt-0.5">
+                <span className="text-[9px] sm:text-[10px] font-black text-rose-200/90 uppercase tracking-widest mt-1">
                   MERCHANT HUB
                 </span>
               </div>
@@ -1643,82 +1643,79 @@ export default function MerchantDashboard() {
             {/* Top Right Actions */}
             <div className="flex items-center space-x-2 sm:space-x-2.5">
               <button
-                onClick={() => setOnboardingModalOpen(true)}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer backdrop-blur-xs"
-              >
-                <span>Store Setup</span>
-                <span className="text-xs">⚙️</span>
-              </button>
-
-              <button
                 onClick={() => setActiveTab('profile')}
-                className={`w-9 h-9 rounded-xl border flex items-center justify-center transition shadow-xs cursor-pointer group shrink-0 ${
+                className={`h-9 px-3 rounded-xl border flex items-center space-x-2 text-xs font-bold transition-all shadow-xs cursor-pointer group shrink-0 ${
                   activeTab === 'profile' 
-                    ? 'bg-white text-[#74111d] border-white' 
-                    : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
+                    ? 'bg-white text-[#74111d] border-white shadow-rose-950/40' 
+                    : 'border-white/20 bg-white/10 hover:bg-white/20 text-white backdrop-blur-xs'
                 }`}
                 title="Store Profile & Settings"
               >
                 <User className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span className="hidden sm:inline">Profile</span>
               </button>
 
               <button
                 onClick={handleMerchantLogout}
-                className="w-9 h-9 rounded-xl border border-white/20 bg-white/10 hover:bg-rose-900/50 text-white/80 hover:text-white flex items-center justify-center transition shadow-xs cursor-pointer group shrink-0"
+                className="h-9 px-3 rounded-xl border border-white/20 bg-white/10 hover:bg-rose-900/60 hover:border-rose-400/50 text-white/90 hover:text-white flex items-center space-x-2 text-xs font-bold transition-all shadow-xs cursor-pointer group shrink-0 backdrop-blur-xs"
                 title="Logout"
               >
-                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform text-rose-200" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
 
-          {/* Row 2: Store Identity Bar matching media_1791292785991.png */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
+          {/* Row 2: Store Identity Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-white/10">
             {/* Store Avatar & Name & Status */}
-            <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="flex items-center space-x-3.5 sm:space-x-4">
               {/* Circular Store Logo with Upload Trigger */}
               <div 
                 onClick={() => storeLogoInputRef.current?.click()}
-                className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white border-2 border-white/80 shadow-md flex items-center justify-center overflow-hidden cursor-pointer group shrink-0"
+                className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white ring-2 ring-white/50 ring-offset-2 ring-offset-[#650f19] shadow-xl flex items-center justify-center overflow-hidden cursor-pointer group shrink-0 transition-transform hover:scale-105"
                 title="Click to upload/change store logo"
               >
                 {storeLogo ? (
                   <img src={storeLogo} alt={storeName} className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  <div className="w-full h-full bg-rose-50 flex items-center justify-center text-[#74111d] font-black text-sm sm:text-base">
+                  <div className="w-full h-full bg-gradient-to-br from-rose-50 to-rose-100 flex items-center justify-center text-[#74111d] font-black text-sm sm:text-base">
                     {getStoreInitials(storeName)}
                   </div>
                 )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-full">
-                  <Camera className="w-3.5 h-3.5 text-white" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                  <Camera className="w-4 h-4 text-white drop-shadow-md" />
                 </div>
-                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#8B0000] border border-white rounded-full flex items-center justify-center text-white shadow-xs">
-                  <Camera className="w-2 h-2" />
+                <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#8B0000] border-2 border-white rounded-full flex items-center justify-center text-white shadow-md">
+                  <Camera className="w-2.5 h-2.5" />
                 </div>
               </div>
 
-              {/* Store Name & Counter Online / Offline */}
+              {/* Store Name & Live Status Badge */}
               <div>
-                <h1 className="text-base sm:text-xl font-black tracking-tight leading-tight text-white capitalize flex items-center space-x-2">
+                <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight text-white capitalize drop-shadow-xs flex items-center space-x-2">
                   <span>{storeName || 'Store'}</span>
                 </h1>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className={`w-2 h-2 rounded-full ${subscriptionInfo.isExpired ? 'bg-red-400' : 'bg-emerald-400 animate-pulse'}`}></span>
-                  <span className={`font-black text-[11px] sm:text-xs ${subscriptionInfo.isExpired ? 'text-red-300' : 'text-emerald-300'}`}>
-                    {subscriptionInfo.isExpired ? '● Store Offline' : '● Counter Online'}
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${subscriptionInfo.isExpired ? 'bg-red-400' : 'bg-emerald-400'}`}></span>
+                    <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${subscriptionInfo.isExpired ? 'bg-red-500' : 'bg-emerald-400'}`}></span>
+                  </span>
+                  <span className={`font-black text-xs tracking-wide ${subscriptionInfo.isExpired ? 'text-red-300' : 'text-emerald-300'}`}>
+                    {subscriptionInfo.isExpired ? 'Store Offline' : 'Counter Online'}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Plan Badges and Upgrade CTA */}
-            <div className="flex items-center space-x-2">
-              <span className={`text-[10px] sm:text-xs font-black uppercase px-2.5 py-1 rounded-full border backdrop-blur-xs flex items-center space-x-1.5 ${
+            {/* Plan Badges and Luxury Upgrade CTA */}
+            <div className="flex items-center space-x-2.5 sm:space-x-3">
+              <span className={`text-[11px] sm:text-xs font-black uppercase px-3 py-1.5 rounded-full border backdrop-blur-md flex items-center space-x-1.5 shadow-xs ${
                 subscriptionInfo.isExpired 
                   ? 'bg-red-500/20 text-red-200 border-red-400/30' 
                   : subscriptionInfo.status === 'TRIAL'
-                  ? 'bg-amber-500/25 text-amber-200 border-amber-300/40'
-                  : 'bg-emerald-500/25 text-emerald-200 border-emerald-300/40'
+                  ? 'bg-amber-500/20 text-amber-200 border-amber-300/40 shadow-amber-900/20'
+                  : 'bg-emerald-500/20 text-emerald-200 border-emerald-300/40'
               }`}>
                 {subscriptionInfo.isExpired 
                   ? 'Trial Expired' 
@@ -1729,9 +1726,9 @@ export default function MerchantDashboard() {
 
               <button
                 onClick={() => setBuyPlanModalOpen(true)}
-                className="bg-white/20 hover:bg-white/30 border border-white/30 text-white text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full flex items-center space-x-1 shadow-2xs transition cursor-pointer"
+                className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs px-3.5 py-1.5 rounded-full flex items-center space-x-1.5 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer border border-amber-200/50"
               >
-                <Crown className="w-3 h-3 text-amber-300 fill-amber-300" />
+                <Crown className="w-3.5 h-3.5 text-slate-950 fill-slate-950" />
                 <span>{subscriptionInfo.status === 'TRIAL' ? 'Buy Plan' : 'Pro Plan'}</span>
               </button>
             </div>
@@ -1757,7 +1754,7 @@ export default function MerchantDashboard() {
       {/* MAIN DASHBOARD CONTENT AREA */}
       {/* ========================================================= */}
       <div className="flex-1 w-full min-w-0 flex flex-col pb-24">
-        <main className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        <main className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1200px] w-full mx-auto">
 
           {/* ============================================================= */}
           {/* PILLAR 1: SCANS (LIVE COUNTER TRAFFIC FEED) */}
@@ -5449,53 +5446,7 @@ export default function MerchantDashboard() {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 4-STEP ONBOARDING WIZARD MODAL (BeAurex Lifecycle) */}
-      {/* ========================================================= */}
-      <MerchantOnboardingModal
-        isOpen={onboardingModalOpen}
-        onClose={() => setOnboardingModalOpen(false)}
-        merchant={{
-          id: merchantId,
-          businessName: storeName,
-          category: storeCategory,
-          qrSlug: storeSlug || 'my-store',
-          phone: ownerAccount.phone || phoneEmail.phone,
-          trialExpiresAt: subscriptionInfo.trialExpiresAt,
-        }}
-        onComplete={(updated) => {
-          if (updated?.businessName) {
-            setStoreName(updated.businessName);
-            const newSlug = updated.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-            setStoreSlug(newSlug);
-            sessionStorage.setItem('loyalqr_biz', updated.businessName);
-            localStorage.setItem('loyalqr_biz', updated.businessName);
-          }
-          if (updated?.category) {
-            setStoreCategory(updated.category);
-          }
-          try {
-            const raw = localStorage.getItem('loyalqr_merchant') || '{}';
-            const m = JSON.parse(raw);
-            m.businessName = updated?.businessName || storeName;
-            m.category = updated?.category || storeCategory;
-            localStorage.setItem('loyalqr_merchant', JSON.stringify(m));
-            sessionStorage.setItem('loyalqr_merchant', JSON.stringify(m));
-          } catch (_) {}
-          // Refresh rewards and scans
-          fetch('/api/merchant/rewards')
-            .then(res => res.json())
-            .then(data => { if (data?.rewards) setRewards(data.rewards); })
-            .catch(() => {});
-          fetch('/api/merchant/scans')
-            .then(res => res.json())
-            .then(data => {
-              if (data?.scans) setScansList(data.scans);
-              if (data?.totalScans) setScansTotal(data.totalScans);
-            })
-            .catch(() => {});
-        }}
-      />
+
 
       {/* Global Permission & Action Confirmation Modal */}
       <ActionConfirmModal

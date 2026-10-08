@@ -1,0 +1,44 @@
+[
+  {
+    "id": "6ac75925c580004ee0132ab1",
+    "_id": "6ac75925c580004ee0132ab1",
+    "name": "rahul",
+    "phone": "87655551112",
+    "email": "rahil123@gmail.com",
+    "message": "sdkjsnbd sudhiksdjnvsdvnksjdv ksbvbskvjbashvkshavksbvkjsahvb kjashv s",
+    "status": "NEW",
+    "notes": "",
+    "ip": "127.0.0.1",
+    "source": "LANDING_PAGE",
+    "createdAt": "2026-10-08T08:49:41.629Z",
+    "updatedAt": "2026-10-08T08:50:12.910Z"
+  },
+  {
+    "id": "6ac758e8e5531854f853e7b2",
+    "_id": "6ac758e8e5531854f853e7b2",
+    "name": "Sneha Patel",
+    "phone": "9898989898",
+    "email": "sneha@example.com",
+    "message": "Testing proxy connection.",
+    "status": "NEW",
+    "notes": "",
+    "ip": "127.0.0.1",
+    "source": "LANDING_PAGE",
+    "createdAt": "2026-10-08T08:48:40.367Z",
+    "updatedAt": "2026-10-08T08:48:40.367Z"
+  },
+  {
+    "id": "6ac758ce72900da3f5c565ff",
+    "_id": "6ac758ce72900da3f5c565ff",
+    "name": "Rohit Verma",
+    "phone": "9876543210",
+    "email": "rohit@example.com",
+    "message": "Interested in digital QR loyalty solution for our restaurant chain.",
+    "status": "NEW",
+    "notes": "",
+    "ip": "127.0.0.1",
+    "source": "LANDING_PAGE",
+    "createdAt": "2026-10-08T08:48:14.412Z",
+    "updatedAt": "2026-10-08T08:48:14.412Z"
+  }
+]

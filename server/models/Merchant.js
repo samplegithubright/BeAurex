@@ -93,11 +93,16 @@ const merchantSchema = new mongoose.Schema({
     default: null
   },
   dealDetails: {
+    dealType: { type: String, default: 'NONE' }, // 'PERCENTAGE', 'FLAT', 'COMPLIMENTARY', 'FIXED_PRICE', 'CUSTOM', 'NONE'
     dealTitle: { type: String, default: '' },
     dealAmount: { type: Number, default: 0 },
     discountPercent: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+    originalPrice: { type: Number, default: 0 },
     validTill: { type: String, default: '' },
     isComplimentary: { type: Boolean, default: false },
+    badgeText: { type: String, default: '' },
+    appliedAt: { type: Date, default: null },
     notes: { type: String, default: '' }
   },
   paymentDate: {

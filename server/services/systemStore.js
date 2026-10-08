@@ -4,10 +4,13 @@ const mongoose = require('mongoose');
 const Plan = require('../models/Plan');
 const SystemConfig = require('../models/SystemConfig');
 
+const Contact = require('../models/Contact');
+
 const DATA_DIR = path.join(__dirname, '../data');
 const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'system_config.json');
 const LEGAL_FILE = path.join(DATA_DIR, 'legal_policies.json');
+const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -646,6 +649,124 @@ const systemStore = {
     }
 
     return memoryPolicies;
+  },
+
+  // 7. Contact Inquiries Management (MongoDB + Fallback Cache)
+  async createContactInquiry(data) {
+    const inquiryItem = {
+      id: 'contact_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+      name: (data.name || '').trim(),
+      phone: (data.phone || '').trim(),
+      email: (data.email || '').trim(),
+      message: (data.message || '').trim(),
+      status: 'NEW',
+      notes: '',
+      ip: data.ip || '',
+      source: 'LANDING_PAGE',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Save to MongoDB if connected
+    if (isMongoConnected()) {
+      try {
+        const doc = await Contact.create({
+          name: inquiryItem.name,
+          phone: inquiryItem.phone,
+          email: inquiryItem.email,
+          message: inquiryItem.message,
+          status: 'NEW',
+          notes: '',
+          ip: inquiryItem.ip,
+          source: 'LANDING_PAGE'
+        });
+        inquiryItem._id = doc._id.toString();
+        inquiryItem.id = doc._id.toString();
+      } catch (err) {
+        console.warn('[SystemStore] MongoDB Contact save error:', err.message);
+      }
+    }
+
+    // Always update local cache
+    const currentList = readJsonFile(CONTACTS_FILE, []);
+    const updated = [inquiryItem, ...currentList];
+    writeJsonFile(CONTACTS_FILE, updated);
+
+    return inquiryItem;
+  },
+
+  async getContactInquiries() {
+    if (isMongoConnected()) {
+      try {
+        const docs = await Contact.find({}).sort({ createdAt: -1 }).lean();
+        if (Array.isArray(docs) && docs.length > 0) {
+          const formatted = docs.map(d => ({
+            id: d._id.toString(),
+            _id: d._id.toString(),
+            name: d.name,
+            phone: d.phone,
+            email: d.email,
+            message: d.message,
+            status: d.status || 'NEW',
+            notes: d.notes || '',
+            ip: d.ip || '',
+            source: d.source || 'LANDING_PAGE',
+            createdAt: d.createdAt,
+            updatedAt: d.updatedAt
+          }));
+          writeJsonFile(CONTACTS_FILE, formatted);
+          return formatted;
+        }
+      } catch (err) {
+        console.warn('[SystemStore] MongoDB Contact fetch error:', err.message);
+      }
+    }
+
+    return readJsonFile(CONTACTS_FILE, []);
+  },
+
+  async updateContactInquiryStatus(id, status, notes) {
+    if (isMongoConnected() && mongoose.Types.ObjectId.isValid(id)) {
+      try {
+        await Contact.findByIdAndUpdate(id, {
+          status,
+          ...(notes !== undefined ? { notes } : {}),
+          updatedAt: new Date()
+        });
+      } catch (err) {
+        console.warn('[SystemStore] MongoDB Contact update error:', err.message);
+      }
+    }
+
+    const currentList = readJsonFile(CONTACTS_FILE, []);
+    const updated = currentList.map(c => {
+      if (c.id === id || c._id === id) {
+        return {
+          ...c,
+          status: status || c.status,
+          notes: notes !== undefined ? notes : c.notes,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return c;
+    });
+    writeJsonFile(CONTACTS_FILE, updated);
+    return updated.find(c => c.id === id || c._id === id);
+  },
+
+  async deleteContactInquiry(id) {
+    if (isMongoConnected() && mongoose.Types.ObjectId.isValid(id)) {
+      try {
+        await Contact.findByIdAndDelete(id);
+      } catch (err) {
+        console.warn('[SystemStore] MongoDB Contact delete error:', err.message);
+      }
+    }
+
+    const currentList = readJsonFile(CONTACTS_FILE, []);
+    const updated = currentList.filter(c => c.id !== id && c._id !== id);
+    writeJsonFile(CONTACTS_FILE, updated);
+    return true;
   }
 };
 

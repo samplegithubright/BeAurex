@@ -5,9 +5,46 @@ import {
   Smartphone, Lock, AlertTriangle, ChevronDown, 
   CheckCircle2, Mail, MapPin, Zap, Star, Shield, Eye, Menu,
   QrCode, Phone, Bell, Sliders, Layers, Users, Clock, BarChart3,
-  HelpCircle, CreditCard, Award, Flame
+  HelpCircle, CreditCard, Award, Flame, Calendar, RefreshCw, TrendingUp, Heart
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
+
+// Distinct multi-color palettes for plan tags with generous spacing
+const DARK_TAG_PALETTES = [
+  { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/40', icon: 'text-emerald-400' },
+  { bg: 'bg-amber-500/15', text: 'text-amber-300', border: 'border-amber-500/40', icon: 'text-amber-400' },
+  { bg: 'bg-rose-500/15', text: 'text-rose-300', border: 'border-rose-500/40', icon: 'text-rose-400' },
+  { bg: 'bg-cyan-500/15', text: 'text-cyan-300', border: 'border-cyan-500/40', icon: 'text-cyan-400' },
+  { bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/40', icon: 'text-purple-400' },
+  { bg: 'bg-blue-500/15', text: 'text-blue-300', border: 'border-blue-500/40', icon: 'text-blue-400' }
+];
+
+const LIGHT_TAG_PALETTES = [
+  { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-300', icon: 'text-emerald-600' },
+  { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-300', icon: 'text-amber-600' },
+  { bg: 'bg-rose-50', text: 'text-rose-800', border: 'border-rose-300', icon: 'text-rose-600' },
+  { bg: 'bg-sky-50', text: 'text-sky-800', border: 'border-sky-300', icon: 'text-sky-600' },
+  { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-300', icon: 'text-purple-600' },
+  { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-300', icon: 'text-blue-600' }
+];
+
+const getPlanTagList = (p) => {
+  const tags = [];
+  if (p.tagText && typeof p.tagText === 'string') {
+    p.tagText.split(/[•,]/).map(s => s.trim()).filter(Boolean).forEach(t => {
+      if (!tags.includes(t)) tags.push(t);
+    });
+  }
+  if (Array.isArray(p.tags)) {
+    p.tags.forEach(t => {
+      if (t && typeof t === 'string') {
+        const tr = t.trim();
+        if (tr && !tags.includes(tr)) tags.push(tr);
+      }
+    });
+  }
+  return tags;
+};
 
 export default function LandingPage() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -24,6 +61,9 @@ export default function LandingPage() {
   const [signupError, setSignupError] = useState('');
   const [activeFaq, setActiveFaq] = useState(null);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', phone: '', email: '', message: '' });
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactError, setContactError] = useState('');
 
   // Live Platform Subscription Plans (Synced from MongoDB & System Store)
   const [plans, setPlans] = useState([
@@ -173,10 +213,31 @@ export default function LandingPage() {
     }
   };
 
-  const handleContactSubmit = (e) => {
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
-    setContactSuccess(true);
-    setTimeout(() => setContactSuccess(false), 5000);
+    setContactSubmitting(true);
+    setContactError('');
+    setContactSuccess(false);
+
+    try {
+      const res = await fetch('/api/public/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm)
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        setContactSuccess(true);
+        setContactForm({ name: '', phone: '', email: '', message: '' });
+        setTimeout(() => setContactSuccess(false), 7000);
+      } else {
+        setContactError(data?.message || 'Failed to submit inquiry. Please try again.');
+      }
+    } catch (err) {
+      setContactError('Unable to connect to server. Please try again later.');
+    } finally {
+      setContactSubmitting(false);
+    }
   };
 
   return (
@@ -199,7 +260,7 @@ export default function LandingPage() {
       {/* 2. NAVIGATION BAR */}
       {/* ========================================================= */}
       <nav className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
           {/* Brand Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
@@ -209,11 +270,11 @@ export default function LandingPage() {
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
             />
             <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-bold tracking-tight leading-none text-slate-900">
+              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-[#74111d]">
                 BeAurex
               </span>
-              <span className="text-[10px] font-bold text-[#8B0000] uppercase tracking-widest mt-0.5">
-                Smart QR & Loyalty Hub
+              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+                Rewarding Loyalty
               </span>
             </div>
           </Link>
@@ -229,17 +290,17 @@ export default function LandingPage() {
             <a href="#contact" className="hover:text-[#8B0000] transition-colors duration-200">Contact</a>
           </div>
 
-          {/* Actions: Login Dropdown & Start Free Trial */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Action: Login Button (Styled in Brand Red Gradient) */}
+          <div className="flex items-center">
             
             {/* Login Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setLoginDropdownOpen(!loginDropdownOpen)}
-                className="text-slate-700 hover:text-slate-900 font-semibold text-xs sm:text-sm px-3.5 py-2 rounded-xl transition-all duration-200 flex items-center space-x-1.5 border border-slate-200 hover:border-slate-300 bg-slate-50 cursor-pointer"
+                className="flex bg-gradient-to-r from-[#74111d] to-[#981b2a] hover:from-[#5e0c15] hover:to-[#801321] text-white font-bold px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl shadow-md shadow-[#74111d]/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm items-center space-x-1.5 sm:space-x-2"
               >
                 <span>Login</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${loginDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${loginDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {loginDropdownOpen && (
@@ -274,15 +335,6 @@ export default function LandingPage() {
                 </div>
               )}
             </div>
-
-            {/* Start Free Trial CTA */}
-            <button
-              onClick={() => setSignupModalOpen(true)}
-              className="flex bg-gradient-to-r from-[#74111d] to-[#981b2a] hover:from-[#5e0c15] hover:to-[#801321] text-white font-bold px-3 sm:px-6 py-2 sm:py-2.5 rounded-xl shadow-md shadow-[#74111d]/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm items-center space-x-1.5 sm:space-x-2"
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
-              <span>Start Free Trial</span>
-            </button>
           </div>
         </div>
       </nav>
@@ -290,123 +342,144 @@ export default function LandingPage() {
       {/* ========================================================= */}
       {/* 3. HERO SECTION */}
       {/* ========================================================= */}
-      <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16 text-center relative">
-        
-        {/* Top Tagline */}
-        <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200/80 text-[#8B0000] font-semibold text-xs uppercase px-3.5 py-1.5 rounded-full mb-6 shadow-xs">
-          <img src="/beaurex-icon.jpg" alt="BeAurex" className="w-4 h-4 rounded-sm object-cover shrink-0" />
-          <span>India's Leading Counter Retention Engine</span>
-        </div>
-
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-4xl mx-auto mb-6">
-          Turn Every Customer Visit Into A <span className="text-[#8B0000]">Repeat Customer</span>
-        </h1>
-        
-        <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-8 font-normal leading-relaxed">
-          A powerful counter gamification system that turns your local business into a high-loyalty customer magnet.
-        </p>
-        
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 max-w-md mx-auto mb-6">
-          <button
-            onClick={() => setSignupModalOpen(true)}
-            className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold px-7 py-3.5 rounded-xl text-sm shadow-lg shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2"
-          >
-            <span>Claim Your 3-Day Free Trial</span>
-            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-              <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
-            </div>
-          </button>
+      <header className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-14 lg:pb-18 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           
-          <a
-            href="#features"
-            className="w-full bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-semibold px-5 py-3.5 rounded-xl text-sm transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2 shadow-xs"
-          >
-            <div className="w-5 h-5 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-[#8B0000]" />
+          {/* Left Column: Content */}
+          <div className="lg:col-span-7 text-left space-y-6">
+            
+            {/* Top Tagline Badge */}
+            <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200/90 text-[#8B0000] font-bold text-xs uppercase px-4 py-1.5 rounded-full shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+              <span>#1 Loyalty & Rewards Platform for Local Businesses</span>
             </div>
-            <span>Explore Standee Features</span>
-          </a>
-        </div>
 
-        <div className="max-w-2xl mx-auto bg-slate-100 border border-slate-200/80 rounded-xl p-3 mb-12 flex items-center justify-center space-x-2.5 text-xs text-slate-700 font-medium">
-          <div className="w-5 h-5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span>A Proudly Indian Platform built to empower retail stores, bakeries, cafes & supermarkets across INDIA.</span>
-        </div>
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black text-slate-900 tracking-tight leading-[1.12]">
+              Turn Every Customer Visit Into a <span className="text-[#8B0000]">Repeat Customer</span>
+            </h1>
 
-        {/* Counter Standee Showcase Image */}
-        <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-3xl p-3 sm:p-5 shadow-lg overflow-hidden relative group hover:shadow-xl transition-all duration-300">
-          <picture className="block w-full">
-            <source media="(max-width: 767px)" srcSet="/hero-standee-mobile.jpg" />
-            <img 
-              src="/hero-standee.jpg" 
-              alt="BeAurex Counter Standee & Mobile Scratch Card Experience" 
-              className="w-full h-auto rounded-2xl object-cover transition-transform duration-300 group-hover:scale-[1.005] max-h-[580px] sm:max-h-none"
-            />
-          </picture>
-          <div className="mt-3 sm:mt-0 sm:absolute sm:bottom-6 sm:left-10 sm:right-10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-4 shadow-xl text-left">
-            <div className="flex items-center space-x-3 w-full sm:w-auto">
-              <img 
-                src="/beaurex-icon.jpg" 
-                alt="BeAurex Standee" 
-                className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 shrink-0"
-              />
-              <div>
-                <div className="font-bold text-sm text-slate-900">Custom Acrylic Counter Standees</div>
-                <div className="text-xs text-slate-500 font-medium">Download print-ready vector 5x7" counter templates instantly</div>
+            {/* Subtext */}
+            <p className="text-base sm:text-lg text-slate-600 max-w-xl font-normal leading-relaxed">
+              Simple stamps & QR scans. Exciting Aurex rewards. More repeat visits. Grow your business with customer loyalty.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+              <button
+                onClick={() => setSignupModalOpen(true)}
+                className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold px-7 py-3.5 rounded-xl text-sm shadow-lg shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2.5"
+              >
+                <span>Start Free — It Only Takes 1 Min</span>
+                <ArrowRight className="w-4 h-4 text-amber-300" />
+              </button>
+
+              <button
+                onClick={() => {
+                  const contactEl = document.getElementById('contact');
+                  if (contactEl) contactEl.scrollIntoView({ behavior: 'smooth' });
+                  else setSignupModalOpen(true);
+                }}
+                className="bg-white hover:bg-slate-50 text-[#8B0000] border-2 border-[#8B0000]/30 hover:border-[#8B0000] font-bold px-6 py-3.5 rounded-xl text-sm transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2 shadow-xs"
+              >
+                <Calendar className="w-4 h-4 text-[#8B0000]" />
+                <span>Book a Free Demo</span>
+              </button>
+            </div>
+
+            {/* Guarantees / Trust Badges */}
+            <div className="flex flex-wrap items-center gap-5 sm:gap-7 pt-2 text-xs text-slate-600 font-semibold">
+              <div className="flex items-center space-x-1.5">
+                <div className="w-4 h-4 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                </div>
+                <span>No Setup Fee</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <div className="w-4 h-4 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                </div>
+                <span>Easy to Use</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <div className="w-4 h-4 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                </div>
+                <span>Cancel Anytime</span>
               </div>
             </div>
-            <button
-              onClick={() => setSignupModalOpen(true)}
-              className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all duration-200 hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shadow-md shadow-red-950/20 text-center flex items-center justify-center space-x-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Get Your Store QR Standee</span>
-            </button>
-          </div>
-        </div>
 
+          </div>
+
+          {/* Right Column: Hero QR Standee Visual */}
+          <div className="lg:col-span-5 relative flex justify-center items-center">
+            {/* Ambient Peach/Rose Warm Glow Container */}
+            <div className="relative w-full max-w-[480px] bg-gradient-to-tr from-rose-100/80 via-rose-50/60 to-amber-50/80 p-3 sm:p-4 rounded-3xl border border-rose-200/70 shadow-xl group">
+              
+              {/* Floating Badge 1: Top Right */}
+              <div className="absolute -top-3 -right-2 sm:-right-4 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl px-4 py-2.5 shadow-xl flex items-center space-x-2.5 z-20">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center text-[#8B0000] shadow-2xs">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-slate-900 leading-none">10,000+</div>
+                  <div className="text-[10px] text-slate-500 font-medium leading-tight">Happy Businesses</div>
+                </div>
+              </div>
+
+              {/* Realistic QR Standee Hero Photo */}
+              <div className="overflow-hidden rounded-2xl border border-white/80 shadow-md bg-white">
+                <img 
+                  src="/hero-qr-standee.jpg" 
+                  alt="Store Owner with Tabletop Aurex QR Standee" 
+                  className="w-full h-auto object-cover rounded-2xl transition-transform duration-500 group-hover:scale-[1.02]"
+                />
+              </div>
+
+            </div>
+          </div>
+
+        </div>
       </header>
 
       {/* ========================================================= */}
-      {/* 4. CORE STRENGTHS 3-CARD GRID */}
+      {/* 4. VALUE PROPOSITIONS (IMAGE 3 HIGHLIGHTS) */}
       {/* ========================================================= */}
-      <section id="strengths" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
-            <div>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mb-4 shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform duration-200">
-                <ShieldCheck className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-base mb-2">Zero Hidden Contracts</h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-normal">
-                No payment required to start. No auto-debits, no hidden platform charges, and no forced renewals. You retain full control.
-              </p>
+          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 flex items-start space-x-4 group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25 group-hover:scale-110 transition-transform">
+              <RefreshCw className="w-5 h-5 text-white" />
             </div>
-          </div>
-          
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
             <div>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center mb-4 shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
-                <Smartphone className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-base mb-2">Quick & Instant Browser Scan</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-blue-600 transition-colors">More Repeat Visits</h3>
               <p className="text-slate-500 text-xs leading-relaxed font-normal">
-                Customers scan instantly through their default phone camera. No slow app installations or tedious account setups.
+                Encourage customers to come back again and again with instant Aurex coin rewards.
               </p>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-purple-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group">
+          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 flex items-start space-x-4 group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
             <div>
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center mb-4 shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform duration-200">
-                <Lock className="w-6 h-6 text-white" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-base mb-2">100% Guarded Privacy</h3>
+              <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-emerald-600 transition-colors">Increase Sales</h3>
               <p className="text-slate-500 text-xs leading-relaxed font-normal">
-                Customer data is strictly isolated and guarded with bank-level encryption. Customers face zero unsolicited marketing spam.
+                Happy customers spend more, return faster, and stay loyal to your business longer.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-rose-300 hover:-translate-y-1 transition-all duration-300 flex items-start space-x-4 group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-[#8B0000] text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/25 group-hover:scale-110 transition-transform">
+              <Heart className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-[#8B0000] transition-colors">Stronger Relationships</h3>
+              <p className="text-slate-500 text-xs leading-relaxed font-normal">
+                Build genuine trust and long-lasting customer connections right at your checkout counter.
               </p>
             </div>
           </div>
@@ -417,7 +490,7 @@ export default function LandingPage() {
       {/* ========================================================= */}
       {/* 5. COMPLETE FEATURES GRID */}
       {/* ========================================================= */}
-      <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200/70">
+      <section id="features" className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200/70">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold text-[#8B0000] uppercase tracking-widest bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full">
             Powerful Platform Capabilities
@@ -430,84 +503,84 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
           
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center mb-4 shadow-md shadow-red-500/25 group-hover:scale-110 transition-transform">
-              <QrCode className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-red-500/25 group-hover:scale-110 transition-transform">
+              <QrCode className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">Camera QR Scan</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Camera QR Scan</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               Customers scan with their phone camera directly from your desk standee. No app download needed.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center mb-4 shadow-md shadow-amber-500/25 group-hover:scale-110 transition-transform">
-              <Gift className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-amber-500/25 group-hover:scale-110 transition-transform">
+              <Gift className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">Gamified Scratch Cards</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
-              Interactive high-dopamine scratch reveal mechanism that excites customers and secures repeat visits.
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Instant QR Loyalty Rewards</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
+              Exciting digital Aurex rewards unlocked instantly every time a customer scans your counter QR standee.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mb-4 shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform">
-              <Sliders className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform">
+              <Sliders className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">Custom Reward Control</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Custom Reward Control</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               Set discount percentages, rupee-off coupons, or complimentary items based on your margins.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center mb-4 shadow-md shadow-blue-500/25 group-hover:scale-110 transition-transform">
-              <BarChart3 className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-blue-500/25 group-hover:scale-110 transition-transform">
+              <BarChart3 className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">Real-Time Visitation Analytics</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Real-Time Visitation Analytics</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               Track live daily scan counts, return rates, and customer redemption data from your store portal.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-purple-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center mb-4 shadow-md shadow-purple-500/25 group-hover:scale-110 transition-transform">
-              <Store className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-purple-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-purple-500/25 group-hover:scale-110 transition-transform">
+              <Store className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">Printable Standee Artwork</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Printable Standee Artwork</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               Instant vector counter templates customized with your store name, branding, and dynamic QR code.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-rose-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center mb-4 shadow-md shadow-rose-500/25 group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-rose-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-rose-500/25 group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">PIN & OTP Verification</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">PIN & OTP Verification</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               Guarded verification protects against fraudulent redemptions and repeated double-claims.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-teal-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white flex items-center justify-center mb-4 shadow-md shadow-teal-500/25 group-hover:scale-110 transition-transform">
-              <Clock className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-teal-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-400 to-emerald-500 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-teal-500/25 group-hover:scale-110 transition-transform">
+              <Clock className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">2-Minute Setup</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">2-Minute Setup</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               No technical or coding knowledge needed. Just enter your store name, print your standee, and start.
             </p>
           </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-indigo-300 hover:-translate-y-1 transition-all duration-300 group">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center mb-4 shadow-md shadow-indigo-500/25 group-hover:scale-110 transition-transform">
-              <Users className="w-5 h-5 text-white" />
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-indigo-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-indigo-500/25 group-hover:scale-110 transition-transform">
+              <Users className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-sm mb-1.5">Zero Marketing Spam</h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Zero Marketing Spam</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
               Shopper privacy is guarded strictly. No promotional third-party spam messages sent to customers.
             </p>
           </div>
@@ -536,48 +609,71 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
             
             {/* The Retention Leak Box */}
-            <div className="bg-rose-50/70 border border-rose-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:shadow-lg transition-all duration-300">
+            <div className="bg-gradient-to-b from-rose-100/95 via-rose-100/65 to-red-100/85 border-2 border-rose-300 shadow-xl shadow-rose-950/5 rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 relative overflow-hidden">
               <div>
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-rose-700 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-red-500/30">
-                    <X className="w-5 h-5 text-white" />
+                <div className="flex items-center justify-between pb-6 border-b border-rose-200/80 mb-6">
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-[#74111d] text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-md shadow-red-600/30 shrink-0">
+                      <X className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h3 className="text-rose-950 font-black text-xl tracking-tight">The Retention Leak</h3>
+                      <p className="text-[11px] text-rose-800 font-semibold mt-0.5">Where traditional stores lose daily repeat walk-ins</p>
+                    </div>
                   </div>
-                  <h3 className="text-rose-950 font-bold text-xl tracking-tight">The Retention Leak</h3>
+                  <span className="bg-rose-200 text-rose-900 border border-rose-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block shadow-2xs">
+                    Without BeAurex
+                  </span>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-xs hover:border-rose-300 transition-colors duration-200">
-                    <h4 className="font-bold text-rose-900 text-sm flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>Lost After the Sale</span>
-                    </h4>
-                    <p className="text-slate-600 text-xs mt-1.5 leading-relaxed font-normal">
+                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all duration-200 group">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span>Lost After the Sale</span>
+                      </h4>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md shrink-0">
+                        Unreachable
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
                       Most customers buy, pay cash or UPI, and leave—making them completely unreachable tomorrow for repeat purchases.
                     </p>
                   </div>
 
-                  <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-xs hover:border-rose-300 transition-colors duration-200">
-                    <h4 className="font-bold text-rose-900 text-sm flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>Profit-Bleeding Discounts</span>
-                    </h4>
-                    <p className="text-slate-600 text-xs mt-1.5 leading-relaxed font-normal">
+                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all duration-200 group">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-600 to-red-700 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span>Profit-Bleeding Discounts</span>
+                      </h4>
+                      <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md shrink-0">
+                        Margin Burn
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
                       Displaying flat percentage cuts on checkout counters permanently burns your daily profit margin without driving future curiosity.
                     </p>
                   </div>
 
-                  <div className="bg-white p-4 rounded-2xl border border-rose-100 shadow-xs hover:border-rose-300 transition-colors duration-200">
-                    <h4 className="font-bold text-rose-900 text-sm flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <AlertTriangle className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>Aggressive App Competition</span>
-                    </h4>
-                    <p className="text-slate-600 text-xs mt-1.5 leading-relaxed font-normal">
+                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all duration-200 group">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span>Aggressive App Competition</span>
+                      </h4>
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-md shrink-0">
+                        Customer Drain
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
                       Online delivery platforms spend millions to capture your daily offline neighborhood clients away with targeted push promotions.
                     </p>
                   </div>
@@ -586,48 +682,71 @@ export default function LandingPage() {
             </div>
 
             {/* The BeAurex Solution Box */}
-            <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-6 sm:p-8 flex flex-col justify-between shadow-xs hover:shadow-lg transition-all duration-300">
+            <div className="bg-gradient-to-b from-emerald-100/95 via-emerald-100/65 to-teal-100/85 border-2 border-emerald-300 shadow-xl shadow-emerald-950/5 rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 relative overflow-hidden">
               <div>
-                <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-500/30">
-                    <Check className="w-5 h-5 text-white" />
+                <div className="flex items-center justify-between pb-6 border-b border-emerald-200/80 mb-6">
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-11 h-11 bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-600/30 shrink-0">
+                      <Check className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h3 className="text-emerald-950 font-black text-xl tracking-tight">The BeAurex Solution</h3>
+                      <p className="text-[11px] text-emerald-800 font-semibold mt-0.5">Automated counter QR retention loop</p>
+                    </div>
                   </div>
-                  <h3 className="text-emerald-950 font-bold text-xl tracking-tight">The BeAurex Solution</h3>
+                  <span className="bg-emerald-200 text-emerald-900 border border-emerald-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block shadow-2xs">
+                    With BeAurex
+                  </span>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors duration-200">
-                    <h4 className="font-bold text-emerald-900 text-sm flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <Sparkles className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>Automated Dynamic Retention</span>
-                    </h4>
-                    <p className="text-slate-600 text-xs mt-1.5 leading-relaxed font-normal">
+                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-emerald-200 shadow-xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 group">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <Sparkles className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span>Automated Dynamic Retention</span>
+                      </h4>
+                      <span className="text-[10px] font-bold text-cyan-700 bg-cyan-50 border border-cyan-200/80 px-2 py-0.5 rounded-md shrink-0">
+                        100% Automatic
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
                       Customers scan the QR code right at your register. It opens instantly on their phone, unlocking time-sensitive vouchers that bring them back.
                     </p>
                   </div>
 
-                  <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors duration-200">
-                    <h4 className="font-bold text-emerald-900 text-sm flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <Gift className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>High-Dopamine Gamification</span>
-                    </h4>
-                    <p className="text-slate-600 text-xs mt-1.5 leading-relaxed font-normal">
-                      Scratch card curiosity mechanics convert regular checkout loops into memorable moments that customers tell their friends and family about.
+                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-emerald-200 shadow-xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 group">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <Gift className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span>Instant QR Reward Gamification</span>
+                      </h4>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md shrink-0">
+                        High Return
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
+                      Instant Aurex coin reveal mechanics convert regular checkout loops into exciting loyalty moments that customers love coming back for.
                     </p>
                   </div>
 
-                  <div className="bg-white p-4 rounded-2xl border border-emerald-100 shadow-xs hover:border-emerald-300 transition-colors duration-200">
-                    <h4 className="font-bold text-emerald-900 text-sm flex items-center space-x-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <ShieldCheck className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>100% Privacy & Zero Spam</span>
-                    </h4>
-                    <p className="text-slate-600 text-xs mt-1.5 leading-relaxed font-normal">
+                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-emerald-200 shadow-xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 group">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                          <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                        </div>
+                        <span>100% Privacy & Zero Spam</span>
+                      </h4>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md shrink-0">
+                        Bank-Grade Trust
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
                       We protect customer data completely. No promotional spam. Shoppers feel safe and respect your business's modern digital environment.
                     </p>
                   </div>
@@ -643,7 +762,7 @@ export default function LandingPage() {
       {/* 7. SETUP IN JUST 3 SIMPLE STEPS */}
       {/* ========================================================= */}
       <section id="how-it-works" className="bg-slate-50 py-20 border-b border-slate-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
           
           <h2 className="text-3xl font-extrabold text-center text-slate-900 mb-12">
             Setup in Just 3 Simple Steps
@@ -682,7 +801,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-bold text-lg mb-2 text-slate-900">Watch Customers Return</h3>
                 <p className="text-slate-600 text-xs leading-relaxed font-normal">
-                  Visitors scan to play instant scratch cards, unlocking discounts for their next visit and keeping them loyal to your local business.
+                  Visitors scan your counter QR to earn instant Aurex coin rewards, unlocking discounts for their next visit and keeping them loyal to your local business.
                 </p>
               </div>
             </div>
@@ -694,7 +813,7 @@ export default function LandingPage() {
       {/* ========================================================= */}
       {/* 8. PRICING PLANS SECTION */}
       {/* ========================================================= */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <section id="pricing" className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-24">
         
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold text-[#8B0000] uppercase tracking-widest bg-rose-50 border border-rose-200/80 px-3.5 py-1 rounded-full shadow-xs">
@@ -708,7 +827,7 @@ export default function LandingPage() {
           </p>
         </div>
         
-        <div className={`grid grid-cols-1 ${plans.length === 2 ? 'md:grid-cols-2 max-w-4xl' : plans.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4 max-w-7xl' : plans.length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 max-w-7xl' : 'lg:grid-cols-3 max-w-6xl'} gap-8 items-stretch mx-auto`}>
+        <div className={`grid grid-cols-1 ${plans.length === 2 ? 'md:grid-cols-2 max-w-4xl' : plans.length === 4 ? 'md:grid-cols-2 lg:grid-cols-4 max-w-[1200px]' : plans.length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 max-w-[1200px]' : 'lg:grid-cols-3 max-w-6xl'} gap-8 items-stretch mx-auto`}>
           {plans.map((p) => {
             const isPopular = p.isPopular || p.highlightBadge === 'Most Popular';
             const isDark = p.highlightBadge === 'Best Value' || p.id?.includes('legacy');
@@ -737,23 +856,27 @@ export default function LandingPage() {
                         <div className="text-3xl font-extrabold text-amber-400 tracking-tight">
                           ₹{Number(p.price).toLocaleString('en-IN')} {p.period && <span className="text-sm font-normal text-slate-400">{p.period}</span>}
                         </div>
-                        {p.tagText && (
-                          <div className="text-slate-300 text-[10px] font-semibold uppercase tracking-widest mt-1.5 flex items-center space-x-1.5">
-                            <span className="bg-black/40 px-2 py-0.5 rounded text-emerald-400 font-bold border border-emerald-500/30 flex items-center space-x-1">
-                              <Zap className="w-3 h-3 text-emerald-400" />
-                              <span>{p.tagText}</span>
-                            </span>
-                          </div>
-                        )}
-                        {(p.tags || []).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {p.tags.map((tg, idx) => (
-                              <span key={idx} className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded text-[10px] font-bold">
-                                {tg}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {/* Distinct Multi-Colored Plan Tags with Gap */}
+                        {(() => {
+                          const tagList = getPlanTagList(p);
+                          if (tagList.length === 0) return null;
+                          return (
+                            <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                              {tagList.map((tag, tIdx) => {
+                                const theme = DARK_TAG_PALETTES[tIdx % DARK_TAG_PALETTES.length];
+                                return (
+                                  <span
+                                    key={tIdx}
+                                    className={`inline-flex items-center space-x-1.5 ${theme.bg} ${theme.text} border ${theme.border} px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-2xs`}
+                                  >
+                                    <Zap className={`w-3 h-3 ${theme.icon} shrink-0`} />
+                                    <span>{tag}</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                       </div>
                       
                       <ul className="space-y-3 text-slate-300 text-xs font-medium mb-8">
@@ -804,21 +927,27 @@ export default function LandingPage() {
                         <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
                           ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-sm font-normal text-slate-500">{p.period}</span>
                         </div>
-                        {p.tagText && (
-                          <div className="text-[#8B0000] text-xs font-bold mt-1.5 flex items-center space-x-1.5 bg-rose-50 px-2.5 py-1 rounded w-fit border border-rose-200">
-                            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                            <span>{p.tagText}</span>
-                          </div>
-                        )}
-                        {(p.tags || []).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {p.tags.map((tg, idx) => (
-                              <span key={idx} className="bg-rose-50 text-[#8B0000] border border-rose-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                                {tg}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {/* Distinct Multi-Colored Plan Tags with Gap */}
+                        {(() => {
+                          const tagList = getPlanTagList(p);
+                          if (tagList.length === 0) return null;
+                          return (
+                            <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                              {tagList.map((tag, tIdx) => {
+                                const theme = LIGHT_TAG_PALETTES[tIdx % LIGHT_TAG_PALETTES.length];
+                                return (
+                                  <span
+                                    key={tIdx}
+                                    className={`inline-flex items-center space-x-1.5 ${theme.bg} ${theme.text} border ${theme.border} px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-2xs`}
+                                  >
+                                    <Zap className={`w-3 h-3 ${theme.icon} shrink-0`} />
+                                    <span>{tag}</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                       </div>
                       
                       <ul className="space-y-3 text-slate-600 text-xs font-medium mb-8">
@@ -868,21 +997,27 @@ export default function LandingPage() {
                       <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
                         ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-sm font-normal text-slate-500">{p.period}</span>
                       </div>
-                      {p.tagText && (
-                        <div className="text-emerald-600 text-xs font-semibold mt-1.5 flex items-center space-x-1">
-                          <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>{p.tagText}</span>
-                        </div>
-                      )}
-                      {(p.tags || []).length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {p.tags.map((tg, idx) => (
-                            <span key={idx} className="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-bold">
-                              {tg}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {/* Distinct Multi-Colored Plan Tags with Gap */}
+                      {(() => {
+                        const tagList = getPlanTagList(p);
+                        if (tagList.length === 0) return null;
+                        return (
+                          <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                            {tagList.map((tag, tIdx) => {
+                              const theme = LIGHT_TAG_PALETTES[tIdx % LIGHT_TAG_PALETTES.length];
+                              return (
+                                <span
+                                  key={tIdx}
+                                  className={`inline-flex items-center space-x-1.5 ${theme.bg} ${theme.text} border ${theme.border} px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-2xs`}
+                                >
+                                  <Sparkles className={`w-3 h-3 ${theme.icon} shrink-0`} />
+                                  <span>{tag}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                     
                     <ul className="space-y-3 text-slate-600 text-xs font-medium mb-8">
@@ -960,14 +1095,14 @@ export default function LandingPage() {
                 gradient: 'from-emerald-500 to-teal-600',
                 icon: Smartphone,
                 q: "Do customers need to download an application from the App Store?",
-                a: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the scratch card immediately appears in their default browser."
+                a: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser."
               },
               {
                 id: 4,
                 gradient: 'from-purple-500 to-pink-600',
                 icon: Gift,
                 q: "Can I customize the discounts and reward percentages?",
-                a: "Yes, you have full control over scratch card campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances."
+                a: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances."
               },
               {
                 id: 5,
@@ -978,7 +1113,6 @@ export default function LandingPage() {
               }
             ].map((faq) => {
               const isOpen = activeFaq === faq.id;
-              const FaqIcon = faq.icon;
               return (
                 <div
                   key={faq.id}
@@ -991,8 +1125,8 @@ export default function LandingPage() {
                 >
                   <div className="flex items-center justify-between font-bold text-slate-900 text-sm sm:text-base gap-3">
                     <span className="flex items-center space-x-3.5">
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${faq.gradient} text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform duration-200`}>
-                        <FaqIcon className="w-4 h-4 text-white" />
+                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${faq.gradient} text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform duration-200 font-black text-sm`}>
+                        {faq.id}
                       </div>
                       <span className="group-hover:text-[#8B0000] transition-colors duration-200">{faq.q}</span>
                     </span>
@@ -1054,44 +1188,66 @@ export default function LandingPage() {
                 <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span>Message dispatched! Our regional activation officer will reply shortly.</span>
+                <span>Message dispatched! Our team will contact you shortly.</span>
+              </div>
+            )}
+
+            {contactError && (
+              <div className="p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-800 font-bold flex items-center space-x-2">
+                <div className="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center shrink-0">
+                  <span className="text-white text-xs font-black">!</span>
+                </div>
+                <span>{contactError}</span>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <input
                 type="text"
-                placeholder="Your Name"
+                placeholder="Your Name *"
                 required
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors"
+                disabled={contactSubmitting}
+                value={contactForm.name}
+                onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
               />
               <input
                 type="tel"
-                placeholder="Phone Number"
+                placeholder="Phone Number *"
                 required
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors"
+                disabled={contactSubmitting}
+                value={contactForm.phone}
+                onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
               />
             </div>
 
             <input
               type="email"
-              placeholder="Business Email Address"
+              placeholder="Business Email Address *"
               required
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors"
+              disabled={contactSubmitting}
+              value={contactForm.email}
+              onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
             />
 
             <textarea
               rows={3}
-              placeholder="Describe your store or queries..."
+              placeholder="Describe your store or queries... *"
               required
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors"
+              disabled={contactSubmitting}
+              value={contactForm.message}
+              onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
             ></textarea>
 
             <button
               type="submit"
-              className="w-full bg-slate-900 hover:bg-[#8B0000] text-white font-bold py-3 rounded-xl transition-all duration-200 text-xs cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center space-x-2"
+              disabled={contactSubmitting}
+              className="w-full bg-slate-900 hover:bg-[#8B0000] text-white font-bold py-3 rounded-xl transition-all duration-200 text-xs cursor-pointer shadow-sm hover:shadow-md flex items-center justify-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span>Send Message</span>
+              <span>{contactSubmitting ? 'Submitting Inquiry...' : 'Send Message'}</span>
               <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
             </button>
           </form>
@@ -1106,7 +1262,7 @@ export default function LandingPage() {
         {/* Subtle glowing ruby top radial aura */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-36 bg-gradient-to-b from-[#8B0000]/20 to-transparent pointer-events-none blur-3xl" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10 text-left">
             
             {/* Brand Column */}
@@ -1118,17 +1274,17 @@ export default function LandingPage() {
                   className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/40 group-hover:scale-105 transition-all duration-300"
                 />
                 <div className="flex flex-col">
-                  <span className="text-2xl font-bold tracking-tight leading-none text-white">
+                  <span className="text-2xl font-black tracking-tight leading-none text-white">
                     BeAurex
                   </span>
-                  <span className="text-[10px] font-bold text-red-200/80 uppercase tracking-widest mt-0.5">
-                    Smart Customer Loyalty Hub
+                  <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mt-0.5">
+                    Rewarding Loyalty
                   </span>
                 </div>
               </Link>
 
               <p className="text-slate-400 text-xs leading-relaxed max-w-sm font-normal">
-                The high-conversion counter gamification & customer retention engine empowering local retail businesses, bakeries, cafes, and supermarkets across India.
+                The high-conversion counter gamification & customer retention engine empowering local retail businesses likes  bakeries, cafes, and supermarkets across India.
               </p>
 
               <div className="flex items-center space-x-2 pt-1">

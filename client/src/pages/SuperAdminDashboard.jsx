@@ -13,7 +13,7 @@ import {
   Bell, Palette, QrCode, History, Sliders, ToggleLeft, ToggleRight, CheckSquare, Square, Award, Edit3,
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, AlignJustify,
   List, ListOrdered, Indent, Outdent, Link2, Image as ImageIcon, Table as TableIcon, MoreHorizontal,
-  Send, TrendingUp, Info, ArrowLeft
+  Send, TrendingUp, Info, ArrowLeft, Folder, Upload, Play
 } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
@@ -46,13 +46,187 @@ export default function SuperAdminDashboard() {
 
   // Merchants Billing & Subscriptions State (Matching Image 1: Trial Merchants 7, Pending Payment 0, Today Onboarding 0)
   const [merchants, setMerchants] = useState([
-    { id: 'm1', businessName: 'Royal Sweets & Cafe', category: 'CAFE_RESTAURANT', email: 'owner@royalsweets.com', mobile: '9876543210', city: 'Delhi NCR', subscriptionTier: 'Standard Plan', plan: 'Standard Plan', planValidTill: '24 May 2026', paymentDate: '24 May 2025', paymentAmount: '₹ 24,000', totalPayment: '₹ 24,000', dateTime: 'May 24, 2025 11:20 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm2', businessName: 'Gourmet Organic Supermarket', category: 'GROCERY', email: 'admin@gourmetorganic.in', mobile: '9811223399', city: 'Bengaluru', subscriptionTier: 'Professional Plan', plan: 'Professional Plan', planValidTill: '24 May 2028', paymentDate: '24 May 2025', paymentAmount: '₹ 49,000', totalPayment: '₹ 49,000', dateTime: 'May 24, 2025 10:45 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm3', businessName: 'Glamour Salon & Spa', category: 'SALON_SPA', email: 'support@glamourspa.in', mobile: '9899001122', city: 'Mumbai', subscriptionTier: 'Legacy Plan', plan: 'Legacy Plan', planValidTill: 'Lifetime', paymentDate: '24 May 2025', paymentAmount: '₹ 75,000', totalPayment: '₹ 75,000', dateTime: 'May 24, 2025 09:30 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm4', businessName: 'Urban Fitness Studio', category: 'OTHER', email: 'contact@urbanfitness.com', mobile: '9711223344', city: 'Pune', subscriptionTier: 'Standard Plan', plan: 'Standard Plan', planValidTill: '01 Nov 2026', paymentDate: '24 May 2025', paymentAmount: '₹ 24,000', totalPayment: '₹ 24,000', dateTime: 'May 24, 2025 09:15 AM', status: 'Paid', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm5', businessName: 'Spice Junction Biryani', category: 'CAFE_RESTAURANT', email: 'spice@junction.com', mobile: '9844556611', city: 'Hyderabad', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '10 Oct 2026', paymentDate: '23 May 2025', paymentAmount: '₹ 0', totalPayment: '₹ 0', dateTime: 'May 23, 2025 08:50 PM', status: 'Trial', isComplimentary: true, dealDetails: { dealTitle: 'Special Trial Deal', dealAmount: 499 } },
-    { id: 'm6', businessName: 'Chai Chaska Bar', category: 'CAFE_RESTAURANT', email: 'chai@chaska.in', mobile: '9812345678', city: 'Gurugram', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '09 Oct 2026', paymentDate: '23 May 2025', paymentAmount: '₹ 0', totalPayment: '₹ 0', dateTime: 'May 23, 2025 07:15 PM', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-    { id: 'm7', businessName: 'Bakers Point Delhi', category: 'CAFE_RESTAURANT', email: 'bakers@point.in', mobile: '9877001122', city: 'Delhi', subscriptionTier: 'Standard Plan', plan: 'Standard Plan', planValidTill: '11 Oct 2026', paymentDate: '23 May 2025', paymentAmount: '₹ 24,000', totalPayment: '₹ 24,000', dateTime: 'May 23, 2025 05:40 PM', status: 'Paid', isComplimentary: true, dealDetails: { dealTitle: '', dealAmount: 0 } }
+    { 
+      id: 'm1', 
+      businessName: 'Royal Sweets & Cafe', 
+      category: 'CAFE_RESTAURANT', 
+      email: 'owner@royalsweets.com', 
+      mobile: '9876543210', 
+      city: 'Delhi NCR', 
+      subscriptionTier: 'Standard Plan', 
+      plan: 'Standard Plan', 
+      planValidTill: '24 May 2026', 
+      paymentDate: '24 May 2025', 
+      paymentAmount: '₹ 18,000', 
+      totalPayment: '₹ 18,000', 
+      dateTime: 'May 24, 2025 11:20 AM', 
+      status: 'Paid', 
+      isComplimentary: false, 
+      dealDetails: { 
+        dealType: 'PERCENTAGE', 
+        dealTitle: 'Festive Fast-Track Onboarding', 
+        dealAmount: 18000, 
+        discountPercent: 25, 
+        discountAmount: 6000, 
+        originalPrice: 24000, 
+        validTill: '30 Days', 
+        isComplimentary: false, 
+        badgeText: '25% OFF', 
+        notes: 'Agreed on 25% annual package discount' 
+      } 
+    },
+    { 
+      id: 'm2', 
+      businessName: 'Gourmet Organic Supermarket', 
+      category: 'GROCERY', 
+      email: 'admin@gourmetorganic.in', 
+      mobile: '9811223399', 
+      city: 'Bengaluru', 
+      subscriptionTier: 'Professional Plan', 
+      plan: 'Professional Plan', 
+      planValidTill: '24 May 2028', 
+      paymentDate: '24 May 2025', 
+      paymentAmount: '₹ 44,000', 
+      totalPayment: '₹ 44,000', 
+      dateTime: 'May 24, 2025 10:45 AM', 
+      status: 'Paid', 
+      isComplimentary: false, 
+      dealDetails: { 
+        dealType: 'FLAT', 
+        dealTitle: 'Corporate Direct Onboarding', 
+        dealAmount: 44000, 
+        discountPercent: 10, 
+        discountAmount: 5000, 
+        originalPrice: 49000, 
+        validTill: '60 Days', 
+        isComplimentary: false, 
+        badgeText: '₹5,000 OFF', 
+        notes: 'Flat cash deduction for multi-outlet retail' 
+      } 
+    },
+    { 
+      id: 'm3', 
+      businessName: 'Glamour Salon & Spa', 
+      category: 'SALON_SPA', 
+      email: 'support@glamourspa.in', 
+      mobile: '9899001122', 
+      city: 'Mumbai', 
+      subscriptionTier: 'Legacy Plan', 
+      plan: 'Legacy Plan', 
+      planValidTill: 'Lifetime', 
+      paymentDate: '24 May 2025', 
+      paymentAmount: '₹ 75,000', 
+      totalPayment: '₹ 75,000', 
+      dateTime: 'May 24, 2025 09:30 AM', 
+      status: 'Paid', 
+      isComplimentary: false, 
+      dealDetails: { 
+        dealType: 'CUSTOM', 
+        dealTitle: 'Founder Partner Agreement', 
+        dealAmount: 75000, 
+        discountPercent: 0, 
+        discountAmount: 0, 
+        originalPrice: 120000, 
+        validTill: 'Lifetime Access', 
+        isComplimentary: false, 
+        badgeText: 'CUSTOM DEAL', 
+        notes: 'Lifetime partner terms with dedicated RM' 
+      } 
+    },
+    { 
+      id: 'm4', 
+      businessName: 'Urban Fitness Studio', 
+      category: 'OTHER', 
+      email: 'contact@urbanfitness.com', 
+      mobile: '9711223344', 
+      city: 'Pune', 
+      subscriptionTier: 'Standard Plan', 
+      plan: 'Standard Plan', 
+      planValidTill: '01 Nov 2026', 
+      paymentDate: '24 May 2025', 
+      paymentAmount: '₹ 24,000', 
+      totalPayment: '₹ 24,000', 
+      dateTime: 'May 24, 2025 09:15 AM', 
+      status: 'Paid', 
+      isComplimentary: false, 
+      dealDetails: { dealType: 'NONE', dealTitle: '', dealAmount: 0 } 
+    },
+    { 
+      id: 'm5', 
+      businessName: 'Spice Junction Biryani', 
+      category: 'CAFE_RESTAURANT', 
+      email: 'spice@junction.com', 
+      mobile: '9844556611', 
+      city: 'Hyderabad', 
+      subscriptionTier: 'Trial Plan', 
+      plan: 'Trial Plan', 
+      planValidTill: '10 Oct 2026', 
+      paymentDate: '23 May 2025', 
+      paymentAmount: '₹ 0', 
+      totalPayment: '₹ 0', 
+      dateTime: 'May 23, 2025 08:50 PM', 
+      status: 'Trial', 
+      isComplimentary: true, 
+      dealDetails: { 
+        dealType: 'COMPLIMENTARY', 
+        dealTitle: 'VIP Complimentary Trial Extension', 
+        dealAmount: 0, 
+        discountPercent: 100, 
+        discountAmount: 24000, 
+        originalPrice: 24000, 
+        validTill: '90 Days', 
+        isComplimentary: true, 
+        badgeText: '100% FREE', 
+        notes: 'Complimentary trial approved by management' 
+      } 
+    },
+    { 
+      id: 'm6', 
+      businessName: 'Chai Chaska Bar', 
+      category: 'CAFE_RESTAURANT', 
+      email: 'chai@chaska.in', 
+      mobile: '9812345678', 
+      city: 'Gurugram', 
+      subscriptionTier: 'Trial Plan', 
+      plan: 'Trial Plan', 
+      planValidTill: '09 Oct 2026', 
+      paymentDate: '23 May 2025', 
+      paymentAmount: '₹ 0', 
+      totalPayment: '₹ 0', 
+      dateTime: 'May 23, 2025 07:15 PM', 
+      status: 'Trial', 
+      isComplimentary: false, 
+      dealDetails: { dealType: 'NONE', dealTitle: '', dealAmount: 0 } 
+    },
+    { 
+      id: 'm7', 
+      businessName: 'Bakers Point Delhi', 
+      category: 'CAFE_RESTAURANT', 
+      email: 'bakers@point.in', 
+      mobile: '9877001122', 
+      city: 'Delhi', 
+      subscriptionTier: 'Standard Plan', 
+      plan: 'Standard Plan', 
+      planValidTill: '11 Oct 2026', 
+      paymentDate: '23 May 2025', 
+      paymentAmount: '₹ 999', 
+      totalPayment: '₹ 999', 
+      dateTime: 'May 23, 2025 05:40 PM', 
+      status: 'Trial', 
+      isComplimentary: false, 
+      dealDetails: { 
+        dealType: 'FIXED_PRICE', 
+        dealTitle: 'Early Bird Starter Special', 
+        dealAmount: 999, 
+        discountPercent: 80, 
+        discountAmount: 4000, 
+        originalPrice: 4999, 
+        validTill: '30 Days', 
+        isComplimentary: false, 
+        badgeText: '₹999 SPECIAL', 
+        notes: 'Introductory starter deal rate' 
+      } 
+    }
   ]);
 
   // Plans Management State (Synchronized with Landing Page and MongoDB)
@@ -350,6 +524,74 @@ export default function SuperAdminDashboard() {
     minPlan: 'All Plans'
   });
 
+  // Contact Inquiries State (MongoDB /api/admin/contacts)
+  const [contactsList, setContactsList] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactFilter, setContactFilter] = useState('ALL'); // 'ALL' | 'NEW' | 'CONTACTED' | 'RESOLVED'
+  const [searchContact, setSearchContact] = useState('');
+  const [selectedInquiryModal, setSelectedInquiryModal] = useState(null);
+  const [contactStatusUpdating, setContactStatusUpdating] = useState(null);
+
+  const fetchContacts = async () => {
+    setContactsLoading(true);
+    try {
+      const res = await fetch('/api/admin/contacts');
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.contacts)) {
+        setContactsList(data.contacts);
+      }
+    } catch (err) {
+      console.error('Failed to load contact inquiries', err);
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  const handleUpdateContactStatus = async (id, newStatus) => {
+    setContactStatusUpdating(id);
+    try {
+      const res = await fetch(`/api/admin/contacts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        setContactsList(prev => prev.map(c => ((c.id === id || c._id === id) ? { ...c, status: newStatus } : c)));
+        if (selectedInquiryModal && (selectedInquiryModal.id === id || selectedInquiryModal._id === id)) {
+          setSelectedInquiryModal(prev => ({ ...prev, status: newStatus }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update contact status', err);
+    } finally {
+      setContactStatusUpdating(null);
+    }
+  };
+
+  const handleDeleteContact = (id) => {
+    requestConfirm({
+      title: 'Delete Inquiry',
+      message: 'Are you sure you want to permanently delete this contact inquiry record?',
+      confirmText: 'Yes, Delete',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/admin/contacts/${id}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (data && data.success) {
+            setContactsList(prev => prev.filter(c => c.id !== id && c._id !== id));
+            if (selectedInquiryModal && (selectedInquiryModal.id === id || selectedInquiryModal._id === id)) {
+              setSelectedInquiryModal(null);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to delete contact inquiry', err);
+        }
+      }
+    });
+  };
+
   useEffect(() => {
     fetch('/api/admin/merchant-features')
       .then(res => res.json())
@@ -388,6 +630,9 @@ export default function SuperAdminDashboard() {
         }
       })
       .catch(() => {});
+
+    // Fetch initial contact inquiries from MongoDB
+    fetchContacts();
   }, []);
 
   const showFeatureToast = (msg) => {
@@ -721,16 +966,16 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   // CLAIM LOGS STATE (Image 4 - 10 Exact Rows & Detail Modal)
   // =========================================================
   const [claimLogsList, setClaimLogsList] = useState([
-    { id: 1, claimId: 'CLM10001', customer: 'Rahul Sharma', merchant: 'Coffee House', reward: 'Free Coffee', pointsUsed: 100, status: 'Success', claimedAt: 'May 24, 2025, 11:20 AM', txHash: '0x9fa12b8', cashierPin: '4921', phone: '+91 98112 34567' },
-    { id: 2, claimId: 'CLM10002', customer: 'Priya Singh', merchant: 'Pizza Plaza', reward: '20% Discount', pointsUsed: 150, status: 'Success', claimedAt: 'May 24, 2025, 10:45 AM', txHash: '0x88e43a1', cashierPin: '1102', phone: '+91 98223 45678' },
-    { id: 3, claimId: 'CLM10003', customer: 'Amit Patel', merchant: 'Burger Point', reward: 'Free Burger', pointsUsed: 200, status: 'Success', claimedAt: 'May 24, 2025, 09:30 AM', txHash: '0x17c93d2', cashierPin: '9084', phone: '+91 98334 56789' },
-    { id: 4, claimId: 'CLM10004', customer: 'Neha Verma', merchant: 'Fashion Hub', reward: '₹100 Off', pointsUsed: 250, status: 'Pending', claimedAt: 'May 24, 2025, 09:15 AM', txHash: '0x76b19a0', cashierPin: '3341', phone: '+91 98445 67890' },
-    { id: 5, claimId: 'CLM10005', customer: 'Vikas Mehta', merchant: 'Coffee House', reward: 'Free Sandwich', pointsUsed: 120, status: 'Success', claimedAt: 'May 23, 2025, 08:50 PM', txHash: '0x33b8219', cashierPin: '7729', phone: '+91 98556 78901' },
-    { id: 6, claimId: 'CLM10006', customer: 'Sneha Reddy', merchant: 'Pizza Plaza', reward: 'Free Drink', pointsUsed: 80, status: 'Failed', claimedAt: 'May 23, 2025, 08:20 PM', txHash: '0x12f45ea', cashierPin: '6618', phone: '+91 98667 89012' },
-    { id: 7, claimId: 'CLM10007', customer: 'Karan Singh', merchant: 'Burger Point', reward: '20% Discount', pointsUsed: 150, status: 'Success', claimedAt: 'May 23, 2025, 07:45 PM', txHash: '0x55aa3b1', cashierPin: '8830', phone: '+91 98778 90123' },
-    { id: 8, claimId: 'CLM10008', customer: 'Ishita Malhotra', merchant: 'Fashion Hub', reward: '₹200 Off', pointsUsed: 300, status: 'Pending', claimedAt: 'May 23, 2025, 07:10 PM', txHash: '0x88c2114', cashierPin: '2294', phone: '+91 98889 01234' },
-    { id: 9, claimId: 'CLM10009', customer: 'Rohit Kumar', merchant: 'Coffee House', reward: 'Free Coffee', pointsUsed: 100, status: 'Success', claimedAt: 'May 23, 2025, 06:30 PM', txHash: '0x44d9098', cashierPin: '5501', phone: '+91 98990 12345' },
-    { id: 10, claimId: 'CLM10010', customer: 'Anjali Gupta', merchant: 'Pizza Plaza', reward: 'Free Pizza Slice', pointsUsed: 180, status: 'Failed', claimedAt: 'May 23, 2025, 05:50 PM', txHash: '0x99e8210', cashierPin: '4423', phone: '+91 98001 23456' }
+    { id: 1, rewardId: 'RWD10001', customerId: 'CUST-801', merchantId: 'MER-101', claimId: 'CLM10001', customer: 'Rahul Sharma', merchant: 'Coffee House', reward: 'Free Coffee', pointsUsed: 100, status: 'Success', claimedAt: 'May 24, 2025, 11:20 AM', txHash: '0x9fa12b8', cashierPin: '4921', phone: '+91 98112 34567' },
+    { id: 2, rewardId: 'RWD10002', customerId: 'CUST-802', merchantId: 'MER-102', claimId: 'CLM10002', customer: 'Priya Singh', merchant: 'Pizza Plaza', reward: '20% Discount', pointsUsed: 150, status: 'Success', claimedAt: 'May 24, 2025, 10:45 AM', txHash: '0x88e43a1', cashierPin: '1102', phone: '+91 98223 45678' },
+    { id: 3, rewardId: 'RWD10003', customerId: 'CUST-803', merchantId: 'MER-103', claimId: 'CLM10003', customer: 'Amit Patel', merchant: 'Burger Point', reward: 'Free Burger', pointsUsed: 200, status: 'Success', claimedAt: 'May 24, 2025, 09:30 AM', txHash: '0x17c93d2', cashierPin: '9084', phone: '+91 98334 56789' },
+    { id: 4, rewardId: 'RWD10004', customerId: 'CUST-804', merchantId: 'MER-104', claimId: 'CLM10004', customer: 'Neha Verma', merchant: 'Fashion Hub', reward: '₹100 Off', pointsUsed: 250, status: 'Pending', claimedAt: 'May 24, 2025, 09:15 AM', txHash: '0x76b19a0', cashierPin: '3341', phone: '+91 98445 67890' },
+    { id: 5, rewardId: 'RWD10005', customerId: 'CUST-805', merchantId: 'MER-101', claimId: 'CLM10005', customer: 'Vikas Mehta', merchant: 'Coffee House', reward: 'Free Sandwich', pointsUsed: 120, status: 'Success', claimedAt: 'May 23, 2025, 08:50 PM', txHash: '0x33b8219', cashierPin: '7729', phone: '+91 98556 78901' },
+    { id: 6, rewardId: 'RWD10006', customerId: 'CUST-806', merchantId: 'MER-102', claimId: 'CLM10006', customer: 'Sneha Reddy', merchant: 'Pizza Plaza', reward: 'Free Drink', pointsUsed: 80, status: 'Failed', claimedAt: 'May 23, 2025, 08:20 PM', txHash: '0x12f45ea', cashierPin: '6618', phone: '+91 98667 89012' },
+    { id: 7, rewardId: 'RWD10007', customerId: 'CUST-807', merchantId: 'MER-103', claimId: 'CLM10007', customer: 'Karan Singh', merchant: 'Burger Point', reward: '20% Discount', pointsUsed: 150, status: 'Success', claimedAt: 'May 23, 2025, 07:45 PM', txHash: '0x55aa3b1', cashierPin: '8830', phone: '+91 98778 90123' },
+    { id: 8, rewardId: 'RWD10008', customerId: 'CUST-808', merchantId: 'MER-104', claimId: 'CLM10008', customer: 'Ishita Malhotra', merchant: 'Fashion Hub', reward: '₹200 Off', pointsUsed: 300, status: 'Pending', claimedAt: 'May 23, 2025, 07:10 PM', txHash: '0x88c2114', cashierPin: '2294', phone: '+91 98889 01234' },
+    { id: 9, rewardId: 'RWD10009', customerId: 'CUST-809', merchantId: 'MER-101', claimId: 'CLM10009', customer: 'Rohit Kumar', merchant: 'Coffee House', reward: 'Free Coffee', pointsUsed: 100, status: 'Success', claimedAt: 'May 23, 2025, 06:30 PM', txHash: '0x44d9098', cashierPin: '5501', phone: '+91 98990 12345' },
+    { id: 10, rewardId: 'RWD10010', customerId: 'CUST-810', merchantId: 'MER-102', claimId: 'CLM10010', customer: 'Anjali Gupta', merchant: 'Pizza Plaza', reward: 'Free Pizza Slice', pointsUsed: 180, status: 'Failed', claimedAt: 'May 23, 2025, 05:50 PM', txHash: '0x99e8210', cashierPin: '4423', phone: '+91 98001 23456' }
   ]);
   const [claimSearch, setClaimSearch] = useState('');
   const [claimMerchantFilter, setClaimMerchantFilter] = useState('ALL');
@@ -738,7 +983,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   const [claimRewardFilter, setClaimRewardFilter] = useState('ALL');
   const [selectedClaimModal, setSelectedClaimModal] = useState(null);
   const [claimExportToast, setClaimExportToast] = useState('');
-  const [claimCurrentPage, setClaimCurrentPage] = useState(1);
 
   const handleExportClaimLogs = () => {
     setClaimExportToast('Exporting 245 Claim Logs to CSV/Excel...');
@@ -927,12 +1171,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   // Set Deal Modal State (Image 1 "SET A DEAL")
   const [selectedMerchantForDeal, setSelectedMerchantForDeal] = useState(null);
   const [dealForm, setDealForm] = useState({
-    dealTitle: 'Special Festive Discount',
-    dealAmount: 999,
-    discountPercent: 25,
+    dealId: '',
+    couponCode: '',
+    dealType: 'PERCENTAGE', // 'PERCENTAGE', 'FLAT', 'COMPLIMENTARY', 'FIXED_PRICE', 'CUSTOM'
+    dealTitle: '',
+    originalPrice: 24000,
+    dealAmount: 0,
+    discountPercent: 0,
+    discountAmount: 0,
     validTill: '30 Days',
     isComplimentary: false,
-    notes: 'Agreed on upfront annual package'
+    badgeText: '',
+    notes: ''
   });
 
   // View Merchant Details Modal (Image 1 "VIEW" eye icon)
@@ -983,6 +1233,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 150,
       refund: 'None',
       paymentStatus: 'Paid',
+      paymentHistory: [
+        {
+          id: 'PAY-73901',
+          payDate: '20-07-2026, 02:30 PM',
+          historyType: 'Referral Payout',
+          amount: 150,
+          method: 'Bank Transfer (NEFT / RTGS)',
+          txnNumber: 'TXN-98217340',
+          status: 'Paid',
+          notes: 'Payout settlement for referral of Pooja Sharma'
+        }
+      ],
       details: {
         referredUser: 'Pooja Sharma\npooja.sharma@gmail.com',
         referralDate: '20-07-2026',
@@ -1002,6 +1264,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 1500,
       refund: 'None',
       paymentStatus: 'Eligible',
+      paymentHistory: [],
       details: {
         referredUser: 'Kunal Rao\nkunal.rao@gmail.com',
         referralDate: '19-07-2026',
@@ -1021,6 +1284,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 150,
       refund: 'None',
       paymentStatus: 'Paid',
+      paymentHistory: [
+        {
+          id: 'PAY-73701',
+          payDate: '18-07-2026, 11:15 AM',
+          historyType: 'Referral Payout',
+          amount: 150,
+          method: 'UPI (GPay / PhonePe)',
+          txnNumber: 'TXN-98216501',
+          status: 'Paid',
+          notes: 'Payout settlement for referral of Meera Sen'
+        }
+      ],
       details: {
         referredUser: 'Meera Sen\nmeera.sen@gmail.com',
         referralDate: '18-07-2026',
@@ -1040,6 +1315,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 1500,
       refund: 'None',
       paymentStatus: 'Eligible',
+      paymentHistory: [],
       details: {
         referredUser: 'Sunil Nair\nsunil.nair@gmail.com',
         referralDate: '17-07-2026',
@@ -1059,6 +1335,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 150,
       refund: 'None',
       paymentStatus: 'Not Eligible',
+      paymentHistory: [],
       details: {
         referredUser: 'Aarav Joshi\naarav.joshi@gmail.com',
         referralDate: '16-07-2026',
@@ -1078,6 +1355,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 150,
       refund: 'None',
       paymentStatus: 'Paid',
+      paymentHistory: [
+        {
+          id: 'PAY-64001',
+          payDate: '15-07-2026, 04:20 PM',
+          historyType: 'Referral Payout',
+          amount: 150,
+          method: 'IMPS Immediate Transfer',
+          txnNumber: 'TXN-98198234',
+          status: 'Paid',
+          notes: 'Payout settlement for referral of Tanvi Gupta'
+        }
+      ],
       details: {
         referredUser: 'Tanvi Gupta\ntanvi.gupta@gmail.com',
         referralDate: '15-07-2026',
@@ -1097,6 +1386,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 1500,
       refund: 'None',
       paymentStatus: 'Not Eligible',
+      paymentHistory: [],
       details: {
         referredUser: 'Rishi Varma\nrishi.varma@gmail.com',
         referralDate: '14-07-2026',
@@ -1116,6 +1406,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       referralAmt: 150,
       refund: 'None',
       paymentStatus: 'Paid',
+      paymentHistory: [
+        {
+          id: 'PAY-63801',
+          payDate: '12-07-2026, 01:10 PM',
+          historyType: 'Referral Payout',
+          amount: 150,
+          method: 'Bank Transfer (NEFT / RTGS)',
+          txnNumber: 'TXN-98176542',
+          status: 'Paid',
+          notes: 'Payout settlement for referral of Deepak Roy'
+        }
+      ],
       details: {
         referredUser: 'Deepak Roy\ndeepak.roy@gmail.com',
         referralDate: '12-07-2026',
@@ -1135,7 +1437,23 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         const parsed = JSON.parse(saved);
         // Clean out legacy test cache (yopmail, akhilesh test, etc.)
         if (Array.isArray(parsed) && parsed.length > 0 && !JSON.stringify(parsed).includes('yopmail') && !JSON.stringify(parsed).includes('akhilesh')) {
-          return parsed;
+          return parsed.map(item => ({
+            ...item,
+            paymentHistory: Array.isArray(item.paymentHistory) && item.paymentHistory.length > 0
+              ? item.paymentHistory
+              : (Number(item.details?.paidAmount || 0) > 0 ? [
+                  {
+                    id: `PAY-${item.id}-01`,
+                    payDate: `${item.details?.referralDate || '20-07-2026'}, 02:30 PM`,
+                    historyType: 'Referral Payout',
+                    amount: Number(item.details?.paidAmount),
+                    method: 'Bank Transfer (NEFT / RTGS)',
+                    txnNumber: `TXN-${item.id || '9821'}7340`,
+                    status: 'Paid',
+                    notes: `Payout settlement for referral of ${item.details?.referredUser?.split('\n')[0] || item.userName}`
+                  }
+                ] : [])
+          }));
         }
       }
     } catch (_) {}
@@ -1146,7 +1464,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   });
   const [referralSearch, setReferralSearch] = useState('');
   const [selectedReferralDetailModal, setSelectedReferralDetailModal] = useState(null);
-  const [processPaymentModal, setProcessPaymentModal] = useState({ isOpen: false, referral: null, amount: '', txnNumber: '', method: 'Bank Transfer (NEFT / RTGS)', notes: '' });
+  const [viewHistoryModal, setViewHistoryModal] = useState(null);
+  const [processPaymentModal, setProcessPaymentModal] = useState({ isOpen: false, referral: null, amount: '', txnNumber: '', method: 'Bank Transfer (NEFT / RTGS)', notes: '', historyType: 'Referral Payout', payDate: '' });
   const [addReferralModalOpen, setAddReferralModalOpen] = useState(false);
   const [newReferralInput, setNewReferralInput] = useState({ userEmail: '', userName: '', userNumber: '', referredTo: '', referralAmt: 150 });
   const [referralToast, setReferralToast] = useState('');
@@ -1411,16 +1730,15 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   const [dealToast, setDealToast] = useState('');
   const [dealSearch, setDealSearch] = useState('');
 
-  // Form State for Image 4
+  // Form State for Deal & Coupons
   const [newDealForm, setNewDealForm] = useState({
     planName: 'Standard Plan',
-    planType: 'Yearly',
     state: 'All States (No state restriction)',
     dealName: '',
     couponCode: '',
-    bonusAmount: 0,
-    discountAmount: 0,
-    discountPercentage: 0,
+    bonusAmount: '',
+    discountAmount: '',
+    discountPercentage: '',
     validityDate: '',
     maxUsage: 0
   });
@@ -1428,9 +1746,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   // =========================================================================
   // Settings Modules State (Image 2 - Platform, Contact, Brand, FAQ, Privacy, Terms)
   // =========================================================================
-  const [settingsActiveModal, setSettingsActiveModal] = useState(null); // 'platform' | 'contact' | 'brand' | 'faq' | 'privacy' | 'terms' | 'brand_landing_preview' | null
+  const [settingsActiveModal, setSettingsActiveModal] = useState(null); // 'platform' | 'contact' | 'brand' | 'faq' | 'privacy' | 'terms' | null
   const [settingsToast, setSettingsToast] = useState('');
-  const [brandPreviewMode, setBrandPreviewMode] = useState('split'); // 'split' | 'before' | 'now'
 
   const [platformSettings, setPlatformSettings] = useState(() => {
     try {
@@ -2042,8 +2359,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       return [
         {
           id: 'crm_1',
-          name: 'MW Sales Lead',
-          approachedFor: 'MW Sales',
+          name: 'Sales Lead',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Important',
           source: 'Direct',
@@ -2101,7 +2418,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         {
           id: 'crm_mw1',
           name: 'Delhi Retail Central',
-          approachedFor: 'MW Sales',
+          approachedFor: 'BeAurex Loyalty',
           followupMethod: 'Call',
           status: 'Important',
           source: 'Direct',
@@ -2346,14 +2663,65 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   // Handle Open Deal Modal (Image 1)
   const handleOpenDeal = (merchant) => {
     setSelectedMerchantForDeal(merchant);
-    setDealForm({
-      dealTitle: merchant.dealDetails?.dealTitle || 'Special Festive Discount',
-      dealAmount: merchant.dealDetails?.dealAmount || 999,
-      discountPercent: merchant.dealDetails?.discountPercent || 25,
-      validTill: merchant.dealDetails?.validTill || '30 Days',
-      isComplimentary: merchant.isComplimentary || false,
-      notes: merchant.dealDetails?.notes || ''
-    });
+    const existing = merchant.dealDetails || {};
+
+    // Determine base plan price
+    const basePrice = existing.originalPrice || (() => {
+      const p = plans.find(item => item.name?.toLowerCase() === String(merchant.plan || merchant.subscriptionTier || '').toLowerCase());
+      if (p && p.price) return p.price;
+      if (/professional/i.test(merchant.plan || merchant.subscriptionTier)) return 49000;
+      if (/legacy/i.test(merchant.plan || merchant.subscriptionTier)) return 75000;
+      if (/basic/i.test(merchant.plan || merchant.subscriptionTier)) return 9999;
+      return 24000;
+    })();
+
+    // Check if merchant has an existing matching platform deal
+    const matchedDeal = (platformDeals || []).find(d => 
+      (existing.dealId && String(d.id) === String(existing.dealId)) ||
+      (existing.dealTitle && d.dealName?.toLowerCase() === existing.dealTitle?.toLowerCase()) ||
+      (existing.couponCode && d.couponCode?.toLowerCase() === existing.couponCode?.toLowerCase())
+    );
+
+    if (matchedDeal) {
+      const hasPct = Boolean(matchedDeal.discountPercentage && Number(matchedDeal.discountPercentage) > 0);
+      const pct = Number(matchedDeal.discountPercentage) || 0;
+      const flat = Number(matchedDeal.discountAmount) || 0;
+      const finalAmt = hasPct
+        ? Math.max(0, Math.round(basePrice * (1 - pct / 100)))
+        : Math.max(0, basePrice - flat);
+      const calculatedType = hasPct ? 'PERCENTAGE' : (flat > 0 ? 'FLAT' : 'FIXED_PRICE');
+      const badge = hasPct ? `${pct}% OFF` : (flat > 0 ? `₹${flat.toLocaleString('en-IN')} OFF` : 'SPECIAL DEAL');
+
+      setDealForm({
+        dealId: matchedDeal.id,
+        dealType: existing.dealType || calculatedType,
+        dealTitle: matchedDeal.dealName,
+        couponCode: matchedDeal.couponCode || '',
+        originalPrice: basePrice,
+        dealAmount: existing.dealAmount !== undefined ? existing.dealAmount : finalAmt,
+        discountPercent: pct,
+        discountAmount: hasPct ? (basePrice - finalAmt) : flat,
+        validTill: existing.validTill || matchedDeal.validityDate || '30 Days',
+        isComplimentary: Boolean(existing.isComplimentary),
+        badgeText: existing.badgeText || badge,
+        notes: existing.notes || `Platform Deal: ${matchedDeal.dealName} [${matchedDeal.couponCode || ''}]`
+      });
+    } else {
+      setDealForm({
+        dealId: existing.dealId || '',
+        dealType: existing.dealType || 'PERCENTAGE',
+        dealTitle: existing.dealTitle || '',
+        couponCode: existing.couponCode || '',
+        originalPrice: basePrice,
+        dealAmount: existing.dealAmount || basePrice,
+        discountPercent: existing.discountPercent || 0,
+        discountAmount: existing.discountAmount || 0,
+        validTill: existing.validTill || '30 Days',
+        isComplimentary: Boolean(existing.isComplimentary),
+        badgeText: existing.badgeText || '',
+        notes: existing.notes || ''
+      });
+    }
   };
 
   // Handle Save Deal
@@ -2361,18 +2729,100 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     if (e) e.preventDefault();
     if (!selectedMerchantForDeal) return;
 
+    // Handle Remove Deal selection
+    if (dealForm.dealId === 'REMOVE') {
+      const emptyDeal = {
+        dealType: 'NONE',
+        dealTitle: '',
+        dealAmount: 0,
+        discountPercent: 0,
+        discountAmount: 0,
+        originalPrice: 0,
+        validTill: '',
+        isComplimentary: false,
+        badgeText: '',
+        notes: '',
+        appliedAt: null
+      };
+
+      requestConfirm({
+        title: 'Revoke Merchant Deal',
+        message: `Remove deal from "${selectedMerchantForDeal.businessName}" and revert to standard plan pricing?`,
+        confirmText: 'Yes, Remove Deal',
+        type: 'danger',
+        onConfirm: async () => {
+          const updated = merchants.map(m => {
+            if ((m.id || m._id) === (selectedMerchantForDeal.id || selectedMerchantForDeal._id)) {
+              return {
+                ...m,
+                isComplimentary: false,
+                dealDetails: emptyDeal
+              };
+            }
+            return m;
+          });
+          setMerchants(updated);
+
+          fetch('/api/admin/deals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              merchantId: selectedMerchantForDeal.id || selectedMerchantForDeal._id,
+              action: 'REMOVE'
+            })
+          }).catch(() => {});
+
+          setSelectedMerchantForDeal(null);
+          setPaymentNotice(`Deal removed for ${selectedMerchantForDeal.businessName}. Reverted to default pricing.`);
+          setTimeout(() => setPaymentNotice(''), 4500);
+        }
+      });
+      return;
+    }
+
+    if (!dealForm.dealTitle && !dealForm.dealId) {
+      return;
+    }
+
+    // Compute final badgeText and final deal price
+    let finalBadge = dealForm.badgeText;
+    let finalAmount = Number(dealForm.dealAmount) || 0;
+    let isComp = dealForm.isComplimentary || dealForm.dealType === 'COMPLIMENTARY';
+
+    if (dealForm.dealType === 'PERCENTAGE') {
+      finalBadge = `${dealForm.discountPercent}% OFF`;
+      finalAmount = Math.max(0, Math.round(dealForm.originalPrice * (1 - dealForm.discountPercent / 100)));
+    } else if (dealForm.dealType === 'FLAT') {
+      finalBadge = `₹${dealForm.discountAmount?.toLocaleString('en-IN')} OFF`;
+      finalAmount = Math.max(0, dealForm.originalPrice - dealForm.discountAmount);
+    } else if (dealForm.dealType === 'COMPLIMENTARY') {
+      finalBadge = '100% FREE';
+      finalAmount = 0;
+      isComp = true;
+    } else if (dealForm.dealType === 'FIXED_PRICE') {
+      finalBadge = `₹${Number(dealForm.dealAmount).toLocaleString('en-IN')} SPECIAL`;
+    }
+
+    const payload = {
+      ...dealForm,
+      dealAmount: finalAmount,
+      isComplimentary: isComp,
+      badgeText: finalBadge,
+      appliedAt: new Date().toISOString()
+    };
+
     requestConfirm({
       title: 'Permission Required: Apply Special Deal',
-      message: `Are you sure you want to apply the deal "${dealForm.dealTitle}" (₹${dealForm.dealAmount} • ${dealForm.discountPercent}%) to merchant "${selectedMerchantForDeal.businessName}"?`,
+      message: `Apply platform deal "${payload.dealTitle}" (${finalBadge} • Final Payable: ₹${finalAmount.toLocaleString('en-IN')}) to merchant "${selectedMerchantForDeal.businessName}"?`,
       confirmText: 'Yes, Apply Deal',
       type: 'primary',
       onConfirm: async () => {
         const updated = merchants.map(m => {
-          if (m.id === selectedMerchantForDeal.id) {
+          if ((m.id || m._id) === (selectedMerchantForDeal.id || selectedMerchantForDeal._id)) {
             return {
               ...m,
-              isComplimentary: dealForm.isComplimentary,
-              dealDetails: { ...dealForm }
+              isComplimentary: isComp,
+              dealDetails: { ...payload }
             };
           }
           return m;
@@ -2383,13 +2833,65 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            merchantId: selectedMerchantForDeal.id,
-            ...dealForm
+            merchantId: selectedMerchantForDeal.id || selectedMerchantForDeal._id,
+            ...payload
           })
         }).catch(() => {});
 
         setSelectedMerchantForDeal(null);
-        setPaymentNotice(`Deal applied to ${selectedMerchantForDeal.businessName}.`);
+        setPaymentNotice(`Deal (${finalBadge}) successfully applied to ${selectedMerchantForDeal.businessName}.`);
+        setTimeout(() => setPaymentNotice(''), 4500);
+      }
+    });
+  };
+
+  // Handle Remove / Clear Deal for Merchant
+  const handleRemoveDeal = (merchant) => {
+    if (!merchant) return;
+    requestConfirm({
+      title: 'Revoke Merchant Deal',
+      message: `Are you sure you want to remove the special deal from "${merchant.businessName}"? The merchant will revert to standard plan billing.`,
+      confirmText: 'Yes, Remove Deal',
+      type: 'danger',
+      onConfirm: async () => {
+        const emptyDeal = {
+          dealType: 'NONE',
+          dealTitle: '',
+          dealAmount: 0,
+          discountPercent: 0,
+          discountAmount: 0,
+          originalPrice: 0,
+          validTill: '',
+          isComplimentary: false,
+          badgeText: '',
+          notes: '',
+          appliedAt: null
+        };
+        const updated = merchants.map(m => {
+          if ((m.id || m._id) === (merchant.id || merchant._id)) {
+            return {
+              ...m,
+              isComplimentary: false,
+              dealDetails: emptyDeal
+            };
+          }
+          return m;
+        });
+        setMerchants(updated);
+
+        fetch('/api/admin/deals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            merchantId: merchant.id || merchant._id,
+            action: 'REMOVE'
+          })
+        }).catch(() => {});
+
+        if (selectedMerchantForDeal && (selectedMerchantForDeal.id || selectedMerchantForDeal._id) === (merchant.id || merchant._id)) {
+          setSelectedMerchantForDeal(null);
+        }
+        setPaymentNotice(`Special deal removed from ${merchant.businessName}.`);
         setTimeout(() => setPaymentNotice(''), 4000);
       }
     });
@@ -2842,16 +3344,77 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     }));
   };
 
+  // Colorful tag palettes for plan cards & landing page (distinct colors & generous spacing)
+  const PLAN_TAG_PALETTES = [
+    {
+      chip: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+      icon: 'text-emerald-600',
+      previewDark: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+      previewLight: 'bg-emerald-50 text-emerald-800 border-emerald-200'
+    },
+    {
+      chip: 'bg-amber-50 text-amber-800 border-amber-300',
+      icon: 'text-amber-600',
+      previewDark: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+      previewLight: 'bg-amber-50 text-amber-800 border-amber-200'
+    },
+    {
+      chip: 'bg-rose-50 text-rose-800 border-rose-300',
+      icon: 'text-rose-600',
+      previewDark: 'bg-rose-500/15 text-rose-300 border-rose-500/40',
+      previewLight: 'bg-rose-50 text-rose-800 border-rose-200'
+    },
+    {
+      chip: 'bg-sky-50 text-sky-800 border-sky-300',
+      icon: 'text-sky-600',
+      previewDark: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40',
+      previewLight: 'bg-sky-50 text-sky-800 border-sky-200'
+    },
+    {
+      chip: 'bg-purple-50 text-purple-800 border-purple-300',
+      icon: 'text-purple-600',
+      previewDark: 'bg-purple-500/15 text-purple-300 border-purple-500/40',
+      previewLight: 'bg-purple-50 text-purple-800 border-purple-200'
+    },
+    {
+      chip: 'bg-indigo-50 text-indigo-800 border-indigo-300',
+      icon: 'text-indigo-600',
+      previewDark: 'bg-blue-500/15 text-blue-300 border-blue-500/40',
+      previewLight: 'bg-blue-50 text-blue-800 border-blue-200'
+    }
+  ];
+
+  const getPlanTagList = (p) => {
+    const tags = [];
+    if (p.tagText && typeof p.tagText === 'string') {
+      p.tagText.split(/[•,]/).map(s => s.trim()).filter(Boolean).forEach(t => {
+        if (!tags.includes(t)) tags.push(t);
+      });
+    }
+    if (Array.isArray(p.tags)) {
+      p.tags.forEach(t => {
+        if (t && typeof t === 'string') {
+          const tr = t.trim();
+          if (tr && !tags.includes(tr)) tags.push(tr);
+        }
+      });
+    }
+    return tags;
+  };
+
   // Handle Add/Remove Tag for Active Plan
   const handleAddTagToPlan = (planId, customTag) => {
-    const tag = (customTag || newPlanTagInputs[planId] || '').trim();
-    if (!tag) return;
+    const rawTag = (customTag || newPlanTagInputs[planId] || '').trim();
+    if (!rawTag) return;
+    const splitTags = rawTag.split(/[•,]/).map(t => t.trim()).filter(Boolean);
     setPlans(prev => prev.map(p => {
       if (p.id === planId) {
         const curTags = p.tags || [];
-        if (!curTags.includes(tag)) {
-          return { ...p, tags: [...curTags, tag] };
-        }
+        const nextTags = [...curTags];
+        splitTags.forEach(t => {
+          if (!nextTags.includes(t)) nextTags.push(t);
+        });
+        return { ...p, tags: nextTags };
       }
       return p;
     }));
@@ -2871,11 +3434,17 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
   // Handle Add/Remove Tag for New Plan Form
   const handleAddTagToNewPlan = (customTag) => {
-    const tag = (customTag || newPlanTagInput || '').trim();
-    if (!tag) return;
-    if (!(newPlanForm.tags || []).includes(tag)) {
-      setNewPlanForm(prev => ({ ...prev, tags: [...(prev.tags || []), tag] }));
-    }
+    const rawTag = (customTag || newPlanTagInput || '').trim();
+    if (!rawTag) return;
+    const splitTags = rawTag.split(/[•,]/).map(t => t.trim()).filter(Boolean);
+    setNewPlanForm(prev => {
+      const curTags = prev.tags || [];
+      const nextTags = [...curTags];
+      splitTags.forEach(t => {
+        if (!nextTags.includes(t)) nextTags.push(t);
+      });
+      return { ...prev, tags: nextTags };
+    });
     setNewPlanTagInput('');
   };
 
@@ -3522,13 +4091,14 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     { id: 'claim_logs', label: 'Claim Logs', icon: Award, count: 245, badge: 'Logs' },
     { id: 'referrals', label: 'Manage Referrals', icon: Share2, count: referralsList.length, badge: 'Payouts' },
     { id: 'deals_coupons', label: 'Deal & Coupons', icon: Tag, count: platformDeals.length, badge: 'Deals' },
+    { id: 'contacts', label: 'Contact Inquiries', icon: Mail, count: contactsList.filter(c => c.status === 'NEW').length, badge: contactsList.filter(c => c.status === 'NEW').length > 0 ? `${contactsList.filter(c => c.status === 'NEW').length} New` : 'Inbox' },
     { id: 'permissions', label: 'Manage', icon: Sliders, badge: 'Control' },
     { id: 'plans', label: 'Plans', icon: Layers, count: plans.length, badge: 'Landing' },
     { id: 'team', label: 'Teams Management', icon: UserCheck, count: teamMembers.length, badge: 'New' },
     { id: 'customers', label: 'Customer', icon: Users, count: customers.length },
     { id: 'settings', label: 'Settings', icon: Settings, badge: '6' },
-    { id: 'config', label: 'API & Gateway Keys', icon: Key, badge: 'Config' },
-    { id: 'audit', label: 'Security & Audit Logs', icon: Activity, badge: 'Secured' },
+    { id: 'config', label: 'Gateway Keys', icon: Key, badge: 'Config' },
+    { id: 'audit', label: 'Security Logs', icon: Activity, badge: 'Secured' },
   ];
 
   return (
@@ -3622,19 +4192,19 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             : 'text-white/80 hover:bg-white/10 hover:text-white'
                         }`}
                       >
-                        <div className="flex items-center space-x-2.5">
-                          <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-red-200'}`} />
-                          <span>{item.label}</span>
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-red-200'}`} />
+                          <span className="whitespace-nowrap truncate">{item.label}</span>
                         </div>
                         {item.count !== undefined && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                             isActive ? 'bg-white/20 text-white' : 'bg-black/20 text-red-100'
                           }`}>
                             {item.count}
                           </span>
                         )}
                         {item.badge && !item.count && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                             isActive ? 'bg-white/20 text-white' : 'bg-white/15 text-white'
                           }`}>
                             {item.badge}
@@ -3723,19 +4293,19 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         : 'text-white/80 hover:bg-white/10 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-red-200'}`} />
-                      <span>{item.label}</span>
+                    <div className="flex items-center space-x-2.5 min-w-0">
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-red-200'}`} />
+                      <span className="whitespace-nowrap truncate">{item.label}</span>
                     </div>
                     {item.count !== undefined && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                         isActive ? 'bg-white/20 text-white' : 'bg-black/20 text-red-100'
                       }`}>
                         {item.count}
                       </span>
                     )}
                     {item.badge && !item.count && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
                         isActive ? 'bg-white/20 text-white' : 'bg-white/15 text-white'
                       }`}>
                         {item.badge}
@@ -3791,6 +4361,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                  activeTab === 'claim_logs' ? 'Claim Logs' : 
                  activeTab === 'referrals' ? 'Manage Referrals' : 
                  activeTab === 'deals_coupons' ? 'Deal & Coupons' : 
+                 activeTab === 'contacts' ? 'Contact Inquiries' : 
                  activeTab === 'permissions' ? 'Manage' : 
                  activeTab === 'settings' ? 'Settings' : 
                  navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}
@@ -3810,6 +4381,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                    activeTab === 'claim_logs' ? 'Claim Logs' : 
                    activeTab === 'referrals' ? 'Manage Referrals' : 
                    activeTab === 'deals_coupons' ? 'Deal & Coupons' : 
+                   activeTab === 'contacts' ? 'Contact Inquiries' : 
                    activeTab === 'permissions' ? 'Manage' : 
                    activeTab === 'settings' ? 'Settings' : 
                    navItems.find(n => n.id === activeTab)?.label || 'Dashboard'}
@@ -3898,10 +4470,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   {/* 4 Stat Cards in 1 Row (Exact Match to Image 1) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {/* Card 1: Active Merchants */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
-                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
-                          <Users className="w-6 h-6 text-red-600" />
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
+                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4 shadow-xs">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow-md shadow-red-500/30 group-hover:scale-105 transition-transform">
+                          <Users className="w-6 h-6 text-white" />
                         </div>
                       </div>
                       <h3 className="text-sm font-bold text-slate-800">Active Merchants</h3>
@@ -3913,10 +4485,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
 
                     {/* Card 2: Today's Merchant Onboarding */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
-                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
-                          <UserPlus className="w-6 h-6 text-red-600" />
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
+                      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4 shadow-xs">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30 group-hover:scale-105 transition-transform">
+                          <UserPlus className="w-6 h-6 text-white" />
                         </div>
                       </div>
                       <h3 className="text-sm font-bold text-slate-800">Today's Merchant Onboarding</h3>
@@ -3928,10 +4500,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
 
                     {/* Card 3: Today's Revenue */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
-                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
-                          <CreditCard className="w-6 h-6 text-red-600" />
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
+                      <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4 shadow-xs">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
+                          <CreditCard className="w-6 h-6 text-white" />
                         </div>
                       </div>
                       <h3 className="text-sm font-bold text-slate-800">Today's Revenue</h3>
@@ -3943,10 +4515,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
 
                     {/* Card 4: Total Revenue */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition">
-                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-red-600">
-                          <DollarSign className="w-6 h-6 text-red-600" />
+                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
+                      <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 shadow-xs">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform">
+                          <DollarSign className="w-6 h-6 text-white" />
                         </div>
                       </div>
                       <h3 className="text-sm font-bold text-slate-800">Total Revenue</h3>
@@ -4152,8 +4724,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </h3>
                       <p className="text-[11px] text-slate-400 mt-0.5">Active complimentary evaluation</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-black">
-                      <Clock className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25">
+                      <Clock className="w-6 h-6 text-white" />
                     </div>
                   </div>
 
@@ -4165,8 +4737,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </h3>
                       <p className="text-[11px] text-slate-400 mt-0.5">Awaiting gateway settlement</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black">
-                      <AlertTriangle className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25">
+                      <AlertTriangle className="w-6 h-6 text-white" />
                     </div>
                   </div>
 
@@ -4178,8 +4750,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </h3>
                       <p className="text-[11px] text-slate-400 mt-0.5">Registered since midnight</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
-                      <Sparkles className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25">
+                      <Sparkles className="w-6 h-6 text-white" />
                     </div>
                   </div>
                 </div>
@@ -4215,23 +4787,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <RotateCcw className="w-3 h-3 text-slate-400" />
                         <span>Reset</span>
                       </button>
-
-                      {/* Modify Plans & Manage Coupons buttons */}
-                      <button
-                        onClick={() => setActiveTab('plans')}
-                        className="bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-xl px-3 py-1.5 text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer shadow-2xs"
-                      >
-                        <Layers className="w-3.5 h-3.5 text-red-600" />
-                        <span>Modify Platform Plans</span>
-                      </button>
-
-                      <button
-                        onClick={() => setShowCouponsModal(true)}
-                        className="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 rounded-xl px-3 py-1.5 text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer shadow-2xs"
-                      >
-                        <Tag className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Manage Coupons</span>
-                      </button>
                     </div>
 
                     <div className="relative w-full lg:w-72">
@@ -4246,28 +4801,28 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
                   </div>
 
-                  {/* Table with Image 1 exact columns */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[980px] text-left text-xs border-collapse">
+                  {/* Table with Image 1 exact columns & horizontal scrollbar */}
+                  <div className="overflow-x-auto custom-scrollbar pb-3">
+                    <table className="w-full min-w-[1550px] text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-black tracking-wider">
-                          <th className="py-3 px-4">Merchant / Business</th>
-                          <th className="py-3 px-3">Total Payment</th>
-                          <th className="py-3 px-3">Date with Time</th>
-                          <th className="py-3 px-3">Plan</th>
-                          <th className="py-3 px-3">Plan Valid Till</th>
-                          <th className="py-3 px-3 text-center">Set a Deal</th>
-                          <th className="py-3 px-3 text-center">Status</th>
-                          <th className="py-3 px-3 text-center">Account Access</th>
-                          <th className="py-3 px-3 text-center">View</th>
-                          <th className="py-3 px-3 text-center">Complimentary</th>
-                          <th className="py-3 px-3 text-center">Action</th>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Merchant / Business</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">Total Payment</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[170px]">Date with Time</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">Plan</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">Plan Valid Till</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[270px]">Deal / Offer Type</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[110px]">Status</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[130px]">Account Access</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[70px]">View</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[120px]">Complimentary</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[70px]">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredMerchants.length === 0 ? (
                           <tr>
-                            <td colSpan={11} className="py-8 text-center text-xs text-slate-400 font-bold">
+                            <td colSpan={11} className="py-8 text-center text-xs text-slate-400 font-black">
                               No merchants match the selected filters.
                             </td>
                           </tr>
@@ -4275,42 +4830,37 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           filteredMerchants.map((m) => (
                             <tr key={m.id || m._id} className="hover:bg-slate-50/80 transition">
                               {/* Merchant / Business info */}
-                              <td className="py-3 px-4">
-                                <div className="font-extrabold text-slate-900 flex items-center space-x-1.5">
-                                  <span>{m.businessName}</span>
-                                  {m.dealDetails?.dealTitle && (
-                                    <span className="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.2 rounded">
-                                      Deal
-                                    </span>
-                                  )}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-extrabold text-slate-900 flex items-center space-x-1.5 whitespace-nowrap">
+                                  <span className="font-black text-sm">{m.businessName}</span>
                                 </div>
                                 {m.email && (
-                                  <div className="text-[11px] text-slate-600 font-medium truncate max-w-xs flex items-center space-x-1 mt-0.5" title={m.email}>
+                                  <div className="text-[11px] text-slate-600 font-bold truncate flex items-center space-x-1 mt-0.5 whitespace-nowrap" title={m.email}>
                                     <Mail className="w-3 h-3 text-slate-400 shrink-0" />
-                                    <span className="truncate">{m.email}</span>
+                                    <span>{m.email}</span>
                                   </div>
                                 )}
-                                <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                                <div className="text-[11px] text-slate-400 font-mono font-bold mt-0.5 whitespace-nowrap">
                                   {m.mobile ? `${m.mobile} • ` : ''}{m.city || 'Delhi NCR'}
                                 </div>
                               </td>
 
                               {/* TOTAL PAYMENT */}
-                              <td className="py-3 px-3 font-extrabold text-slate-900">
+                              <td className="py-3.5 px-4 font-black text-slate-900 whitespace-nowrap text-sm">
                                 {m.totalPayment || m.paymentAmount || '₹ 24,000'}
                               </td>
 
                               {/* DATE WITH TIME */}
-                              <td className="py-3 px-3 font-mono text-slate-600 text-[11px] whitespace-nowrap">
+                              <td className="py-3.5 px-4 font-mono font-bold text-slate-700 text-xs whitespace-nowrap">
                                 {m.dateTime || (m.paymentDate && m.paymentDate !== '-' ? `${m.paymentDate} 11:20 AM` : 'May 24, 2025 11:20 AM')}
                               </td>
 
                               {/* PLAN (editable dropdown) */}
-                              <td className="py-3 px-3">
+                              <td className="py-3.5 px-4 whitespace-nowrap">
                                 <select
                                   value={m.plan || m.subscriptionTier || 'Trial Plan'}
                                   onChange={(e) => handleChangePlan(m.id || m._id, e.target.value)}
-                                  className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[11px] font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs whitespace-nowrap min-w-[130px]"
                                 >
                                   <option value="Trial Plan">Trial Plan</option>
                                   <option value="Basic Plan">Basic Plan</option>
@@ -4321,27 +4871,43 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               </td>
 
                               {/* PLAN VALID TILL */}
-                              <td className="py-3 px-3 font-mono text-slate-600 text-[11px]">
+                              <td className="py-3.5 px-4 font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                                 {m.planValidTill || '12 Oct 2026'}
                               </td>
 
-                              {/* SET A DEAL BUTTON */}
-                              <td className="py-3 px-3 text-center">
-                                <button
-                                  onClick={() => handleOpenDeal(m)}
-                                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg transition shadow-2xs hover:shadow-red-600/20 cursor-pointer"
-                                  title="Configure custom deal for merchant"
-                                >
-                                  Set a Deal
-                                </button>
+                              {/* SET A DEAL / ACTIVE DEAL TYPE CELL */}
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                {Boolean(m.dealDetails?.dealTitle || (m.dealDetails?.dealType && m.dealDetails?.dealType !== 'NONE')) ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenDeal(m)}
+                                    className="inline-flex items-center space-x-1.5 bg-red-50/70 hover:bg-red-100 text-[#8B0000] hover:text-[#700000] border border-red-200 hover:border-red-300 rounded-xl px-3.5 py-1.5 transition shadow-2xs hover:shadow-xs cursor-pointer whitespace-nowrap font-extrabold text-xs"
+                                    title="Click to view deal details"
+                                  >
+                                    <Tag className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
+                                    <span className="whitespace-nowrap">
+                                      {m.dealDetails.dealTitle || 'Active Deal'}
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenDeal(m)}
+                                    className="bg-white hover:bg-slate-50 text-slate-800 hover:text-red-700 border border-slate-200 hover:border-red-300 text-[11px] font-black uppercase px-3.5 py-1.5 rounded-xl transition shadow-2xs cursor-pointer inline-flex items-center space-x-1.5 whitespace-nowrap"
+                                    title="Configure deal for merchant"
+                                  >
+                                    <Tag className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>Set a Deal</span>
+                                  </button>
+                                )}
                               </td>
 
                               {/* STATUS (Image 1 dropdown) */}
-                              <td className="py-3 px-3 text-center">
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                 <select
                                   value={m.status || 'Trial'}
                                   onChange={(e) => handleChangeStatus(m.id || m._id, e.target.value)}
-                                  className={`rounded-lg px-2 py-1 text-[11px] font-bold cursor-pointer border ${
+                                  className={`rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer border shadow-2xs whitespace-nowrap min-w-[100px] ${
                                     m.status === 'Trial'
                                       ? 'bg-amber-50 text-amber-700 border-amber-200'
                                       : m.status === 'Paid'
@@ -4359,61 +4925,61 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               </td>
 
                               {/* ACCOUNT ACCESS (Suspend / Reactivate) */}
-                              <td className="py-3 px-3 text-center">
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                 {(m.status === 'Suspended' || m.isActive === false) ? (
                                   <button
                                     onClick={() => handleToggleMerchantSuspend(m.id || m._id, true)}
-                                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs"
+                                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-black uppercase px-3 py-1.5 rounded-xl transition cursor-pointer inline-flex items-center space-x-1.5 shadow-2xs whitespace-nowrap min-w-[110px] justify-center"
                                     title="Account suspended (login locked). Click to reactivate access."
                                   >
-                                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                                     <span>Reactivate</span>
                                   </button>
                                 ) : (
                                   <button
                                     onClick={() => handleToggleMerchantSuspend(m.id || m._id, false)}
-                                    className="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs"
+                                    className="bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-[11px] font-black uppercase px-3 py-1.5 rounded-xl transition cursor-pointer inline-flex items-center space-x-1.5 shadow-2xs whitespace-nowrap min-w-[110px] justify-center"
                                     title="Click to suspend merchant account (locks login until paid)"
                                   >
-                                    <Ban className="w-3 h-3 text-rose-600" />
+                                    <Ban className="w-3.5 h-3.5 text-rose-600" />
                                     <span>Suspend</span>
                                   </button>
                                 )}
                               </td>
 
                               {/* VIEW (Eye Icon) */}
-                              <td className="py-3 px-3 text-center">
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                 <button
                                   onClick={() => setViewMerchantModal(m)}
-                                  className="text-slate-500 hover:text-slate-900 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                                  className="text-slate-500 hover:text-slate-900 p-2 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-100 transition cursor-pointer inline-flex items-center justify-center shadow-2xs"
                                   title="View Merchant Profile"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
                               </td>
 
-                              {/* COMPLIMENTARY (Interactive Trigger: Shows Status, Days, and opens Modal with 4 options) */}
-                              <td className="py-3 px-3 text-center">
+                              {/* COMPLIMENTARY (Interactive Trigger) */}
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                 <button
                                   type="button"
                                   onClick={() => handleOpenComplimentaryModal(m)}
-                                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold cursor-pointer border transition flex items-center justify-center space-x-1.5 mx-auto ${
+                                  className={`rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer border transition flex items-center justify-center space-x-1.5 mx-auto whitespace-nowrap min-w-[90px] ${
                                     m.isComplimentary
                                       ? 'bg-rose-50 text-[#74111d] border-rose-300 hover:bg-rose-100 shadow-xs'
-                                      : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
+                                      : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400 shadow-2xs'
                                   }`}
                                   title={m.isComplimentary ? `Complimentary Active (${m.complimentaryDays === 'Lifetime' || Number(m.complimentaryDays) >= 36500 ? 'Lifetime Access' : (m.complimentaryDays || 10) + ' Days'}) • Reason: ${m.complimentaryReason || 'Special Access'}` : 'Click to configure Complimentary access'}
                                 >
                                   <span>{m.isComplimentary ? `Yes (${m.complimentaryDays === 'Lifetime' || Number(m.complimentaryDays) >= 36500 ? 'Lifetime' : m.complimentaryDays ? m.complimentaryDays + 'd' : 'Active'})` : 'No'}</span>
-                                  <ChevronDown className="w-3 h-3 opacity-60" />
+                                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                                 </button>
                               </td>
 
                               {/* ACTION: DELETE */}
-                              <td className="py-3 px-3 text-center">
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                 <button
                                   onClick={() => handleDeleteMerchant(m.id || m._id, m.businessName)}
-                                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                  className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl transition cursor-pointer inline-flex items-center justify-center shadow-2xs"
                                   title="Delete Merchant Record"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -4430,6 +4996,271 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             )}
 
             {/* ========================================================= */}
+            {/* TAB: CONTACT INQUIRIES (Saved in MongoDB via Landing Page) */}
+            {/* ========================================================= */}
+            {activeTab === 'contacts' && (() => {
+              const filteredContacts = contactsList.filter((c) => {
+                if (contactFilter !== 'ALL' && c.status !== contactFilter) return false;
+                if (searchContact.trim()) {
+                  const q = searchContact.toLowerCase();
+                  const name = (c.name || '').toLowerCase();
+                  const phone = (c.phone || '').toLowerCase();
+                  const email = (c.email || '').toLowerCase();
+                  const msg = (c.message || '').toLowerCase();
+                  return name.includes(q) || phone.includes(q) || email.includes(q) || msg.includes(q);
+                }
+                return true;
+              });
+
+              return (
+                <div className="space-y-6 animate-in fade-in duration-150">
+                  {/* 3 Top Stat Cards (Matching Merchants Tab Layout & Font) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Inquiries</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                          {contactsList.length}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Landing page contact submissions</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/25">
+                        <Mail className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">New / Unread Leads</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                          {contactsList.filter(c => c.status === 'NEW').length}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Awaiting activation officer follow-up</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25">
+                        <Clock className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Contacted / Resolved</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                          {contactsList.filter(c => c.status === 'CONTACTED' || c.status === 'RESOLVED').length}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Processed store inquiries</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25">
+                        <Sparkles className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main Table Card */}
+                  <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                    {/* Toolbar & Filters (Exact Merchants Tab Topbar Alignment) */}
+                    <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/50">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 mr-1">
+                          <Filter className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Filter:</span>
+                        </div>
+                        
+                        <select
+                          value={contactFilter}
+                          onChange={(e) => setContactFilter(e.target.value)}
+                          className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
+                        >
+                          <option value="ALL">All Status ({contactsList.length})</option>
+                          <option value="NEW">New Leads Only ({contactsList.filter(c => c.status === 'NEW').length})</option>
+                          <option value="CONTACTED">Contacted ({contactsList.filter(c => c.status === 'CONTACTED').length})</option>
+                          <option value="RESOLVED">Resolved ({contactsList.filter(c => c.status === 'RESOLVED').length})</option>
+                        </select>
+
+                        <button
+                          onClick={() => { setContactFilter('ALL'); setSearchContact(''); }}
+                          className="bg-white hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 flex items-center space-x-1 transition cursor-pointer shadow-2xs"
+                          title="Reset all filters"
+                        >
+                          <RotateCcw className="w-3 h-3 text-slate-400" />
+                          <span>Reset</span>
+                        </button>
+
+                        <button
+                          onClick={fetchContacts}
+                          disabled={contactsLoading}
+                          className="bg-white hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 flex items-center space-x-1.5 transition cursor-pointer shadow-2xs disabled:opacity-50"
+                          title="Refresh contact inquiries from MongoDB"
+                        >
+                          <RefreshCw className={`w-3 h-3 text-slate-400 ${contactsLoading ? 'animate-spin' : ''}`} />
+                          <span>{contactsLoading ? 'Refreshing...' : 'Refresh'}</span>
+                        </button>
+                      </div>
+
+                      <div className="relative w-full lg:w-80">
+                        <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                        <input
+                          type="text"
+                          placeholder="Search inquirer, phone, email, query..."
+                          value={searchContact}
+                          onChange={(e) => setSearchContact(e.target.value)}
+                          className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 shadow-2xs font-bold"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Table with Horizontal Scrollbar & Bold Fonts (Exact SuperAdmin Merchants System) */}
+                    <div className="overflow-x-auto custom-scrollbar pb-3">
+                      <table className="w-full min-w-[1350px] text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                            <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Inquirer / Lead Name</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Phone Number</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Email Address</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap min-w-[170px]">Date with Time</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap min-w-[340px]">Store Inquiry / Message</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[150px]">Status</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[90px]">View</th>
+                            <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[80px]">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {filteredContacts.length === 0 ? (
+                            <tr>
+                              <td colSpan={8} className="py-12 text-center text-xs text-slate-400 font-black">
+                                {contactsLoading ? 'Loading inquiries from MongoDB...' : 'No contact form submissions found matching your filter.'}
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredContacts.map((c) => {
+                              const cid = c.id || c._id;
+                              const dt = c.createdAt ? new Date(c.createdAt) : null;
+                              const formattedDate = dt && !isNaN(dt.getTime())
+                                ? `${dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ${dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                                : 'Just now';
+
+                              return (
+                                <tr key={cid} className="hover:bg-slate-50/80 transition">
+                                  {/* Inquirer / Lead Name */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap">
+                                    <div className="font-extrabold text-slate-900 flex items-center space-x-1.5 whitespace-nowrap">
+                                      <span className="font-black text-sm">{c.name || 'Anonymous User'}</span>
+                                      {c.status === 'NEW' && (
+                                        <span className="bg-rose-100 text-rose-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-full border border-rose-200">
+                                          NEW
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-slate-400 font-mono font-bold mt-0.5 whitespace-nowrap">
+                                      ID: {String(cid).slice(-8).toUpperCase()} • {c.source || 'Website Form'}
+                                    </div>
+                                  </td>
+
+                                  {/* Phone Number */}
+                                  <td className="py-3.5 px-4 font-mono font-black text-slate-900 whitespace-nowrap text-xs">
+                                    {c.phone ? (
+                                      <a
+                                        href={`tel:${c.phone}`}
+                                        className="hover:text-red-700 transition flex items-center space-x-1.5"
+                                        title="Click to call inquirer"
+                                      >
+                                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        <span>{c.phone}</span>
+                                      </a>
+                                    ) : (
+                                      <span className="text-slate-400 font-bold">N/A</span>
+                                    )}
+                                  </td>
+
+                                  {/* Email Address */}
+                                  <td className="py-3.5 px-4 font-bold text-slate-700 whitespace-nowrap text-xs">
+                                    {c.email ? (
+                                      <a
+                                        href={`mailto:${c.email}`}
+                                        className="hover:text-red-700 transition flex items-center space-x-1.5 truncate max-w-[210px]"
+                                        title={c.email}
+                                      >
+                                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                        <span className="truncate">{c.email}</span>
+                                      </a>
+                                    ) : (
+                                      <span className="text-slate-400 font-bold">N/A</span>
+                                    )}
+                                  </td>
+
+                                  {/* Date with Time */}
+                                  <td className="py-3.5 px-4 font-mono font-bold text-slate-700 text-xs whitespace-nowrap">
+                                    {formattedDate}
+                                  </td>
+
+                                  {/* Message / Query */}
+                                  <td className="py-3.5 px-4 whitespace-nowrap max-w-[340px]">
+                                    <div
+                                      onClick={() => setSelectedInquiryModal(c)}
+                                      className="font-bold text-slate-800 text-xs truncate max-w-[320px] cursor-pointer hover:text-red-700 transition"
+                                      title={c.message}
+                                    >
+                                      {c.message}
+                                    </div>
+                                  </td>
+
+                                  {/* Status Selector Dropdown */}
+                                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                    <select
+                                      value={c.status || 'NEW'}
+                                      onChange={(e) => handleUpdateContactStatus(cid, e.target.value)}
+                                      disabled={contactStatusUpdating === cid}
+                                      className={`border rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer shadow-2xs whitespace-nowrap transition-colors ${
+                                        c.status === 'RESOLVED'
+                                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                          : c.status === 'CONTACTED'
+                                          ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                          : 'bg-rose-50 text-rose-800 border-rose-300'
+                                      } ${contactStatusUpdating === cid ? 'opacity-50' : ''}`}
+                                    >
+                                      <option value="NEW">NEW</option>
+                                      <option value="CONTACTED">CONTACTED</option>
+                                      <option value="RESOLVED">RESOLVED</option>
+                                    </select>
+                                  </td>
+
+                                  {/* View Button */}
+                                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedInquiryModal(c)}
+                                      className="inline-flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-2xs"
+                                      title="Open full inquiry details"
+                                    >
+                                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                                      <span>View</span>
+                                    </button>
+                                  </td>
+
+                                  {/* Action / Delete Button */}
+                                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteContact(cid)}
+                                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl transition cursor-pointer inline-flex items-center justify-center shadow-2xs"
+                                      title="Delete inquiry permanently"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ========================================================= */}
             {/* TAB: CLAIM LOGS (Exact Match to Image 4)                  */}
             {/* ========================================================= */}
             {(activeTab === 'claim_logs' || activeTab === 'payments') && (() => {
@@ -4439,7 +5270,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 if (claimRewardFilter !== 'ALL' && !item.reward.toLowerCase().includes(claimRewardFilter.toLowerCase())) return false;
                 if (claimSearch.trim()) {
                   const q = claimSearch.toLowerCase();
-                  return item.claimId.toLowerCase().includes(q) ||
+                  return (item.rewardId || item.claimId || '').toLowerCase().includes(q) ||
+                    (item.customerId || '').toLowerCase().includes(q) ||
+                    (item.merchantId || '').toLowerCase().includes(q) ||
                     item.customer.toLowerCase().includes(q) ||
                     item.merchant.toLowerCase().includes(q) ||
                     item.reward.toLowerCase().includes(q);
@@ -4460,6 +5293,48 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
                   )}
 
+                  {/* 3 Top Stat Cards (Matching Dashboard & Merchants Colorful Style) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Claims</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                          {claimLogsList.length || 245}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">All customer reward redemptions</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
+                        <Award className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Approved Claims</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                          {claimLogsList.filter(c => c.status === 'Success' || c.status === 'Approved').length || 198}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Successfully disbursed to shoppers</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+                        <CheckCircle2 className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
+                      <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Verification</p>
+                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                          {claimLogsList.filter(c => c.status === 'Pending').length || 47}
+                        </h3>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Awaiting counter confirmation</p>
+                      </div>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25 group-hover:scale-105 transition-transform">
+                        <Clock className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Filter and Action Bar (Image 4) */}
                   <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
                     <div className="flex flex-1 flex-wrap items-center gap-3">
@@ -4470,7 +5345,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={claimSearch}
                           onChange={(e) => setClaimSearch(e.target.value)}
-                          placeholder="Search by claim ID, customer or merchant..."
+                          placeholder="Search by reward ID, customer ID, merchant ID, customer..."
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
                         />
                       </div>
@@ -4538,53 +5413,65 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
                   </div>
 
-                  {/* Main Claims Table (Image 4) */}
+                  {/* Main Claims Table */}
                   <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[900px] text-left text-xs border-collapse">
+                    <div className="overflow-x-auto custom-scrollbar pb-2">
+                      <table className="w-full min-w-[1300px] text-left text-xs border-collapse">
                         <thead>
-                          <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-black tracking-wider">
-                            <th className="py-3.5 px-4">#</th>
-                            <th className="py-3.5 px-3">Claim ID</th>
-                            <th className="py-3.5 px-3">Customer</th>
-                            <th className="py-3.5 px-3">Merchant</th>
-                            <th className="py-3.5 px-3">Reward</th>
-                            <th className="py-3.5 px-3">Points Used</th>
-                            <th className="py-3.5 px-3">Status</th>
-                            <th className="py-3.5 px-3">Claimed At</th>
-                            <th className="py-3.5 px-4 text-center">Action</th>
+                          <tr className="bg-slate-50/90 border-b border-slate-200 text-slate-700 uppercase text-[11px] font-black tracking-wider whitespace-nowrap">
+                            <th className="py-3.5 px-4 min-w-[60px]">#</th>
+                            <th className="py-3.5 px-4 min-w-[130px]">Reward ID</th>
+                            <th className="py-3.5 px-4 min-w-[130px]">Customer ID</th>
+                            <th className="py-3.5 px-4 min-w-[160px]">Customer</th>
+                            <th className="py-3.5 px-4 min-w-[130px]">Merchant ID</th>
+                            <th className="py-3.5 px-4 min-w-[160px]">Merchant</th>
+                            <th className="py-3.5 px-4 min-w-[160px]">Reward</th>
+                            <th className="py-3.5 px-4 min-w-[160px] text-center">Aurex Coin</th>
+                            <th className="py-3.5 px-4 min-w-[120px] text-center">Status</th>
+                            <th className="py-3.5 px-4 min-w-[180px]">Claimed At</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {filteredClaims.length === 0 ? (
                             <tr>
-                              <td colSpan={9} className="py-10 text-center text-xs text-slate-400 font-bold">
+                              <td colSpan={10} className="py-10 text-center text-xs text-slate-400 font-black">
                                 No claim logs match the selected search criteria.
                               </td>
                             </tr>
                           ) : (
                             filteredClaims.map((claim, idx) => (
-                              <tr key={claim.id} className="hover:bg-slate-50/80 transition">
-                                <td className="py-3.5 px-4 font-bold text-slate-400">
+                              <tr
+                                key={claim.id}
+                                onClick={() => setSelectedClaimModal(claim)}
+                                className="hover:bg-slate-50/80 transition cursor-pointer"
+                                title="Click to view details"
+                              >
+                                <td className="py-3.5 px-4 font-black text-slate-400 whitespace-nowrap">
                                   {idx + 1}
                                 </td>
-                                <td className="py-3.5 px-3 font-extrabold text-slate-900 font-mono">
-                                  {claim.claimId}
+                                <td className="py-3.5 px-4 font-black text-slate-900 font-mono whitespace-nowrap">
+                                  {claim.rewardId || claim.claimId}
                                 </td>
-                                <td className="py-3.5 px-3 font-bold text-slate-900">
+                                <td className="py-3.5 px-4 font-black text-slate-900 font-mono whitespace-nowrap">
+                                  {claim.customerId || `CUST-${800 + (claim.id || idx + 1)}`}
+                                </td>
+                                <td className="py-3.5 px-4 font-black text-slate-900 whitespace-nowrap">
                                   {claim.customer}
                                 </td>
-                                <td className="py-3.5 px-3 text-slate-700 font-medium">
+                                <td className="py-3.5 px-4 font-black text-slate-900 font-mono whitespace-nowrap">
+                                  {claim.merchantId || `MER-${100 + (claim.id || idx + 1)}`}
+                                </td>
+                                <td className="py-3.5 px-4 font-black text-slate-900 whitespace-nowrap">
                                   {claim.merchant}
                                 </td>
-                                <td className="py-3.5 px-3 font-bold text-slate-800">
+                                <td className="py-3.5 px-4 font-black text-slate-900 whitespace-nowrap">
                                   {claim.reward}
                                 </td>
-                                <td className="py-3.5 px-3 font-bold text-slate-900 font-mono">
+                                <td className="py-3.5 px-4 font-black text-slate-900 font-mono whitespace-nowrap text-center">
                                   {claim.pointsUsed}
                                 </td>
-                                <td className="py-3.5 px-3">
-                                  <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold ${
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${
                                     claim.status === 'Success'
                                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                       : claim.status === 'Pending'
@@ -4594,59 +5481,14 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     {claim.status}
                                   </span>
                                 </td>
-                                <td className="py-3.5 px-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
+                                <td className="py-3.5 px-4 font-mono font-black text-slate-800 text-xs whitespace-nowrap">
                                   {claim.claimedAt}
-                                </td>
-                                <td className="py-3.5 px-4 text-center">
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedClaimModal(claim)}
-                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                                    title="View Claim Verification Details"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </button>
                                 </td>
                               </tr>
                             ))
                           )}
                         </tbody>
                       </table>
-                    </div>
-
-                    {/* Pagination Footer (Image 4 exact) */}
-                    <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/40">
-                      <div>
-                        Showing 1 to {filteredClaims.length} of 245 entries
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-50">
-                          &lt;
-                        </button>
-                        {[1, 2, 3, 4, 5].map(p => (
-                          <button
-                            key={p}
-                            onClick={() => setClaimCurrentPage(p)}
-                            className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                              claimCurrentPage === p
-                                ? 'bg-red-600 text-white'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                        <span className="px-1 text-slate-400">...</span>
-                        <button
-                          onClick={() => setClaimCurrentPage(25)}
-                          className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
-                        >
-                          25
-                        </button>
-                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600">
-                          &gt;
-                        </button>
-                      </div>
                     </div>
                   </div>
 
@@ -4669,39 +5511,47 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                         <div className="bg-slate-50 p-4 rounded-xl space-y-2 text-xs">
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Claim Reference</span>
-                            <span className="font-extrabold text-slate-900 font-mono">{selectedClaimModal.claimId}</span>
+                            <span className="text-slate-500 font-bold">Reward ID</span>
+                            <span className="font-black text-slate-900 font-mono">{selectedClaimModal.rewardId || selectedClaimModal.claimId}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Customer</span>
-                            <span className="font-bold text-slate-900">{selectedClaimModal.customer} ({selectedClaimModal.phone})</span>
+                            <span className="text-slate-500 font-bold">Customer ID</span>
+                            <span className="font-black text-slate-900 font-mono">{selectedClaimModal.customerId || 'CUST-801'}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Merchant Partner</span>
-                            <span className="font-bold text-slate-900">{selectedClaimModal.merchant}</span>
+                            <span className="text-slate-500 font-bold">Customer</span>
+                            <span className="font-black text-slate-900">{selectedClaimModal.customer} ({selectedClaimModal.phone})</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Reward Redeemed</span>
-                            <span className="font-bold text-red-700">{selectedClaimModal.reward}</span>
+                            <span className="text-slate-500 font-bold">Merchant ID</span>
+                            <span className="font-black text-slate-900 font-mono">{selectedClaimModal.merchantId || 'MER-101'}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Loyalty Points Used</span>
-                            <span className="font-mono font-bold text-slate-900">{selectedClaimModal.pointsUsed} Coins</span>
+                            <span className="text-slate-500 font-bold">Merchant Partner</span>
+                            <span className="font-black text-slate-900">{selectedClaimModal.merchant}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Redemption Status</span>
-                            <span className="font-bold text-emerald-600">{selectedClaimModal.status}</span>
+                            <span className="text-slate-500 font-bold">Reward Redeemed</span>
+                            <span className="font-black text-red-700">{selectedClaimModal.reward}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Claim Timestamp</span>
-                            <span className="font-mono text-slate-700">{selectedClaimModal.claimedAt}</span>
+                            <span className="text-slate-500 font-bold">Aurex Coin</span>
+                            <span className="font-mono font-black text-slate-900">{selectedClaimModal.pointsUsed}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-bold">Redemption Status</span>
+                            <span className="font-black text-emerald-600">{selectedClaimModal.status}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-500 font-bold">Claim Timestamp</span>
+                            <span className="font-mono font-bold text-slate-700">{selectedClaimModal.claimedAt}</span>
                           </div>
                           <div className="flex justify-between border-t border-slate-200/80 pt-2">
-                            <span className="text-slate-500 font-medium">Cashier OTP Verified</span>
-                            <span className="font-mono font-bold text-slate-800">PIN: {selectedClaimModal.cashierPin}</span>
+                            <span className="text-slate-500 font-bold">Cashier PIN</span>
+                            <span className="font-mono font-black text-slate-800">{selectedClaimModal.cashierPin}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-slate-500 font-medium">Blockchain TX Hash</span>
+                            <span className="text-slate-500 font-bold">Blockchain TX Hash</span>
                             <span className="font-mono text-slate-400 text-[10px]">{selectedClaimModal.txHash}</span>
                           </div>
                         </div>
@@ -5783,185 +6633,151 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           </div>
                         </div>
 
-                        {/* Row 1: Plan Name & Subtext */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Plan Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={p.name}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'name', e.target.value)}
-                              placeholder="e.g. Standard Plan"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-red-600"
-                            />
+                        {/* Section 1: Basic Plan Details & Pricing */}
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-black uppercase text-slate-700 mb-1">
+                                Plan Name *
+                              </label>
+                              <input
+                                type="text"
+                                value={p.name}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'name', e.target.value)}
+                                placeholder="e.g. Standard Plan"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-slate-600 mb-1">
+                                Short Tagline / Summary
+                              </label>
+                              <input
+                                type="text"
+                                value={p.subtext || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'subtext', e.target.value)}
+                                placeholder="e.g. Perfect for local retail shops getting started"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 focus:outline-none focus:border-red-600 font-medium"
+                              />
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Subtitle / Target Audience
-                            </label>
-                            <input
-                              type="text"
-                              value={p.subtext || ''}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'subtext', e.target.value)}
-                              placeholder="e.g. Perfect for local retail shops"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-                        </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-black text-slate-800 mb-1">
+                                Selling Price (₹) *
+                              </label>
+                              <input
+                                type="number"
+                                value={p.price}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'price', Number(e.target.value))}
+                                placeholder="24000"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-black text-slate-900 focus:outline-none focus:border-red-600"
+                              />
+                            </div>
 
-                        {/* Row 2: Selling Price, Strikethrough Price, Billing Period */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Selling Price (₹) *
-                            </label>
-                            <input
-                              type="number"
-                              value={p.price}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'price', Number(e.target.value))}
-                              placeholder="24000"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-black text-slate-900 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
+                            <div>
+                              <label className="block text-xs font-bold text-slate-600 mb-1">
+                                MRP / Regular Price (₹)
+                              </label>
+                              <input
+                                type="number"
+                                value={p.originalPrice || 0}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'originalPrice', Number(e.target.value))}
+                                placeholder="36000"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-600 focus:outline-none focus:border-red-600"
+                              />
+                            </div>
 
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Original Price (₹ Strikethrough)
-                            </label>
-                            <input
-                              type="number"
-                              value={p.originalPrice || 0}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'originalPrice', Number(e.target.value))}
-                              placeholder="36000"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-600 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Billing Cycle / Period
-                            </label>
-                            <input
-                              type="text"
-                              value={p.period || ''}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'period', e.target.value)}
-                              placeholder="/ Year, / 3 Years, Lifetime"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Row 3: Badge, Tag Text, CTA */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Highlight Badge
-                            </label>
-                            <input
-                              type="text"
-                              value={p.highlightBadge || ''}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'highlightBadge', e.target.value)}
-                              placeholder="Most Popular / Best Value"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Savings Tag Text
-                            </label>
-                            <input
-                              type="text"
-                              value={p.tagText || ''}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'tagText', e.target.value)}
-                              placeholder="e.g. Only ₹1,361/month"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Button CTA Label
-                            </label>
-                            <input
-                              type="text"
-                              value={p.ctaText || ''}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'ctaText', e.target.value)}
-                              placeholder="Start 2-Day Trial"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
+                            <div>
+                              <label className="block text-xs font-bold text-slate-600 mb-1">
+                                Billing Duration
+                              </label>
+                              <input
+                                type="text"
+                                value={p.period || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'period', e.target.value)}
+                                placeholder="e.g. / Year, / 3 Years, Lifetime"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                              />
+                            </div>
                           </div>
                         </div>
 
-                        {/* Row 4: Scans Limit & Free Trial Days */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Customer Scans Limit
-                            </label>
-                            <input
-                              type="text"
-                              value={p.scansLimit || ''}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'scansLimit', e.target.value)}
-                              placeholder="Unlimited customer QR scans"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                              Free Trial Duration (Days)
-                            </label>
-                            <input
-                              type="number"
-                              value={p.trialDays ?? 2}
-                              onChange={(e) => handleUpdatePlanField(p.id, 'trialDays', Number(e.target.value))}
-                              placeholder="2"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Plan Tags & Badges Section */}
-                        <div className="p-3.5 bg-rose-50/50 rounded-2xl border border-rose-200/70 space-y-2.5">
+                        {/* Section 2: Promotional Badges & Multi-Color Tags (Unique Colors & Gap) */}
+                        <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-1.5">
-                              <Tag className="w-3.5 h-3.5 text-[#74111d]" />
-                              <span className="text-[11px] font-black uppercase text-slate-700 tracking-wide">
-                                Plan Tags & Badges ({(p.tags || []).length})
+                              <Tag className="w-3.5 h-3.5 text-[#8B0000]" />
+                              <span className="text-xs font-black uppercase text-slate-800 tracking-wide">
+                                Promotional Badges & Tags ({(p.tags || []).length})
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-bold">
-                              Visible on plan card & landing page
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              Each tag shows in a distinct color with clean spacing
                             </span>
                           </div>
 
-                          {/* Active tags pills */}
-                          <div className="flex flex-wrap gap-1.5 min-h-[28px] items-center">
-                            {(p.tags || []).length === 0 ? (
-                              <span className="text-[11px] text-slate-400 italic">No tags added yet. Choose preset or add custom tags below.</span>
-                            ) : (
-                              (p.tags || []).map((tag, tIdx) => (
-                                <span
-                                  key={tIdx}
-                                  className="inline-flex items-center space-x-1.5 bg-white border border-rose-200 text-[#74111d] px-2.5 py-1 rounded-xl text-xs font-bold shadow-2xs"
-                                >
-                                  <Sparkles className="w-3 h-3 text-[#74111d]" />
-                                  <span>{tag}</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveTagFromPlan(p.id, tIdx)}
-                                    className="text-rose-400 hover:text-rose-700 ml-0.5 p-0.5 rounded cursor-pointer"
-                                    title="Remove tag"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </span>
-                              ))
-                            )}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Top Ribbon Badge (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={p.highlightBadge || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'highlightBadge', e.target.value)}
+                                placeholder="e.g. Most Popular or Best Value"
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                                Savings / Discount Note (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={p.tagText || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'tagText', e.target.value)}
+                                placeholder="e.g. Equivalent to ₹2,000/month"
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Active tags pills with DIFFERENT DISTINCT COLORS and GAP */}
+                          <div>
+                            <span className="block text-[11px] font-bold text-slate-600 mb-1.5">
+                              Active Tags (Rendered in separate colorful badges):
+                            </span>
+                            <div className="flex flex-wrap gap-2.5 min-h-[32px] items-center">
+                              {(p.tags || []).length === 0 ? (
+                                <span className="text-xs text-slate-400 italic">No custom tags added yet. Choose a suggested tag or type your own below.</span>
+                              ) : (
+                                (p.tags || []).map((tag, tIdx) => {
+                                  const theme = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
+                                  return (
+                                    <span
+                                      key={tIdx}
+                                      className={`inline-flex items-center space-x-1.5 ${theme.chip} border px-3 py-1.5 rounded-xl text-xs font-black shadow-2xs`}
+                                    >
+                                      <Sparkles className={`w-3.5 h-3.5 ${theme.icon}`} />
+                                      <span>{tag}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveTagFromPlan(p.id, tIdx)}
+                                        className="text-slate-400 hover:text-rose-700 ml-1 p-0.5 rounded cursor-pointer"
+                                        title="Remove tag"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </span>
+                                  );
+                                })
+                              )}
+                            </div>
                           </div>
 
                           {/* Add custom tag input */}
@@ -5976,43 +6792,44 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                   handleAddTagToPlan(p.id);
                                 }
                               }}
-                              placeholder="Type custom tag (e.g. Save 40%, VIP Choice, Top Rated)..."
-                              className="flex-1 bg-white border border-rose-200/80 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                              placeholder="Type a tag name (e.g. One-Time Payment, No Renewals, Save 40%)..."
+                              className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
                             />
                             <button
                               type="button"
                               onClick={() => handleAddTagToPlan(p.id)}
-                              className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-2xs flex items-center space-x-1"
+                              className="bg-[#8B0000] hover:bg-[#700000] text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs flex items-center space-x-1"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>Add Tag</span>
                             </button>
                           </div>
 
-                          {/* Quick preset tags */}
-                          <div className="pt-1.5 border-t border-rose-200/60">
-                            <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                              Add Suggested Tags:
+                          {/* Quick suggested tags */}
+                          <div className="pt-2 border-t border-slate-200">
+                            <span className="text-[11px] font-bold text-slate-500 block mb-1.5">
+                              Suggested Tags (Click to Add):
                             </span>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1.5">
                               {[
+                                'One-Time Payment',
+                                'No Renewals',
                                 'Most Popular',
                                 'Best Value',
                                 'Recommended',
-                                'Top Choice',
-                                'Limited Offer',
                                 'Save 40%',
-                                'VIP Partner',
+                                'Limited Offer',
+                                'Lifetime Deal',
                                 'Instant Setup',
-                                'Lifetime Deal'
+                                'VIP Partner'
                               ].filter(t => !(p.tags || []).includes(t)).map((preset, pIdx) => (
                                 <button
                                   key={pIdx}
                                   type="button"
                                   onClick={() => handleAddTagToPlan(p.id, preset)}
-                                  className="text-[10px] bg-white hover:bg-rose-50 text-slate-600 hover:text-[#74111d] border border-rose-200/70 hover:border-rose-300 px-2 py-0.5 rounded-lg transition cursor-pointer font-medium flex items-center space-x-1"
+                                  className="text-[11px] bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 px-2.5 py-1 rounded-lg transition cursor-pointer font-bold flex items-center space-x-1 shadow-2xs"
                                 >
-                                  <Plus className="w-2.5 h-2.5 text-[#74111d]" />
+                                  <Plus className="w-3 h-3 text-[#8B0000]" />
                                   <span>{preset}</span>
                                 </button>
                               ))}
@@ -6020,61 +6837,105 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           </div>
                         </div>
 
-                        {/* Features List Section */}
-                        <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-black uppercase text-slate-600 tracking-wide">
-                              Plan Features (Shown on Landing Page)
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-bold">
-                              {(p.features || []).length} Features
-                            </span>
+                        {/* Section 3: Features & Additional Settings */}
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-bold text-slate-600 mb-1">
+                                QR Scans Limit
+                              </label>
+                              <input
+                                type="text"
+                                value={p.scansLimit || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'scansLimit', e.target.value)}
+                                placeholder="Unlimited customer QR scans"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-slate-600 mb-1">
+                                Free Trial Days
+                              </label>
+                              <input
+                                type="number"
+                                value={p.trialDays ?? 2}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'trialDays', Number(e.target.value))}
+                                placeholder="2"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs font-bold text-slate-600 mb-1">
+                                Button Text
+                              </label>
+                              <input
+                                type="text"
+                                value={p.ctaText || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'ctaText', e.target.value)}
+                                placeholder="Start 2-Day Trial"
+                                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                              />
+                            </div>
                           </div>
 
-                          <div className="space-y-1.5">
-                            {(p.features || []).map((feat, fIdx) => (
-                              <div
-                                key={fIdx}
-                                className="flex items-center justify-between bg-white border border-slate-200/90 px-3 py-1.5 rounded-xl text-xs shadow-2xs"
-                              >
-                                <div className="flex items-center space-x-2 text-slate-700">
-                                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                  <span>{feat}</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemovePlanFeature(p.id, fIdx)}
-                                  className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer"
-                                  title="Remove feature"
+                          {/* Features List Section */}
+                          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black uppercase text-slate-700 tracking-wide">
+                                Included Features ({(p.features || []).length})
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-medium">
+                                Shown as bullet points on plan card
+                              </span>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              {(p.features || []).map((feat, fIdx) => (
+                                <div
+                                  key={fIdx}
+                                  className="flex items-center justify-between bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs shadow-2xs"
                                 >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
+                                  <div className="flex items-center space-x-2 text-slate-800 font-medium">
+                                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <span>{feat}</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemovePlanFeature(p.id, fIdx)}
+                                    className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer"
+                                    title="Remove feature"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
 
-                          {/* Add Feature input */}
-                          <div className="flex items-center space-x-2 pt-1">
-                            <input
-                              type="text"
-                              value={newFeatureInputs[p.id] || ''}
-                              onChange={(e) => setNewFeatureInputs({ ...newFeatureInputs, [p.id]: e.target.value })}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleAddPlanFeature(p.id);
-                                }
-                              }}
-                              placeholder="Add feature (e.g. Free Acrylic Standee)..."
-                              className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleAddPlanFeature(p.id)}
-                              className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition cursor-pointer shrink-0"
-                            >
-                              + Add
-                            </button>
+                            {/* Add Feature input */}
+                            <div className="flex items-center space-x-2 pt-1">
+                              <input
+                                type="text"
+                                value={newFeatureInputs[p.id] || ''}
+                                onChange={(e) => setNewFeatureInputs({ ...newFeatureInputs, [p.id]: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddPlanFeature(p.id);
+                                  }
+                                }}
+                                placeholder="Add new feature (e.g. Free Acrylic Standee)..."
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-medium"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleAddPlanFeature(p.id)}
+                                className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer shrink-0"
+                              >
+                                + Add
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -6179,9 +7040,27 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 <div className="text-2xl font-black text-amber-400">
                                   ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-400">{p.period}</span>
                                 </div>
-                                {p.tagText && (
-                                  <span className="text-[10px] font-bold text-emerald-400 mt-1 block uppercase">{p.tagText}</span>
-                                )}
+                                {/* Multi-Color Distinct Badges & Tags */}
+                                {(() => {
+                                  const planTags = getPlanTagList(p);
+                                  if (planTags.length === 0) return null;
+                                  return (
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                      {planTags.map((tag, tIdx) => {
+                                        const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
+                                        return (
+                                          <span
+                                            key={tIdx}
+                                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewDark}`}
+                                          >
+                                            <Sparkles className="w-2.5 h-2.5 shrink-0 opacity-80" />
+                                            <span>{tag}</span>
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })()}
                               </div>
                               <ul className="space-y-2 text-slate-300 text-xs mb-6">
                                 {(p.features || []).slice(0, 5).map((f, i) => (
@@ -6219,9 +7098,27 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 <div className="text-2xl font-black text-slate-900">
                                   ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-500">{p.period}</span>
                                 </div>
-                                {p.tagText && (
-                                  <span className="text-[10px] font-bold text-red-600 mt-1 block bg-red-50 px-2 py-0.5 rounded w-fit">{p.tagText}</span>
-                                )}
+                                {/* Multi-Color Distinct Badges & Tags */}
+                                {(() => {
+                                  const planTags = getPlanTagList(p);
+                                  if (planTags.length === 0) return null;
+                                  return (
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                                      {planTags.map((tag, tIdx) => {
+                                        const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
+                                        return (
+                                          <span
+                                            key={tIdx}
+                                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewLight}`}
+                                          >
+                                            <Sparkles className={`w-2.5 h-2.5 shrink-0 ${palette.icon}`} />
+                                            <span>{tag}</span>
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })()}
                               </div>
                               <ul className="space-y-2 text-slate-600 text-xs mb-6">
                                 {(p.features || []).slice(0, 5).map((f, i) => (
@@ -6258,9 +7155,27 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               <div className="text-2xl font-black text-slate-900">
                                 ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-500">{p.period}</span>
                               </div>
-                              {p.tagText && (
-                                <span className="text-[10px] font-bold text-emerald-600 mt-1 block">{p.tagText}</span>
-                              )}
+                              {/* Multi-Color Distinct Badges & Tags */}
+                              {(() => {
+                                const planTags = getPlanTagList(p);
+                                if (planTags.length === 0) return null;
+                                return (
+                                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    {planTags.map((tag, tIdx) => {
+                                      const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
+                                      return (
+                                        <span
+                                          key={tIdx}
+                                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewLight}`}
+                                        >
+                                          <Sparkles className={`w-2.5 h-2.5 shrink-0 ${palette.icon}`} />
+                                          <span>{tag}</span>
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })()}
                             </div>
                             <ul className="space-y-2 text-slate-600 text-xs mb-6">
                               {(p.features || []).slice(0, 5).map((f, i) => (
@@ -6492,27 +7407,30 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </div>
 
                       {/* Active tags pills */}
-                      <div className="flex flex-wrap gap-2 min-h-[32px] items-center">
+                      <div className="flex flex-wrap gap-2.5 min-h-[32px] items-center">
                         {(newPlanForm.tags || []).length === 0 ? (
                           <span className="text-xs text-slate-400 italic">No custom tags added yet. Choose presets below or type your own.</span>
                         ) : (
-                          (newPlanForm.tags || []).map((tag, tIdx) => (
-                            <span
-                              key={tIdx}
-                              className="inline-flex items-center space-x-1.5 bg-white border border-rose-200 text-[#74111d] px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs"
-                            >
-                              <Sparkles className="w-3 h-3 text-[#74111d]" />
-                              <span>{tag}</span>
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveTagFromNewPlan(tIdx)}
-                                className="text-rose-400 hover:text-rose-700 ml-1 p-0.5 rounded cursor-pointer"
-                                title="Remove tag"
+                          (newPlanForm.tags || []).map((tag, tIdx) => {
+                            const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
+                            return (
+                              <span
+                                key={tIdx}
+                                className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-black border shadow-2xs ${palette.chip}`}
                               >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </span>
-                          ))
+                                <Sparkles className={`w-3.5 h-3.5 ${palette.icon}`} />
+                                <span>{tag}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveTagFromNewPlan(tIdx)}
+                                  className="opacity-70 hover:opacity-100 ml-1 p-0.5 rounded cursor-pointer transition"
+                                  title="Remove tag"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </span>
+                            );
+                          })
                         )}
                       </div>
 
@@ -6548,6 +7466,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {[
+                            'One-Time Payment',
+                            'No Renewals',
                             'Most Popular',
                             'Best Value',
                             'Recommended',
@@ -6737,21 +7657,27 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             ₹{Number(newPlanForm.price || 0).toLocaleString('en-IN')}{' '}
                             <span className="text-xs font-normal text-slate-500">{newPlanForm.period}</span>
                           </div>
-                          {newPlanForm.tagText && (
-                            <span className="text-[10px] font-bold text-red-600 mt-1 block bg-red-50 px-2 py-0.5 rounded w-fit">
-                              {newPlanForm.tagText}
-                            </span>
-                          )}
-                          {(newPlanForm.tags || []).length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                              {newPlanForm.tags.map((tg, idx) => (
-                                <span key={idx} className="text-[10px] font-bold text-[#74111d] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md flex items-center space-x-1">
-                                  <Sparkles className="w-2.5 h-2.5 text-[#74111d]" />
-                                  <span>{tg}</span>
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                          {/* Multi-Color Distinct Badges & Tags */}
+                          {(() => {
+                            const planTags = getPlanTagList(newPlanForm);
+                            if (planTags.length === 0) return null;
+                            return (
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                {planTags.map((tg, idx) => {
+                                  const palette = PLAN_TAG_PALETTES[idx % PLAN_TAG_PALETTES.length];
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewLight}`}
+                                    >
+                                      <Sparkles className={`w-2.5 h-2.5 shrink-0 ${palette.icon}`} />
+                                      <span>{tg}</span>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         <ul className="space-y-2 text-slate-600 text-xs mb-6">
@@ -6780,70 +7706,100 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             {/* SUB-TAB 3: PLAN HISTORY */}
             {planSubTab === 'history' && (
               <div className="space-y-6 animate-in fade-in duration-150">
-                <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                  <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50/50">
                     <div>
                       <div className="flex items-center space-x-2">
-                        <History className="w-4 h-4 text-[#8B0000]" />
+                        <History className="w-5 h-5 text-[#8B0000]" />
                         <h3 className="text-base font-black text-slate-900">Plan Modification & Creation History</h3>
                       </div>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      <p className="text-xs text-slate-500 font-bold mt-0.5">
                         Complete immutable audit trail of all platform plan additions, price adjustments, and feature changes.
                       </p>
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl">
+                    <div className="flex items-center space-x-2 shrink-0">
+                      <span className="text-xs font-mono font-black bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-xl shadow-2xs">
                         {planHistory.length} Total Logs
                       </span>
-                      <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center space-x-1.5">
+                      <span className="text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-300 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 shadow-2xs">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>MongoDB Synced</span>
                       </span>
                     </div>
                   </div>
 
-                  {/* Audit Log Timeline Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                  {/* Audit Log Timeline Table with Merchant-Style Horizontal Scrollbar & Bold Typography */}
+                  <div className="overflow-x-auto custom-scrollbar pb-3">
+                    <table className="w-full min-w-[1350px] text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
-                          <th className="pb-3 pl-3">Timestamp</th>
-                          <th className="pb-3">Plan Affected</th>
-                          <th className="pb-3">Action Type</th>
-                          <th className="pb-3">Details & Audit Summary</th>
-                          <th className="pb-3">Modified By</th>
-                          <th className="pb-3 text-right pr-3">Status</th>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">Timestamp</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[210px]">Plan Affected</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[180px]">Action Type</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[450px]">Details & Audit Summary</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[190px]">Modified By</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[120px]">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {planHistory.map((item, idx) => (
-                          <tr key={item.id || idx} className="hover:bg-slate-50/70 transition">
-                            <td className="py-3.5 pl-3 font-mono font-bold text-slate-500 text-[11px] whitespace-nowrap">
-                              {item.timestamp}
-                            </td>
-                            <td className="py-3.5 font-black text-slate-900 whitespace-nowrap">
-                              {item.planName}
-                            </td>
-                            <td className="py-3.5 whitespace-nowrap">
-                              <span className="bg-red-50 text-red-700 font-bold px-2.5 py-1 rounded-md text-[11px] border border-red-100">
-                                {item.action}
-                              </span>
-                            </td>
-                            <td className="py-3.5 text-slate-600 max-w-md font-medium">
-                              {item.details}
-                            </td>
-                            <td className="py-3.5 text-slate-700 font-bold whitespace-nowrap">
-                              {item.user || 'Super Admin'}
-                            </td>
-                            <td className="py-3.5 pr-3 text-right whitespace-nowrap">
-                              <span className="inline-flex items-center space-x-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span>Applied</span>
-                              </span>
+                        {planHistory.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="py-12 text-center text-xs text-slate-400 font-black">
+                              No plan audit records found.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          planHistory.map((item, idx) => (
+                            <tr key={item.id || idx} className="hover:bg-slate-50/80 transition">
+                              {/* Timestamp */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-mono font-bold text-slate-800 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span>{item.timestamp}</span>
+                                </div>
+                              </td>
+
+                              {/* Plan Affected */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-black text-slate-900 text-sm whitespace-nowrap flex items-center space-x-1.5">
+                                  <Tag className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
+                                  <span>{item.planName}</span>
+                                </div>
+                              </td>
+
+                              {/* Action Type */}
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                <span className="inline-flex items-center space-x-1 bg-red-50 text-red-700 font-black px-3 py-1 rounded-xl text-xs border border-red-200 shadow-2xs whitespace-nowrap">
+                                  <span>{item.action}</span>
+                                </span>
+                              </td>
+
+                              {/* Details & Audit Summary */}
+                              <td className="py-3.5 px-4">
+                                <div className="font-bold text-slate-700 text-xs leading-relaxed max-w-2xl">
+                                  {item.details}
+                                </div>
+                              </td>
+
+                              {/* Modified By */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                  <UserCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                  <span>{item.user || 'Super Admin (Owner)'}</span>
+                                </div>
+                              </td>
+
+                              {/* Status */}
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                <span className="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 font-black px-3 py-1 rounded-xl text-xs whitespace-nowrap shadow-2xs">
+                                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                  <span>Applied</span>
+                                </span>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -6951,74 +7907,74 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[900px] text-left text-xs border-collapse">
+                <div className="overflow-x-auto custom-scrollbar pb-3">
+                  <table className="w-full min-w-[1300px] text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-800 text-white uppercase text-[10px] font-black tracking-wider">
-                        <th className="py-3 px-4">USER ID</th>
-                        <th className="py-3 px-4">USER EMAIL</th>
-                        <th className="py-3 px-4">USER NAME</th>
-                        <th className="py-3 px-4">USER NUMBER</th>
-                        <th className="py-3 px-4">REFERRED TO</th>
-                        <th className="py-3 px-4 text-center">REFERRAL DETAILS</th>
-                        <th className="py-3 px-4 text-right">REFERRAL AMT.</th>
-                        <th className="py-3 px-4 text-center">REFUND</th>
-                        <th className="py-3 px-4 text-center">MW PAYMENT STATUS</th>
-                        <th className="py-3 px-4 text-center">ACTION</th>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                        <th className="py-3.5 px-4 whitespace-nowrap min-w-[90px] text-left">USER ID</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px] text-left">USER EMAIL</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px] text-left">USER NAME</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-left">USER NUMBER</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px] text-left">REFERRED TO</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[140px]">REFERRAL DETAILS</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap text-right min-w-[140px]">REFERRAL AMT.</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[110px]">REFUND</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[160px]">MW PAYMENT STATUS</th>
+                        <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[90px]">ACTION</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredReferrals.map((item, idx) => (
-                        <tr key={item.id || idx} className="hover:bg-rose-50/40 transition">
-                          <td className="py-3 px-4 font-mono font-bold text-slate-600">
+                        <tr key={item.id || idx} className="hover:bg-slate-50/80 transition">
+                          <td className="py-3.5 px-4 font-mono font-black text-slate-900 text-xs whitespace-nowrap text-left">
                             {item.id}
                           </td>
-                          <td className="py-3 px-4 font-medium text-slate-900">
+                          <td className="py-3.5 px-4 font-bold text-slate-900 text-xs whitespace-nowrap text-left">
                             {item.userEmail}
                           </td>
-                          <td className="py-3 px-4 font-semibold text-slate-700">
+                          <td className="py-3.5 px-4 font-black text-slate-900 text-xs whitespace-nowrap text-left">
                             {item.userName}
                           </td>
-                          <td className="py-3 px-4 font-mono text-slate-600">
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-700 text-xs whitespace-nowrap text-left">
                             {item.userNumber}
                           </td>
-                          <td className="py-3 px-4 font-bold text-slate-800">
+                          <td className="py-3.5 px-4 font-black text-slate-900 text-xs whitespace-nowrap text-left">
                             {item.referredTo}
                           </td>
-                          <td className="py-3 px-4 text-center">
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => setSelectedReferralDetailModal(item)}
-                              className="px-3.5 py-1 rounded-lg border border-[#74111d]/40 text-[#74111d] hover:bg-rose-50 font-bold text-xs transition cursor-pointer shadow-2xs"
+                              className="px-3.5 py-1.5 rounded-xl border border-[#74111d] bg-white text-[#74111d] hover:bg-rose-50 font-black text-xs transition cursor-pointer shadow-2xs hover:shadow-xs"
                             >
                               View
                             </button>
                           </td>
-                          <td className="py-3 px-4 text-right font-black text-slate-900">
+                          <td className="py-3.5 px-4 text-right font-mono font-black text-slate-900 text-sm whitespace-nowrap">
                             ₹{Number(item.referralAmt).toLocaleString('en-IN')}
                           </td>
-                          <td className="py-3 px-4 text-center text-slate-500 font-medium">
+                          <td className="py-3.5 px-4 text-center font-bold text-slate-600 text-xs whitespace-nowrap">
                             {item.refund || 'None'}
                           </td>
-                          <td className="py-3 px-4 text-center">
-                            <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${
                               item.paymentStatus === 'Paid'
-                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : item.paymentStatus === 'Eligible'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                : 'bg-red-700 text-white'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
                             }`}>
                               {item.paymentStatus}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-center">
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleDeleteReferral(item.id)}
                               className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer"
                               title="Delete Referral Record"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </td>
                         </tr>
@@ -7044,87 +8000,344 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                     </div>
 
-                    <div className="p-6 space-y-4">
-                      <div className="text-sm font-black text-slate-900">
-                        Referrals by: {selectedReferralDetailModal.userName !== '-' ? selectedReferralDetailModal.userName : selectedReferralDetailModal.userEmail} ({selectedReferralDetailModal.userEmail})
+                    <div className="p-6 space-y-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="text-sm font-black text-slate-900">
+                          Referrals by: {selectedReferralDetailModal.userName !== '-' ? selectedReferralDetailModal.userName : selectedReferralDetailModal.userEmail} ({selectedReferralDetailModal.userEmail})
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setViewHistoryModal(selectedReferralDetailModal)}
+                          className="px-3.5 py-1.5 rounded-xl border border-[#74111d] bg-white hover:bg-rose-50 text-[#74111d] font-black text-xs transition cursor-pointer shadow-2xs flex items-center space-x-1.5 self-start sm:self-auto"
+                          title="View Payment Date and History Type"
+                        >
+                          <History className="w-3.5 h-3.5" />
+                          <span>View Payment History</span>
+                        </button>
                       </div>
 
-                      {/* Modal Table */}
-                      <div className="border border-slate-200 rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-xs border-collapse">
-                          <thead>
-                            <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                              <th className="py-3 px-3">Referred User</th>
-                              <th className="py-3 px-3">Referral Date</th>
-                              <th className="py-3 px-3 text-center">User Payment Status</th>
-                              <th className="py-3 px-3 text-right">Total Amount</th>
-                              <th className="py-3 px-3 text-right">Paid Amount</th>
-                              <th className="py-3 px-3 text-right">Pending Amount</th>
-                              <th className="py-3 px-3 text-center">Status</th>
-                              <th className="py-3 px-3 text-center">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr className="hover:bg-slate-50">
-                              <td className="py-3 px-3 font-medium whitespace-pre-line text-slate-900">
-                                {selectedReferralDetailModal.details?.referredUser || selectedReferralDetailModal.userEmail}
-                              </td>
-                              <td className="py-3 px-3 text-slate-600 font-mono">
-                                {selectedReferralDetailModal.details?.referralDate || '20-07-2026'}
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                                  selectedReferralDetailModal.details?.userPaymentStatus === 'Paid'
-                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                    : 'bg-amber-400 text-slate-900'
-                                }`}>
-                                  {selectedReferralDetailModal.details?.userPaymentStatus || 'Not Paid'}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-right font-bold text-slate-900">
-                                ₹{Number(selectedReferralDetailModal.details?.totalAmount || selectedReferralDetailModal.referralAmt).toLocaleString('en-IN')}
-                              </td>
-                              <td className="py-3 px-3 text-right font-bold text-emerald-600">
-                                ₹{Number(selectedReferralDetailModal.details?.paidAmount || 0).toLocaleString('en-IN')}
-                              </td>
-                              <td className="py-3 px-3 text-right font-black text-rose-600">
-                                ₹{Number(selectedReferralDetailModal.details?.pendingAmount ?? selectedReferralDetailModal.referralAmt).toLocaleString('en-IN')}
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  selectedReferralDetailModal.details?.status === 'Completed'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-400 text-slate-900'
-                                }`}>
-                                  {selectedReferralDetailModal.details?.status || 'Pending'}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setProcessPaymentModal({
-                                      isOpen: true,
-                                      referral: selectedReferralDetailModal,
-                                      amount: selectedReferralDetailModal.details?.pendingAmount ?? selectedReferralDetailModal.referralAmt,
-                                      txnNumber: '',
-                                      method: 'Bank Transfer (NEFT / RTGS)',
-                                      notes: ''
-                                    });
-                                  }}
-                                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition cursor-pointer shadow-xs"
-                                >
-                                  Add Payment
-                                </button>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
+                      {/* Modal Table (Image 1) */}
+                      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+                        <div className="overflow-x-auto custom-scrollbar">
+                          <table className="w-full text-left text-xs border-collapse min-w-[880px]">
+                            <thead>
+                              <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 font-black uppercase text-[11px] tracking-wider whitespace-nowrap">
+                                <th className="py-3.5 px-3">Referred User</th>
+                                <th className="py-3.5 px-3">Referral Date</th>
+                                <th className="py-3.5 px-3 text-center">User Payment Status</th>
+                                <th className="py-3.5 px-3 text-right">Total Amount</th>
+                                <th className="py-3.5 px-3 text-right">Paid Amount</th>
+                                <th className="py-3.5 px-3 text-right">Pending Amount</th>
+                                <th className="py-3.5 px-3 text-center">Status</th>
+                                <th className="py-3.5 px-3 text-center min-w-[170px]">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="hover:bg-slate-50/70 transition">
+                                <td className="py-3.5 px-3 font-black whitespace-pre-line text-slate-900">
+                                  {selectedReferralDetailModal.details?.referredUser || selectedReferralDetailModal.userEmail}
+                                </td>
+                                <td className="py-3.5 px-3 text-slate-700 font-mono font-bold whitespace-nowrap">
+                                  {selectedReferralDetailModal.details?.referralDate || '20-07-2026'}
+                                </td>
+                                <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    selectedReferralDetailModal.details?.userPaymentStatus === 'Paid'
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                      : 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  }`}>
+                                    {selectedReferralDetailModal.details?.userPaymentStatus || 'Not Paid'}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-3 text-right font-black font-mono text-slate-900 whitespace-nowrap">
+                                  ₹{Number(selectedReferralDetailModal.details?.totalAmount || selectedReferralDetailModal.referralAmt).toLocaleString('en-IN')}
+                                </td>
+                                <td className="py-3.5 px-3 text-right font-black font-mono text-emerald-600 whitespace-nowrap">
+                                  ₹{Number(selectedReferralDetailModal.details?.paidAmount || 0).toLocaleString('en-IN')}
+                                </td>
+                                <td className="py-3.5 px-3 text-right font-black font-mono text-rose-600 whitespace-nowrap">
+                                  ₹{Number(selectedReferralDetailModal.details?.pendingAmount ?? selectedReferralDetailModal.referralAmt).toLocaleString('en-IN')}
+                                </td>
+                                <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                    selectedReferralDetailModal.details?.status === 'Completed'
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                      : 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  }`}>
+                                    {selectedReferralDetailModal.details?.status || 'Pending'}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                                  <div className="flex items-center justify-center space-x-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setViewHistoryModal(selectedReferralDetailModal)}
+                                      className="px-3 py-1.5 bg-white border border-[#74111d] text-[#74111d] hover:bg-rose-50 font-black rounded-lg text-xs transition cursor-pointer shadow-2xs flex items-center space-x-1"
+                                      title="View payment date and history type"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>View</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setProcessPaymentModal({
+                                          isOpen: true,
+                                          referral: selectedReferralDetailModal,
+                                          amount: selectedReferralDetailModal.details?.pendingAmount ?? selectedReferralDetailModal.referralAmt,
+                                          txnNumber: '',
+                                          method: 'Bank Transfer (NEFT / RTGS)',
+                                          historyType: 'Referral Payout',
+                                          payDate: new Date().toLocaleDateString('en-GB') + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                                          notes: ''
+                                        });
+                                      }}
+                                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-lg text-xs transition cursor-pointer shadow-xs flex items-center space-x-1"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Add Payment</span>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
+
+                      {/* Payment History View Ledger (When I pay date and history type) */}
+                      {(() => {
+                        const liveRecord = referralsList.find(r => r.id === selectedReferralDetailModal.id || r.userEmail === selectedReferralDetailModal.userEmail) || selectedReferralDetailModal;
+                        const logs = (Array.isArray(liveRecord.paymentHistory) && liveRecord.paymentHistory.length > 0)
+                          ? liveRecord.paymentHistory
+                          : (Number(liveRecord.details?.paidAmount || 0) > 0 ? [
+                              {
+                                id: `PAY-${liveRecord.id}-01`,
+                                payDate: `${liveRecord.details?.referralDate || '20-07-2026'}, 02:30 PM`,
+                                historyType: 'Referral Payout',
+                                amount: Number(liveRecord.details?.paidAmount),
+                                method: 'Bank Transfer (NEFT / RTGS)',
+                                txnNumber: `TXN-${liveRecord.id || '9821'}7340`,
+                                status: 'Paid',
+                                notes: `Payout settlement for referral of ${liveRecord.details?.referredUser?.split('\n')[0] || liveRecord.userName}`
+                              }
+                            ] : []);
+
+                        return (
+                          <div className="pt-2 space-y-2.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <History className="w-4 h-4 text-[#74111d]" />
+                                <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                                  Payout & Payment History (When Paid Date & History Type)
+                                </h4>
+                              </div>
+                              <span className="text-[11px] font-bold text-slate-500">
+                                {logs.length} Transaction Record{logs.length !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+
+                            <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+                              <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left text-xs border-collapse min-w-[700px]">
+                                  <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-black tracking-wider whitespace-nowrap">
+                                      <th className="py-2.5 px-3">#</th>
+                                      <th className="py-2.5 px-3">Pay Date & Time</th>
+                                      <th className="py-2.5 px-3">History Type</th>
+                                      <th className="py-2.5 px-3 text-right">Amount Paid</th>
+                                      <th className="py-2.5 px-3">Payment Method</th>
+                                      <th className="py-2.5 px-3">Transaction No.</th>
+                                      <th className="py-2.5 px-3 text-center">Status</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100">
+                                    {logs.length === 0 ? (
+                                      <tr>
+                                        <td colSpan={7} className="py-6 text-center text-xs text-slate-400 font-bold">
+                                          No payment history recorded yet. Click "Add Payment" to disburse referral earnings.
+                                        </td>
+                                      </tr>
+                                    ) : (
+                                      logs.map((log, lIdx) => (
+                                        <tr key={log.id || lIdx} className="hover:bg-slate-50/70 transition">
+                                          <td className="py-2.5 px-3 font-mono font-bold text-slate-400 whitespace-nowrap">
+                                            {lIdx + 1}
+                                          </td>
+                                          <td className="py-2.5 px-3 font-mono font-black text-slate-900 whitespace-nowrap">
+                                            {log.payDate}
+                                          </td>
+                                          <td className="py-2.5 px-3 font-black text-slate-800 whitespace-nowrap">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-[#74111d] border border-rose-200 uppercase tracking-wider">
+                                              {log.historyType || 'Referral Payout'}
+                                            </span>
+                                          </td>
+                                          <td className="py-2.5 px-3 font-mono font-black text-emerald-600 text-right whitespace-nowrap">
+                                            ₹{Number(log.amount).toLocaleString('en-IN')}
+                                          </td>
+                                          <td className="py-2.5 px-3 font-bold text-slate-700 whitespace-nowrap">
+                                            {log.method}
+                                          </td>
+                                          <td className="py-2.5 px-3 font-mono font-bold text-slate-600 whitespace-nowrap">
+                                            {log.txnNumber || 'TXN-98217340'}
+                                          </td>
+                                          <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                                            <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 uppercase">
+                                              {log.status || 'Paid'}
+                                            </span>
+                                          </td>
+                                        </tr>
+                                      ))
+                                    )}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* MODAL: VIEW PAYMENT DATE & HISTORY TYPE */}
+              {viewHistoryModal && (() => {
+                const liveRecord = referralsList.find(r => r.id === viewHistoryModal.id || r.userEmail === viewHistoryModal.userEmail) || viewHistoryModal;
+                const logs = (Array.isArray(liveRecord.paymentHistory) && liveRecord.paymentHistory.length > 0)
+                  ? liveRecord.paymentHistory
+                  : (Number(liveRecord.details?.paidAmount || 0) > 0 ? [
+                      {
+                        id: `PAY-${liveRecord.id}-01`,
+                        payDate: `${liveRecord.details?.referralDate || '20-07-2026'}, 02:30 PM`,
+                        historyType: 'Referral Payout',
+                        amount: Number(liveRecord.details?.paidAmount),
+                        method: 'Bank Transfer (NEFT / RTGS)',
+                        txnNumber: `TXN-${liveRecord.id || '9821'}7340`,
+                        status: 'Paid',
+                        notes: `Payout settlement for referral of ${liveRecord.details?.referredUser?.split('\n')[0] || liveRecord.userName}`
+                      }
+                    ] : []);
+
+                return (
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+                    <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto animate-in zoom-in-95">
+                      {/* Header */}
+                      <div className="bg-[#74111d] text-white px-6 py-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <History className="w-5 h-5 text-rose-200" />
+                          <div>
+                            <h3 className="font-black text-sm">Payment History & Pay Date Details</h3>
+                            <p className="text-[11px] text-rose-200">
+                              {liveRecord.userName || liveRecord.userEmail} ({liveRecord.userEmail})
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setViewHistoryModal(null)}
+                          className="text-white hover:text-rose-100 p-1 cursor-pointer transition"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="p-6 space-y-4">
+                        {/* Summary Badges */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center">
+                            <span className="text-[10px] uppercase font-black text-slate-500">Total Referral</span>
+                            <p className="text-base font-black text-slate-900 font-mono mt-0.5">
+                              ₹{Number(liveRecord.details?.totalAmount || liveRecord.referralAmt).toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                          <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center">
+                            <span className="text-[10px] uppercase font-black text-emerald-700">Total Paid</span>
+                            <p className="text-base font-black text-emerald-700 font-mono mt-0.5">
+                              ₹{Number(liveRecord.details?.paidAmount || 0).toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                          <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-center">
+                            <span className="text-[10px] uppercase font-black text-rose-700">Pending Amount</span>
+                            <p className="text-base font-black text-rose-700 font-mono mt-0.5">
+                              ₹{Number(liveRecord.details?.pendingAmount ?? liveRecord.referralAmt).toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Payment History List */}
+                        <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs bg-white">
+                          <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left text-xs border-collapse min-w-[620px]">
+                              <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[10px] font-black tracking-wider whitespace-nowrap">
+                                  <th className="py-3 px-3">#</th>
+                                  <th className="py-3 px-3">Pay Date & Time</th>
+                                  <th className="py-3 px-3">History Type</th>
+                                  <th className="py-3 px-3 text-right">Amount</th>
+                                  <th className="py-3 px-3">Payment Method</th>
+                                  <th className="py-3 px-3">Txn Reference</th>
+                                  <th className="py-3 px-3 text-center">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100">
+                                {logs.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={7} className="py-8 text-center text-xs text-slate-400 font-black">
+                                      No payment transaction recorded yet.
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  logs.map((log, idx) => (
+                                    <tr key={log.id || idx} className="hover:bg-slate-50/70 transition">
+                                      <td className="py-3 px-3 font-mono font-bold text-slate-400 whitespace-nowrap">
+                                        {idx + 1}
+                                      </td>
+                                      <td className="py-3 px-3 font-mono font-black text-slate-900 whitespace-nowrap">
+                                        {log.payDate}
+                                      </td>
+                                      <td className="py-3 px-3 font-black text-slate-800 whitespace-nowrap">
+                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#74111d] border border-rose-200">
+                                          {log.historyType || 'Referral Payout'}
+                                        </span>
+                                      </td>
+                                      <td className="py-3 px-3 font-mono font-black text-emerald-600 text-right whitespace-nowrap">
+                                        ₹{Number(log.amount).toLocaleString('en-IN')}
+                                      </td>
+                                      <td className="py-3 px-3 font-bold text-slate-700 whitespace-nowrap">
+                                        {log.method}
+                                      </td>
+                                      <td className="py-3 px-3 font-mono font-bold text-slate-600 whitespace-nowrap">
+                                        {log.txnNumber || 'TXN-98217340'}
+                                      </td>
+                                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                          {log.status || 'Paid'}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                        {/* Close button */}
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setViewHistoryModal(null)}
+                            className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-black text-xs transition cursor-pointer"
+                          >
+                            Close History
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* MODAL: PROCESS REFERRAL PAYMENT (Image 3 Exact Layout) */}
               {processPaymentModal.isOpen && (
@@ -7148,6 +8361,17 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         const pAmt = Number(processPaymentModal.amount) || 0;
                         if (pAmt <= 0) return;
 
+                        const newPaymentEntry = {
+                          id: 'PAY-' + Date.now(),
+                          payDate: processPaymentModal.payDate || (new Date().toLocaleDateString('en-GB') + ', ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })),
+                          historyType: processPaymentModal.historyType || 'Referral Payout',
+                          amount: pAmt,
+                          method: processPaymentModal.method || 'Bank Transfer (NEFT / RTGS)',
+                          txnNumber: processPaymentModal.txnNumber || ('TXN-' + Math.floor(10000000 + Math.random() * 90000000)),
+                          status: 'Paid',
+                          notes: processPaymentModal.notes || 'Referral payout settlement'
+                        };
+
                         const updated = referralsList.map(item => {
                           if (item.userEmail === processPaymentModal.referral.userEmail) {
                             const prevPaid = Number(item.details?.paidAmount || 0);
@@ -7155,10 +8379,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             const newPaid = prevPaid + pAmt;
                             const newPending = Math.max(0, prevPending - pAmt);
                             const isFullyPaid = newPending === 0;
+                            const existingHistory = Array.isArray(item.paymentHistory) ? item.paymentHistory : [];
 
                             return {
                               ...item,
                               paymentStatus: isFullyPaid ? 'Paid' : 'Eligible',
+                              paymentHistory: [newPaymentEntry, ...existingHistory],
                               details: {
                                 ...item.details,
                                 paidAmount: newPaid,
@@ -7179,8 +8405,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           if (updatedSelected) setSelectedReferralDetailModal(updatedSelected);
                         }
 
-                        setProcessPaymentModal({ isOpen: false, referral: null, amount: '', txnNumber: '', method: '', notes: '' });
-                        setReferralToast(`Payment of ₹${pAmt.toLocaleString('en-IN')} processed successfully! Txn: ${processPaymentModal.txnNumber || 'N/A'}`);
+                        setProcessPaymentModal({ isOpen: false, referral: null, amount: '', txnNumber: '', method: '', notes: '', historyType: 'Referral Payout', payDate: '' });
+                        setReferralToast(`Payment of ₹${pAmt.toLocaleString('en-IN')} processed successfully! Txn: ${newPaymentEntry.txnNumber}`);
                         setTimeout(() => setReferralToast(''), 4000);
                       }}
                       className="p-6 space-y-4"
@@ -7196,6 +8422,38 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           value={processPaymentModal.amount}
                           onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, amount: e.target.value })}
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
+
+                      {/* History / Payout Type */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          History / Payout Type:
+                        </label>
+                        <select
+                          value={processPaymentModal.historyType || 'Referral Payout'}
+                          onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, historyType: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
+                        >
+                          <option value="Referral Payout">Referral Payout</option>
+                          <option value="Commission Settlement">Commission Settlement</option>
+                          <option value="Bonus Incentive">Bonus Incentive</option>
+                          <option value="Manual Settlement">Manual Settlement</option>
+                          <option value="Advance Payout">Advance Payout</option>
+                        </select>
+                      </div>
+
+                      {/* Pay Date & Time */}
+                      <div>
+                        <label className="block text-xs font-bold text-slate-800 mb-1">
+                          Pay Date & Time:
+                        </label>
+                        <input
+                          type="text"
+                          value={processPaymentModal.payDate || ''}
+                          onChange={(e) => setProcessPaymentModal({ ...processPaymentModal, payDate: e.target.value })}
+                          placeholder="e.g. 20-07-2026, 02:45 PM (or leave blank for now)"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-red-600"
                         />
                       </div>
 
@@ -7458,9 +8716,27 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     e.preventDefault();
                     if (!newDealForm.dealName || !newDealForm.couponCode) return;
 
+                    const discountAmt = Number(newDealForm.discountAmount) || 0;
+                    const discountPct = Number(newDealForm.discountPercentage) || 0;
+
+                    if (discountAmt > 0 && discountPct > 0) {
+                      setDealToast('Validation error: You can only fill either Discount Amount OR Discount Percentage, not both.');
+                      setTimeout(() => setDealToast(''), 4000);
+                      return;
+                    }
+
+                    if (discountAmt <= 0 && discountPct <= 0) {
+                      setDealToast('Validation error: Please enter either a Discount Amount (₹) or a Discount Percentage (%).');
+                      setTimeout(() => setDealToast(''), 4000);
+                      return;
+                    }
+
                     const created = {
                       id: `deal_${Date.now()}`,
                       ...newDealForm,
+                      bonusAmount: Number(newDealForm.bonusAmount) || 0,
+                      discountAmount: discountAmt,
+                      discountPercentage: discountPct,
                       usedCount: 0,
                       status: 'Active',
                       createdAt: new Date().toISOString().split('T')[0]
@@ -7472,13 +8748,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                     setNewDealForm({
                       planName: 'Standard Plan',
-                      planType: 'Yearly',
                       state: 'All States (No state restriction)',
                       dealName: '',
                       couponCode: '',
-                      bonusAmount: 0,
-                      discountAmount: 0,
-                      discountPercentage: 0,
+                      bonusAmount: '',
+                      discountAmount: '',
+                      discountPercentage: '',
                       validityDate: '',
                       maxUsage: 0
                     });
@@ -7509,55 +8784,32 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </select>
                     </div>
 
-                    {/* Plan Type */}
+                    {/* State (Optional) */}
                     <div>
                       <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
-                        Plan Type *
+                        State (Optional - State Specific Deal)
                       </label>
                       <select
-                        required
-                        value={newDealForm.planType}
-                        onChange={(e) => setNewDealForm({ ...newDealForm, planType: e.target.value })}
+                        value={newDealForm.state}
+                        onChange={(e) => setNewDealForm({ ...newDealForm, state: e.target.value })}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
                       >
-                        <option value="Select Plan Type">Select Plan Type</option>
-                        <option value="Yearly">Yearly</option>
-                        <option value="Monthly">Monthly</option>
-                        <option value="Quarterly">Quarterly</option>
-                        <option value="Lifetime">Lifetime</option>
-                        <option value="All Types">All Types</option>
+                        <option value="All States (No state restriction)">All States (No state restriction)</option>
+                        <option value="Delhi NCR">Delhi NCR</option>
+                        <option value="Maharashtra">Maharashtra</option>
+                        <option value="Karnataka">Karnataka</option>
+                        <option value="Tamil Nadu">Tamil Nadu</option>
+                        <option value="Telangana">Telangana</option>
+                        <option value="Gujarat">Gujarat</option>
+                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                        <option value="West Bengal">West Bengal</option>
+                        <option value="Rajasthan">Rajasthan</option>
+                        <option value="Punjab">Punjab</option>
+                        <option value="Haryana">Haryana</option>
+                        <option value="Kerala">Kerala</option>
+                        <option value="Madhya Pradesh">Madhya Pradesh</option>
                       </select>
                     </div>
-                  </div>
-
-                  {/* State (Optional - for state-wise MiniWebsite deals) */}
-                  <div>
-                    <label className="block text-xs font-black uppercase text-slate-700 mb-1">
-                      State (Optional - for state-wise MiniWebsite deals)
-                    </label>
-                    <select
-                      value={newDealForm.state}
-                      onChange={(e) => setNewDealForm({ ...newDealForm, state: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
-                    >
-                      <option value="All States (No state restriction)">All States (No state restriction)</option>
-                      <option value="Delhi NCR">Delhi NCR</option>
-                      <option value="Maharashtra">Maharashtra</option>
-                      <option value="Karnataka">Karnataka</option>
-                      <option value="Tamil Nadu">Tamil Nadu</option>
-                      <option value="Telangana">Telangana</option>
-                      <option value="Gujarat">Gujarat</option>
-                      <option value="Uttar Pradesh">Uttar Pradesh</option>
-                      <option value="West Bengal">West Bengal</option>
-                      <option value="Rajasthan">Rajasthan</option>
-                      <option value="Punjab">Punjab</option>
-                      <option value="Haryana">Haryana</option>
-                      <option value="Kerala">Kerala</option>
-                      <option value="Madhya Pradesh">Madhya Pradesh</option>
-                    </select>
-                    <p className="text-[11px] text-slate-500 italic mt-1">
-                      If set, this deal auto-applies during Mini Website payment for customers registered in this state.
-                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -7592,49 +8844,91 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    {/* Bonus Amount (For Referrer) */}
-                    <div>
-                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
-                        Bonus Amount (For Referrer)
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={newDealForm.bonusAmount}
-                        onChange={(e) => setNewDealForm({ ...newDealForm, bonusAmount: Number(e.target.value) })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                      {/* Bonus Amount (For Referrer) */}
+                      <div>
+                        <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
+                          Bonus Amount (For Referrer) ₹
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={newDealForm.bonusAmount !== '' ? newDealForm.bonusAmount : ''}
+                          placeholder="0"
+                          onChange={(e) => setNewDealForm({ ...newDealForm, bonusAmount: e.target.value === '' ? '' : Number(e.target.value) })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                        />
+                      </div>
 
-                    {/* Discount Amount (For Referred User) */}
-                    <div>
-                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
-                        Discount Amount (For Referred User)
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={newDealForm.discountAmount}
-                        onChange={(e) => setNewDealForm({ ...newDealForm, discountAmount: Number(e.target.value) })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
-                      />
-                    </div>
+                      {/* Discount Amount (For Referred User) */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-xs font-black uppercase text-slate-700">
+                            Discount Amount (₹)
+                          </label>
+                          {Number(newDealForm.discountPercentage) > 0 && (
+                            <span className="text-[10px] text-amber-600 font-black uppercase tracking-tight">Locked</span>
+                          )}
+                        </div>
+                        <input
+                          type="number"
+                          min={0}
+                          disabled={Number(newDealForm.discountPercentage) > 0}
+                          value={newDealForm.discountAmount !== '' ? newDealForm.discountAmount : ''}
+                          placeholder={Number(newDealForm.discountPercentage) > 0 ? "Disabled (% set)" : "e.g. 500"}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? '' : Number(e.target.value);
+                            setNewDealForm({
+                              ...newDealForm,
+                              discountAmount: val,
+                              discountPercentage: val ? 0 : newDealForm.discountPercentage
+                            });
+                          }}
+                          className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold transition ${
+                            Number(newDealForm.discountPercentage) > 0
+                              ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                              : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:border-red-600'
+                          }`}
+                        />
+                      </div>
 
-                    {/* Discount Percentage */}
-                    <div>
-                      <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
-                        Discount Percentage
-                      </label>
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={newDealForm.discountPercentage}
-                        onChange={(e) => setNewDealForm({ ...newDealForm, discountPercentage: Number(e.target.value) })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
-                      />
+                      {/* Discount Percentage */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="block text-xs font-black uppercase text-slate-700">
+                            Discount Percentage (%)
+                          </label>
+                          {Number(newDealForm.discountAmount) > 0 && (
+                            <span className="text-[10px] text-amber-600 font-black uppercase tracking-tight">Locked</span>
+                          )}
+                        </div>
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          disabled={Number(newDealForm.discountAmount) > 0}
+                          value={newDealForm.discountPercentage !== '' ? newDealForm.discountPercentage : ''}
+                          placeholder={Number(newDealForm.discountAmount) > 0 ? "Disabled (₹ set)" : "e.g. 20"}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? '' : Number(e.target.value);
+                            setNewDealForm({
+                              ...newDealForm,
+                              discountPercentage: val,
+                              discountAmount: val ? 0 : newDealForm.discountAmount
+                            });
+                          }}
+                          className={`w-full border rounded-xl px-4 py-2.5 text-xs font-bold transition ${
+                            Number(newDealForm.discountAmount) > 0
+                              ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                              : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:border-red-600'
+                          }`}
+                        />
+                      </div>
                     </div>
+                    <p className="text-[11px] text-slate-500 font-medium italic">
+                      * Note: Only one discount type can be filled — either Discount Amount (₹) OR Discount Percentage (%).
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -7703,149 +8997,167 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </div>
 
                 <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1000px] text-left text-xs border-collapse">
+                  <div className="overflow-x-auto custom-scrollbar pb-3">
+                    <table className="w-full min-w-[1350px] text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-slate-900 border-b border-slate-800 text-white uppercase text-[10px] font-black tracking-wider">
-                          <th className="py-3 px-3.5">Plan Type</th>
-                          <th className="py-3 px-3">State</th>
-                          <th className="py-3 px-3.5">Deal Name</th>
-                          <th className="py-3 px-3 text-center">Coupon Code</th>
-                          <th className="py-3 px-3">Date Created</th>
-                          <th className="py-3 px-3">Bonus (Referrer)</th>
-                          <th className="py-3 px-3">Discount (User)</th>
-                          <th className="py-3 px-3">Validity Date</th>
-                          <th className="py-3 px-3 text-center">Usage</th>
-                          <th className="py-3 px-3 text-center">Status</th>
-                          <th className="py-3 px-3 text-right">Action</th>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-left">State</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px] text-left">Deal Name</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px] text-center">Coupon Code</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-center">Date Created</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-right">Bonus (Referrer)</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px] text-right">Discount (User)</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-center">Validity Date</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">Usage</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px] text-center">Status</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[110px] text-center">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 bg-white">
-                        {filteredDeals.map((deal) => (
-                          <tr key={deal.id} className="hover:bg-slate-50/80 transition">
-                            {/* 1. Plan Type */}
-                            <td className="py-3 px-3.5 font-bold text-slate-800">
-                              {deal.planType || 'Franchise'}
-                            </td>
-
-                            {/* 2. State */}
-                            <td className="py-3 px-3 text-slate-600 font-medium">
-                              {deal.state || 'All'}
-                            </td>
-
-                            {/* 3. Deal Name */}
-                            <td className="py-3 px-3.5 font-black text-slate-900">
-                              {deal.dealName}
-                            </td>
-
-                            {/* 4. Coupon Code */}
-                            <td className="py-3 px-3 text-center">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  navigator.clipboard?.writeText(deal.couponCode);
-                                  setDealToast(`Copied coupon code "${deal.couponCode}"!`);
-                                  setTimeout(() => setDealToast(''), 3000);
-                                }}
-                                className="inline-flex items-center space-x-1 font-mono text-[11px] font-black bg-rose-50 text-[#74111d] hover:bg-rose-100 border border-rose-200 px-2.5 py-1 rounded-md transition cursor-pointer"
-                                title="Click to copy coupon code"
-                              >
-                                <span>{deal.couponCode}</span>
-                                <Copy className="w-2.5 h-2.5 opacity-60 ml-0.5" />
-                              </button>
-                            </td>
-
-                            {/* 5. Date Created */}
-                            <td className="py-3 px-3 font-mono text-slate-600 text-[11px]">
-                              {deal.createdAt || '03-07-2026'}
-                            </td>
-
-                            {/* 6. Bonus (Referrer) */}
-                            <td className="py-3 px-3 font-semibold text-slate-700">
-                              {deal.bonusAmount !== undefined && deal.bonusAmount !== '' 
-                                ? (typeof deal.bonusAmount === 'number' ? `₹${deal.bonusAmount}` : deal.bonusAmount) 
-                                : '₹0'}
-                            </td>
-
-                            {/* 7. Discount (User) */}
-                            <td className="py-3 px-3 font-bold text-emerald-700">
-                              {deal.discountAmount > 0 
-                                ? `₹${deal.discountAmount}` 
-                                : deal.discountPercentage > 0 
-                                  ? `${deal.discountPercentage}% OFF` 
-                                  : '-'}
-                            </td>
-
-                            {/* 8. Validity Date */}
-                            <td className="py-3 px-3 font-mono text-slate-600 text-[11px]">
-                              {deal.validityDate || 'Lifetime'}
-                            </td>
-
-                            {/* 9. Usage */}
-                            <td className="py-3 px-3 text-center font-bold text-slate-700 font-mono text-[11px]">
-                              {deal.maxUsage > 0 ? `${deal.usedCount || 0}/${deal.maxUsage}` : `${deal.usedCount || 0}/∞`}
-                            </td>
-
-                            {/* 10. Status */}
-                            <td className="py-3 px-3 text-center">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const updated = platformDeals.map(d =>
-                                    d.id === deal.id ? { ...d, status: d.status === 'Active' ? 'Inactive' : 'Active' } : d
-                                  );
-                                  setPlatformDeals(updated);
-                                  try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
-                                  setDealToast(`Status changed to ${deal.status === 'Active' ? 'Inactive' : 'Active'}`);
-                                  setTimeout(() => setDealToast(''), 3000);
-                                }}
-                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-black cursor-pointer transition ${
-                                  deal.status === 'Active'
-                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200'
-                                    : 'bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200'
-                                }`}
-                              >
-                                {deal.status}
-                              </button>
-                            </td>
-
-                            {/* 11. Action (Image 1: Edit & Delete buttons) */}
-                            <td className="py-3 px-3 text-right">
-                              <div className="flex items-center justify-end space-x-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingDealModal({ isOpen: true, deal: { ...deal } })}
-                                  className="w-7 h-7 rounded-lg bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center transition cursor-pointer shadow-xs"
-                                  title="Edit Deal"
-                                >
-                                  <Edit3 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    requestConfirm({
-                                      title: 'Delete Deal & Coupon',
-                                      message: `Are you sure you want to delete deal "${deal.dealName}" (${deal.couponCode})?`,
-                                      confirmText: 'Yes, Delete',
-                                      type: 'danger',
-                                      onConfirm: () => {
-                                        const updated = platformDeals.filter(d => d.id !== deal.id);
-                                        setPlatformDeals(updated);
-                                        try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
-                                        setDealToast(`Deal "${deal.dealName}" deleted.`);
-                                        setTimeout(() => setDealToast(''), 3000);
-                                      }
-                                    });
-                                  }}
-                                  className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-rose-700 text-white flex items-center justify-center transition cursor-pointer shadow-xs"
-                                  title="Delete Deal"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                        {filteredDeals.length === 0 ? (
+                          <tr>
+                            <td colSpan={10} className="py-8 text-center text-xs text-slate-400 font-black">
+                              No deals found matching your search.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          filteredDeals.map((deal) => {
+                            const isActive = deal.status === 'Active';
+                            return (
+                              <tr key={deal.id} className="hover:bg-slate-50/80 transition">
+                                {/* 1. State */}
+                                <td className="py-3.5 px-4 font-bold text-slate-700 whitespace-nowrap text-left text-xs">
+                                  {deal.state || 'All'}
+                                </td>
+
+                                {/* 2. Deal Name */}
+                                <td className="py-3.5 px-4 font-black text-slate-900 whitespace-nowrap text-left text-sm">
+                                  {deal.dealName}
+                                </td>
+
+                                {/* 3. Coupon Code */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard?.writeText(deal.couponCode);
+                                      setDealToast(`Copied coupon code "${deal.couponCode}"!`);
+                                      setTimeout(() => setDealToast(''), 3000);
+                                    }}
+                                    className="inline-flex items-center space-x-1.5 font-mono text-xs font-black bg-rose-50 text-[#74111d] hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition cursor-pointer shadow-2xs"
+                                    title="Click to copy coupon code"
+                                  >
+                                    <span>{deal.couponCode}</span>
+                                    <Copy className="w-3 h-3 opacity-60 ml-0.5" />
+                                  </button>
+                                </td>
+
+                                {/* 4. Date Created */}
+                                <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-700 text-xs whitespace-nowrap">
+                                  {deal.createdAt || '03-07-2026'}
+                                </td>
+
+                                {/* 5. Bonus (Referrer) */}
+                                <td className="py-3.5 px-4 text-right font-black text-slate-900 text-xs whitespace-nowrap">
+                                  {deal.bonusAmount !== undefined && deal.bonusAmount !== '' 
+                                    ? (typeof deal.bonusAmount === 'number' ? `₹${deal.bonusAmount.toLocaleString('en-IN')}` : deal.bonusAmount) 
+                                    : '₹0'}
+                                </td>
+
+                                {/* 6. Discount (User) */}
+                                <td className="py-3.5 px-4 text-right font-black text-emerald-700 text-xs whitespace-nowrap">
+                                  {Number(deal.discountAmount) > 0 
+                                    ? `₹${Number(deal.discountAmount).toLocaleString('en-IN')}` 
+                                    : Number(deal.discountPercentage) > 0 
+                                      ? `${deal.discountPercentage}% OFF` 
+                                      : '-'}
+                                </td>
+
+                                {/* 7. Validity Date */}
+                                <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-700 text-xs whitespace-nowrap">
+                                  {deal.validityDate || 'Lifetime'}
+                                </td>
+
+                                {/* 8. Usage */}
+                                <td className="py-3.5 px-4 text-center font-mono font-black text-slate-900 text-xs whitespace-nowrap">
+                                  {deal.maxUsage > 0 ? `${deal.usedCount || 0}/${deal.maxUsage}` : `${deal.usedCount || 0}/∞`}
+                                </td>
+
+                                {/* 9. Status (Interactive Toggle Switch: Active = ON, Paused = OFF) */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <div className="flex items-center justify-center space-x-2.5">
+                                    <button
+                                      type="button"
+                                      role="switch"
+                                      aria-checked={isActive}
+                                      onClick={() => {
+                                        const nextStatus = isActive ? 'Paused' : 'Active';
+                                        const updated = platformDeals.map(d =>
+                                          d.id === deal.id ? { ...d, status: nextStatus } : d
+                                        );
+                                        setPlatformDeals(updated);
+                                        try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
+                                        setDealToast(`Deal "${deal.dealName}" is now ${nextStatus}`);
+                                        setTimeout(() => setDealToast(''), 3000);
+                                      }}
+                                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none shadow-xs ${
+                                        isActive ? 'bg-emerald-600' : 'bg-slate-300'
+                                      }`}
+                                      title={`Click to ${isActive ? 'Pause' : 'Activate'} deal`}
+                                    >
+                                      <span
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                                          isActive ? 'translate-x-5' : 'translate-x-0'
+                                        }`}
+                                      />
+                                    </button>
+                                    <span className={`text-[11px] font-black uppercase tracking-wider min-w-[50px] text-left ${
+                                      isActive ? 'text-emerald-700' : 'text-amber-600'
+                                    }`}>
+                                      {isActive ? 'Active' : 'Paused'}
+                                    </span>
+                                  </div>
+                                </td>
+
+                                {/* 10. Action: Edit & Delete */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <div className="flex items-center justify-center space-x-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingDealModal({ isOpen: true, deal: { ...deal } })}
+                                      className="w-8 h-8 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
+                                      title="Edit Deal"
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        requestConfirm({
+                                          title: 'Delete Deal & Coupon',
+                                          message: `Are you sure you want to delete deal "${deal.dealName}" (${deal.couponCode})?`,
+                                          confirmText: 'Yes, Delete',
+                                          type: 'danger',
+                                          onConfirm: () => {
+                                            const updated = platformDeals.filter(d => d.id !== deal.id);
+                                            setPlatformDeals(updated);
+                                            try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
+                                            setDealToast(`Deal "${deal.dealName}" deleted.`);
+                                            setTimeout(() => setDealToast(''), 3000);
+                                          }
+                                        });
+                                      }}
+                                      className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-700 text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
+                                      title="Delete Deal"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -7873,8 +9185,30 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
+                        const editDiscountAmt = Number(editingDealModal.deal.discountAmount) || 0;
+                        const editDiscountPct = Number(editingDealModal.deal.discountPercentage) || 0;
+
+                        if (editDiscountAmt > 0 && editDiscountPct > 0) {
+                          setDealToast('Validation error: Only one discount type can be filled (₹ Amount OR % Percentage).');
+                          setTimeout(() => setDealToast(''), 4000);
+                          return;
+                        }
+
+                        if (editDiscountAmt <= 0 && editDiscountPct <= 0) {
+                          setDealToast('Validation error: Please provide either a Discount Amount (₹) or a Discount Percentage (%).');
+                          setTimeout(() => setDealToast(''), 4000);
+                          return;
+                        }
+
+                        const updatedDeal = {
+                          ...editingDealModal.deal,
+                          discountAmount: editDiscountAmt,
+                          discountPercentage: editDiscountPct,
+                          bonusAmount: Number(editingDealModal.deal.bonusAmount) || 0
+                        };
+
                         const updated = platformDeals.map(d =>
-                          d.id === editingDealModal.deal.id ? editingDealModal.deal : d
+                          d.id === editingDealModal.deal.id ? updatedDeal : d
                         );
                         setPlatformDeals(updated);
                         try { localStorage.setItem('loyalqr_platform_deals', JSON.stringify(updated)); } catch {}
@@ -7886,38 +9220,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     >
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-slate-600 mb-1">Plan Type *</label>
-                          <select
-                            value={editingDealModal.deal.planType}
-                            onChange={(e) => setEditingDealModal({
-                              ...editingDealModal,
-                              deal: { ...editingDealModal.deal, planType: e.target.value }
-                            })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
-                          >
-                            <option value="Franchise">Franchise</option>
-                            <option value="MiniWebsite">MiniWebsite</option>
-                            <option value="Standard Plan">Standard Plan</option>
-                            <option value="Professional Plan">Professional Plan</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-slate-600 mb-1">Target State *</label>
-                          <input
-                            type="text"
-                            value={editingDealModal.deal.state}
-                            onChange={(e) => setEditingDealModal({
-                              ...editingDealModal,
-                              deal: { ...editingDealModal.deal, state: e.target.value }
-                            })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-slate-600 mb-1">Deal Name *</label>
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Deal Name *</label>
                           <input
                             type="text"
                             required
@@ -7926,11 +9229,11 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               ...editingDealModal,
                               deal: { ...editingDealModal.deal, dealName: e.target.value }
                             })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600 font-bold"
                           />
                         </div>
                         <div>
-                          <label className="block text-slate-600 mb-1">Coupon Code *</label>
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Coupon Code *</label>
                           <input
                             type="text"
                             required
@@ -7939,78 +9242,151 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               ...editingDealModal,
                               deal: { ...editingDealModal.deal, couponCode: e.target.value.toUpperCase() }
                             })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-red-600"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-black uppercase focus:outline-none focus:border-red-600"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-slate-600 mb-1">Bonus (Referrer) ₹</label>
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Target State</label>
                           <input
                             type="text"
-                            value={editingDealModal.deal.bonusAmount}
+                            value={editingDealModal.deal.state || ''}
                             onChange={(e) => setEditingDealModal({
                               ...editingDealModal,
-                              deal: { ...editingDealModal.deal, bonusAmount: e.target.value }
+                              deal: { ...editingDealModal.deal, state: e.target.value }
                             })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                            placeholder="All States (or specify state)"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600 font-bold"
                           />
                         </div>
                         <div>
-                          <label className="block text-slate-600 mb-1">Discount (User) ₹</label>
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Bonus (Referrer) ₹</label>
                           <input
                             type="number"
-                            value={editingDealModal.deal.discountAmount}
+                            min={0}
+                            value={editingDealModal.deal.bonusAmount !== undefined ? editingDealModal.deal.bonusAmount : ''}
                             onChange={(e) => setEditingDealModal({
                               ...editingDealModal,
-                              deal: { ...editingDealModal.deal, discountAmount: Number(e.target.value) }
+                              deal: { ...editingDealModal.deal, bonusAmount: e.target.value === '' ? '' : Number(e.target.value) }
                             })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600 font-bold"
                           />
                         </div>
                       </div>
 
+                      <div className="space-y-1">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-slate-700 font-black uppercase text-[11px]">Discount (₹)</label>
+                              {Number(editingDealModal.deal.discountPercentage) > 0 && (
+                                <span className="text-[10px] text-amber-600 font-black uppercase">Locked</span>
+                              )}
+                            </div>
+                            <input
+                              type="number"
+                              min={0}
+                              disabled={Number(editingDealModal.deal.discountPercentage) > 0}
+                              value={editingDealModal.deal.discountAmount !== undefined ? editingDealModal.deal.discountAmount : ''}
+                              placeholder={Number(editingDealModal.deal.discountPercentage) > 0 ? "Disabled (% set)" : "₹ Amount"}
+                              onChange={(e) => {
+                                const val = e.target.value === '' ? '' : Number(e.target.value);
+                                setEditingDealModal({
+                                  ...editingDealModal,
+                                  deal: {
+                                    ...editingDealModal.deal,
+                                    discountAmount: val,
+                                    discountPercentage: val ? 0 : editingDealModal.deal.discountPercentage
+                                  }
+                                });
+                              }}
+                              className={`w-full border rounded-xl px-3 py-2 text-xs font-bold transition ${
+                                Number(editingDealModal.deal.discountPercentage) > 0
+                                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                  : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:border-red-600'
+                              }`}
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-slate-700 font-black uppercase text-[11px]">Discount (%)</label>
+                              {Number(editingDealModal.deal.discountAmount) > 0 && (
+                                <span className="text-[10px] text-amber-600 font-black uppercase">Locked</span>
+                              )}
+                            </div>
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              disabled={Number(editingDealModal.deal.discountAmount) > 0}
+                              value={editingDealModal.deal.discountPercentage !== undefined ? editingDealModal.deal.discountPercentage : ''}
+                              placeholder={Number(editingDealModal.deal.discountAmount) > 0 ? "Disabled (₹ set)" : "% Percentage"}
+                              onChange={(e) => {
+                                const val = e.target.value === '' ? '' : Number(e.target.value);
+                                setEditingDealModal({
+                                  ...editingDealModal,
+                                  deal: {
+                                    ...editingDealModal.deal,
+                                    discountPercentage: val,
+                                    discountAmount: val ? 0 : editingDealModal.deal.discountAmount
+                                  }
+                                });
+                              }}
+                              className={`w-full border rounded-xl px-3 py-2 text-xs font-bold transition ${
+                                Number(editingDealModal.deal.discountAmount) > 0
+                                  ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                                  : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:border-red-600'
+                              }`}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-slate-500 italic">
+                          * Enter either Discount Amount (₹) OR Discount Percentage (%).
+                        </p>
+                      </div>
+
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-slate-600 mb-1">Validity Date</label>
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Validity Date</label>
                           <input
                             type="text"
-                            value={editingDealModal.deal.validityDate}
+                            value={editingDealModal.deal.validityDate || ''}
                             onChange={(e) => setEditingDealModal({
                               ...editingDealModal,
                               deal: { ...editingDealModal.deal, validityDate: e.target.value }
                             })}
                             placeholder="DD-MM-YYYY"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-red-600"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-red-600 font-bold"
                           />
                         </div>
                         <div>
-                          <label className="block text-slate-600 mb-1">Max Usage Limit</label>
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Max Usage Limit</label>
                           <input
                             type="number"
-                            value={editingDealModal.deal.maxUsage}
+                            value={editingDealModal.deal.maxUsage || 0}
                             onChange={(e) => setEditingDealModal({
                               ...editingDealModal,
                               deal: { ...editingDealModal.deal, maxUsage: Number(e.target.value) }
                             })}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600 font-bold"
                           />
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-2 pt-1">
-                        <label className="text-slate-700">Status:</label>
+                        <label className="text-slate-700 font-black uppercase text-[11px]">Status:</label>
                         <select
-                          value={editingDealModal.deal.status}
+                          value={editingDealModal.deal.status || 'Active'}
                           onChange={(e) => setEditingDealModal({
                             ...editingDealModal,
                             deal: { ...editingDealModal.deal, status: e.target.value }
                           })}
-                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black"
                         >
                           <option value="Active">Active</option>
-                          <option value="Inactive">Inactive</option>
+                          <option value="Paused">Paused</option>
                         </select>
                       </div>
 
@@ -10029,18 +11405,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               <div className="space-y-6 animate-in fade-in duration-150">
                 {/* 4 Stat Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
                     <div>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Customers</p>
                       <h3 className="text-2xl font-black text-slate-900 mt-1">{customers.length}</h3>
                       <p className="text-[11px] text-slate-400 mt-0.5">Registered consumer accounts</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center font-black">
-                      <Users className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
+                      <Users className="w-6 h-6 text-white" />
                     </div>
                   </div>
 
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
                     <div>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Customers</p>
                       <h3 className="text-2xl font-black text-emerald-700 mt-1">
@@ -10048,12 +11424,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </h3>
                       <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">Full wallet & login access</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
-                      <CheckCircle2 className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
+                      <CheckCircle2 className="w-6 h-6 text-white" />
                     </div>
                   </div>
 
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
                     <div>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Suspended Accounts</p>
                       <h3 className="text-2xl font-black text-rose-600 mt-1">
@@ -10061,12 +11437,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </h3>
                       <p className="text-[11px] text-rose-500 font-semibold mt-0.5">Login & OTP locked</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black">
-                      <Ban className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
+                      <Ban className="w-6 h-6 text-white" />
                     </div>
                   </div>
 
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
                     <div>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Live Telemetry</p>
                       <div className="flex items-center space-x-2 mt-1">
@@ -10075,33 +11451,34 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </div>
                       <p className="text-[11px] text-slate-400 mt-0.5">Live signups & login tracker</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-700 flex items-center justify-center font-black">
-                      <Activity className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center font-black shadow-md shadow-violet-500/25 group-hover:scale-105 transition-transform">
+                      <Activity className="w-6 h-6 text-white" />
                     </div>
                   </div>
                 </div>
 
-                {/* Main Customer CRM Card */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
-                  <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-                    <div>
-                      <h2 className="text-lg font-black text-slate-900">Customer & Real-Time Monitoring</h2>
-                      <p className="text-xs text-slate-500">Monitor live customer signups, last login activity, wallet vouchers, and suspend unauthorized accounts</p>
-                    </div>
+                {/* Main Customer CRM Card (Exact SuperAdmin Merchants Design System) */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                  {/* Toolbar & Filters (Exact SuperAdmin Merchants System) */}
+                  <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-slate-50/50">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-600 mr-1">
+                        <Filter className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Filter:</span>
+                      </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl">
+                      <div className="flex items-center space-x-1 bg-white border border-slate-200 p-0.5 rounded-xl shadow-2xs">
                         {[
-                          { id: 'ALL', label: 'All' },
-                          { id: 'ACTIVE', label: 'Active' },
+                          { id: 'ALL', label: 'All Customers' },
+                          { id: 'ACTIVE', label: 'Active Only' },
                           { id: 'SUSPENDED', label: 'Suspended' }
                         ].map(cf => (
                           <button
                             key={cf.id}
                             onClick={() => setCustomerFilter(cf.id)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                               customerFilter === cf.id
-                                ? 'bg-white text-slate-900 shadow-xs'
+                                ? 'bg-slate-900 text-white font-black shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
                             }`}
                           >
@@ -10111,135 +11488,181 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </div>
 
                       <button
-                        onClick={fetchCustomers}
-                        className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition cursor-pointer shadow-2xs"
-                        title="Pull live customer telemetry from database"
+                        onClick={() => { setCustomerFilter('ALL'); setSearchCustomer(''); }}
+                        className="bg-white hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 flex items-center space-x-1 transition cursor-pointer shadow-2xs"
+                        title="Reset all filters"
                       >
-                        <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Refresh Telemetry</span>
+                        <RotateCcw className="w-3 h-3 text-slate-400" />
+                        <span>Reset</span>
                       </button>
 
-                      <div className="relative w-full sm:w-64">
-                        <Search className="w-4 h-4 absolute left-3.5 top-2.5 text-slate-400" />
-                        <input
-                          type="text"
-                          placeholder="Search name, phone, store..."
-                          value={searchCustomer}
-                          onChange={(e) => setSearchCustomer(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 shadow-2xs"
-                        />
-                      </div>
+                      <button
+                        onClick={fetchCustomers}
+                        className="bg-white hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 flex items-center space-x-1.5 transition cursor-pointer shadow-2xs"
+                        title="Pull live customer telemetry from database"
+                      >
+                        <RefreshCw className="w-3 h-3 text-slate-400" />
+                        <span>Refresh Telemetry</span>
+                      </button>
+                    </div>
+
+                    <div className="relative w-full lg:w-72">
+                      <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Search customer, phone, store..."
+                        value={searchCustomer}
+                        onChange={(e) => setSearchCustomer(e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 shadow-2xs font-bold"
+                      />
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[850px] text-left text-xs border-collapse">
+                  {/* Table with Exact SuperAdmin Merchants Columns & Horizontal Scrollbar */}
+                  <div className="overflow-x-auto custom-scrollbar pb-3">
+                    <table className="w-full min-w-[1450px] text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-bold">
-                          <th className="py-3 px-4">Customer</th>
-                          <th className="py-3 px-3">Mobile & Email</th>
-                          <th className="py-3 px-3">Favorite Store</th>
-                          <th className="py-3 px-3 text-center">Visits</th>
-                          <th className="py-3 px-3 text-center">Tier & Points</th>
-                          <th className="py-3 px-3">Registered On</th>
-                          <th className="py-3 px-3">Last Login / Active</th>
-                          <th className="py-3 px-3 text-center">Account Status</th>
-                          <th className="py-3 px-4 text-right">Access Control</th>
+                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Customer</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[190px]">Mobile & Email</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[210px]">Favorite Store</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[120px]">Visits</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[140px]">Tier & Points</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Registered On</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">Last Login / Active</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[130px]">Account Status</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[170px]">Access Control</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredCustomers.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="py-10 text-center text-xs text-slate-400 font-bold">
-                              No customer records found.
+                            <td colSpan={9} className="py-12 text-center text-xs text-slate-400 font-black">
+                              No customer records found matching your filters.
                             </td>
                           </tr>
                         ) : (
                           filteredCustomers.map((c) => {
                             const isSuspended = c.isActive === false;
+                            const rawDate = c.createdAt;
+                            const dt = rawDate ? new Date(rawDate) : null;
+                            const formattedRegisteredOn = dt && !isNaN(dt.getTime())
+                              ? `${dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`
+                              : (c.createdAt || '07 Oct 2026');
+
+                            const formattedLastLogin = c.lastLoginAt || c.lastVisit || '07 Oct 2026, 09:19 PM';
+
                             return (
-                              <tr key={c.id || c._id} className="hover:bg-slate-50/70 transition">
-                                <td className="py-3.5 px-4 font-black text-slate-900">
-                                  <div>{c.name || 'Valued Customer'}</div>
-                                  <div className="text-[10px] font-mono text-slate-400 font-normal">
-                                    {c.customerId || ('LQR-' + (c.id || c._id || '0000').slice(-5).toUpperCase())}
+                              <tr key={c.id || c._id} className="hover:bg-slate-50/80 transition">
+                                {/* Customer Name & ID */}
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <div className="font-extrabold text-slate-900 flex items-center space-x-1.5 whitespace-nowrap">
+                                    <span className="font-black text-sm">{c.name || 'Valued Customer'}</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-400 font-mono font-bold mt-0.5 whitespace-nowrap">
+                                    {c.customerId || ('BX-' + String(c.id || c._id || '0000').slice(-6).toUpperCase())}
                                   </div>
                                 </td>
-                                
-                                <td className="py-3.5 px-3">
-                                  <div className="font-mono font-bold text-slate-700">{c.mobile}</div>
-                                  <div className="text-[11px] text-slate-400">{c.email || '—'}</div>
+
+                                {/* Mobile & Email */}
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <span>{c.mobile || '—'}</span>
+                                  </div>
+                                  {c.email && (
+                                    <div className="font-bold text-slate-600 text-[11px] truncate mt-0.5 whitespace-nowrap flex items-center space-x-1.5" title={c.email}>
+                                      <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                      <span>{c.email}</span>
+                                    </div>
+                                  )}
                                 </td>
 
-                                <td className="py-3.5 px-3 font-semibold text-slate-800">
-                                  {c.favoriteStore || 'Royal Sweets & Cafe'}
+                                {/* Favorite Store */}
+                                <td className="py-3.5 px-4 whitespace-nowrap">
+                                  <div className="font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
+                                    <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <span>{c.favoriteStore || 'Ka-feen Coffee Shop'}</span>
+                                  </div>
                                 </td>
 
-                                <td className="py-3.5 px-3 text-center">
-                                  <span className="bg-red-50 text-red-600 font-black px-2.5 py-0.5 rounded-full border border-red-200 text-[11px]">
-                                    {c.totalVisits || 1} visits
+                                {/* Visits */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <span className="bg-red-50 text-red-700 font-black px-3 py-1 rounded-xl border border-red-200 text-xs whitespace-nowrap inline-flex items-center space-x-1 shadow-2xs">
+                                    <span>{c.totalVisits || 1}</span>
+                                    <span className="text-[10px] uppercase font-bold">visits</span>
                                   </span>
                                 </td>
 
-                                <td className="py-3.5 px-3 text-center">
-                                  <div className="font-bold text-emerald-700">{c.points || 100} pts</div>
-                                  <div className="text-[10px] text-slate-400">{c.tier || 'Bronze Member'}</div>
-                                </td>
-
-                                <td className="py-3.5 px-3 text-slate-500 font-mono text-[11px]">
-                                  {c.createdAt || 'Recent'}
-                                </td>
-
-                                <td className="py-3.5 px-3">
-                                  <div className="inline-flex items-center space-x-1.5 text-slate-700 font-medium text-[11px]">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                    <span>{c.lastLoginAt || c.lastVisit || 'Today'}</span>
+                                {/* Tier & Points */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <div className="font-black text-emerald-700 text-xs whitespace-nowrap">
+                                    {c.points || 100} PTS
+                                  </div>
+                                  <div className="font-bold text-slate-500 text-[11px] mt-0.5 whitespace-nowrap">
+                                    {c.tier || 'Bronze Member'}
                                   </div>
                                 </td>
 
-                                <td className="py-3.5 px-3 text-center">
+                                {/* Registered On */}
+                                <td className="py-3.5 px-4 font-mono font-bold text-slate-700 text-xs whitespace-nowrap">
+                                  {formattedRegisteredOn}
+                                </td>
+
+                                {/* Last Login / Active */}
+                                <td className="py-3.5 px-4 font-mono font-bold text-slate-800 text-xs whitespace-nowrap">
+                                  <div className="inline-flex items-center space-x-1.5 whitespace-nowrap">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <span className="whitespace-nowrap">{formattedLastLogin}</span>
+                                  </div>
+                                </td>
+
+                                {/* Account Status */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                   {isSuspended ? (
-                                    <span className="inline-flex items-center space-x-1 bg-rose-50 text-rose-700 border border-rose-200 font-bold px-2.5 py-0.5 rounded-full text-[10px]">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                    <span className="inline-flex items-center space-x-1.5 bg-rose-50 text-rose-700 border border-rose-300 font-black px-3 py-1 rounded-xl text-xs whitespace-nowrap shadow-2xs">
+                                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
                                       <span>Suspended</span>
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center space-x-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-2.5 py-0.5 rounded-full text-[10px]">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    <span className="inline-flex items-center space-x-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 font-black px-3 py-1 rounded-xl text-xs whitespace-nowrap shadow-2xs">
+                                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                                       <span>Active</span>
                                     </span>
                                   )}
                                 </td>
 
-                                <td className="py-3.5 px-4 text-right">
-                                  {isSuspended ? (
-                                    <button
-                                      onClick={() => handleToggleCustomerStatus(c.id || c._id, false)}
-                                      className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs"
-                                      title="Reactivate customer access"
-                                    >
-                                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                                      <span>Reactivate</span>
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => handleToggleCustomerStatus(c.id || c._id, true)}
-                                      className="bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs"
-                                      title="Suspend customer account (locks login & OTP)"
-                                    >
-                                      <Ban className="w-3 h-3 text-rose-600" />
-                                      <span>Suspend</span>
-                                    </button>
-                                  )}
+                                {/* Access Control */}
+                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                  <div className="inline-flex items-center space-x-2 whitespace-nowrap">
+                                    {isSuspended ? (
+                                      <button
+                                        onClick={() => handleToggleCustomerStatus(c.id || c._id, false)}
+                                        className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-black uppercase px-3 py-1.5 rounded-xl transition cursor-pointer inline-flex items-center space-x-1.5 shadow-2xs whitespace-nowrap"
+                                        title="Reactivate customer access"
+                                      >
+                                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                        <span>Reactivate</span>
+                                      </button>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleToggleCustomerStatus(c.id || c._id, true)}
+                                        className="bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-800 text-xs font-black uppercase px-3 py-1.5 rounded-xl transition cursor-pointer inline-flex items-center space-x-1.5 shadow-2xs whitespace-nowrap"
+                                        title="Suspend customer account (locks login & OTP)"
+                                      >
+                                        <Ban className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                        <span>Suspend</span>
+                                      </button>
+                                    )}
 
-                                  {/* Delete Customer CRM Record */}
-                                  <button
-                                    onClick={() => handleDeleteCustomer(c.id || c._id, c.name)}
-                                    className="bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-[10px] font-black uppercase p-1.5 rounded-lg transition cursor-pointer inline-flex items-center justify-center shadow-2xs ml-1.5"
-                                    title="Delete Customer Record"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                    <button
+                                      onClick={() => handleDeleteCustomer(c.id || c._id, c.name)}
+                                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl transition cursor-pointer inline-flex items-center justify-center shadow-2xs"
+                                      title="Delete Customer Record"
+                                    >
+                                      <Trash2 className="w-4 h-4 shrink-0" />
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             );
@@ -11080,49 +12503,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </button>
                   </div>
 
-                  {/* 7. Brand & Landing Page Live Preview Module */}
-                  <div className="bg-white border-2 border-rose-200/90 rounded-2xl p-6 shadow-xs hover:shadow-md transition flex flex-col justify-between relative overflow-hidden">
-                    <div className="absolute top-0 right-0 bg-gradient-to-l from-[#74111d] to-[#8B0000] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs flex items-center space-x-1">
-                      <Sparkles className="w-3 h-3 text-amber-300" />
-                      <span>Live Comparison</span>
-                    </div>
-
-                    <div>
-                      <div className="flex items-start space-x-4 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0 border border-rose-200">
-                          <Eye className="w-6 h-6 text-[#74111d]" />
-                        </div>
-                        <div className="pr-12">
-                          <h3 className="font-black text-base text-slate-900">Landing Page & Brand Preview</h3>
-                          <p className="text-xs text-slate-500 font-normal leading-relaxed mt-1">
-                            Preview first how your landing page looked originally vs how it looks now, and change live brand colors & identity.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-400 font-medium">Original (Before)</span>
-                          <span className="font-semibold text-slate-600 text-[11px] bg-slate-100 px-2 py-0.5 rounded">Default Indigo (#2563EB)</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-400 font-medium">Brand (Now)</span>
-                          <span className="bg-rose-50 text-[#74111d] font-bold px-2 py-0.5 rounded text-[11px] border border-rose-200">
-                            {brandSettings.brandName} Wine Red ({brandSettings.primaryColor})
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setSettingsActiveModal('brand_landing_preview')}
-                      className="mt-6 w-full py-2.5 px-4 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-black text-xs transition cursor-pointer text-center flex items-center justify-center space-x-2 shadow-xs"
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span>Preview & Change Brand</span>
-                    </button>
-                  </div>
-
                 </div>
 
               </div>
@@ -11815,494 +13195,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               </div>
             )}
 
-            {/* ========================================================= */}
-            {/* Modal 7: Brand & Landing Page Live Preview & Customizer   */}
-            {/* ========================================================= */}
-            {settingsActiveModal === 'brand_landing_preview' && (
-              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 z-50 animate-in fade-in duration-150 overflow-y-auto">
-                <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-5xl w-full shadow-2xl border border-slate-200 relative my-auto max-h-[94vh] flex flex-col overflow-hidden">
-                  
-                  {/* Modal Header */}
-                  <div className="flex items-start justify-between pb-4 border-b border-slate-100 shrink-0">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] border border-rose-200 flex items-center justify-center font-black shrink-0">
-                        <Sparkles className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-black text-lg sm:text-xl text-slate-900">Brand & Landing Page Live Preview</h3>
-                          <span className="text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#74111d] px-2.5 py-0.5 rounded-full border border-rose-200">
-                            Before vs Now
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                          See how your landing page looked originally vs how it looks now, and change live brand styling in real-time.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <a
-                        href="/#pricing"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hidden sm:inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
-                      >
-                        <span>Open Live Landing Page</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                      <button
-                        onClick={() => setSettingsActiveModal(null)}
-                        className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-100 cursor-pointer transition"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Modal Scrollable Body */}
-                  <div className="overflow-y-auto py-4 space-y-5 pr-1 flex-1">
-                    
-                    {/* View Switcher Tabs */}
-                    <div className="flex items-center justify-between flex-wrap gap-2 bg-slate-50 p-2 rounded-2xl border border-slate-200/80">
-                      <div className="flex items-center space-x-1.5">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2">Comparison View:</span>
-                        <button
-                          type="button"
-                          onClick={() => setBrandPreviewMode('split')}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
-                            brandPreviewMode === 'split'
-                              ? 'bg-[#74111d] text-white shadow-xs'
-                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                          }`}
-                        >
-                          <Layers className="w-3.5 h-3.5" />
-                          <span>Split (Before & Now)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setBrandPreviewMode('before')}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
-                            brandPreviewMode === 'before'
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                          }`}
-                        >
-                          <span>🕰️ Original Look (First)</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setBrandPreviewMode('now')}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center space-x-1.5 ${
-                            brandPreviewMode === 'now'
-                              ? 'bg-[#74111d] text-white shadow-xs'
-                              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                          }`}
-                        >
-                          <span>🍷 How It Looks Now (Live)</span>
-                        </button>
-                      </div>
-
-                      <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 px-2">
-                        <span>Current Brand Palette:</span>
-                        <div className="flex items-center space-x-1">
-                          <span className="w-3.5 h-3.5 rounded-full shadow-2xs border border-white" style={{ backgroundColor: brandSettings.primaryColor }} title="Primary" />
-                          <span className="w-3.5 h-3.5 rounded-full shadow-2xs border border-white" style={{ backgroundColor: brandSettings.secondaryColor }} title="Secondary" />
-                          <span className="w-3.5 h-3.5 rounded-full shadow-2xs border border-white" style={{ backgroundColor: brandSettings.accentColor }} title="Accent" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Previews Grid: Before vs Now */}
-                    <div className={`grid gap-4 ${brandPreviewMode === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-                      
-                      {/* PREVIEW CARD 1: How they looked first (Original / Legacy) */}
-                      {(brandPreviewMode === 'split' || brandPreviewMode === 'before') && (
-                        <div className="bg-slate-900/5 rounded-2xl border-2 border-dashed border-slate-300 p-4 relative flex flex-col justify-between">
-                          <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
-                            <div className="flex items-center space-x-2">
-                              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                              <span className="text-xs font-black uppercase text-slate-800 tracking-wider">
-                                First Look: Original Default Template
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full">
-                              Legacy Indigo (#2563EB)
-                            </span>
-                          </div>
-
-                          {/* Mockup Frame (Original) */}
-                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden text-slate-800">
-                            {/* Browser bar */}
-                            <div className="bg-slate-100 px-3 py-1.5 border-b border-slate-200 flex items-center space-x-2 text-[10px] text-slate-400">
-                              <div className="flex space-x-1">
-                                <span className="w-2 h-2 rounded-full bg-red-400" />
-                                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                              </div>
-                              <span className="bg-white px-2.5 py-0.5 rounded text-slate-500 font-mono text-[9px] flex-1 text-center">
-                                https://beaurex.in (Default Legacy Layout)
-                              </span>
-                            </div>
-
-                            {/* Mini Hero Mockup */}
-                            <div className="p-4 bg-gradient-to-b from-blue-50/50 to-white text-center space-y-2.5">
-                              {/* Header mock */}
-                              <div className="flex items-center justify-between text-[11px] pb-2 border-b border-slate-100 text-slate-600">
-                                <div className="flex items-center space-x-1.5 font-bold text-blue-700">
-                                  <Store className="w-3.5 h-3.5 text-blue-600" />
-                                  <span>LoyalQR Generic</span>
-                                </div>
-                                <div className="flex items-center space-x-3 text-[10px] text-slate-500">
-                                  <span>Features</span>
-                                  <span>Pricing</span>
-                                  <span className="text-blue-600 font-bold">Login</span>
-                                </div>
-                              </div>
-
-                              <span className="inline-block bg-blue-100 text-blue-800 text-[9px] font-bold px-2 py-0.5 rounded-full">
-                                Standard Standee Engine
-                              </span>
-
-                              <h4 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
-                                Customer Retention System & Standee Tool
-                              </h4>
-                              
-                              <p className="text-[11px] text-slate-500 max-w-sm mx-auto leading-relaxed">
-                                Standard unbranded blue layout before custom wine-red branding and VIP badge configuration.
-                              </p>
-
-                              <div className="flex items-center justify-center space-x-2 pt-1">
-                                <button type="button" className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-xs pointer-events-none">
-                                  Get Started (Blue)
-                                </button>
-                                <button type="button" className="bg-slate-100 text-slate-700 text-[10px] font-medium px-3 py-1.5 rounded-lg pointer-events-none">
-                                  View Standees
-                                </button>
-                              </div>
-
-                              {/* Mini Pricing card in legacy style */}
-                              <div className="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-left">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-[11px] font-bold text-slate-800">Standard Plan</span>
-                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">₹24,000/yr</span>
-                                </div>
-                                <span className="text-[10px] text-slate-400 block mt-0.5">Basic counter standalone QR generator</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <p className="text-[11px] text-slate-500 mt-3 text-center italic">
-                            Before: Generic default layout with standard blue buttons and unbranded header.
-                          </p>
-                        </div>
-                      )}
-
-                      {/* PREVIEW CARD 2: How I now look like (Live Branded Burgundy Theme) */}
-                      {(brandPreviewMode === 'split' || brandPreviewMode === 'now') && (
-                        <div
-                          className="rounded-2xl border-2 p-4 relative flex flex-col justify-between shadow-sm transition-all"
-                          style={{
-                            borderColor: brandSettings.primaryColor,
-                            backgroundColor: '#fffcfc'
-                          }}
-                        >
-                          <div className="flex items-center justify-between pb-3 mb-3 border-b border-rose-200">
-                            <div className="flex items-center space-x-2">
-                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: brandSettings.primaryColor }} />
-                              <span className="text-xs font-black uppercase text-slate-900 tracking-wider">
-                                Now: Live {brandSettings.brandName} Landing Page
-                              </span>
-                            </div>
-                            <span
-                              className="text-[10px] font-black uppercase tracking-wider text-white px-2.5 py-0.5 rounded-full shadow-xs"
-                              style={{ backgroundColor: brandSettings.primaryColor }}
-                            >
-                              Live Branded (Active)
-                            </span>
-                          </div>
-
-                          {/* Mockup Frame (Now / Live Theme) */}
-                          <div className="bg-white rounded-xl border border-rose-200/80 shadow-md overflow-hidden text-slate-800">
-                            {/* Browser bar */}
-                            <div className="bg-rose-50/80 px-3 py-1.5 border-b border-rose-200 flex items-center space-x-2 text-[10px] text-slate-400">
-                              <div className="flex space-x-1">
-                                <span className="w-2 h-2 rounded-full bg-rose-400" />
-                                <span className="w-2 h-2 rounded-full bg-amber-400" />
-                                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                              </div>
-                              <span className="bg-white px-2.5 py-0.5 rounded text-[#74111d] font-mono text-[9px] font-bold flex-1 text-center border border-rose-100">
-                                https://beaurex.in (Live Branded Theme)
-                              </span>
-                            </div>
-
-                            {/* Mini Hero Mockup (Live Branded) */}
-                            <div className="p-4 bg-gradient-to-b from-rose-50/40 to-white text-center space-y-2.5">
-                              {/* Header mock */}
-                              <div className="flex items-center justify-between text-[11px] pb-2 border-b border-rose-100 text-slate-700">
-                                <div className="flex items-center space-x-1.5 font-black" style={{ color: brandSettings.primaryColor }}>
-                                  <div className="w-4 h-4 rounded-full overflow-hidden bg-rose-100 flex items-center justify-center">
-                                    <img src={brandSettings.logoUrl} alt="Logo" className="w-4 h-4 object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-                                  </div>
-                                  <span>{brandSettings.brandName}</span>
-                                </div>
-                                <div className="flex items-center space-x-3 text-[10px] text-slate-600 font-medium">
-                                  <span>Solutions</span>
-                                  <span>Pricing</span>
-                                  <span className="font-black px-2 py-0.5 rounded-lg text-white text-[9px]" style={{ backgroundColor: brandSettings.primaryColor }}>
-                                    Partner Login
-                                  </span>
-                                </div>
-                              </div>
-
-                              <span className="inline-flex items-center space-x-1 bg-rose-100/80 text-[#74111d] border border-rose-300 text-[9px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
-                                <Sparkles className="w-2.5 h-2.5 text-amber-500" />
-                                <span>Royal Counter Standee Rewards & Loyalty</span>
-                              </span>
-
-                              <h4 className="text-sm sm:text-base font-black text-slate-950 leading-snug">
-                                The Next-Gen Loyalty Engine for{' '}
-                                <span style={{ color: brandSettings.primaryColor }}>
-                                  {brandSettings.brandName}
-                                </span>
-                              </h4>
-                              
-                              <p className="text-[11px] text-slate-600 max-w-sm mx-auto leading-relaxed font-normal">
-                                Convert walk-in customers into lifelong brand advocates with luxury QR standees and interactive rewards.
-                              </p>
-
-                              <div className="flex items-center justify-center space-x-2 pt-1">
-                                <button
-                                  type="button"
-                                  className="text-white text-[10px] font-black px-3.5 py-1.5 rounded-xl shadow-md pointer-events-none flex items-center space-x-1"
-                                  style={{ backgroundColor: brandSettings.primaryColor }}
-                                >
-                                  <Sparkles className="w-2.5 h-2.5 text-amber-300" />
-                                  <span>Start 2-Day Trial</span>
-                                </button>
-                                <button type="button" className="bg-rose-50 text-[#74111d] border border-rose-200 text-[10px] font-bold px-3 py-1.5 rounded-xl pointer-events-none">
-                                  Live Demo
-                                </button>
-                              </div>
-
-                              {/* Mini Pricing card in live burgundy style */}
-                              <div className="mt-3 p-3 bg-white rounded-xl border-2 text-left relative" style={{ borderColor: brandSettings.primaryColor }}>
-                                <span
-                                  className="absolute -top-2 left-4 text-white text-[8px] font-black px-2 py-0.2 rounded-full uppercase tracking-wider"
-                                  style={{ backgroundColor: brandSettings.primaryColor }}
-                                >
-                                  Most Popular
-                                </span>
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <span className="text-[11px] font-black text-slate-900">Professional Plan</span>
-                                    <span className="text-[9px] text-[#74111d] block font-bold">Only ₹1,361/month</span>
-                                  </div>
-                                  <div className="text-right">
-                                    <span className="text-xs font-black text-slate-900">₹49,000</span>
-                                    <span className="text-[9px] text-slate-400 block">/ 3 Years</span>
-                                  </div>
-                                </div>
-                                <div className="flex flex-wrap gap-1 mt-1.5">
-                                  <span className="text-[8px] font-bold bg-rose-50 text-[#74111d] px-1.5 py-0.5 rounded border border-rose-200">Most Popular</span>
-                                  <span className="text-[8px] font-bold bg-rose-50 text-[#74111d] px-1.5 py-0.5 rounded border border-rose-200">Save 32%</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <p className="text-[11px] font-bold mt-3 text-center" style={{ color: brandSettings.primaryColor }}>
-                            Now: Live brand theme with {brandSettings.primaryColor} accents and custom standee badges.
-                          </p>
-                        </div>
-                      )}
-
-                    </div>
-
-                    {/* LIVE CUSTOMIZER & PALETTE CONTROLS ("SO I CAN CHANGE") */}
-                    <div className="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Sliders className="w-4 h-4 text-[#74111d]" />
-                          <h4 className="text-xs font-black uppercase text-slate-900 tracking-wider">
-                            Brand Customizer & Theme Controls
-                          </h4>
-                        </div>
-                        <span className="text-[10px] text-slate-400 font-bold">
-                          Changes update landing page & dashboard instantly
-                        </span>
-                      </div>
-
-                      {/* 1-Click Preset Palettes */}
-                      <div>
-                        <span className="text-[11px] font-bold text-slate-600 block mb-2">
-                          Quick 1-Click Brand Color Schemes:
-                        </span>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                          {[
-                            { name: 'BeAurex Burgundy', primary: '#8B0000', secondary: '#9E000D', accent: '#c8102e' },
-                            { name: 'Royal Sapphire', primary: '#1E40AF', secondary: '#2563EB', accent: '#3B82F6' },
-                            { name: 'Emerald Velvet', primary: '#065F46', secondary: '#059669', accent: '#10B981' },
-                            { name: 'Imperial Amber', primary: '#92400E', secondary: '#D97706', accent: '#F59E0B' },
-                            { name: 'Midnight Obsidian', primary: '#0F172A', secondary: '#1E293B', accent: '#334155' }
-                          ].map((theme) => {
-                            const isActive = brandSettings.primaryColor?.toLowerCase() === theme.primary.toLowerCase();
-                            return (
-                              <button
-                                key={theme.name}
-                                type="button"
-                                onClick={() => {
-                                  setBrandSettings(prev => ({
-                                    ...prev,
-                                    primaryColor: theme.primary,
-                                    secondaryColor: theme.secondary,
-                                    accentColor: theme.accent,
-                                    lastUpdated: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                                  }));
-                                }}
-                                className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
-                                  isActive
-                                    ? 'bg-white border-[#74111d] ring-2 ring-[#74111d]/20 shadow-xs'
-                                    : 'bg-white border-slate-200 hover:bg-slate-100'
-                                }`}
-                              >
-                                <div className="flex items-center space-x-1.5 mb-1.5">
-                                  <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: theme.primary }} />
-                                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: theme.secondary }} />
-                                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.accent }} />
-                                </div>
-                                <span className="text-[11px] font-bold text-slate-800 leading-tight">
-                                  {theme.name}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Detailed Color & Brand Inputs */}
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-200">
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Brand Name</label>
-                          <input
-                            type="text"
-                            value={brandSettings.brandName}
-                            onChange={(e) => setBrandSettings({ ...brandSettings, brandName: e.target.value })}
-                            className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Primary Color</label>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="color"
-                              value={brandSettings.primaryColor}
-                              onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
-                              className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer shrink-0"
-                            />
-                            <input
-                              type="text"
-                              value={brandSettings.primaryColor}
-                              onChange={(e) => setBrandSettings({ ...brandSettings, primaryColor: e.target.value })}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Secondary Color</label>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="color"
-                              value={brandSettings.secondaryColor}
-                              onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
-                              className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer shrink-0"
-                            />
-                            <input
-                              type="text"
-                              value={brandSettings.secondaryColor}
-                              onChange={(e) => setBrandSettings({ ...brandSettings, secondaryColor: e.target.value })}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">Accent Color</label>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="color"
-                              value={brandSettings.accentColor}
-                              onChange={(e) => setBrandSettings({ ...brandSettings, accentColor: e.target.value })}
-                              className="w-8 h-8 rounded-lg border border-slate-200 p-0.5 cursor-pointer shrink-0"
-                            />
-                            <input
-                              type="text"
-                              value={brandSettings.accentColor}
-                              onChange={(e) => setBrandSettings({ ...brandSettings, accentColor: e.target.value })}
-                              className="w-full bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  {/* Modal Footer Actions */}
-                  <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setBrandSettings({
-                          brandName: 'BeAurex',
-                          logoUrl: '/beaurex-icon.jpg',
-                          faviconUrl: '/favicon.ico',
-                          primaryColor: '#8B0000',
-                          secondaryColor: '#9E000D',
-                          accentColor: '#c8102e',
-                          status: 'Completed',
-                          lastUpdated: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                        });
-                      }}
-                      className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold transition cursor-pointer"
-                    >
-                      Reset to Default Burgundy
-                    </button>
-
-                    <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        onClick={() => setSettingsActiveModal(null)}
-                        className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition cursor-pointer"
-                      >
-                        Close Preview
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const now = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                          const updated = { ...brandSettings, lastUpdated: now };
-                          setBrandSettings(updated);
-                          try {
-                            localStorage.setItem('loyalqr_brand_settings', JSON.stringify(updated));
-                          } catch {}
-                          setSettingsActiveModal(null);
-                          showSettingsToast('Landing page brand identity & color palette successfully applied live!');
-                        }}
-                        className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black transition cursor-pointer shadow-md shadow-[#74111d]/20 flex items-center space-x-2"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Save & Apply Changes to Landing Page</span>
-                      </button>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            )}
 
           </main>
 
@@ -12758,7 +13650,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               <tr className="hover:bg-slate-50/70 transition">
                                 <td className="py-2.5 px-3.5">
                                   <span className="font-bold text-slate-900 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md text-[11px]">
-                                    {lead.approachedFor || 'MW Sales'}
+                                    {lead.approachedFor || 'BeAurex Loyalty'}
                                   </span>
                                 </td>
                                 <td className="py-2.5 px-3">
@@ -12900,147 +13792,159 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         {/* ========================================================= */}
         {selectedMerchantForDeal && (
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 relative my-auto">
+            <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 relative my-auto">
               <button
                 onClick={() => setSelectedMerchantForDeal(null)}
                 className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                title="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-black">
+              {/* Modal Header */}
+              <div className="flex items-center space-x-3 mb-5 pb-4 border-b border-slate-100">
+                <div className="w-12 h-12 rounded-2xl bg-red-100 text-[#8B0000] flex items-center justify-center font-black shrink-0">
                   <Tag className="w-6 h-6" />
                 </div>
-                <div>
-                  <h3 className="font-black text-lg text-slate-900">
-                    Set a Deal — {selectedMerchantForDeal.businessName}
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Customize bespoke pricing, complimentary access, and extended billing validity
+                <div className="pr-8">
+                  <div className="flex items-center space-x-2 flex-wrap">
+                    <h3 className="font-extrabold text-lg text-slate-900">
+                      Configure Deal — {selectedMerchantForDeal.businessName}
+                    </h3>
+                    <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-md border border-slate-200">
+                      {selectedMerchantForDeal.plan || 'Standard Plan'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Select a platform deal from the list below to apply to this merchant.
                   </p>
                 </div>
               </div>
 
               <form onSubmit={handleSaveDeal} className="space-y-4">
-                {/* Quick Pick From Platform Deals & Coupons */}
-                {platformDeals && platformDeals.length > 0 && (
-                  <div className="p-3 bg-red-50/60 border border-red-200/80 rounded-2xl">
-                    <label className="block text-[11px] font-black uppercase text-red-900 mb-1">
-                      Quick Pick From Platform Deals ({platformDeals.length})
-                    </label>
-                    <select
-                      onChange={(e) => {
-                        const sel = platformDeals.find(d => d.id === e.target.value);
-                        if (sel) {
-                          setDealForm({
-                            ...dealForm,
-                            dealTitle: sel.dealName,
-                            dealAmount: sel.discountAmount || 499,
-                            discountPercent: sel.discountPercentage || 20,
-                            validTill: sel.validityDate || '30 Days',
-                            notes: `Auto-populated from Deal Code: ${sel.couponCode} (${sel.planName})`
-                          });
-                        }
-                      }}
-                      className="w-full bg-white border border-red-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
-                    >
-                      <option value="">-- Select Deal & Coupon to Auto-Fill --</option>
-                      {platformDeals.map(d => (
-                        <option key={d.id} value={d.id}>
-                          {d.dealName} [{d.couponCode}] — {d.discountPercentage ? `${d.discountPercentage}% Off` : `₹${d.discountAmount} Off`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                {/* QUICK PICK FROM PLATFORM DEALS (Only this section) */}
+                <div className="p-4 bg-red-50/60 border border-red-200/80 rounded-2xl">
+                  <label className="block text-[11px] font-black uppercase text-[#8B0000] tracking-wider mb-2">
+                    QUICK PICK FROM PLATFORM DEALS ({platformDeals?.length || 0})
+                  </label>
+                  <select
+                    value={dealForm.dealId || ''}
+                    onChange={(e) => {
+                      const selId = e.target.value;
+                      if (!selId) {
+                        setDealForm(prev => ({
+                          ...prev,
+                          dealId: '',
+                          dealTitle: '',
+                          couponCode: '',
+                          dealAmount: prev.originalPrice || 24000,
+                          discountPercent: 0,
+                          discountAmount: 0,
+                          badgeText: '',
+                          validTill: '30 Days'
+                        }));
+                        return;
+                      }
+                      if (selId === 'REMOVE') {
+                        setDealForm(prev => ({
+                          ...prev,
+                          dealId: 'REMOVE',
+                          dealTitle: '',
+                          couponCode: '',
+                          dealAmount: prev.originalPrice || 24000,
+                          discountPercent: 0,
+                          discountAmount: 0,
+                          badgeText: '',
+                          validTill: '30 Days'
+                        }));
+                        return;
+                      }
+                      const sel = (platformDeals || []).find(d => String(d.id) === String(selId));
+                      if (sel) {
+                        const orig = dealForm.originalPrice || 24000;
+                        const hasPct = Boolean(sel.discountPercentage && Number(sel.discountPercentage) > 0);
+                        const pct = Number(sel.discountPercentage) || 0;
+                        const flat = Number(sel.discountAmount) || 0;
+                        const finalAmt = hasPct
+                          ? Math.max(0, Math.round(orig * (1 - pct / 100)))
+                          : Math.max(0, orig - flat);
+                        const calculatedType = hasPct ? 'PERCENTAGE' : (flat > 0 ? 'FLAT' : 'FIXED_PRICE');
+                        const badge = hasPct ? `${pct}% OFF` : (flat > 0 ? `₹${flat.toLocaleString('en-IN')} OFF` : 'SPECIAL DEAL');
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Deal Title / Package Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={dealForm.dealTitle}
-                    onChange={(e) => setDealForm({ ...dealForm, dealTitle: e.target.value })}
-                    placeholder="e.g. Festive Fast-Track Onboarding"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
-                  />
+                        setDealForm(prev => ({
+                          ...prev,
+                          dealId: sel.id,
+                          dealType: calculatedType,
+                          dealTitle: sel.dealName,
+                          couponCode: sel.couponCode || '',
+                          originalPrice: orig,
+                          dealAmount: finalAmt,
+                          discountPercent: pct,
+                          discountAmount: hasPct ? (orig - finalAmt) : flat,
+                          validTill: sel.validityDate || '30 Days',
+                          badgeText: badge,
+                          isComplimentary: false,
+                          notes: `Platform Deal: ${sel.dealName} [${sel.couponCode || ''}]`
+                        }));
+                      }
+                    }}
+                    className="w-full bg-white border border-red-300 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 cursor-pointer shadow-2xs"
+                  >
+                    <option value="">-- Select Deal & Coupon to Auto-Fill --</option>
+                    {Boolean(selectedMerchantForDeal.dealDetails?.dealTitle) && (
+                      <option value="REMOVE">-- Remove Deal (Restore Default Plan) --</option>
+                    )}
+                    {dealForm.dealTitle && dealForm.dealId !== 'REMOVE' && !platformDeals?.some(d => String(d.id) === String(dealForm.dealId)) && (
+                      <option value={dealForm.dealId || 'active'}>
+                        {dealForm.dealTitle} (Current Active Deal)
+                      </option>
+                    )}
+                    {(platformDeals || []).map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.dealName} {d.planName ? `(${d.planName})` : (d.planType ? `(${d.planType})` : '')} [{d.couponCode}] — {d.discountPercentage ? `${d.discountPercentage}% Off` : `₹${(d.discountAmount || 0).toLocaleString('en-IN')} Off`}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Active Deal Details ("when i click then i go and see") */}
+                  {dealForm.dealTitle && dealForm.dealId !== 'REMOVE' && (
+                    <div className="mt-3 p-3.5 bg-white border border-red-200/90 rounded-xl space-y-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-xs text-slate-900">{dealForm.dealTitle}</span>
+                        {dealForm.badgeText && (
+                          <span className="text-[10px] font-black text-[#8B0000] bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                            {dealForm.badgeText}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-600 font-bold">
+                        <span>Payable Deal Price: <span className="font-black text-slate-900 font-mono">₹{Number(dealForm.dealAmount || 0).toLocaleString('en-IN')}</span></span>
+                        <span>Validity: <span className="font-bold text-slate-800">{dealForm.validTill || '30 Days'}</span></span>
+                      </div>
+                      {dealForm.couponCode && (
+                        <div className="text-[11px] text-slate-500 font-mono">
+                          Coupon Code: <strong className="text-slate-800">{dealForm.couponCode}</strong>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Custom Deal Price (₹)</label>
-                    <input
-                      type="number"
-                      required
-                      value={dealForm.dealAmount}
-                      onChange={(e) => setDealForm({ ...dealForm, dealAmount: Number(e.target.value) })}
-                      placeholder="e.g. 999"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Discount %</label>
-                    <input
-                      type="number"
-                      value={dealForm.discountPercent}
-                      onChange={(e) => setDealForm({ ...dealForm, discountPercent: Number(e.target.value) })}
-                      placeholder="e.g. 25"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Plan Validity Extension</label>
-                    <input
-                      type="text"
-                      value={dealForm.validTill}
-                      onChange={(e) => setDealForm({ ...dealForm, validTill: e.target.value })}
-                      placeholder="e.g. 30 Days or 1 Year"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Complimentary Deal?</label>
-                    <select
-                      value={dealForm.isComplimentary ? 'YES' : 'NO'}
-                      onChange={(e) => setDealForm({ ...dealForm, isComplimentary: e.target.value === 'YES' })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 cursor-pointer"
-                    >
-                      <option value="NO">No (Standard Paid Deal)</option>
-                      <option value="YES">Yes (100% Free Complimentary)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Deal Notes / Terms</label>
-                  <textarea
-                    rows={2}
-                    value={dealForm.notes}
-                    onChange={(e) => setDealForm({ ...dealForm, notes: e.target.value })}
-                    placeholder="Special terms, agent who negotiated deal, etc."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600 resize-none"
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-2">
+                {/* Modal Footer Actions */}
+                <div className="flex items-center justify-end space-x-2 pt-2">
                   <button
                     type="button"
                     onClick={() => setSelectedMerchantForDeal(null)}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-5 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    disabled={!dealForm.dealTitle && dealForm.dealId !== 'REMOVE'}
+                    className="bg-[#8B0000] hover:bg-[#700000] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black px-5 py-2 rounded-xl text-xs transition cursor-pointer shadow-md shadow-red-950/20"
                   >
-                    Apply & Save Deal
+                    Apply Deal
                   </button>
                 </div>
               </form>
@@ -13062,9 +13966,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <Gift className="w-5 h-5 text-[#74111d]" />
                   </div>
                   <div>
-                    <h3 className="font-black text-base text-slate-900">Complimentary Access</h3>
+                    <h3 className="font-extrabold text-base text-slate-900">Free Access (Complimentary)</h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      Configure 4-point free access for <span className="font-bold text-slate-800">{complimentaryModalMerchant.businessName}</span>
+                      Manage free plan access for <span className="font-bold text-slate-800">{complimentaryModalMerchant.businessName}</span>
                     </p>
                   </div>
                 </div>
@@ -13077,18 +13981,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </button>
               </div>
 
-              <form onSubmit={handleSaveComplimentary} className="space-y-4 pt-4">
-                
-                {/* OPTION 1: Status (Yes / No) */}
+              <form onSubmit={handleSaveComplimentary} className="space-y-4 pt-3">
+                {/* Free Access Status */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                      Option 1: Complimentary Status
-                    </label>
-                    <span className="text-[10px] font-bold text-[#74111d] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                      Required
-                    </span>
-                  </div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    Free Plan Access
+                  </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -13100,7 +13998,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       }`}
                     >
                       <Check className="w-4 h-4" />
-                      <span>Yes (Granted)</span>
+                      <span>Yes (Free Access)</span>
                     </button>
                     <button
                       type="button"
@@ -13112,65 +14010,59 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       }`}
                     >
                       <X className="w-4 h-4" />
-                      <span>No (Revoked)</span>
+                      <span>No (Standard Paid)</span>
                     </button>
                   </div>
                 </div>
 
                 {complimentaryForm.status === 'YES' && (
                   <>
-                    {/* OPTION 2: Plan Tier Granted */}
+                    {/* Plan Selection */}
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
-                        Option 2: Plan Tier Granted
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Select Plan
                       </label>
                       <select
                         value={complimentaryForm.planTier}
                         onChange={(e) => setComplimentaryForm({ ...complimentaryForm, planTier: e.target.value })}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
                       >
-                        <option value="PROFESSIONAL">Professional Plan (All VIP Features & Multi-counter)</option>
-                        <option value="STANDARD">Standard Plan (Counter QR Engine)</option>
-                        <option value="TRIAL">Trial Plan (Extended Evaluation)</option>
+                        <option value="PROFESSIONAL">Professional Plan</option>
+                        <option value="STANDARD">Standard Plan</option>
+                        <option value="TRIAL">Trial Plan</option>
                       </select>
                     </div>
 
-                    {/* OPTION 3: Reason (Why we give complimentary - text input where admin can write) */}
+                    {/* Reason */}
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Option 3: Reason (Why We Give Complimentary)
-                        </label>
-                        <span className="text-[10px] font-bold text-slate-400">Writable</span>
-                      </div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Reason
+                      </label>
                       <input
                         type="text"
                         required
                         value={complimentaryForm.reason}
                         onChange={(e) => setComplimentaryForm({ ...complimentaryForm, reason: e.target.value })}
-                        placeholder="Write reason e.g. VIP Launch Partner, Festival Promo, Trial Extension, Referral Bonus..."
+                        placeholder="e.g. VIP Client, Festival Offer, Trial Extension..."
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 font-medium"
                       />
-                      <p className="text-[11px] text-slate-400 mt-1">
-                        Explain why this merchant was granted free complimentary access.
-                      </p>
                     </div>
 
-                    {/* OPTION 4: Date / Days (7, 15, 30, 90, 180 days, 1 Year, Lifetime) */}
+                    {/* Validity Period */}
                     <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                          Option 4: Validity Extension (Add Days / Lifetime)
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Validity Period
                         </label>
-                        <span className="text-[11px] font-bold text-[#74111d] bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                        <span className="text-[11px] font-bold text-[#74111d] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                           {complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500
-                            ? 'Lifetime Access'
-                            : `+${complimentaryForm.days || 0} Days`}
+                            ? 'Lifetime'
+                            : `${complimentaryForm.days || 0} Days`}
                         </span>
                       </div>
                       
-                      {/* Presets requested: 7, 15, 30, 90, 180 days, 1 year, and lifetime */}
-                      <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
+                      {/* Presets */}
+                      <div className="flex flex-wrap items-center gap-1.5 mb-2">
                         {[
                           { label: '7 Days', days: 7 },
                           { label: '15 Days', days: 15 },
@@ -13210,7 +14102,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                                 isSelected
                                   ? 'bg-[#74111d] text-white border-[#74111d] shadow-xs'
-                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                               }`}
                             >
                               {preset.label}
@@ -13219,7 +14111,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         })}
                       </div>
 
-                      {/* Add number input field or lifetime indicator */}
+                      {/* Number Input / Lifetime Indicator */}
                       <div className="flex items-center space-x-2">
                         <input
                           type={complimentaryForm.isLifetime ? "text" : "number"}
@@ -13236,7 +14128,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             const formatted = target.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                             setComplimentaryForm({ ...complimentaryForm, days: val, isLifetime: false, customValidTill: formatted });
                           }}
-                          placeholder="Enter custom number of days (e.g. 7, 15, 30...)"
+                          placeholder="Enter custom days..."
                           className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
                             complimentaryForm.isLifetime
                               ? 'bg-rose-50/70 border-rose-300 text-[#74111d]'
@@ -13248,12 +14140,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         </span>
                       </div>
 
-                      {/* Calculated expiry preview */}
+                      {/* Expiry preview */}
                       <div className="mt-2.5 p-3 bg-rose-50/70 border border-rose-200/80 rounded-xl flex items-center justify-between text-xs">
-                        <span className="text-slate-600 font-medium">Calculated Plan Expiry:</span>
+                        <span className="text-slate-600 font-medium">Valid Till:</span>
                         <span className="font-black text-[#74111d] font-mono">
                           {complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500
-                            ? 'Lifetime Access (Never Expires)'
+                            ? 'Lifetime (Never Expires)'
                             : (() => {
                                 const target = new Date();
                                 target.setDate(target.getDate() + (Number(complimentaryForm.days) || 0));
@@ -13279,7 +14171,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center space-x-1.5"
                   >
                     <Check className="w-4 h-4" />
-                    <span>Save & Apply Complimentary</span>
+                    <span>Save Access</span>
                   </button>
                 </div>
               </form>
@@ -13753,12 +14645,17 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </span>
                   </div>
 
-                  {viewMerchantModal.dealDetails?.dealTitle && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium">Custom Deal:</span>
-                      <span className="font-bold text-red-700">
-                        {viewMerchantModal.dealDetails.dealTitle} (₹{viewMerchantModal.dealDetails.dealAmount})
-                      </span>
+                  {Boolean(viewMerchantModal.dealDetails?.dealTitle || (viewMerchantModal.dealDetails?.dealType && viewMerchantModal.dealDetails?.dealType !== 'NONE')) && (
+                    <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/60">
+                      <span className="text-slate-500 font-medium">Special Deal Package:</span>
+                      <div className="text-right">
+                        <span className="font-extrabold text-red-700 block text-xs">
+                          {viewMerchantModal.dealDetails.dealTitle || 'Custom Deal'}
+                        </span>
+                        <span className="text-[10px] text-slate-600 font-mono font-bold">
+                          [{viewMerchantModal.dealDetails.badgeText || viewMerchantModal.dealDetails.dealType || 'DEAL'}] • Payable: {viewMerchantModal.dealDetails.dealType === 'COMPLIMENTARY' ? '₹0 Free' : `₹${(viewMerchantModal.dealDetails.dealAmount || 0).toLocaleString('en-IN')}`}
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -14040,7 +14937,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     }}
                     className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold transition text-center cursor-pointer border border-slate-200"
                   >
-                    API & Gateway Keys
+                    Gateway Keys
                   </button>
                   <button
                     onClick={() => {
@@ -14049,7 +14946,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     }}
                     className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-2xl font-bold transition text-center cursor-pointer border border-slate-200"
                   >
-                    Security Audit
+                    Security Logs
                   </button>
                 </div>
               </div>
@@ -14068,6 +14965,109 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Logout</span>
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* INQUIRY DETAIL MODAL                                      */}
+        {/* ========================================================= */}
+        {selectedInquiryModal && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 text-[#8B0000] flex items-center justify-center font-black">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Contact Inquiry Details</h3>
+                    <p className="text-[11px] font-mono text-slate-400 font-bold">
+                      ID: {String(selectedInquiryModal.id || selectedInquiryModal._id).slice(-8).toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedInquiryModal(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Inquirer Name</span>
+                  <span className="font-black text-slate-900 text-sm mt-0.5 block">{selectedInquiryModal.name || 'Anonymous'}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Date & Time</span>
+                  <span className="font-mono font-bold text-slate-800 mt-0.5 block">
+                    {selectedInquiryModal.createdAt
+                      ? `${new Date(selectedInquiryModal.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ${new Date(selectedInquiryModal.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+                      : 'Just now'}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Phone</span>
+                  {selectedInquiryModal.phone ? (
+                    <a href={`tel:${selectedInquiryModal.phone}`} className="font-mono font-black text-red-700 hover:underline mt-0.5 block">
+                      {selectedInquiryModal.phone}
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 font-bold">N/A</span>
+                  )}
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Email</span>
+                  {selectedInquiryModal.email ? (
+                    <a href={`mailto:${selectedInquiryModal.email}`} className="font-bold text-red-700 hover:underline truncate mt-0.5 block" title={selectedInquiryModal.email}>
+                      {selectedInquiryModal.email}
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 font-bold">N/A</span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-black uppercase text-slate-500 tracking-wider block mb-1">
+                  Full Store Query / Message
+                </label>
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
+                  {selectedInquiryModal.message}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-black text-slate-600">Update Status:</span>
+                  <select
+                    value={selectedInquiryModal.status || 'NEW'}
+                    onChange={(e) => handleUpdateContactStatus(selectedInquiryModal.id || selectedInquiryModal._id, e.target.value)}
+                    className="border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 bg-white cursor-pointer shadow-2xs"
+                  >
+                    <option value="NEW">NEW</option>
+                    <option value="CONTACTED">CONTACTED</option>
+                    <option value="RESOLVED">RESOLVED</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleDeleteContact(selectedInquiryModal.id || selectedInquiryModal._id)}
+                    className="px-3 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold transition cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setSelectedInquiryModal(null)}
+                    className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>

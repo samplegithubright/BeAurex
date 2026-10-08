@@ -97,6 +97,36 @@ app.get('/api/public/policies/:type', async (req, res) => {
   }
 });
 
+// Public endpoint: Submit Contact Inquiry form (saves to MongoDB & SystemStore)
+app.post('/api/public/contact', async (req, res) => {
+  try {
+    const { name, phone, email, message } = req.body || {};
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Please enter your name.' });
+    }
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ success: false, message: 'Please enter your contact phone number.' });
+    }
+
+    const saved = await systemStore.createContactInquiry({
+      name: name.trim(),
+      phone: phone.trim(),
+      email: (email || '').trim(),
+      message: (message || '').trim(),
+      ip: req.ip || req.headers['x-forwarded-for'] || ''
+    });
+
+    res.json({
+      success: true,
+      message: 'Inquiry received successfully! Our activation desk will contact you soon.',
+      inquiry: saved
+    });
+  } catch (err) {
+    console.error('Contact inquiry error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Server error saving inquiry.' });
+  }
+});
+
 // Serve frontend build if exists
 const fs = require('fs');
 const clientDistPath = path.join(__dirname, '../client/dist');

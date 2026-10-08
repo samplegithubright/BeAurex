@@ -203,13 +203,173 @@ let platformCoupons = [
 
 // Merchant List for Super Admin / Billing (Matching Image 1)
 let mockMerchants = [
-  { id: 'm1', businessName: 'Royal Sweets & Cafe', category: 'CAFE_RESTAURANT', email: 'owner@royalsweets.com', mobile: '9876543210', city: 'Delhi NCR', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '12 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-  { id: 'm2', businessName: 'Gourmet Organic Supermarket', category: 'GROCERY', email: 'admin@gourmetorganic.in', mobile: '9811223399', city: 'Bengaluru', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '14 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-  { id: 'm3', businessName: 'Glamour Salon & Spa', category: 'SALON_SPA', email: 'support@glamourspa.in', mobile: '9899001122', city: 'Mumbai', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '15 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-  { id: 'm4', businessName: 'Urban Fitness Studio', category: 'OTHER', email: 'contact@urbanfitness.com', mobile: '9711223344', city: 'Pune', subscriptionTier: 'Basic Plan', plan: 'Basic Plan', planValidTill: '01 Nov 2026', paymentDate: '01 Oct 2026', paymentAmount: '₹999', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-  { id: 'm5', businessName: 'Spice Junction Biryani', category: 'CAFE_RESTAURANT', email: 'spice@junction.com', mobile: '9844556611', city: 'Hyderabad', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '10 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: true, dealDetails: { dealTitle: 'Special Trial Deal', dealAmount: 499 } },
-  { id: 'm6', businessName: 'Chai Chaska Bar', category: 'CAFE_RESTAURANT', email: 'chai@chaska.in', mobile: '9812345678', city: 'Gurugram', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '09 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: false, dealDetails: { dealTitle: '', dealAmount: 0 } },
-  { id: 'm7', businessName: 'Bakers Point Delhi', category: 'CAFE_RESTAURANT', email: 'bakers@point.in', mobile: '9877001122', city: 'Delhi', subscriptionTier: 'Trial Plan', plan: 'Trial Plan', planValidTill: '11 Oct 2026', paymentDate: '-', paymentAmount: '-', status: 'Trial', isComplimentary: true, dealDetails: { dealTitle: '', dealAmount: 0 } }
+  { 
+    id: 'm1', 
+    businessName: 'Royal Sweets & Cafe', 
+    category: 'CAFE_RESTAURANT', 
+    email: 'owner@royalsweets.com', 
+    mobile: '9876543210', 
+    city: 'Delhi NCR', 
+    subscriptionTier: 'Standard Plan', 
+    plan: 'Standard Plan', 
+    planValidTill: '24 May 2026', 
+    paymentDate: '24 May 2025', 
+    paymentAmount: '₹ 18,000', 
+    status: 'Paid', 
+    isComplimentary: false, 
+    dealDetails: { 
+      dealType: 'PERCENTAGE', 
+      dealTitle: 'Festive Fast-Track Onboarding', 
+      dealAmount: 18000, 
+      discountPercent: 25, 
+      discountAmount: 6000, 
+      originalPrice: 24000, 
+      validTill: '30 Days', 
+      isComplimentary: false, 
+      badgeText: '25% OFF', 
+      notes: 'Special annual subscription discount' 
+    } 
+  },
+  { 
+    id: 'm2', 
+    businessName: 'Gourmet Organic Supermarket', 
+    category: 'GROCERY', 
+    email: 'admin@gourmetorganic.in', 
+    mobile: '9811223399', 
+    city: 'Bengaluru', 
+    subscriptionTier: 'Professional Plan', 
+    plan: 'Professional Plan', 
+    planValidTill: '24 May 2028', 
+    paymentDate: '24 May 2025', 
+    paymentAmount: '₹ 44,000', 
+    status: 'Paid', 
+    isComplimentary: false, 
+    dealDetails: { 
+      dealType: 'FLAT', 
+      dealTitle: 'Corporate Direct Discount', 
+      dealAmount: 44000, 
+      discountPercent: 10, 
+      discountAmount: 5000, 
+      originalPrice: 49000, 
+      validTill: '60 Days', 
+      isComplimentary: false, 
+      badgeText: '₹5,000 OFF', 
+      notes: 'Flat cash deduction for 3-year term' 
+    } 
+  },
+  { 
+    id: 'm3', 
+    businessName: 'Glamour Salon & Spa', 
+    category: 'SALON_SPA', 
+    email: 'support@glamourspa.in', 
+    mobile: '9899001122', 
+    city: 'Mumbai', 
+    subscriptionTier: 'Legacy Plan', 
+    plan: 'Legacy Plan', 
+    planValidTill: 'Lifetime', 
+    paymentDate: '24 May 2025', 
+    paymentAmount: '₹ 75,000', 
+    status: 'Paid', 
+    isComplimentary: false, 
+    dealDetails: { 
+      dealType: 'CUSTOM', 
+      dealTitle: 'Founder Partner Agreement', 
+      dealAmount: 75000, 
+      discountPercent: 0, 
+      discountAmount: 0, 
+      originalPrice: 120000, 
+      validTill: 'Lifetime Access', 
+      isComplimentary: false, 
+      badgeText: 'CUSTOM DEAL', 
+      notes: 'Lifetime partner terms with dedicated RM' 
+    } 
+  },
+  { 
+    id: 'm4', 
+    businessName: 'Urban Fitness Studio', 
+    category: 'OTHER', 
+    email: 'contact@urbanfitness.com', 
+    mobile: '9711223344', 
+    city: 'Pune', 
+    subscriptionTier: 'Standard Plan', 
+    plan: 'Standard Plan', 
+    planValidTill: '01 Nov 2026', 
+    paymentDate: '24 May 2025', 
+    paymentAmount: '₹ 24,000', 
+    status: 'Paid', 
+    isComplimentary: false, 
+    dealDetails: { dealType: 'NONE', dealTitle: '', dealAmount: 0 } 
+  },
+  { 
+    id: 'm5', 
+    businessName: 'Spice Junction Biryani', 
+    category: 'CAFE_RESTAURANT', 
+    email: 'spice@junction.com', 
+    mobile: '9844556611', 
+    city: 'Hyderabad', 
+    subscriptionTier: 'Trial Plan', 
+    plan: 'Trial Plan', 
+    planValidTill: '10 Oct 2026', 
+    paymentDate: '-', 
+    paymentAmount: '₹ 0', 
+    status: 'Trial', 
+    isComplimentary: true, 
+    dealDetails: { 
+      dealType: 'COMPLIMENTARY', 
+      dealTitle: 'VIP Complimentary Trial Extension', 
+      dealAmount: 0, 
+      discountPercent: 100, 
+      discountAmount: 24000, 
+      originalPrice: 24000, 
+      validTill: '90 Days', 
+      isComplimentary: true, 
+      badgeText: '100% FREE', 
+      notes: 'Complimentary trial approved by management' 
+    } 
+  },
+  { 
+    id: 'm6', 
+    businessName: 'Chai Chaska Bar', 
+    category: 'CAFE_RESTAURANT', 
+    email: 'chai@chaska.in', 
+    mobile: '9812345678', 
+    city: 'Gurugram', 
+    subscriptionTier: 'Trial Plan', 
+    plan: 'Trial Plan', 
+    planValidTill: '09 Oct 2026', 
+    paymentDate: '-', 
+    paymentAmount: '₹ 0', 
+    status: 'Trial', 
+    isComplimentary: false, 
+    dealDetails: { dealType: 'NONE', dealTitle: '', dealAmount: 0 } 
+  },
+  { 
+    id: 'm7', 
+    businessName: 'Bakers Point Delhi', 
+    category: 'CAFE_RESTAURANT', 
+    email: 'bakers@point.in', 
+    mobile: '9877001122', 
+    city: 'Delhi', 
+    subscriptionTier: 'Trial Plan', 
+    plan: 'Trial Plan', 
+    planValidTill: '11 Oct 2026', 
+    paymentDate: '-', 
+    paymentAmount: '₹ 999', 
+    status: 'Trial', 
+    isComplimentary: false, 
+    dealDetails: { 
+      dealType: 'FIXED_PRICE', 
+      dealTitle: 'Early Bird Starter Special', 
+      dealAmount: 999, 
+      discountPercent: 80, 
+      discountAmount: 4000, 
+      originalPrice: 4999, 
+      validTill: '30 Days', 
+      isComplimentary: false, 
+      badgeText: '₹999 SPECIAL', 
+      notes: 'Introductory starter deal rate' 
+    } 
+  }
 ];
 
 // In-Memory CRM Customer Tracker Leads (Matching Image 2 & 4)
@@ -621,36 +781,105 @@ router.delete('/merchants/:id', async (req, res) => {
   }
 });
 
-// Set Deal For Merchant (Image 1 "SET A DEAL")
+// Set or Remove Deal For Merchant (Image 1 "SET A DEAL")
 router.post('/deals', async (req, res) => {
   try {
-    const { merchantId, dealTitle, dealAmount, discountPercent, validTill, isComplimentary, notes } = req.body;
+    const { 
+      merchantId, 
+      action,
+      dealType = 'PERCENTAGE', 
+      dealTitle, 
+      dealAmount, 
+      discountPercent, 
+      discountAmount, 
+      originalPrice,
+      validTill, 
+      isComplimentary, 
+      badgeText,
+      notes 
+    } = req.body;
     
+    // Support removing/resetting deal
+    if (action === 'REMOVE') {
+      const emptyDeal = {
+        dealType: 'NONE',
+        dealTitle: '',
+        dealAmount: 0,
+        discountPercent: 0,
+        discountAmount: 0,
+        originalPrice: 0,
+        validTill: '',
+        isComplimentary: false,
+        badgeText: '',
+        notes: '',
+        appliedAt: null
+      };
+      const idx = mockMerchants.findIndex(m => m.id === merchantId || String(m._id) === String(merchantId));
+      if (idx !== -1) {
+        mockMerchants[idx].dealDetails = emptyDeal;
+        mockMerchants[idx].isComplimentary = false;
+      }
+      try {
+        await Merchant.findByIdAndUpdate(merchantId, {
+          dealDetails: emptyDeal,
+          isComplimentary: false
+        });
+      } catch (e) {}
+      return res.json({
+        success: true,
+        message: 'Deal removed successfully.',
+        deal: emptyDeal
+      });
+    }
+
+    // Compute automatic badgeText if not provided
+    let calculatedBadge = badgeText || '';
+    if (!calculatedBadge) {
+      if (dealType === 'PERCENTAGE' && discountPercent) {
+        calculatedBadge = `${discountPercent}% OFF`;
+      } else if (dealType === 'FLAT' && discountAmount) {
+        calculatedBadge = `₹${discountAmount} OFF`;
+      } else if (dealType === 'COMPLIMENTARY') {
+        calculatedBadge = '100% FREE';
+      } else if (dealType === 'FIXED_PRICE' && dealAmount) {
+        calculatedBadge = `₹${dealAmount} DEAL`;
+      } else if (dealType === 'CUSTOM') {
+        calculatedBadge = 'CUSTOM DEAL';
+      } else {
+        calculatedBadge = 'DEAL';
+      }
+    }
+
     const dealObj = {
-      dealTitle: dealTitle || 'Special Custom Package',
+      dealType: dealType || 'PERCENTAGE',
+      dealTitle: dealTitle || 'Special Bespoke Package',
       dealAmount: Number(dealAmount) || 0,
       discountPercent: Number(discountPercent) || 0,
+      discountAmount: Number(discountAmount) || 0,
+      originalPrice: Number(originalPrice) || 0,
       validTill: validTill || '30 Days',
-      isComplimentary: Boolean(isComplimentary),
+      isComplimentary: Boolean(isComplimentary || dealType === 'COMPLIMENTARY'),
+      badgeText: calculatedBadge,
+      appliedAt: new Date(),
       notes: notes || ''
     };
 
-    const idx = mockMerchants.findIndex(m => m.id === merchantId);
+    const idx = mockMerchants.findIndex(m => m.id === merchantId || String(m._id) === String(merchantId));
     if (idx !== -1) {
       mockMerchants[idx].dealDetails = dealObj;
-      if (isComplimentary) mockMerchants[idx].isComplimentary = true;
+      if (dealObj.isComplimentary) mockMerchants[idx].isComplimentary = true;
     }
 
     try {
       await Merchant.findByIdAndUpdate(merchantId, {
         dealDetails: dealObj,
-        ...(isComplimentary !== undefined && { isComplimentary })
+        ...(dealObj.isComplimentary !== undefined && { isComplimentary: dealObj.isComplimentary })
       });
     } catch (e) {}
 
     res.json({
       success: true,
-      message: `Custom Deal "${dealObj.dealTitle}" saved for merchant.`,
+      message: `Custom Deal "${dealObj.dealTitle}" (${calculatedBadge}) saved for merchant.`,
       deal: dealObj
     });
   } catch (err) {
@@ -2017,6 +2246,50 @@ router.get('/audit', (req, res) => {
       { id: 5, type: 'DEAL_SET', user: 'Super Admin', ip: '14.139.241.2', detail: 'Custom deal set for Spice Junction Biryani', time: '5 hrs ago', severity: 'INFO' }
     ]
   });
+});
+
+// =========================================================================
+// 9. CONTACT INQUIRIES MANAGEMENT
+// Fetches contact submissions from MongoDB and updates their status
+// =========================================================================
+router.get('/contacts', async (req, res) => {
+  try {
+    const inquiries = await systemStore.getContactInquiries();
+    res.json({
+      success: true,
+      contacts: inquiries,
+      total: inquiries.length,
+      newCount: inquiries.filter(c => c.status === 'NEW').length
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/contacts/:id', async (req, res) => {
+  try {
+    const { status, notes } = req.body;
+    const updated = await systemStore.updateContactInquiryStatus(req.params.id, status, notes);
+    res.json({
+      success: true,
+      message: `Inquiry status updated to ${status}.`,
+      inquiry: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/contacts/:id', async (req, res) => {
+  try {
+    await systemStore.deleteContactInquiry(req.params.id);
+    res.json({
+      success: true,
+      message: 'Contact inquiry removed successfully.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 module.exports = router;
