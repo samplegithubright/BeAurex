@@ -1968,208 +1968,120 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {/* Card 1: Ka-feen Coffee Shop */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs">
-                              <Coffee className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
-                            </div>
-                          </div>
-                          <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                            2 more stamps
-                          </span>
-                        </div>
-
-                        {/* Stamp Indicators */}
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2, 3].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                            {[4, 5].map((n) => (
-                              <BeAurexStamp key={n} stamped={false} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
-                        </div>
-                      </div>
-
-                      {/* Next Unlock Banner */}
-                      <div 
-                        onClick={() => {
-                          setSelectedReward({
-                            title: '30% OFF on next purchase',
-                            storeName: 'Ka-feen',
-                            requiresStamps: 2,
-                            validTill: '30 Jul 2026',
-                            image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-                            approvedAt: 'Today, 2:30 PM'
-                          });
-                          setCurrentScreen('reward_details');
-                        }}
-                        className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-rose-100/60 transition"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#8B0000] text-white flex items-center justify-center shrink-0">
-                            <Crown className="w-4 h-4 text-white" />
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs">
+                            <Coffee className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <div className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</div>
-                            <div className="text-[10px] text-slate-500 font-medium">Collect 2 more stamps to unlock</div>
+                            <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
+                            <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-[#8B0000]" />
+                        <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
+                          2 more stamps
+                        </span>
+                      </div>
+
+                      {/* Stamp Indicators */}
+                      <div>
+                        <div className="flex items-center space-x-2 mb-1.5">
+                          {[1, 2, 3].map((n) => (
+                            <BeAurexStamp key={n} stamped={true} size="md" />
+                          ))}
+                          {[4, 5].map((n) => (
+                            <BeAurexStamp key={n} stamped={false} size="md" />
+                          ))}
+                        </div>
+                        <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
                       </div>
                     </div>
 
                     {/* Card 2: Brew House */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
-                              <Utensils className="w-5 h-5 text-amber-200" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro • Cyber Hub</p>
-                            </div>
-                          </div>
-                          <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
-                            Reward Ready 🎉
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
-                        </div>
-                      </div>
-
-                      {/* Ready banner */}
-                      <div 
-                        onClick={() => {
-                          setSelectedReward({
-                            title: 'Buy 1 Get 1 Free',
-                            storeName: 'Brew House',
-                            requiresStamps: 5,
-                            validTill: '15 Aug 2026',
-                            image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-                            approvedAt: 'Ready Now'
-                          });
-                          setCurrentScreen('reward_details');
-                        }}
-                        className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-emerald-100/60 transition"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                            <Award className="w-3.5 h-3.5 text-white" />
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
+                            <Utensils className="w-5 h-5 text-amber-200" />
                           </div>
                           <div>
-                            <div className="text-xs font-black text-emerald-950 leading-tight">Buy 1 Get 1 Free</div>
-                            <div className="text-[10px] text-emerald-700 font-medium">Ready to claim at counter!</div>
+                            <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
+                            <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro • Cyber Hub</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-emerald-700" />
+                        <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
+                          Reward Ready 🎉
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center space-x-2 mb-1.5">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <BeAurexStamp key={n} stamped={true} size="md" />
+                          ))}
+                        </div>
+                        <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
                       </div>
                     </div>
 
                     {/* Card 3: The Daily Roastery */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-amber-800 text-white flex items-center justify-center shadow-xs">
-                              <Coffee className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">The Daily Roastery</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Artisanal Coffee &amp; Bakes</p>
-                            </div>
-                          </div>
-                          <span className="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
-                            3 more stamps
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                            {[3, 4, 5].map((n) => (
-                              <BeAurexStamp key={n} stamped={false} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-slate-400 font-bold">2 of 5 Stamps Collected</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between">
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shrink-0">
-                            <Gift className="w-3.5 h-3.5 text-amber-300" />
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-11 h-11 rounded-2xl bg-amber-800 text-white flex items-center justify-center shadow-xs">
+                            <Coffee className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <div className="text-xs font-black text-slate-900 leading-tight">Flat ₹100 Off on Meals</div>
-                            <div className="text-[10px] text-slate-500 font-medium">Collect 3 more stamps</div>
+                            <h4 className="text-sm font-black text-slate-900 leading-tight">The Daily Roastery</h4>
+                            <p className="text-[11px] text-slate-500 font-medium">Artisanal Coffee &amp; Bakes</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <span className="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
+                          3 more stamps
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center space-x-2 mb-1.5">
+                          {[1, 2].map((n) => (
+                            <BeAurexStamp key={n} stamped={true} size="md" />
+                          ))}
+                          {[3, 4, 5].map((n) => (
+                            <BeAurexStamp key={n} stamped={false} size="md" />
+                          ))}
+                        </div>
+                        <span className="text-[11px] text-slate-400 font-bold">2 of 5 Stamps Collected</span>
                       </div>
                     </div>
 
                     {/* Card 4: Royal Sweets & Treats */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-xs">
-                              <ShoppingBag className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">Royal Sweets &amp; Treats</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Confectionery &amp; Desserts</p>
-                            </div>
-                          </div>
-                          <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                            1 more stamp
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2, 3, 4].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                            {[5].map((n) => (
-                              <BeAurexStamp key={n} stamped={false} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-slate-400 font-bold">4 of 5 Stamps Collected</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between">
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#8B0000] text-white flex items-center justify-center shrink-0">
-                            <Gift className="w-3.5 h-3.5 text-amber-200" />
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-11 h-11 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-xs">
+                            <ShoppingBag className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <div className="text-xs font-black text-slate-900 leading-tight">Complimentary Dessert Box</div>
-                            <div className="text-[10px] text-slate-500 font-medium">Only 1 stamp to unlock!</div>
+                            <h4 className="text-sm font-black text-slate-900 leading-tight">Royal Sweets &amp; Treats</h4>
+                            <p className="text-[11px] text-slate-500 font-medium">Confectionery &amp; Desserts</p>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-[#8B0000]" />
+                        <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
+                          1 more stamp
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center space-x-2 mb-1.5">
+                          {[1, 2, 3, 4].map((n) => (
+                            <BeAurexStamp key={n} stamped={true} size="md" />
+                          ))}
+                          {[5].map((n) => (
+                            <BeAurexStamp key={n} stamped={false} size="md" />
+                          ))}
+                        </div>
+                        <span className="text-[11px] text-slate-400 font-bold">4 of 5 Stamps Collected</span>
                       </div>
                     </div>
 
