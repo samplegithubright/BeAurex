@@ -29,12 +29,12 @@ export default class ErrorBoundary extends React.Component {
       return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800">
           <div className="max-w-md w-full bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center mx-auto border border-rose-100">
+            <div className="w-16 h-16 rounded-2xl bg-rose-50 text-[#8B0000] flex items-center justify-center mx-auto border border-rose-100">
               <AlertCircle className="w-8 h-8" />
             </div>
 
             <div>
-              <span className="text-[10px] uppercase font-black tracking-widest text-[#74111d] bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+              <span className="text-[10px] uppercase font-black tracking-widest text-[#8B0000] bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
                 Application Recovery
               </span>
               <h2 className="text-xl font-black text-slate-900 mt-2">Something went wrong</h2>
@@ -53,7 +53,7 @@ export default class ErrorBoundary extends React.Component {
               <button
                 type="button"
                 onClick={this.handleReload}
-                className="bg-[#74111d] hover:bg-[#5e0c15] text-white py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-[#74111d]/20"
+                className="bg-[#8B0000] hover:bg-[#720000] text-white py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer shadow-md shadow-[#8B0000]/20"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Reload Page</span>

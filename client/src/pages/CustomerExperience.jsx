@@ -107,6 +107,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   ]);
 
+  // Unlocked / Claimable Rewards ready to claim (When empty, shows Image 3 empty state)
+  const [claimableRewards, setClaimableRewards] = useState(() => {
+    const saved = localStorage.getItem('beaurex_claimable_rewards');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return [
+      {
+        id: 'cr-1',
+        title: 'Buy 1 Get 1 Free',
+        subtitle: 'on fresh brewed items',
+        storeName: 'Brew House Bakery & Bistro',
+        requiresStamps: 5,
+        stampsCollected: 5,
+        validTill: '15 Aug 2026',
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+        approvedAt: 'Ready Now',
+        description: '5 of 5 stamps collected! Ready to claim at checkout.'
+      }
+    ];
+  });
+
   // Utility modals/screens
   const [cameraPermissionModalOpen, setCameraPermissionModalOpen] = useState(false);
   const [noInternetModalOpen, setNoInternetModalOpen] = useState(false);
@@ -194,6 +216,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     approvedDate: '20 May 2026',
     approvedTime: '11:45 AM'
   });
+
+  const [pendingClaimId, setPendingClaimId] = useState(null);
+  const [waitingApprovalActive, setWaitingApprovalActive] = useState(false);
 
   // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
@@ -799,18 +824,187 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     setCurrentScreen('reward_details');
   };
 
-  // Fast Claim Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting) -> Screen 13 (Claimed)
+  // Reward Claim Approval Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting for Merchant Approval) -> Screen 13 (Merchant Approved & Claimed)
   const handleInitiateClaim = () => {
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const claimId = `rem_${Date.now()}`;
+    const claimObj = {
+      id: claimId,
+      customerName: customerUser.name || 'Sumit',
+      customerId: `ID: ${cleanCustomerId}`,
+      rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
+      stamps: '5/5 Stamps completed',
+      timeAgo: 'Just now',
+      expiresIn: `Expires: ${selectedReward.validTill || '30 Jul 2026'}`,
+      voucherType: selectedReward.title?.includes('30') ? '30' : (selectedReward.title?.includes('Coffee') ? 'coffee' : '20'),
+      avatarBg: 'bg-emerald-500',
+      status: 'PENDING',
+      storeSlug: storeInfo?.qrSlug || slug || 'ka-feen'
+    };
+
+    setPendingClaimId(claimId);
+    setWaitingApprovalActive(true);
     setCurrentScreen('waiting_approval');
-    // Auto simulate cashier approving in 2.5s for seamless demo
-    setTimeout(() => {
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+    // 1. Sync locally in localStorage for cross-tab merchant dashboard
+    try {
+      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+    } catch (_) {}
+
+    // 2. Broadcast to Merchant via BroadcastChannel
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage({ type: 'CLAIM_REQUEST', claim: claimObj });
+      channel.close();
+    } catch (_) {}
+
+    // 3. Submit to server endpoint
+    fetch('/api/customer/reward/request-approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: cleanCustomerId,
+        customerName: customerUser.name || 'Sumit',
+        rewardTitle: claimObj.rewardTitle,
+        storeSlug: claimObj.storeSlug,
+        stamps: claimObj.stamps,
+        voucherType: claimObj.voucherType
+      })
+    }).catch(() => {});
+  };
+
+  // Listen for Merchant Approval while waiting on Screen 12
+  useEffect(() => {
+    if (currentScreen !== 'waiting_approval') return;
+
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+
+    const handleApproved = (payload) => {
+      confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+      setSelectedReward(prev => ({
+        ...prev,
+        approvedDate: payload?.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }));
+      setWaitingApprovalActive(false);
       setCurrentScreen('reward_congrats');
-    }, 2500);
+    };
+
+    // 1. Listen via BroadcastChannel
+    let channel;
+    try {
+      channel = new BroadcastChannel('beaurex_redemptions');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'REWARD_APPROVED') {
+          const pCust = String(event.data.customerId || '').replace(/^ID:\s*/, '').trim();
+          if (!pCust || pCust === cleanCustomerId || (pendingClaimId && event.data.claimId === pendingClaimId)) {
+            handleApproved(event.data);
+          }
+        }
+      };
+    } catch (_) {}
+
+    // 2. Listen via storage event
+    const handleStorage = (e) => {
+      if (e.key === 'beaurex_latest_approval' && e.newValue) {
+        try {
+          const payload = JSON.parse(e.newValue);
+          if (payload.type === 'REWARD_APPROVED') {
+            const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+            if (!pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId)) {
+              handleApproved(payload);
+            }
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // 3. Polling check (every 1.2s) from server & localStorage
+    const pollInterval = setInterval(async () => {
+      // Check localStorage
+      try {
+        const raw = localStorage.getItem('beaurex_latest_approval');
+        if (raw) {
+          const payload = JSON.parse(raw);
+          if (payload.type === 'REWARD_APPROVED') {
+            const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+            if (!pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId)) {
+              if (Date.now() - (payload.timestamp || 0) < 120000) {
+                clearInterval(pollInterval);
+                handleApproved(payload);
+                return;
+              }
+            }
+          }
+        }
+      } catch (_) {}
+
+      // Check server endpoint
+      try {
+        const res = await fetch(`/api/customer/reward/check-approval?customerId=${cleanCustomerId}&claimId=${pendingClaimId || ''}`);
+        const data = await res.json();
+        if (data.status === 'APPROVED' && data.claim) {
+          clearInterval(pollInterval);
+          handleApproved(data.claim);
+        }
+      } catch (_) {}
+    }, 1200);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('storage', handleStorage);
+      if (channel) channel.close();
+    };
+  }, [currentScreen, pendingClaimId, customerUser.customerId]);
+
+  // Method to trigger approval simulation directly if testing locally
+  const handleSimulateMerchantApproval = () => {
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const now = new Date();
+    const approvedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const approvedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    const payload = {
+      type: 'REWARD_APPROVED',
+      claimId: pendingClaimId || 'rem_1',
+      customerId: cleanCustomerId,
+      rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
+      approvedAt: approvedTime,
+      approvedDate: approvedDate,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage(payload);
+      channel.close();
+    } catch (_) {}
+
+    confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+    setSelectedReward(prev => ({
+      ...prev,
+      approvedDate: approvedDate,
+      approvedTime: approvedTime
+    }));
+    setWaitingApprovalActive(false);
+    setCurrentScreen('reward_congrats');
   };
 
   // Complete Claim and record in Reward History
   const handleClaimDone = () => {
+    if (selectedReward) {
+      setClaimableRewards((prev) => {
+        const next = prev.filter(r => r.id !== selectedReward.id && r.title !== selectedReward.title);
+        try { localStorage.setItem('beaurex_claimable_rewards', JSON.stringify(next)); } catch (e) {}
+        return next;
+      });
+    }
     setRewardHistory((prev) => [
       {
         id: `rh-${Date.now()}`,
@@ -818,12 +1012,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         storeName: selectedReward.storeName || 'Ka-feen',
         category: 'Coffee Shop',
         status: 'Active',
-        claimedDate: selectedReward.approvedDate || '20 May 2026',
+        claimedDate: selectedReward.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
         dateLabel: 'Valid till',
         dateValue: selectedReward.validTill || '30 Jul 2026',
         image: selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
         voucherCode: 'BX-KAF-30OFF',
-        discount: '30% Discount'
+        discount: selectedReward.title || 'Reward Voucher'
       },
       ...prev
     ]);
@@ -837,7 +1031,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // =========================================================================
   if (slug && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
+      <div 
+        className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans customer-root auth-root selection:bg-[#8B0000] selection:text-white"
+        style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+      >
         <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-3 group">
@@ -847,10 +1044,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
               />
               <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight leading-none text-[#74111d]">
+                <span className="text-xl font-black tracking-tight leading-none text-[#8B0000]">
                   BeAurex
                 </span>
-                <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+                <span className="text-[10px] font-bold text-[#8B0000] uppercase tracking-widest mt-0.5">
                   Rewarding Loyalty
                 </span>
               </div>
@@ -870,7 +1067,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </div>
 
             <div>
-              <span className="bg-rose-50 text-[#74111d] border border-rose-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5">
+              <span className="bg-rose-50 text-[#8B0000] border border-rose-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5">
                 ● Store Counter Online
               </span>
               <h2 className="text-xl font-black text-slate-900">{storeInfo.storeName}</h2>
@@ -879,12 +1076,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             {/* Offer highlight card */}
             <div className="bg-rose-50/60 border border-rose-200/80 rounded-2xl p-4 text-left flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-xl bg-[#74111d] text-white flex items-center justify-center font-black text-sm shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#8B0000] text-white flex items-center justify-center font-black text-sm shrink-0">
                 <Gift className="w-5 h-5 text-amber-200" />
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-black text-slate-900 leading-snug">30% OFF on next purchase</div>
-                <div className="text-[11px] text-[#74111d] font-bold mt-0.5">Collect 5 stamps to unlock</div>
+                <div className="text-[11px] text-[#8B0000] font-bold mt-0.5">Collect 5 stamps to unlock</div>
               </div>
             </div>
 
@@ -908,7 +1105,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   setIsAuthenticated(false);
                   navigate('/customer/login');
                 }}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 px-4 rounded-2xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 px-4 rounded-2xl text-xs transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
               >
                 <LogIn className="w-4 h-4 text-white" />
                 <span>Sign In with Email &amp; Password</span>
@@ -949,9 +1146,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <div className="space-y-3">
                 <button
                   onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#8B0000] font-bold text-xs flex items-center justify-center shrink-0">
                     G
                   </div>
                   <div className="min-w-0 flex-1">
@@ -967,20 +1164,20 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     value={googleCustomName}
                     onChange={(e) => setGoogleCustomName(e.target.value)}
                     placeholder="Your Name"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
                   />
                   <input
                     type="email"
                     value={googleCustomEmail}
                     onChange={(e) => setGoogleCustomEmail(e.target.value)}
                     placeholder="yourname@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
                   />
                   <button
                     type="button"
                     disabled={!googleCustomEmail}
                     onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
-                    className="w-full py-2 bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    className="w-full py-2 bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
                   >
                     <span>Sign in with this account</span>
                   </button>
@@ -998,7 +1195,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 font-sans selection:bg-[#74111d] selection:text-white">
+      <div 
+        className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 font-sans customer-root auth-root selection:bg-[#8B0000] selection:text-white"
+        style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+      >
         
         {/* OTP VERIFICATION VIEW (Matches Reference Image 2) */}
         {otpSent ? (
@@ -1360,30 +1560,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   )}
                 </button>
 
-                {/* Or Divider */}
-                <div className="relative flex items-center justify-center py-1">
-                  <div className="border-t border-slate-200 w-full"></div>
-                  <span className="bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider relative">or</span>
-                </div>
-
-                {/* Continue with Google */}
-                <button
-                  type="button"
-                  disabled={googleLoading}
-                  onClick={() => setGoogleSignInModalOpen(true)}
-                  className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-3 rounded-xl transition text-xs flex items-center justify-center space-x-2.5 cursor-pointer shadow-xs"
-                >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
-
                 {/* Don't have an account? Create Account */}
-                <div className="text-center pt-2 text-xs text-slate-500">
+                <div className="text-center pt-3 text-xs text-slate-500">
                   Don&apos;t have an account?{' '}
                   <button
                     type="button"
@@ -1447,9 +1625,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <div className="space-y-3">
                 <button
                   onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
                 >
-                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#8B0000] font-bold text-xs flex items-center justify-center shrink-0">
                     G
                   </div>
                   <div className="min-w-0 flex-1">
@@ -1465,20 +1643,20 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     value={googleCustomName}
                     onChange={(e) => setGoogleCustomName(e.target.value)}
                     placeholder="Your Name"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
                   />
                   <input
                     type="email"
                     value={googleCustomEmail}
                     onChange={(e) => setGoogleCustomEmail(e.target.value)}
                     placeholder="yourname@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
                   />
                   <button
                     type="button"
                     disabled={!googleCustomEmail}
                     onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
-                    className="w-full py-2 bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
+                    className="w-full py-2 bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
                   >
                     <span>Sign in with this account</span>
                   </button>
@@ -1495,24 +1673,27 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // MAIN APP CONTAINER (Screens 5, 6, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-[#74111d] selection:text-white pb-24 md:pb-8">
+    <div 
+      className="min-h-screen bg-slate-50 flex flex-col font-sans customer-root customer-portal selection:bg-[#8B0000] selection:text-white pb-24 md:pb-8"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 16: SPLASH SCREEN (Batch 5) */}
       {/* ------------------------------------------------------------------- */}
       {splashLoading && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-          <div className="w-20 h-20 rounded-3xl bg-[#74111d] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/30 mb-5">
+          <div className="w-20 h-20 rounded-3xl bg-[#8B0000] text-white flex items-center justify-center shadow-xl shadow-[#8B0000]/30 mb-5">
             <QrCode className="w-10 h-10" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Loyal<span className="text-[#74111d]">QR</span>
+            Loyal<span className="text-[#8B0000]">QR</span>
           </h1>
           <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
             Collect. Scan. Earn.
           </p>
           <div className="mt-8 flex flex-col items-center space-y-2">
-            <RefreshCw className="w-5 h-5 text-[#74111d] animate-spin" />
+            <RefreshCw className="w-5 h-5 text-[#8B0000] animate-spin" />
             <span className="text-xs text-slate-400 font-medium">Loading...</span>
           </div>
         </div>
@@ -1534,7 +1715,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <p className="text-xs text-slate-500">Please check your connection and try again.</p>
             <button
               onClick={() => setNoInternetModalOpen(false)}
-              className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+              className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Retry</span>
@@ -1561,7 +1742,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   setCameraPermissionModalOpen(false);
                   startCamera();
                 }}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
               >
                 <Camera className="w-4 h-4" />
                 <span>Allow Camera</span>
@@ -1584,7 +1765,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {/* DESKTOP & TABLET TOP NAVIGATION BAR (Visible on md/lg screens) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 hidden md:block shadow-xs">
+      <header className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] border-b border-[#720000] text-white sticky top-0 z-40 hidden md:block shadow-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-[84px] flex items-center justify-between">
           
           {/* Brand Logo */}
@@ -1592,13 +1773,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-black/30 ring-1 ring-white/20 group-hover:scale-105 transition-all duration-300"
             />
             <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-[#74111d]">
+              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
                 BeAurex
               </span>
-              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-rose-200 uppercase tracking-widest mt-0.5">
                 Rewarding Loyalty
               </span>
             </div>
@@ -1610,8 +1791,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               onClick={() => setCurrentScreen('home')}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'home'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <Home className="w-4 h-4" />
@@ -1622,8 +1803,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               onClick={openScanScreen}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'scan'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-[#74111d] hover:bg-rose-50 active:bg-rose-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <QrCode className="w-4 h-4" />
@@ -1637,13 +1818,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               }}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'rewards'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <Gift className="w-4 h-4" />
               <span>My Rewards</span>
-              <span className="bg-[#74111d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-white text-[#8B0000] text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                 {rewardHistory.length}
               </span>
             </button>
@@ -1655,21 +1836,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               onClick={() => setCurrentScreen('profile')}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'profile'
-                  ? 'bg-rose-50 text-[#8B0000] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
               title="Profile"
             >
-              <User className="w-4 h-4 text-[#8B0000]" />
+              <User className="w-4 h-4" />
               <span>Profile</span>
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="p-2.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -1678,19 +1851,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {/* MOBILE TOP NAVIGATION BAR (Visible on mobile screens < md) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen !== 'scan' && currentScreen !== 'rewards' && currentScreen !== 'after_scan' && currentScreen !== 'reward_details' && currentScreen !== 'waiting_approval' && currentScreen !== 'reward_congrats' && (
-        <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-xs">
+      {currentScreen !== 'scan' && currentScreen !== 'after_scan' && currentScreen !== 'reward_details' && currentScreen !== 'waiting_approval' && currentScreen !== 'reward_congrats' && (
+        <header className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] border-b border-[#720000] text-white sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-md">
           <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-2.5">
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-red-950/20"
+              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-black/30 ring-1 ring-white/20"
             />
             <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight leading-none text-[#74111d] block">
+              <span className="text-base font-black tracking-tight leading-none text-white block">
                 BeAurex
               </span>
-              <span className="text-[9px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5 block">
+              <span className="text-[9px] font-bold text-rose-200 uppercase tracking-widest mt-0.5 block">
                 Rewarding Loyalty
               </span>
             </div>
@@ -1699,17 +1872,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentScreen('profile')}
-              className="w-8 h-8 rounded-xl bg-rose-100 text-[#8B0000] font-black text-xs flex items-center justify-center shadow-xs cursor-pointer ring-1 ring-[#8B0000]/20"
-              title="Profile & Refer"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-xs cursor-pointer transition border ${
+                currentScreen === 'profile'
+                  ? 'bg-white text-[#8B0000] border-white'
+                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+              }`}
+              title="Profile"
+              aria-label="Profile"
             >
-              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl transition cursor-pointer"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
+              <User className="w-4 h-4" />
             </button>
           </div>
         </header>
@@ -1721,28 +1892,32 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {currentScreen === 'home' && (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
-          {/* Two Stat Cards (Active Loyalty Cards & Rewards Redeemed) matching Image 2 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/80 shrink-0">
-                <CreditCard className="w-6 h-6 text-emerald-600" />
+          {/* Two Stat Cards (Active Loyalty Cards & Rewards Redeemed) in one single line */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-5 shadow-xs flex items-center space-x-2.5 sm:space-x-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/80 shrink-0">
+                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
               </div>
-              <div>
-                <span className="text-xs font-semibold text-slate-500 block leading-tight">Active Loyalty Cards</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 block mt-0.5">
-                  {customerUser.activeCardsCount || 4}
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block leading-tight truncate">
+                  Active Loyalty Cards
+                </span>
+                <span className="text-xl sm:text-3xl font-black text-slate-900 block mt-0.5">
+                  {customerUser.activeCardsCount ?? 1}
                 </span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100/80 shrink-0">
-                <Gift className="w-6 h-6 text-sky-600" />
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-5 shadow-xs flex items-center space-x-2.5 sm:space-x-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100/80 shrink-0">
+                <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-sky-600" />
               </div>
-              <div>
-                <span className="text-xs font-semibold text-slate-500 block leading-tight">Rewards Redeemed</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 block mt-0.5">
-                  {customerUser.rewardsRedeemedCount || 3}
+              <div className="min-w-0 flex-1">
+                <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block leading-tight truncate">
+                  Rewards Redeemed
+                </span>
+                <span className="text-xl sm:text-3xl font-black text-slate-900 block mt-0.5">
+                  {customerUser.rewardsRedeemedCount ?? 3}
                 </span>
               </div>
             </div>
@@ -1763,7 +1938,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </p>
                   <button
                     onClick={openScanScreen}
-                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-8 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
+                    className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3.5 px-8 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
                   >
                     <QrCode className="w-4 h-4" />
                     <span>Scan QR Code Standee</span>
@@ -1986,7 +2161,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
                       <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between">
                         <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
+                          <div className="w-7 h-7 rounded-full bg-[#8B0000] text-white flex items-center justify-center shrink-0">
                             <Gift className="w-3.5 h-3.5 text-amber-200" />
                           </div>
                           <div>
@@ -1994,7 +2169,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <div className="text-[10px] text-slate-500 font-medium">Only 1 stamp to unlock!</div>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-[#74111d]" />
+                        <ChevronRight className="w-4 h-4 text-[#8B0000]" />
                       </div>
                     </div>
 
@@ -2242,452 +2417,140 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Batch 2 & 3) */}
+      {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Matching Image 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'rewards' && (
-        <>
-          {/* MOBILE VIEW (Screens < md) matching media_1791477164813.png */}
-          <div className="md:hidden w-full max-w-lg mx-auto px-4 py-3 space-y-4 pb-28">
-            {/* Top Bar with Back Arrow & Store info */}
-            <div className="flex items-center space-x-3 pb-3 border-b border-slate-100">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-5 space-y-5 pb-28">
+          {/* Top Tab Bar: To Claim vs History (matching Image 3) */}
+          <div className="border-b border-slate-200">
+            <div className="flex items-center justify-center space-x-12 sm:space-x-16 max-w-md mx-auto">
               <button
-                onClick={() => setCurrentScreen('home')}
-                className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
-                title="Back to Home"
-              >
-                <ArrowLeft className="w-6 h-6 stroke-[2]" />
-              </button>
-              <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
-                <Coffee className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-slate-900 leading-tight">Ka-feen</h2>
-                <p className="text-xs text-slate-500 font-medium">Coffee Shop</p>
-              </div>
-            </div>
-
-            {/* Mobile Sub-tabs: Store Rewards vs Reward History */}
-            <div className="bg-slate-100 p-1 rounded-2xl flex max-w-sm mx-auto shadow-xs">
-              <button
+                type="button"
                 onClick={() => setRewardsSubTab('to_claim')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                className={`pb-3 px-3 text-sm sm:text-base font-black transition cursor-pointer relative ${
                   rewardsSubTab === 'to_claim'
-                    ? 'bg-white text-[#8B0000] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-slate-900 border-b-2 border-[#8B0000]'
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
-                Store Rewards
+                To Claim
               </button>
+
               <button
+                type="button"
                 onClick={() => setRewardsSubTab('history')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition cursor-pointer text-center flex items-center justify-center space-x-1.5 ${
+                className={`pb-3 px-3 text-sm sm:text-base font-black transition cursor-pointer flex items-center space-x-2 relative ${
                   rewardsSubTab === 'history'
-                    ? 'bg-white text-[#8B0000] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-slate-900 border-b-2 border-[#8B0000]'
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
-                <span>Reward History</span>
-                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                  rewardsSubTab === 'history' ? 'bg-[#8B0000] text-white' : 'bg-slate-200 text-slate-700'
-                }`}>
+                <span>History</span>
+                <span className="w-5 h-5 rounded-full bg-[#8B0000] text-white text-[10px] font-black flex items-center justify-center shadow-xs">
                   {rewardHistory.length}
                 </span>
               </button>
             </div>
-
-            {rewardsSubTab === 'to_claim' ? (
-              <>
-                {/* Stamp Progress Box (matching image) */}
-                <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-2.5 shadow-xs">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 stamp!</h3>
-                  <p className="text-xs text-slate-600 font-medium">3 of 5 stamps collected</p>
-                  
-                  <div className="flex items-center justify-center space-x-2.5 pt-1.5 pb-1">
-                    {[1, 2, 3].map((n) => (
-                      <div
-                        key={n}
-                        className="w-9 h-9 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
-                      >
-                        <Crown className="w-4 h-4 text-white fill-white" />
-                      </div>
-                    ))}
-                    {[4, 5, 6].map((n) => (
-                      <div
-                        key={n}
-                        className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 bg-white/70"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Available Rewards Header */}
-                <div className="pt-1">
-                  <h3 className="text-base font-black text-slate-900 mb-3">Available Rewards</h3>
-
-                  <div className="space-y-3">
-                    {/* Reward 1: 30% OFF (Achieved) */}
-                    <div 
-                      onClick={() => {
-                        setSelectedReward({
-                          title: '30% off on next purchase',
-                          storeName: 'Ka-feen',
-                          requiresStamps: 2,
-                          validTill: '7/30/2026',
-                          image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Today, 2:30 PM'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
-                        alt="30% OFF"
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-1">
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">30% off on next purchase</h4>
-                          <span className="bg-[#10b981] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
-                            ACHIEVED
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                            2 STAMPS
-                          </span>
-                          <span className="text-[11px] text-slate-600 font-medium">Ready to claim! 🎉</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                            EXPIRES 7/30/2026
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Reward 2: 50% discount */}
-                    <div 
-                      onClick={() => {
-                        setSelectedReward({
-                          title: '50% discount',
-                          storeName: 'Ka-feen',
-                          requiresStamps: 5,
-                          validTill: '7/30/2026',
-                          image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Locked'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
-                        alt="50% discount"
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">50% discount</h4>
-                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                            5 STAMPS
-                          </span>
-                          <span className="text-[11px] text-slate-500 font-medium">• Collect 2 more</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                            EXPIRES 7/30/2026
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Reward 3: Free Coffee */}
-                    <div 
-                      onClick={() => {
-                        setSelectedReward({
-                          title: 'Free Coffee',
-                          storeName: 'Ka-feen',
-                          requiresStamps: 3,
-                          validTill: '7/30/2026',
-                          image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Locked'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
-                        alt="Free Coffee"
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Free Coffee</h4>
-                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                            3 STAMPS
-                          </span>
-                          <span className="text-[11px] text-slate-500 font-medium">• Collect 1 more</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                            EXPIRES 7/30/2026
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              /* Reward History view matching media_1791478192379.png */
-              <div className="space-y-4 pt-1">
-                {/* Filter pills: All, Active, Used, Expired */}
-                <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
-                  {['All', 'Active', 'Used', 'Expired'].map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setHistoryFilter(f)}
-                      className={`py-1.5 px-5 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
-                        historyFilter === f
-                          ? 'bg-[#8B0000] text-white shadow-xs'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {f}
-                    </button>
-                  ))}
-                </div>
-
-                {/* History cards */}
-                <div className="space-y-3.5">
-                  {rewardHistory
-                    .filter((item) => historyFilter === 'All' || item.status.toLowerCase() === historyFilter.toLowerCase())
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => setSelectedHistoryVoucher(item)}
-                        className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-md transition cursor-pointer"
-                      >
-                        {/* Top Section */}
-                        <div className="flex items-start space-x-3.5">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-16 h-16 rounded-2xl object-cover shrink-0 shadow-xs"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-sm font-extrabold text-slate-900 leading-snug">
-                                {item.title}
-                              </h4>
-                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg shrink-0 ${
-                                item.status === 'Used'
-                                  ? 'bg-emerald-50 text-emerald-600'
-                                  : item.status === 'Active'
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-500'
-                              }`}>
-                                {item.status}
-                              </span>
-                            </div>
-                            <p className="text-xs font-semibold text-slate-800 mt-1">
-                              {item.storeName}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Bottom Section */}
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                          <div className="flex-1">
-                            <span className="text-[11px] text-slate-400 font-medium block">Claimed on</span>
-                            <span className="text-xs font-bold text-slate-900 mt-0.5 block">{item.claimedDate}</span>
-                          </div>
-
-                          <div className="h-7 w-px bg-slate-200/80 mx-3"></div>
-
-                          <div className="flex-1">
-                            <span className="text-[11px] text-slate-400 font-medium block">{item.dateLabel || 'Used on'}</span>
-                            <span className="text-xs font-bold text-slate-900 mt-0.5 block">{item.dateValue}</span>
-                          </div>
-
-                          <div className="pl-2">
-                            <ChevronRight className="w-5 h-5 text-slate-800 shrink-0" />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* DESKTOP VIEW (Visible on screens >= md) */}
-          <div className="hidden md:block w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-          
-          {/* Header Card (Responsive on Mobile and Laptop) */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center shrink-0 shadow-xs">
-                <Gift className="w-5 h-5 text-[#74111d]" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                  My Rewards &amp; Vouchers
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                  Track unlocked vouchers, redeem in-store, and review past rewards
-                </p>
-              </div>
-            </div>
-
-            {/* Quick stats pills */}
-            <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
-                <span className="text-[10px] font-bold text-emerald-700 uppercase block">Active</span>
-                <span className="text-base font-black text-emerald-800">
-                  {rewardHistory.filter(r => r.status === 'Active').length}
-                </span>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Total</span>
-                <span className="text-base font-black text-slate-800">{rewardHistory.length}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Segmented Tab Control: To Claim vs History */}
-          <div className="bg-slate-100 p-1.5 rounded-2xl flex max-w-md shadow-xs">
-            <button
-              onClick={() => setRewardsSubTab('to_claim')}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition cursor-pointer text-center ${
-                rewardsSubTab === 'to_claim'
-                  ? 'bg-white text-[#74111d] shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              Ready to Claim
-            </button>
-
-            <button
-              onClick={() => setRewardsSubTab('history')}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition cursor-pointer text-center flex items-center justify-center space-x-1.5 ${
-                rewardsSubTab === 'history'
-                  ? 'bg-white text-[#74111d] shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <span>Reward History</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                rewardsSubTab === 'history' ? 'bg-[#74111d] text-white' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {rewardHistory.length}
-              </span>
-            </button>
-          </div>
-
-          {/* TAB 1: TO CLAIM (Screen 8) */}
+          {/* TAB 1: TO CLAIM */}
           {rewardsSubTab === 'to_claim' && (
-            <div className="space-y-6">
-              {/* Ready Rewards Section */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-black text-slate-900">Available at Participating Stores</h3>
-                  <span className="text-xs text-slate-500 font-medium">1 reward unlocked</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Ready to Claim Card: Brew House */}
-                  <div className="bg-white border-2 border-emerald-500/30 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
-                            alt="Brew House"
-                            className="w-12 h-12 rounded-2xl object-cover shadow-xs"
-                          />
-                          <div>
-                            <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                              Ready Now 🎉
-                            </span>
-                            <h4 className="text-sm font-black text-slate-900 mt-1">Buy 1 Get 1 Free</h4>
-                            <p className="text-xs text-slate-500 font-medium">Brew House Bakery &amp; Bistro</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-xs text-emerald-800 font-medium flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>5 of 5 stamps collected! Ready to claim at checkout.</span>
-                      </div>
+            <>
+              {claimableRewards.length === 0 ? (
+                /* Empty state matching Image 3 */
+                <div className="w-full max-w-sm sm:max-w-md mx-auto pt-4 sm:pt-8 animate-in fade-in duration-200">
+                  <div className="bg-white border border-slate-200/90 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xs">
+                    <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mx-auto shadow-2xs">
+                      <span className="text-5xl select-none" role="img" aria-label="Gift">🎁</span>
                     </div>
-
-                    <button
-                      onClick={() => {
-                        setSelectedReward({
-                          title: 'Buy 1 Get 1 Free',
-                          storeName: 'Brew House',
-                          requiresStamps: 5,
-                          validTill: '15 Aug 2026',
-                          image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Ready Now'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
-                    >
-                      <Gift className="w-4 h-4 text-amber-300" />
-                      <span>Claim This Reward</span>
-                    </button>
-                  </div>
-
-                  {/* Progress Card: Ka-feen */}
-                  <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
-                            alt="Ka-feen"
-                            className="w-12 h-12 rounded-2xl object-cover shadow-xs"
-                          />
-                          <div>
-                            <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase border border-rose-100">
-                              2 More Stamps
-                            </span>
-                            <h4 className="text-sm font-black text-slate-900 mt-1">30% off on next purchase</h4>
-                            <p className="text-xs text-slate-500 font-medium">Ka-feen Coffee Shop</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-xs text-slate-600 font-medium flex items-center justify-between">
-                        <span>Progress: 3/5 Stamps</span>
-                        <div className="flex items-center space-x-1">
-                          {[1, 2, 3].map(n => <BeAurexStamp key={n} stamped={true} size="xs" />)}
-                          {[4, 5].map(n => <BeAurexStamp key={n} stamped={false} size="xs" />)}
-                        </div>
-                      </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                        No Rewards Yet
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-xs mx-auto mt-2 leading-relaxed">
+                        Collect more stamps from your favourite businesses to earn exciting rewards!
+                      </p>
                     </div>
-
-                    <button
-                      onClick={openScanScreen}
-                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                    >
-                      <QrCode className="w-4 h-4 text-[#74111d]" />
-                      <span>Scan to Collect Stamps</span>
-                    </button>
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentScreen('home')}
+                        className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 px-8 rounded-2xl shadow-md shadow-[#8B0000]/25 transition active:scale-95 cursor-pointer text-sm"
+                      >
+                        Explore Businesses
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* Claimable Rewards Grid: ONLY active claimable rewards (no scan option randomly) */
+                <div className="w-full max-w-5xl mx-auto space-y-4 pt-2 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-sm sm:text-base font-black text-slate-900">Available at Participating Stores</h3>
+                    <span className="text-xs text-slate-500 font-medium">
+                      {claimableRewards.length} reward{claimableRewards.length > 1 ? 's' : ''} unlocked
+                    </span>
+                  </div>
 
-            </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {claimableRewards.map((reward) => (
+                      <div 
+                        key={reward.id}
+                        className="bg-white border-2 border-emerald-500/30 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={reward.image}
+                                alt={reward.storeName}
+                                className="w-12 h-12 rounded-2xl object-cover shadow-xs"
+                              />
+                              <div>
+                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                                  Ready Now 🎉
+                                </span>
+                                <h4 className="text-sm font-black text-slate-900 mt-1">{reward.title}</h4>
+                                <p className="text-xs text-slate-500 font-medium">{reward.storeName}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-xs text-emerald-800 font-medium flex items-center space-x-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{reward.description || `${reward.requiresStamps || 5} of ${reward.requiresStamps || 5} stamps collected! Ready to claim at checkout.`}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedReward({
+                              id: reward.id,
+                              title: reward.title,
+                              subtitle: reward.subtitle || '',
+                              storeName: reward.storeName,
+                              requiresStamps: reward.requiresStamps || 5,
+                              validTill: reward.validTill || '15 Aug 2026',
+                              image: reward.image,
+                              approvedAt: reward.approvedAt || 'Ready Now'
+                            });
+                            setCurrentScreen('reward_details');
+                          }}
+                          className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md shadow-[#8B0000]/20 active:scale-98"
+                        >
+                          <Gift className="w-4 h-4 text-amber-300" />
+                          <span>Claim This Reward</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {/* TAB 2: REWARD HISTORY (Screen 14) */}
+          {/* TAB 2: REWARD HISTORY */}
           {rewardsSubTab === 'history' && (() => {
             const filteredHistory = rewardHistory.filter((item) => {
               if (historyFilter === 'All') return true;
@@ -2695,8 +2558,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             });
 
             return (
-              <div className="space-y-4">
-                {/* Filter pills: All, Active, Used, Expired (matching Image) */}
+              <div className="space-y-4 pt-1 animate-in fade-in duration-200">
+                {/* Filter pills: All, Active, Used, Expired */}
                 <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
                   {['All', 'Active', 'Used', 'Expired'].map((f) => (
                     <button
@@ -2726,7 +2589,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredHistory.map((item) => (
                       <div
                         key={item.id}
@@ -2786,8 +2649,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
             );
           })()}
-          </div>
-        </>
+        </div>
       )}
 
       {/* ------------------------------------------------------------------- */}
@@ -2906,26 +2768,36 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Customer ID
               </span>
               <span className="text-xl sm:text-2xl font-black text-[#8B0000] font-mono tracking-wider block mt-0.5">
-                LQR-8F4A29
+                {customerUser.customerId || 'LQR-8F4A29'}
               </span>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto">
-            Please share your Customer ID with the cashier.
-          </p>
+          <div className="space-y-2">
+            <span className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Awaiting Cashier Approval</span>
+            </span>
+            <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed">
+              Show your Customer ID to the merchant. Once they click <strong>Accept</strong> on their BeAurex Terminal, your reward will unlock here automatically.
+            </p>
+          </div>
 
-          {/* Discreet shortcut to immediately approve */}
-          <div className="pt-2">
+          {/* Actions & Simulation */}
+          <div className="pt-2 space-y-2">
             <button
               type="button"
-              onClick={() => {
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-                setCurrentScreen('reward_congrats');
-              }}
-              className="text-[11px] font-bold text-slate-400 hover:text-[#8B0000] transition cursor-pointer"
+              onClick={handleSimulateMerchantApproval}
+              className="text-xs font-bold text-slate-500 hover:text-[#8B0000] underline block mx-auto transition cursor-pointer"
             >
-              [Instant Approval Demo]
+              [Simulate Cashier Approval Now]
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentScreen('reward_details')}
+              className="text-xs text-slate-400 hover:text-slate-600 block mx-auto transition cursor-pointer"
+            >
+              Cancel &amp; Go Back
             </button>
           </div>
         </div>
@@ -3021,29 +2893,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <div className="absolute -left-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
 
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center space-x-3.5">
-                <button
-                  onClick={() => setCurrentScreen('home')}
-                  className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 cursor-pointer sm:hidden transition"
-                  title="Back"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-white flex items-center justify-center shrink-0 shadow-md">
-                  <User className="w-6 h-6 text-white" />
+              <div>
+                <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-md border border-white/20 text-amber-300 font-bold text-[10px] uppercase px-2.5 py-0.5 rounded-full mb-1 shadow-xs">
+                  <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
+                  <span>BeAurex Account</span>
                 </div>
-                <div>
-                  <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-md border border-white/20 text-amber-300 font-bold text-[10px] uppercase px-2.5 py-0.5 rounded-full mb-1 shadow-xs">
-                    <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
-                    <span>BeAurex Account</span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-                    Customer Profile
-                  </h2>
-                  <p className="text-xs sm:text-sm text-rose-100/90 font-medium mt-0.5">
-                    Manage your account details, referral code &amp; settings
-                  </p>
-                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
+                  Customer Profile
+                </h2>
+                <p className="text-xs sm:text-sm text-rose-100/90 font-medium mt-0.5">
+                  Manage your account details, referral code &amp; settings
+                </p>
               </div>
             </div>
           </div>
@@ -3052,7 +2912,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             {/* 1. User Profile Card */}
             <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
               <div className="flex items-center space-x-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#981b2a] text-white font-black text-lg flex items-center justify-center shrink-0 shadow-md shadow-[#74111d]/25 ring-2 ring-rose-200">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B0000] to-[#981b2a] text-white font-black text-lg flex items-center justify-center shrink-0 shadow-md shadow-[#8B0000]/25 ring-2 ring-rose-200">
                   {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -3141,19 +3001,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               )}
             </div>
 
-            {/* 4. Member Status Card */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
-              <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-slate-900">Member Status</h4>
-                  <p className="text-[11px] text-slate-500 font-medium">Joined {customerUser.memberSince}</p>
-                </div>
-              </div>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200/80">Active</span>
-            </div>
 
             {/* 5. Privacy Policy Card */}
             <div 
@@ -3184,7 +3031,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
             >
               <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -3195,21 +3042,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <ChevronRight className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
             </div>
 
-            {/* 7. Logout Card */}
-            <div 
-              onClick={handleLogout}
-              className="bg-white border border-rose-100 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-rose-200 hover:bg-rose-50/20 transition cursor-pointer"
-            >
-              <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-                  <LogOut className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-rose-600">Logout</h4>
-                  <p className="text-[11px] text-rose-400 font-medium">Sign out of your customer account</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-rose-400 hover:text-rose-600 shrink-0" />
+            {/* 7. Bottom Logout Button (Matching Brand Theme & Only Logout Text) */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition flex items-center justify-center space-x-2 text-sm cursor-pointer active:scale-[0.99]"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
 
@@ -3320,7 +3162,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                   Voucher Code
                 </span>
-                <div className="text-base font-black font-mono text-[#74111d] tracking-wider">
+                <div className="text-base font-black font-mono text-[#8B0000] tracking-wider">
                   {selectedHistoryVoucher.voucherCode}
                 </div>
                 <p className="text-[10px] text-slate-500">
@@ -3348,7 +3190,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <button
                 type="button"
                 onClick={() => setSelectedHistoryVoucher(null)}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer"
               >
                 Close
               </button>
@@ -3404,7 +3246,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] to-[#590104] text-white text-xs font-black shadow-md hover:from-[#74111d] hover:to-[#400002] transition cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] to-[#590104] text-white text-xs font-black shadow-md hover:from-[#8B0000] hover:to-[#400002] transition cursor-pointer"
                 >
                   Save Changes
                 </button>

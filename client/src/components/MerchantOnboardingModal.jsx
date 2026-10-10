@@ -20,7 +20,7 @@ export default function MerchantOnboardingModal({
   const [businessName, setBusinessName] = useState(merchant?.businessName || '');
   const [category, setCategory] = useState(merchant?.category || 'CAFE_RESTAURANT');
   const [tagline, setTagline] = useState(merchant?.tagline || 'Scan & Earn Loyalty Rewards');
-  const [brandColor, setBrandColor] = useState(merchant?.brandColor || '#74111d');
+  const [brandColor, setBrandColor] = useState(merchant?.brandColor || '#8B0000');
   const [city, setCity] = useState(merchant?.city || 'Delhi NCR');
 
   // Step 2: First Reward State
@@ -251,11 +251,14 @@ export default function MerchantOnboardingModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 z-50 overflow-y-auto">
+    <div 
+      className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 z-50 overflow-y-auto merchant-portal merchant-root"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-auto">
         
         {/* Header Bar */}
-        <div className="bg-[#74111d] text-white p-5 sm:p-6 flex items-center justify-between">
+        <div className="bg-[#8B0000] text-white p-5 sm:p-6 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-xs font-black text-lg">
               ⚙️
@@ -286,59 +289,59 @@ export default function MerchantOnboardingModal({
             <button
               type="button"
               onClick={() => { setError(''); setStep(1); }}
-              className={`flex items-center space-x-2 cursor-pointer transition ${step === 1 ? 'text-[#74111d]' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex items-center space-x-2 cursor-pointer transition ${step === 1 ? 'text-[#8B0000]' : 'text-slate-500 hover:text-slate-900'}`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition ${
-                step === 1 ? 'bg-[#74111d] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
+                step === 1 ? 'bg-[#8B0000] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
               }`}>
                 1
               </div>
-              <span className={`text-xs ${step === 1 ? 'font-black text-[#74111d]' : 'font-bold hidden sm:inline'}`}>Profile</span>
+              <span className={`text-xs ${step === 1 ? 'font-black text-[#8B0000]' : 'font-bold hidden sm:inline'}`}>Profile</span>
             </button>
-            <div className={`h-0.5 flex-1 mx-2 ${step > 1 ? 'bg-[#74111d]' : 'bg-slate-200'}`} />
+            <div className={`h-0.5 flex-1 mx-2 ${step > 1 ? 'bg-[#8B0000]' : 'bg-slate-200'}`} />
 
             {/* Step 2: Reward */}
             <button
               type="button"
               onClick={() => { setError(''); setStep(2); }}
-              className={`flex items-center space-x-2 cursor-pointer transition ${step === 2 ? 'text-[#74111d]' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex items-center space-x-2 cursor-pointer transition ${step === 2 ? 'text-[#8B0000]' : 'text-slate-500 hover:text-slate-900'}`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition ${
-                step === 2 ? 'bg-[#74111d] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
+                step === 2 ? 'bg-[#8B0000] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
               }`}>
                 2
               </div>
-              <span className={`text-xs ${step === 2 ? 'font-black text-[#74111d]' : 'font-bold hidden sm:inline'}`}>Reward</span>
+              <span className={`text-xs ${step === 2 ? 'font-black text-[#8B0000]' : 'font-bold hidden sm:inline'}`}>Reward</span>
             </button>
-            <div className={`h-0.5 flex-1 mx-2 ${step > 2 ? 'bg-[#74111d]' : 'bg-slate-200'}`} />
+            <div className={`h-0.5 flex-1 mx-2 ${step > 2 ? 'bg-[#8B0000]' : 'bg-slate-200'}`} />
 
             {/* Step 3: Location */}
             <button
               type="button"
               onClick={() => { setError(''); setStep(3); }}
-              className={`flex items-center space-x-2 cursor-pointer transition ${step === 3 ? 'text-[#74111d]' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex items-center space-x-2 cursor-pointer transition ${step === 3 ? 'text-[#8B0000]' : 'text-slate-500 hover:text-slate-900'}`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition ${
-                step === 3 ? 'bg-[#74111d] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
+                step === 3 ? 'bg-[#8B0000] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
               }`}>
                 3
               </div>
-              <span className={`text-xs ${step === 3 ? 'font-black text-[#74111d]' : 'font-bold hidden sm:inline'}`}>Location</span>
+              <span className={`text-xs ${step === 3 ? 'font-black text-[#8B0000]' : 'font-bold hidden sm:inline'}`}>Location</span>
             </button>
-            <div className={`h-0.5 flex-1 mx-2 ${step > 3 ? 'bg-[#74111d]' : 'bg-slate-200'}`} />
+            <div className={`h-0.5 flex-1 mx-2 ${step > 3 ? 'bg-[#8B0000]' : 'bg-slate-200'}`} />
 
             {/* Step 4: Standee QR */}
             <button
               type="button"
               onClick={() => { setError(''); setStep(4); }}
-              className={`flex items-center space-x-2 cursor-pointer transition ${step === 4 ? 'text-[#74111d]' : 'text-slate-500 hover:text-slate-900'}`}
+              className={`flex items-center space-x-2 cursor-pointer transition ${step === 4 ? 'text-[#8B0000]' : 'text-slate-500 hover:text-slate-900'}`}
             >
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition ${
-                step === 4 ? 'bg-[#74111d] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
+                step === 4 ? 'bg-[#8B0000] text-white ring-4 ring-rose-100 shadow-xs' : 'bg-slate-200 text-slate-700'
               }`}>
                 4
               </div>
-              <span className={`text-xs ${step === 4 ? 'font-black text-[#74111d]' : 'font-bold hidden sm:inline'}`}>Standee QR</span>
+              <span className={`text-xs ${step === 4 ? 'font-black text-[#8B0000]' : 'font-bold hidden sm:inline'}`}>Standee QR</span>
             </button>
 
           </div>
@@ -365,7 +368,7 @@ export default function MerchantOnboardingModal({
           {step === 1 && (
             <form onSubmit={(e) => handleSaveProfile(e, true)} className="space-y-4">
               <div className="flex items-center space-x-2 text-slate-900 font-black text-base mb-1">
-                <Store className="w-5 h-5 text-[#74111d]" />
+                <Store className="w-5 h-5 text-[#8B0000]" />
                 <span>Store &amp; Business Profile</span>
               </div>
               <p className="text-xs text-slate-500 mb-3">Update your store identity displayed to customers upon scanning.</p>
@@ -378,7 +381,7 @@ export default function MerchantOnboardingModal({
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
                   placeholder="e.g. Royal Sweets & Cafe"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
               </div>
 
@@ -388,7 +391,7 @@ export default function MerchantOnboardingModal({
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   >
                     <option value="CAFE_RESTAURANT">Cafe & Restaurant</option>
                     <option value="RETAIL">Retail / Fashion</option>
@@ -407,7 +410,7 @@ export default function MerchantOnboardingModal({
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="e.g. Delhi NCR, Bengaluru, Mumbai"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   />
                 </div>
               </div>
@@ -419,7 +422,7 @@ export default function MerchantOnboardingModal({
                   value={tagline}
                   onChange={(e) => setTagline(e.target.value)}
                   placeholder="e.g. Scan & Win Instant Counter Rewards"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
               </div>
 
@@ -427,7 +430,7 @@ export default function MerchantOnboardingModal({
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">Brand Theme Color</label>
                 <div className="flex items-center space-x-3">
                   {[
-                    { label: 'Burgundy Red', hex: '#74111d' },
+                    { label: 'Burgundy Red', hex: '#8B0000' },
                     { label: 'Royal Blue', hex: '#1e3a8a' },
                     { label: 'Emerald Green', hex: '#065f46' },
                     { label: 'Sunset Amber', hex: '#b45309' },
@@ -463,7 +466,7 @@ export default function MerchantOnboardingModal({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <span>Save &amp; Continue to Reward</span>
                   <ArrowRight className="w-4 h-4" />
@@ -478,7 +481,7 @@ export default function MerchantOnboardingModal({
           {step === 2 && (
             <form onSubmit={(e) => handleSaveReward(e, true)} className="space-y-4">
               <div className="flex items-center space-x-2 text-slate-900 font-black text-base mb-1">
-                <Gift className="w-5 h-5 text-[#74111d]" />
+                <Gift className="w-5 h-5 text-[#8B0000]" />
                 <span>Customer Loyalty Reward</span>
               </div>
               <p className="text-xs text-slate-500 mb-3">Configure the reward offer unlocked when customers complete their stamps.</p>
@@ -502,7 +505,7 @@ export default function MerchantOnboardingModal({
                         setMinBillAmount(p.min);
                       }}
                       className={`text-left p-2.5 rounded-xl border text-xs font-bold transition cursor-pointer ${
-                        rewardTitle === p.title ? 'bg-rose-50 border-rose-300 text-[#74111d]' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                        rewardTitle === p.title ? 'bg-rose-50 border-rose-300 text-[#8B0000]' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                       }`}
                     >
                       <div className="truncate">{p.title}</div>
@@ -520,7 +523,7 @@ export default function MerchantOnboardingModal({
                   value={rewardTitle}
                   onChange={(e) => setRewardTitle(e.target.value)}
                   placeholder="e.g. 15% OFF On Next Dine-In Bill"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
               </div>
 
@@ -530,7 +533,7 @@ export default function MerchantOnboardingModal({
                   <select
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   >
                     <option value="PERCENTAGE">Percentage (%)</option>
                     <option value="FLAT_AMOUNT">Flat Amount (₹)</option>
@@ -545,7 +548,7 @@ export default function MerchantOnboardingModal({
                     min="1"
                     value={discountValue}
                     onChange={(e) => setDiscountValue(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   />
                 </div>
 
@@ -556,7 +559,7 @@ export default function MerchantOnboardingModal({
                     min="0"
                     value={minBillAmount}
                     onChange={(e) => setMinBillAmount(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   />
                 </div>
               </div>
@@ -575,7 +578,7 @@ export default function MerchantOnboardingModal({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <span>Save &amp; Continue to Location</span>
                   <ArrowRight className="w-4 h-4" />
@@ -590,7 +593,7 @@ export default function MerchantOnboardingModal({
           {step === 3 && (
             <form onSubmit={(e) => handleSaveLocation(e, true)} className="space-y-4">
               <div className="flex items-center space-x-2 text-slate-900 font-black text-base mb-1">
-                <MapPin className="w-5 h-5 text-[#74111d]" />
+                <MapPin className="w-5 h-5 text-[#8B0000]" />
                 <span>Store Location &amp; Outlet</span>
               </div>
               <p className="text-xs text-slate-500 mb-3">Define where your counter standee is situated for customer check-ins.</p>
@@ -603,7 +606,7 @@ export default function MerchantOnboardingModal({
                   value={branchName}
                   onChange={(e) => setBranchName(e.target.value)}
                   placeholder="e.g. Connaught Place Main Branch"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
               </div>
 
@@ -614,7 +617,7 @@ export default function MerchantOnboardingModal({
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="e.g. Shop 42, Block B, Inner Circle"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
               </div>
 
@@ -626,7 +629,7 @@ export default function MerchantOnboardingModal({
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
                     placeholder="e.g. 110001"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   />
                 </div>
 
@@ -637,7 +640,7 @@ export default function MerchantOnboardingModal({
                     value={counterName}
                     onChange={(e) => setCounterName(e.target.value)}
                     placeholder="e.g. Billing Counter 1"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#74111d]"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   />
                 </div>
               </div>
@@ -656,7 +659,7 @@ export default function MerchantOnboardingModal({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white font-black px-6 py-2.5 rounded-xl text-xs transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <span>Save &amp; View Standee QR</span>
                   <ArrowRight className="w-4 h-4" />
@@ -682,15 +685,15 @@ export default function MerchantOnboardingModal({
               {/* Printable Standee Card Preview */}
               <div 
                 className="max-w-xs mx-auto bg-white rounded-3xl p-5 shadow-lg border-2 relative overflow-hidden text-center"
-                style={{ borderColor: brandColor || '#74111d' }}
+                style={{ borderColor: brandColor || '#8B0000' }}
               >
                 <div 
                   className="absolute top-0 inset-x-0 h-2.5"
-                  style={{ backgroundColor: brandColor || '#74111d' }}
+                  style={{ backgroundColor: brandColor || '#8B0000' }}
                 />
                 
                 <div className="mt-2 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#74111d]">BeAurex Smart Standee</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#8B0000]">BeAurex Smart Standee</span>
                   <h4 className="text-base font-black text-slate-900 capitalize truncate mt-0.5">{businessName || 'Your Store'}</h4>
                   <p className="text-[11px] text-slate-500 font-medium truncate">{branchName || 'Main Outlet'}</p>
                 </div>
@@ -743,7 +746,7 @@ export default function MerchantOnboardingModal({
                 <button
                   type="button"
                   onClick={handleFinishOnboarding}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl text-xs transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <span>Done &amp; Close Store Setup</span>
                   <Check className="w-4 h-4" />

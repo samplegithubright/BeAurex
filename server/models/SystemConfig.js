@@ -117,7 +117,19 @@ const systemConfigSchema = new mongoose.Schema({
   legalPolicies: {
     type: mongoose.Schema.Types.Mixed,
     default: {}
-  }
+  },
+  // Platform FAQs
+  faqs: [
+    {
+      id: String,
+      question: String,
+      answer: String,
+      category: { type: String, default: 'General' },
+      status: { type: String, default: 'Published' },
+      order: { type: Number, default: 1 },
+      lastUpdated: String
+    }
+  ]
 }, { timestamps: true });
 
 module.exports = mongoose.model('SystemConfig', systemConfigSchema);

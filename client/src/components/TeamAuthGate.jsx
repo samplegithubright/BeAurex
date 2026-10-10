@@ -198,7 +198,10 @@ export default function TeamAuthGate({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased flex flex-col justify-between selection:bg-[#74111d] selection:text-white transition-colors duration-200">
+    <div 
+      className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 team-root antialiased flex flex-col justify-between selection:bg-[#8B0000] selection:text-white transition-colors duration-200"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       
       {/* Top Bar */}
       <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 py-3.5 px-4 sm:px-8">
@@ -207,13 +210,13 @@ export default function TeamAuthGate({ children }) {
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-[#74111d]/30 group-hover:scale-105 transition transform" 
+              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-[#8B0000]/30 group-hover:scale-105 transition transform" 
             />
             <div className="flex flex-col">
               <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-none">
-                Be<span className="text-[#74111d] dark:text-rose-500">Aurex</span>
+                Be<span className="text-[#8B0000] dark:text-rose-500">Aurex</span>
               </span>
-              <span className="text-[9px] font-extrabold text-[#74111d] dark:text-rose-400 tracking-wider uppercase mt-0.5">
+              <span className="text-[9px] font-extrabold text-[#8B0000] dark:text-rose-400 tracking-wider uppercase mt-0.5">
                 Rewarding Loyalty
               </span>
             </div>
@@ -237,7 +240,7 @@ export default function TeamAuthGate({ children }) {
         <div className="w-full max-w-[380px] sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-9 relative overflow-hidden mx-auto">
           
           {/* Top Wine Red Gradient Highlight Bar */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#74111d] via-[#851421] to-rose-500"></div>
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#8B0000] via-[#8B0000] to-rose-500"></div>
 
           {/* Colorful Team Badge */}
           <div className="flex justify-center mb-4 sm:mb-5">
@@ -272,7 +275,7 @@ export default function TeamAuthGate({ children }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter email or User ID"
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 sm:py-3.5 text-sm focus:outline-none focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] text-slate-900 dark:text-white font-bold transition"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 sm:py-3.5 text-sm focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] text-slate-900 dark:text-white font-bold transition"
               />
             </div>
 
@@ -287,7 +290,7 @@ export default function TeamAuthGate({ children }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-4 pr-11 py-3 sm:py-3.5 text-sm focus:outline-none focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] text-slate-900 dark:text-white font-bold transition"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-4 pr-11 py-3 sm:py-3.5 text-sm focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] text-slate-900 dark:text-white font-bold transition"
                 />
                 <button
                   type="button"
@@ -302,7 +305,7 @@ export default function TeamAuthGate({ children }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#74111d] to-[#851421] hover:from-[#5c0d17] hover:to-[#74111d] text-white font-extrabold py-3 sm:py-3.5 rounded-xl shadow-lg shadow-[#74111d]/25 transition transform hover:-translate-y-0.5 cursor-pointer text-sm sm:text-base flex items-center justify-center space-x-2 disabled:opacity-50 mt-3"
+              className="w-full bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#700000] hover:to-[#8B0000] text-white font-extrabold py-3 sm:py-3.5 rounded-xl shadow-lg shadow-[#8B0000]/25 transition transform hover:-translate-y-0.5 cursor-pointer text-sm sm:text-base flex items-center justify-center space-x-2 disabled:opacity-50 mt-3"
             >
               <span>{loading ? 'Signing In...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4" />

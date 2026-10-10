@@ -1,0 +1,74 @@
+{
+  "pending": [
+    {
+      "id": "rem_1",
+      "customerName": "Sumit",
+      "customerId": "ID: LQR-8F4A29",
+      "rewardTitle": "30% OFF on Next Purchase",
+      "stamps": "5/5 Stamps completed",
+      "timeAgo": "Today, 2:18 PM",
+      "expiresIn": "Expires: 30 Jul 2026",
+      "voucherType": "30",
+      "avatarBg": "bg-emerald-500",
+      "status": "PENDING",
+      "storeSlug": "ka-feen"
+    },
+    {
+      "id": "rem_2",
+      "customerName": "Ajeet",
+      "customerId": "ID: LQR-3K9D21",
+      "rewardTitle": "Free Coffee on Any Purchase",
+      "stamps": "5/5 Stamps completed",
+      "timeAgo": "Today, 12:45 PM",
+      "expiresIn": "Expires: 28 Jul 2026",
+      "voucherType": "coffee",
+      "avatarBg": "bg-indigo-500",
+      "status": "PENDING",
+      "storeSlug": "ka-feen"
+    },
+    {
+      "id": "rem_3",
+      "customerName": "Pooja",
+      "customerId": "ID: LQR-7H2M56",
+      "rewardTitle": "20% OFF on Next Purchase",
+      "stamps": "5/5 Stamps completed",
+      "timeAgo": "Yesterday, 6:30 PM",
+      "expiresIn": "Expires: 27 Jul 2026",
+      "voucherType": "20",
+      "avatarBg": "bg-amber-500",
+      "status": "PENDING",
+      "storeSlug": "ka-feen"
+    }
+  ],
+  "approved": [
+    {
+      "id": "rem_1791629789572",
+      "customerName": "ram",
+      "customerId": "ID: BX-X7F2UE",
+      "rewardTitle": "30% OFF on next purchase",
+      "stamps": "5/5 Stamps completed",
+      "timeAgo": "Just now",
+      "expiresIn": "Expires: 30 Jul 2026",
+      "voucherType": "30",
+      "avatarBg": "bg-emerald-500",
+      "status": "APPROVED",
+      "storeSlug": "kafeen-coffee",
+      "requestedAt": "2026-10-10T10:56:29.572Z",
+      "approvedAt": "04:26 pm",
+      "approvedDate": "10 Oct 2026",
+      "approvedTimestamp": "2026-10-10T10:56:42.912Z"
+    },
+    {
+      "id": "rem_4",
+      "customerName": "Rohit",
+      "customerId": "ID: LQR-1A2B34",
+      "rewardTitle": "Free Coffee on Any Purchase",
+      "approvedAt": "11:20 AM",
+      "approvedDate": "20 May 2026",
+      "voucherType": "coffee",
+      "avatarBg": "bg-purple-500",
+      "status": "APPROVED"
+    }
+  ],
+  "declined": []
+}

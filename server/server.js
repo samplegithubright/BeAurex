@@ -44,9 +44,53 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = formatMongoUri(process.env.MONGO_URI);
 
+// Database connection caching for serverless environments (Vercel) & traditional servers
+let cachedDb = null;
+async function connectDB() {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+  if (cachedDb) {
+    return cachedDb;
+  }
+  if (!MONGO_URI) {
+    console.warn('⚠️ MONGO_URI is not configured in .env');
+    return null;
+  }
+  cachedDb = mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000,
+    family: 4 // Force IPv4 to prevent Windows IPv6 resolution timeouts on Atlas
+  }).then((m) => {
+    const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
+    console.log('✅ Connected to MongoDB Atlas at', safeUri);
+    try { ensureDemoMerchant(); } catch (_) {}
+    try { ensureSparseCustomerIndexes(); } catch (_) {}
+    return m;
+  }).catch((err) => {
+    console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
+    cachedDb = null;
+    return null;
+  });
+  return cachedDb;
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Auto-connect middleware: ensure DB connection attempt with max 2s wait so routes never hang
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1 && MONGO_URI) {
+    try {
+      await Promise.race([
+        connectDB(),
+        new Promise(resolve => setTimeout(resolve, 2000))
+      ]);
+    } catch (_) {}
+  }
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRouter);
@@ -92,6 +136,16 @@ app.get('/api/public/policies/:type', async (req, res) => {
   try {
     const policy = await systemStore.getLegalPolicy(req.params.type);
     res.json({ success: true, policy });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Public endpoint for live Landing Page FAQs (synchronized across Super Admin and MongoDB)
+app.get('/api/public/faqs', async (req, res) => {
+  try {
+    const faqs = await systemStore.getPublicFaqs();
+    res.json({ success: true, faqs });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -153,44 +207,6 @@ async function ensureSparseCustomerIndexes() {
     }
   } catch (_) {}
 }
-
-// Database connection caching for serverless environments (Vercel) & traditional servers
-let cachedDb = null;
-async function connectDB() {
-  if (mongoose.connection.readyState === 1) {
-    return mongoose.connection;
-  }
-  if (cachedDb) {
-    return cachedDb;
-  }
-  if (!MONGO_URI) {
-    console.warn('⚠️ MONGO_URI is not configured in .env');
-    return null;
-  }
-  cachedDb = mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-    family: 4 // Force IPv4 to prevent Windows IPv6 resolution timeouts on Atlas
-  }).then((m) => {
-    const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
-    console.log('✅ Connected to MongoDB Atlas at', safeUri);
-    try { ensureDemoMerchant(); } catch (_) {}
-    try { ensureSparseCustomerIndexes(); } catch (_) {}
-    return m;
-  }).catch((err) => {
-    console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
-    cachedDb = null;
-    return null;
-  });
-  return cachedDb;
-}
-
-// Auto-connect middleware for serverless invocations
-app.use(async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    await connectDB();
-  }
-  next();
-});
 
 // Start server if run directly (local development / container)
 if (process.env.VERCEL !== '1' && require.main === module) {

@@ -1398,4 +1398,50 @@ router.get('/wallet', async (req, res) => {
   }
 });
 
+// =========================================================================
+// 8. Reward Claim Approval Workflow (Requires Merchant Approval)
+// =========================================================================
+const redemptionStore = require('../services/redemptionStore');
+
+// POST Customer Submits Reward Claim Request (Waiting for Merchant Approval)
+router.post('/reward/request-approval', async (req, res) => {
+  try {
+    const { customerId, customerName, rewardTitle, storeSlug = 'ka-feen', stamps, voucherType } = req.body;
+    
+    const claim = redemptionStore.addPendingClaim({
+      customerId: customerId || 'LQR-8F4A29',
+      customerName: customerName || 'Customer',
+      rewardTitle: rewardTitle || '30% OFF on next purchase',
+      storeSlug,
+      stamps: stamps || '5/5 Stamps completed',
+      voucherType: voucherType || '30'
+    });
+
+    console.log(`⏳ Reward claim requested by ${claim.customerName} (${claim.customerId}). Waiting for merchant approval.`);
+
+    return res.json({
+      success: true,
+      status: 'PENDING_APPROVAL',
+      message: 'Claim request submitted. Waiting for merchant to approve.',
+      claim
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET Customer Polls Approval Status for their Reward Claim
+router.get('/reward/check-approval', (req, res) => {
+  try {
+    const { customerId, claimId } = req.query;
+    const result = redemptionStore.checkClaimStatus(customerId, claimId);
+    return res.json({
+      success: true,
+      ...result
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

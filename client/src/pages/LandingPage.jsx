@@ -5,7 +5,7 @@ import {
   Smartphone, Lock, AlertTriangle, ChevronDown, 
   CheckCircle2, Mail, MapPin, Zap, Star, Shield, Eye, Menu,
   QrCode, Phone, Bell, Sliders, Layers, Users, Clock, BarChart3,
-  HelpCircle, CreditCard, Award, Flame, Calendar, RefreshCw, TrendingUp, Heart
+  HelpCircle, CreditCard, Award, Flame, Calendar
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 
@@ -26,6 +26,17 @@ const LIGHT_TAG_PALETTES = [
   { bg: 'bg-sky-50', text: 'text-sky-800', border: 'border-sky-300', icon: 'text-sky-600' },
   { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-300', icon: 'text-purple-600' },
   { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-300', icon: 'text-blue-600' }
+];
+
+const FAQ_GRADIENTS = [
+  'from-amber-400 to-orange-500',
+  'from-blue-500 to-indigo-600',
+  'from-emerald-500 to-teal-600',
+  'from-purple-500 to-pink-600',
+  'from-rose-500 to-red-600',
+  'from-cyan-500 to-blue-600',
+  'from-violet-500 to-purple-600',
+  'from-amber-500 to-rose-500'
 ];
 
 const getPlanTagList = (p) => {
@@ -60,6 +71,42 @@ export default function LandingPage() {
   const [signupLoading, setSignupLoading] = useState(false);
   const [signupError, setSignupError] = useState('');
   const [activeFaq, setActiveFaq] = useState(null);
+  const [faqs, setFaqs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_faqs') || localStorage.getItem('loyalqr_faqs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [
+      {
+        id: 'f1',
+        question: "Will my account be automatically charged when the trial ends?",
+        answer: "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue."
+      },
+      {
+        id: 'f2',
+        question: "How is user phone number security managed?",
+        answer: "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing."
+      },
+      {
+        id: 'f3',
+        question: "Do customers need to download an application from the App Store?",
+        answer: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser."
+      },
+      {
+        id: 'f4',
+        question: "Can I customize the discounts and reward percentages?",
+        answer: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances."
+      },
+      {
+        id: 'f5',
+        question: "How does the acrylic counter standee get configured?",
+        answer: "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk."
+      }
+    ];
+  });
   const [contactSuccess, setContactSuccess] = useState(false);
   const [contactForm, setContactForm] = useState({ name: '', phone: '', email: '', message: '' });
   const [contactSubmitting, setContactSubmitting] = useState(false);
@@ -84,7 +131,7 @@ export default function LandingPage() {
         'Unlimited customer QR scans',
         'Standard Business Hours Support'
       ],
-      ctaText: 'Start 3-Day Free Trial'
+      ctaText: 'Start 2-Day Trial'
     },
     {
       id: 'plan_professional',
@@ -173,6 +220,44 @@ export default function LandingPage() {
     };
   }, []);
 
+  useEffect(() => {
+    // 3. Fetch live FAQs from centralized systemStore API
+    fetch('/api/public/faqs')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.faqs) && data.faqs.length > 0) {
+          setFaqs(data.faqs);
+          try {
+            localStorage.setItem('beaurex_faqs', JSON.stringify(data.faqs));
+          } catch (e) {}
+        }
+      })
+      .catch(() => {
+        try {
+          const cached = JSON.parse(localStorage.getItem('beaurex_faqs') || localStorage.getItem('loyalqr_faqs') || '[]');
+          if (Array.isArray(cached) && cached.length > 0) setFaqs(cached);
+        } catch (e) {}
+      });
+
+    // Real-time dynamic FAQ update listener
+    const handleFaqsUpdate = (e) => {
+      try {
+        const updated = e.detail || JSON.parse(localStorage.getItem('beaurex_faqs') || localStorage.getItem('loyalqr_faqs') || '[]');
+        if (Array.isArray(updated) && updated.length > 0) {
+          setFaqs(updated);
+        }
+      } catch (err) {}
+    };
+
+    window.addEventListener('beaurex_faqs_updated', handleFaqsUpdate);
+    window.addEventListener('storage', handleFaqsUpdate);
+
+    return () => {
+      window.removeEventListener('beaurex_faqs_updated', handleFaqsUpdate);
+      window.removeEventListener('storage', handleFaqsUpdate);
+    };
+  }, []);
+
   const handleStartTrialSubmit = async (e) => {
     e.preventDefault();
     setSignupLoading(true);
@@ -252,7 +337,7 @@ export default function LandingPage() {
         </div>
         <span>Trusted by Fast-Growing Retail Stores, Cafes & Brands Across India</span>
         <span className="hidden md:inline bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase shadow-xs">
-          3-Day Free Trial Active
+          2-Day Free Trial Active
         </span>
       </div>
 
@@ -270,10 +355,10 @@ export default function LandingPage() {
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
             />
             <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-[#74111d]">
+              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-[#8B0000]">
                 BeAurex
               </span>
-              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-[#8B0000] uppercase tracking-widest mt-0.5">
                 Rewarding Loyalty
               </span>
             </div>
@@ -297,40 +382,34 @@ export default function LandingPage() {
             <div className="relative">
               <button
                 onClick={() => setLoginDropdownOpen(!loginDropdownOpen)}
-                className="flex bg-gradient-to-r from-[#74111d] to-[#981b2a] hover:from-[#5e0c15] hover:to-[#801321] text-white font-bold px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl shadow-md shadow-[#74111d]/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm items-center space-x-1.5 sm:space-x-2"
+                className="flex bg-gradient-to-r from-[#8B0000] to-[#981b2a] hover:from-[#720000] hover:to-[#801321] text-white font-bold px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl shadow-md shadow-[#8B0000]/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-xs sm:text-sm items-center space-x-1.5 sm:space-x-2"
               >
                 <span>Login</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform duration-200 ${loginDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {loginDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 transition-all duration-200">
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl p-1.5 z-50 transition-all duration-200">
                   <Link
                     to="/merchant/login"
                     onClick={() => setLoginDropdownOpen(false)}
-                    className="w-full text-left px-3.5 py-3 hover:bg-rose-50/60 rounded-xl font-medium text-xs text-slate-700 flex items-center space-x-2.5 transition-colors duration-150"
+                    className="w-full text-left px-3 py-2.5 hover:bg-rose-50/70 rounded-xl font-bold text-xs text-slate-800 flex items-center space-x-2.5 transition-colors duration-150 cursor-pointer"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
-                      <Store className="w-4 h-4" />
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                      <Store className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <div className="text-slate-900 font-bold">Store Owner / Merchant Login</div>
-                      <div className="text-[10px] text-slate-400 font-normal">Manage standees, scans & rewards</div>
-                    </div>
+                    <span className="text-slate-900 font-bold">Merchant Login</span>
                   </Link>
 
                   <Link
                     to="/customer/login"
                     onClick={() => setLoginDropdownOpen(false)}
-                    className="w-full text-left px-3.5 py-3 hover:bg-emerald-50/60 rounded-xl font-medium text-xs text-slate-700 flex items-center space-x-2.5 border-t border-slate-100 transition-colors duration-150"
+                    className="w-full text-left px-3 py-2.5 hover:bg-emerald-50/70 rounded-xl font-bold text-xs text-slate-800 flex items-center space-x-2.5 border-t border-slate-100 transition-colors duration-150 cursor-pointer"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
-                      <Gift className="w-4 h-4" />
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                      <Gift className="w-3.5 h-3.5" />
                     </div>
-                    <div>
-                      <div className="text-slate-900 font-bold">Customer Login</div>
-                      <div className="text-[10px] text-slate-400 font-normal">Login with Phone OTP or Email</div>
-                    </div>
+                    <span className="text-slate-900 font-bold">Customer Login</span>
                   </Link>
                 </div>
               )}
@@ -348,64 +427,32 @@ export default function LandingPage() {
           {/* Left Column: Content */}
           <div className="lg:col-span-7 text-left space-y-6">
             
-            {/* Top Tagline Badge */}
-            <div className="inline-flex items-center space-x-2 bg-rose-50 border border-rose-200/90 text-[#8B0000] font-bold text-xs uppercase px-4 py-1.5 rounded-full shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-              <span>#1 Loyalty & Rewards Platform for Local Businesses</span>
-            </div>
-
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black text-slate-900 tracking-tight leading-[1.12]">
-              Turn Every Customer Visit Into a <span className="text-[#8B0000]">Repeat Customer</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-black text-slate-900 tracking-tight leading-[1.15]">
+              Turn Every Customer Visit Into <br className="hidden sm:inline" />
+              <span className="text-[#8B0000]">A Repeat Customer</span>
             </h1>
 
-            {/* Subtext */}
+            {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-600 max-w-xl font-normal leading-relaxed">
-              Simple stamps & QR scans. Exciting Aurex rewards. More repeat visits. Grow your business with customer loyalty.
+              A powerful system that turns your business into a customer magnet.
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+            {/* Action CTA Button */}
+            <div className="pt-2">
               <button
                 onClick={() => setSignupModalOpen(true)}
-                className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold px-7 py-3.5 rounded-xl text-sm shadow-lg shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2.5"
+                className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold px-8 py-3.5 rounded-2xl text-base shadow-lg shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer inline-flex items-center justify-center"
               >
-                <span>Start Free — It Only Takes 1 Min</span>
-                <ArrowRight className="w-4 h-4 text-amber-300" />
-              </button>
-
-              <button
-                onClick={() => {
-                  const contactEl = document.getElementById('contact');
-                  if (contactEl) contactEl.scrollIntoView({ behavior: 'smooth' });
-                  else setSignupModalOpen(true);
-                }}
-                className="bg-white hover:bg-slate-50 text-[#8B0000] border-2 border-[#8B0000]/30 hover:border-[#8B0000] font-bold px-6 py-3.5 rounded-xl text-sm transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex items-center justify-center space-x-2 shadow-xs"
-              >
-                <Calendar className="w-4 h-4 text-[#8B0000]" />
-                <span>Book a Free Demo</span>
+                Claim Your 2-Day Free Trial
               </button>
             </div>
 
-            {/* Guarantees / Trust Badges */}
-            <div className="flex flex-wrap items-center gap-5 sm:gap-7 pt-2 text-xs text-slate-600 font-semibold">
-              <div className="flex items-center space-x-1.5">
-                <div className="w-4 h-4 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
-                  <Check className="w-2.5 h-2.5 stroke-[3]" />
-                </div>
-                <span>No Setup Fee</span>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <div className="w-4 h-4 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
-                  <Check className="w-2.5 h-2.5 stroke-[3]" />
-                </div>
-                <span>Easy to Use</span>
-              </div>
-              <div className="flex items-center space-x-1.5">
-                <div className="w-4 h-4 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center">
-                  <Check className="w-2.5 h-2.5 stroke-[3]" />
-                </div>
-                <span>Cancel Anytime</span>
+            {/* Indian Platform Trust Pill */}
+            <div className="pt-2">
+              <div className="inline-flex items-center gap-2 bg-slate-100/90 border border-slate-200/90 rounded-2xl px-4 sm:px-5 py-2.5 text-xs text-slate-700 font-medium shadow-2xs">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">IN</span>
+                <span>A Proudly Indian Platform Built with love to empower local retailers &amp; businesses across INDIA.</span>
               </div>
             </div>
 
@@ -442,50 +489,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ========================================================= */}
-      {/* 4. VALUE PROPOSITIONS (IMAGE 3 HIGHLIGHTS) */}
-      {/* ========================================================= */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 flex items-start space-x-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/25 group-hover:scale-110 transition-transform">
-              <RefreshCw className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-blue-600 transition-colors">More Repeat Visits</h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-normal">
-                Encourage customers to come back again and again with instant Aurex coin rewards.
-              </p>
-            </div>
-          </div>
 
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 flex items-start space-x-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-emerald-600 transition-colors">Increase Sales</h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-normal">
-                Happy customers spend more, return faster, and stay loyal to your business longer.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs hover:shadow-lg hover:border-rose-300 hover:-translate-y-1 transition-all duration-300 flex items-start space-x-4 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-[#8B0000] text-white flex items-center justify-center shrink-0 shadow-md shadow-red-500/25 group-hover:scale-110 transition-transform">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-[#8B0000] transition-colors">Stronger Relationships</h3>
-              <p className="text-slate-500 text-xs leading-relaxed font-normal">
-                Build genuine trust and long-lasting customer connections right at your checkout counter.
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </section>
 
       {/* ========================================================= */}
       {/* 5. COMPLETE FEATURES GRID */}
@@ -501,6 +505,41 @@ export default function LandingPage() {
           <p className="text-slate-600 text-sm mt-3 font-normal leading-relaxed">
             Crafted specially for local businesses, cafes, bakeries, salons and shops wanting customer repeat retention without the complexity.
           </p>
+        </div>
+
+        {/* 3 Core Highlights (Zero Hidden Contracts, Quick & Easy, 100% Guarded Privacy) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 sm:mb-10 text-center">
+          
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-red-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-red-500/25 group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Zero Hidden Contracts</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
+              No credit card required to start. No auto-debits, No hidden charges, No forced renewals
+            </p>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-blue-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-blue-500/25 group-hover:scale-110 transition-transform">
+              <Smartphone className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Quick & Easy</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
+              Customers scan instantly through their default smartphone browser. No slow app downloads or long account setups.
+            </p>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 p-6 sm:p-7 rounded-2xl shadow-xs hover:shadow-lg hover:border-emerald-300 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center group">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-emerald-500/25 group-hover:scale-110 transition-transform">
+              <Lock className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">100% Guarded Privacy</h3>
+            <p className="text-slate-500 text-xs leading-relaxed text-center">
+              We secure and isolate user details. Customers get a safe experience without facing unwanted marketing spam.
+            </p>
+          </div>
+
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
@@ -559,7 +598,7 @@ export default function LandingPage() {
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-rose-500/25 group-hover:scale-110 transition-transform">
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">PIN & OTP Verification</h3>
+            <h3 className="font-bold text-slate-900 text-base mb-2 text-center">Approval System</h3>
             <p className="text-slate-500 text-xs leading-relaxed text-center">
               Guarded verification protects against fraudulent redemptions and repeated double-claims.
             </p>
@@ -595,7 +634,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-bold text-red-600 uppercase tracking-widest bg-red-50 border border-red-200 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-[#8B0000] uppercase tracking-widest bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
               The Reality Check
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-3">
@@ -613,7 +652,7 @@ export default function LandingPage() {
               <div>
                 <div className="flex items-center justify-between pb-6 border-b border-rose-200/80 mb-6">
                   <div className="flex items-center space-x-3.5">
-                    <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-[#74111d] text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-md shadow-red-600/30 shrink-0">
+                    <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-[#8B0000] text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-md shadow-red-600/30 shrink-0">
                       <X className="w-5 h-5 stroke-[2.5]" />
                     </div>
                     <div>
@@ -1062,7 +1101,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           <div className="text-center mb-12">
-            <span className="text-xs font-bold text-red-600 uppercase tracking-widest bg-red-50 border border-red-200 px-3.5 py-1.5 rounded-full shadow-xs">
+            <span className="text-xs font-bold text-[#8B0000] uppercase tracking-widest bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full shadow-xs">
               Clear & Transparent
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-4 tracking-tight">
@@ -1075,48 +1114,17 @@ export default function LandingPage() {
           
           <div className="space-y-4">
             
-            {[
-              {
-                id: 1,
-                gradient: 'from-amber-400 to-orange-500',
-                icon: ShieldCheck,
-                q: "Will my account be automatically charged when the trial ends?",
-                a: "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue."
-              },
-              {
-                id: 2,
-                gradient: 'from-blue-500 to-indigo-600',
-                icon: Lock,
-                q: "How is user phone number security managed?",
-                a: "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing."
-              },
-              {
-                id: 3,
-                gradient: 'from-emerald-500 to-teal-600',
-                icon: Smartphone,
-                q: "Do customers need to download an application from the App Store?",
-                a: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser."
-              },
-              {
-                id: 4,
-                gradient: 'from-purple-500 to-pink-600',
-                icon: Gift,
-                q: "Can I customize the discounts and reward percentages?",
-                a: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances."
-              },
-              {
-                id: 5,
-                gradient: 'from-rose-500 to-red-600',
-                icon: Store,
-                q: "How does the acrylic counter standee get configured?",
-                a: "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk."
-              }
-            ].map((faq) => {
-              const isOpen = activeFaq === faq.id;
+            {faqs.map((faq, index) => {
+              const faqId = faq.id || index + 1;
+              const isOpen = activeFaq === faqId;
+              const itemNumber = index + 1;
+              const gradient = faq.gradient || FAQ_GRADIENTS[index % FAQ_GRADIENTS.length];
+              const questionText = faq.question || faq.q;
+              const answerText = faq.answer || faq.a;
               return (
                 <div
-                  key={faq.id}
-                  onClick={() => setActiveFaq(isOpen ? null : faq.id)}
+                  key={faqId}
+                  onClick={() => setActiveFaq(isOpen ? null : faqId)}
                   className={`group transition-all duration-300 rounded-2xl p-5 sm:p-6 cursor-pointer border ${
                     isOpen
                       ? 'bg-gradient-to-r from-white to-rose-50/50 border-red-400 shadow-lg ring-1 ring-red-400/25 -translate-y-1'
@@ -1125,10 +1133,10 @@ export default function LandingPage() {
                 >
                   <div className="flex items-center justify-between font-bold text-slate-900 text-sm sm:text-base gap-3">
                     <span className="flex items-center space-x-3.5">
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${faq.gradient} text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform duration-200 font-black text-sm`}>
-                        {faq.id}
+                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${gradient} text-white flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform duration-200 font-black text-sm`}>
+                        {itemNumber}
                       </div>
-                      <span className="group-hover:text-[#8B0000] transition-colors duration-200">{faq.q}</span>
+                      <span className="group-hover:text-[#8B0000] transition-colors duration-200">{questionText}</span>
                     </span>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 ${
                       isOpen ? 'bg-red-50 text-red-700 rotate-180 ring-2 ring-red-200' : 'bg-slate-100 text-slate-500 group-hover:bg-red-50 group-hover:text-red-700'
@@ -1139,7 +1147,7 @@ export default function LandingPage() {
                   {isOpen && (
                     <div className="pt-4 border-t border-slate-100 mt-4 animate-in fade-in duration-200">
                       <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-normal pl-12">
-                        {faq.a}
+                        {answerText}
                       </p>
                     </div>
                   )}
@@ -1158,7 +1166,7 @@ export default function LandingPage() {
         <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm grid grid-cols-1 md:grid-cols-5 gap-8">
           
           <div className="md:col-span-2 space-y-4">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#8B0000] bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full">
               Direct Support
             </span>
             <h3 className="text-2xl font-bold text-slate-900">Get In Touch</h3>
@@ -1331,8 +1339,8 @@ export default function LandingPage() {
                 Access Portals
               </h4>
               <ul className="space-y-2.5 text-xs">
-                <li><Link to="/merchant/login" className="hover:text-white transition-colors">Store Owner Login</Link></li>
-                <li><Link to="/customer/login" className="hover:text-white transition-colors">Customer Portal</Link></li>
+                <li><Link to="/merchant/login" className="hover:text-white transition-colors">Merchant Login</Link></li>
+                <li><Link to="/customer/login" className="hover:text-white transition-colors">Customer Login</Link></li>
                 <li>
                   <button onClick={() => setSignupModalOpen(true)} className="text-red-400 hover:text-red-300 font-semibold transition-colors cursor-pointer">
                     Start 3-Day Free Trial
@@ -1398,7 +1406,10 @@ export default function LandingPage() {
       {/* Start Free Trial Signup Modal */}
       {signupModalOpen && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in fade-in duration-200">
+          <div 
+            className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in fade-in duration-200 auth-root"
+            style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+          >
             <button
               onClick={() => setSignupModalOpen(false)}
               className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 cursor-pointer p-1 rounded-lg hover:bg-slate-100 transition-colors"
@@ -1410,10 +1421,10 @@ export default function LandingPage() {
               <img 
                 src="/beaurex-icon.jpg" 
                 alt="BeAurex Logo" 
-                className="w-10 h-10 rounded-xl object-cover shadow-md shadow-[#74111d]/30 shrink-0"
+                className="w-10 h-10 rounded-xl object-cover shadow-md shadow-[#8B0000]/30 shrink-0"
               />
               <div>
-                <h3 className="font-bold text-lg text-slate-900">Activate 3-Day Free Trial</h3>
+                <h3 className="font-bold text-lg text-slate-900">Activate 2-Day Free Trial</h3>
                 <p className="text-xs text-slate-500">No payment required • Instant BeAurex access</p>
               </div>
             </div>
@@ -1494,12 +1505,12 @@ export default function LandingPage() {
                 <button
                   type="submit"
                   disabled={signupLoading}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all duration-200 text-xs shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all duration-200 text-xs shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
                 >
                   {signupLoading ? (
                     <span>Creating Business Account...</span>
                   ) : (
-                    <span>Start 3-Day Free Trial & Launch Setup</span>
+                    <span>Start 2-Day Free Trial & Launch Setup</span>
                   )}
                 </button>
               </div>

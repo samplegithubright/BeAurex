@@ -64,6 +64,10 @@ const merchantSchema = new mongoose.Schema({
     unique: true,
     required: true
   },
+  cashierPin: {
+    type: String,
+    default: '4829'
+  },
   subscriptionTier: {
     type: String,
     default: 'TRIAL'

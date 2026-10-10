@@ -11,6 +11,7 @@ const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'system_config.json');
 const LEGAL_FILE = path.join(DATA_DIR, 'legal_policies.json');
 const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
+const FAQS_FILE = path.join(DATA_DIR, 'faqs.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -247,10 +248,60 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   }
 };
 
+// 4. Initial / Default Platform FAQs (Matches Landing Page exactly)
+const initialFaqs = [
+  {
+    id: 'f1',
+    question: "Will my account be automatically charged when the trial ends?",
+    answer: "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue.",
+    category: 'General',
+    status: 'Published',
+    order: 1,
+    lastUpdated: 'May 24, 2026 11:20 AM'
+  },
+  {
+    id: 'f2',
+    question: "How is user phone number security managed?",
+    answer: "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing.",
+    category: 'General',
+    status: 'Published',
+    order: 2,
+    lastUpdated: 'May 24, 2026 10:45 AM'
+  },
+  {
+    id: 'f3',
+    question: "Do customers need to download an application from the App Store?",
+    answer: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser.",
+    category: 'General',
+    status: 'Published',
+    order: 3,
+    lastUpdated: 'May 24, 2026 09:30 AM'
+  },
+  {
+    id: 'f4',
+    question: "Can I customize the discounts and reward percentages?",
+    answer: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances.",
+    category: 'Rewards',
+    status: 'Published',
+    order: 4,
+    lastUpdated: 'May 24, 2026 09:15 AM'
+  },
+  {
+    id: 'f5',
+    question: "How does the acrylic counter standee get configured?",
+    answer: "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk.",
+    category: 'Merchant',
+    status: 'Published',
+    order: 5,
+    lastUpdated: 'May 24, 2026 08:50 AM'
+  }
+];
+
 // In-Memory Caches
 let memoryPlans = [...initialPlans];
 let memoryConfig = { ...initialConfig };
 let memoryPolicies = { ...initialPolicies };
+let memoryFaqs = [...initialFaqs];
 
 // Helper: Read JSON from file
 function readJsonFile(filePath, fallback) {
@@ -265,10 +316,19 @@ function readJsonFile(filePath, fallback) {
   return fallback;
 }
 
-// Helper: Write JSON to file
+// Helper: Write JSON to file only if content actually changed
 function writeJsonFile(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    const newContent = JSON.stringify(data, null, 2);
+    if (fs.existsSync(filePath)) {
+      try {
+        const oldContent = fs.readFileSync(filePath, 'utf-8');
+        if (oldContent === newContent) {
+          return; // Identical: preserve mtime and avoid triggering file watchers
+        }
+      } catch (_) {}
+    }
+    fs.writeFileSync(filePath, newContent, 'utf-8');
   } catch (err) {
     console.error(`[SystemStore] Error writing to ${filePath}:`, err.message);
   }
@@ -278,11 +338,13 @@ function writeJsonFile(filePath, data) {
 memoryPlans = readJsonFile(PLANS_FILE, initialPlans);
 memoryConfig = readJsonFile(CONFIG_FILE, initialConfig);
 memoryPolicies = readJsonFile(LEGAL_FILE, initialPolicies);
+memoryFaqs = readJsonFile(FAQS_FILE, initialFaqs);
 
 // Save to disk to ensure files exist
 if (!fs.existsSync(PLANS_FILE)) writeJsonFile(PLANS_FILE, memoryPlans);
 if (!fs.existsSync(CONFIG_FILE)) writeJsonFile(CONFIG_FILE, memoryConfig);
 if (!fs.existsSync(LEGAL_FILE)) writeJsonFile(LEGAL_FILE, memoryPolicies);
+if (!fs.existsSync(FAQS_FILE)) writeJsonFile(FAQS_FILE, memoryFaqs);
 
 // Helper to check if Mongo is ready
 function isMongoConnected() {
@@ -315,7 +377,8 @@ async function syncWithMongo() {
       await SystemConfig.create({
         ...memoryConfig,
         plansConfig: memoryPlans,
-        legalPolicies: memoryPolicies
+        legalPolicies: memoryPolicies,
+        faqs: memoryFaqs
       }).catch(() => {});
     } else {
       memoryConfig = {
@@ -333,6 +396,14 @@ async function syncWithMongo() {
         writeJsonFile(LEGAL_FILE, memoryPolicies);
       } else {
         await SystemConfig.findOneAndUpdate({}, { legalPolicies: memoryPolicies }).catch(() => {});
+      }
+
+      // 4. Sync FAQs with MongoDB
+      if (dbConfig.faqs && Array.isArray(dbConfig.faqs) && dbConfig.faqs.length > 0) {
+        memoryFaqs = dbConfig.faqs;
+        writeJsonFile(FAQS_FILE, memoryFaqs);
+      } else {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }).catch(() => {});
       }
     }
   } catch (err) {
@@ -376,7 +447,6 @@ const systemStore = {
         const dbPlans = await Plan.find().sort({ displayOrder: 1 }).lean();
         if (dbPlans && dbPlans.length > 0) {
           memoryPlans = dbPlans;
-          writeJsonFile(PLANS_FILE, memoryPlans);
           return memoryPlans;
         }
       } catch (e) {}
@@ -595,7 +665,6 @@ const systemStore = {
             ...memoryPolicies,
             ...dbConfig.legalPolicies
           };
-          writeJsonFile(LEGAL_FILE, memoryPolicies);
           return memoryPolicies;
         }
       } catch (e) {}
@@ -714,7 +783,6 @@ const systemStore = {
             createdAt: d.createdAt,
             updatedAt: d.updatedAt
           }));
-          writeJsonFile(CONTACTS_FILE, formatted);
           return formatted;
         }
       } catch (err) {
@@ -767,6 +835,81 @@ const systemStore = {
     const updated = currentList.filter(c => c.id !== id && c._id !== id);
     writeJsonFile(CONTACTS_FILE, updated);
     return true;
+  },
+
+  // Platform FAQs Management
+  async getAllFaqs() {
+    return memoryFaqs;
+  },
+
+  async getPublicFaqs() {
+    return memoryFaqs.filter(f => f.status !== 'Draft' && f.status !== 'Unpublished');
+  },
+
+  async saveFaqs(newFaqs) {
+    if (!Array.isArray(newFaqs)) return memoryFaqs;
+    memoryFaqs = newFaqs;
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {
+        console.warn('[SystemStore] Error syncing faqs to MongoDB:', err.message);
+      }
+    }
+    return memoryFaqs;
+  },
+
+  async addFaq(faq) {
+    const newEntry = {
+      id: faq.id || 'f_' + Date.now(),
+      question: faq.question || '',
+      answer: faq.answer || '',
+      category: faq.category || 'General',
+      status: faq.status || 'Published',
+      order: Number(faq.order) || (memoryFaqs.length + 1),
+      lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+    memoryFaqs.push(newEntry);
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {}
+    }
+    return memoryFaqs;
+  },
+
+  async updateFaq(id, updatedData) {
+    memoryFaqs = memoryFaqs.map(f => {
+      if (String(f.id) === String(id)) {
+        return {
+          ...f,
+          ...updatedData,
+          id: f.id,
+          lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+      }
+      return f;
+    });
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {}
+    }
+    return memoryFaqs;
+  },
+
+  async deleteFaq(id) {
+    memoryFaqs = memoryFaqs.filter(f => String(f.id) !== String(id));
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {}
+    }
+    return memoryFaqs;
   }
 };
 

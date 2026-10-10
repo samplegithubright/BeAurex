@@ -2,7 +2,16 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        compact: false,
+        generatorOpts: {
+          compact: false
+        }
+      }
+    })
+  ],
   server: {
     port: 5173,
     host: '0.0.0.0',
@@ -11,12 +20,14 @@ export default defineConfig({
         target: 'http://127.0.0.1:5000',
         changeOrigin: true,
         secure: false,
+        timeout: 60000,
+        proxyTimeout: 60000,
         configure: (proxy) => {
           proxy.on('error', (err, req, res) => {
             if (res && !res.headersSent) {
               res.writeHead(502, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ 
-                error: 'Backend API server starting up, please refresh momentarily.',
+                error: 'Backend API service reconnecting, please retry in a moment.',
                 code: err.code 
               }));
             }

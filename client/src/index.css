@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,11 +12,11 @@
     color-scheme: dark;
   }
   html {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
     scroll-behavior: smooth;
   }
   body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
   }
   html.dark, html.dark body {
     background-color: #020617;
@@ -23,6 +25,19 @@
   html.light, html.light body {
     background-color: #f8fafc;
     color: #0f172a;
+  }
+
+  input,
+  button,
+  select,
+  textarea {
+    font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+  }
+
+  ::placeholder,
+  input::placeholder,
+  textarea::placeholder {
+    font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif !important;
   }
 }
 
@@ -164,5 +179,60 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
   }
+}
+
+/* ======================================================== */
+/* Global Unified Typography & Placeholders Everywhere      */
+/* ======================================================== */
+.merchant-portal,
+.merchant-portal *,
+.merchant-portal input,
+.merchant-portal button,
+.merchant-portal select,
+.merchant-portal textarea,
+.merchant-root,
+.merchant-root *,
+.merchant-root input,
+.merchant-root button,
+.merchant-root select,
+.merchant-root textarea,
+.super-admin-root,
+.super-admin-root *,
+.super-admin-root input,
+.super-admin-root button,
+.super-admin-root select,
+.super-admin-root textarea,
+.team-root,
+.team-root *,
+.team-root input,
+.team-root button,
+.team-root select,
+.team-root textarea,
+.auth-root,
+.auth-root *,
+.auth-root input,
+.auth-root button,
+.auth-root select,
+.auth-root textarea,
+.customer-root,
+.customer-root *,
+.customer-root input,
+.customer-root button,
+.customer-root select,
+.customer-root textarea,
+.customer-portal,
+.customer-portal *,
+.customer-portal input,
+.customer-portal button,
+.customer-portal select,
+.customer-portal textarea,
+input,
+button,
+select,
+textarea,
+::placeholder,
+input::placeholder,
+textarea::placeholder {
+  font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif !important;
 }
 

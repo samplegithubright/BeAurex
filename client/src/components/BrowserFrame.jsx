@@ -9,7 +9,10 @@ export default function BrowserFrame({
   showFooter = true,
 }) {
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col justify-between selection:bg-red-500 selection:text-white font-sans">
+    <div 
+      className="min-h-screen bg-slate-900 flex flex-col justify-between selection:bg-red-500 selection:text-white font-sans auth-root"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       
       {/* Clean Top Navbar */}
       {showHeader && (

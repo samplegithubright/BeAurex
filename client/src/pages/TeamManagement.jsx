@@ -196,6 +196,8 @@ export default function TeamManagement() {
   const [copiedLinkToast, setCopiedLinkToast] = useState(false);
   const [copiedScriptToast, setCopiedScriptToast] = useState(false);
   const [downloadToast, setDownloadToast] = useState('');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareCopiedToast, setShareCopiedToast] = useState(false);
 
   // Referral Stores State (Scoped by user ID)
   const [referralSearch, setReferralSearch] = useState('');
@@ -1020,6 +1022,41 @@ export default function TeamManagement() {
   }, [agentProfile.userId, agentProfile.email, agentProfile.name]);
 
   const referralLink = `${window.location.origin}/?ref=${agentProfile.referralCode}`;
+  const shareMessage = `Hello! Get started with BeAurex QR Customer Loyalty for your store with a Free 2-Day Trial: ${referralLink}`;
+
+  const handleShareTo = (platform) => {
+    const encodedUrl = encodeURIComponent(referralLink);
+    const encodedMsg = encodeURIComponent(shareMessage);
+
+    switch (platform) {
+      case 'whatsapp':
+        window.open(`https://api.whatsapp.com/send?text=${encodedMsg}`, '_blank', 'noopener,noreferrer');
+        break;
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedMsg}`, '_blank', 'width=620,height=560,noopener,noreferrer');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('Boost store customer retention with BeAurex QR Loyalty! Free 2-Day Trial:')}&url=${encodedUrl}`, '_blank', 'width=620,height=560,noopener,noreferrer');
+        break;
+      case 'instagram':
+        navigator.clipboard.writeText(referralLink);
+        setShareCopiedToast(true);
+        setTimeout(() => setShareCopiedToast(false), 3500);
+        window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
+        break;
+      case 'native':
+        if (typeof navigator !== 'undefined' && navigator.share) {
+          navigator.share({
+            title: 'BeAurex Partner Invite',
+            text: shareMessage,
+            url: referralLink,
+          }).catch(() => {});
+        }
+        break;
+      default:
+        break;
+    }
+  };
 
   const copyToClipboard = (text, type) => {
     navigator.clipboard.writeText(text);
@@ -1300,10 +1337,10 @@ export default function TeamManagement() {
   // 5 exact navigation tabs requested by user
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'referral_details', label: 'Referral Details', icon: Share2, badge: `${referrals.length} Stores` },
-    { id: 'customer_manager', label: 'Customer Manager', icon: Users, badge: `${crmCustomers.length} Leads` },
-    { id: 'marketing_kit', label: 'Marketing Kit', icon: Layers, badge: '5 Assets' },
-    { id: 'id_card', label: 'ID Card', icon: CreditCard, badge: 'Verified' },
+    { id: 'referral_details', label: 'Referral Details', icon: Share2 },
+    { id: 'customer_manager', label: 'Customer Manager', icon: Users },
+    { id: 'marketing_kit', label: 'Marketing Kit', icon: Layers },
+    { id: 'id_card', label: 'ID Card', icon: CreditCard },
   ];
 
   const filteredReferrals = referrals.filter(r => 
@@ -1328,7 +1365,10 @@ export default function TeamManagement() {
 
 
   return (
-    <div className="h-screen w-full bg-slate-50 text-slate-900 font-sans antialiased flex flex-col md:flex-row overflow-hidden selection:bg-red-500 selection:text-white">
+    <div 
+      className="h-screen w-full bg-slate-50 text-slate-900 team-root antialiased flex flex-col md:flex-row overflow-hidden selection:bg-red-500 selection:text-white"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
         
         {/* Toast Notifications */}
         {copiedCodeToast && (
@@ -1368,7 +1408,7 @@ export default function TeamManagement() {
             />
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight leading-none text-slate-900">
-                Be<span className="text-[#851421]">Aurex</span>
+                Be<span className="text-[#8B0000]">Aurex</span>
               </span>
               <span className="text-[9px] font-black text-red-600 uppercase tracking-widest mt-0.5">
                 Team Hub
@@ -1447,23 +1487,16 @@ export default function TeamManagement() {
                           setActiveTab(item.id);
                           setMobileMenuOpen(false);
                         }}
-                        className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                        className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                           isActive
-                            ? 'bg-red-600 text-white shadow-md shadow-[#74111d]/25'
-                            : 'text-slate-600 hover:bg-rose-50 hover:text-[#74111d]'
+                            ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/25'
+                            : 'text-slate-600 hover:bg-rose-50 hover:text-[#8B0000]'
                         }`}
                       >
                         <div className="flex items-center space-x-2.5">
                           <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                           <span>{item.label}</span>
                         </div>
-                        {item.badge && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                            isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            {item.badge}
-                          </span>
-                        )}
                       </button>
                     );
                   })}
@@ -1474,7 +1507,7 @@ export default function TeamManagement() {
               <div className="p-4 border-t border-slate-200/90 bg-slate-50/50 space-y-2">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#74111d] text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                    <div className="w-8 h-8 rounded-full bg-[#8B0000] text-white font-bold text-xs flex items-center justify-center shadow-xs">
                       {getInitials(agentProfile.name)}
                     </div>
                     <div className="flex flex-col">
@@ -1497,7 +1530,7 @@ export default function TeamManagement() {
 
                 <button
                   onClick={handleLogout}
-                  className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-red-200 hover:border-red-300 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
+                  className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-red-200 hover:border-red-300 text-xs font-bold py-2 rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Logout</span>
@@ -1515,9 +1548,11 @@ export default function TeamManagement() {
             {/* Brand Header */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <Link to="/" className="flex items-center space-x-3 group">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 shrink-0 group-hover:scale-105 transition transform">
-                  <QrCode className="w-6 h-6 text-[#8B0000]" />
-                </div>
+                <img 
+                  src="/beaurex-icon.jpg" 
+                  alt="BeAurex Logo" 
+                  className="w-10 h-10 rounded-xl object-cover shadow-md group-hover:scale-105 transition-all duration-300 shrink-0"
+                />
                 <div className="flex flex-col">
                   <span className="text-xl font-black tracking-tight leading-none text-white">
                     BeAurex
@@ -1542,7 +1577,7 @@ export default function TeamManagement() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                       isActive
                         ? 'bg-black/30 text-white shadow-inner font-black border border-white/15'
                         : 'text-white/85 hover:bg-white/10 hover:text-white'
@@ -1552,13 +1587,6 @@ export default function TeamManagement() {
                       <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-red-200'}`} />
                       <span>{item.label}</span>
                     </div>
-                    {item.badge && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        isActive ? 'bg-white/25 text-white' : 'bg-black/20 text-red-100 border border-white/10'
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
                   </button>
                 );
               })}
@@ -1637,13 +1665,22 @@ export default function TeamManagement() {
 
                   <div className="flex items-center justify-between bg-black/40 rounded-xl px-4 py-2 border border-white/10 font-mono text-sm sm:text-base font-black text-white space-x-4 w-full sm:w-auto shadow-inner">
                     <span>{agentProfile.referralCode}</span>
-                    <button 
-                      onClick={() => copyToClipboard(agentProfile.referralCode, 'code')}
-                      className="hover:text-red-400 text-slate-300 p-1 cursor-pointer transition"
-                      title="Copy Referral Code"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center space-x-1.5">
+                      <button 
+                        onClick={() => copyToClipboard(agentProfile.referralCode, 'code')}
+                        className="hover:text-red-400 text-slate-300 p-1 cursor-pointer transition"
+                        title="Copy Referral Code"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => setShareModalOpen(true)}
+                        className="hover:text-red-400 text-slate-300 p-1 cursor-pointer transition"
+                        title="Share Invite Link"
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -1727,12 +1764,12 @@ export default function TeamManagement() {
                     onClick={() => setActiveTab('marketing_kit')}
                     className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center mb-4 group-hover:scale-105 transition">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center mb-4 group-hover:scale-105 transition">
                       <Layers className="w-5 h-5" />
                     </div>
                     <h3 className="font-black text-slate-900 text-sm mb-1">Field Marketing Kit</h3>
                     <p className="text-xs text-slate-500 mb-3">Download printable 5x7 standees, sales brochures, and WhatsApp scripts.</p>
-                    <div className="text-xs font-bold text-[#74111d] flex items-center space-x-1">
+                    <div className="text-xs font-bold text-[#8B0000] flex items-center space-x-1">
                       <span>Get Marketing Assets</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition transform" />
                     </div>
@@ -1771,7 +1808,7 @@ export default function TeamManagement() {
                       onClick={() => setReferralSubTab('referred_users')}
                       className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                         referralSubTab === 'referred_users'
-                          ? 'bg-[#74111d] text-white shadow-sm'
+                          ? 'bg-[#8B0000] text-white shadow-sm'
                           : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
                       }`}
                     >
@@ -1784,7 +1821,7 @@ export default function TeamManagement() {
                       onClick={() => setReferralSubTab('bank_details')}
                       className={`px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                         referralSubTab === 'bank_details'
-                          ? 'bg-[#74111d] text-white shadow-sm'
+                          ? 'bg-[#8B0000] text-white shadow-sm'
                           : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'
                       }`}
                     >
@@ -1805,15 +1842,15 @@ export default function TeamManagement() {
                       <Copy className="w-3.5 h-3.5" />
                       <span>{agentProfile.referralCode}</span>
                     </button>
-                    <a
-                      href={`https://wa.me/?text=Hello!%20Get%20started%20with%20BeAurex%20QR%20Customer%20Loyalty%20for%20your%20store%20with%20a%20Free%202-Day%20Trial:%20${encodeURIComponent(referralLink)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1 shadow-xs cursor-pointer"
+                    <button
+                      type="button"
+                      onClick={() => setShareModalOpen(true)}
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-xs cursor-pointer active:scale-95"
+                      title="Share invite link across WhatsApp, Instagram, Facebook, and Twitter"
                     >
-                      <Send className="w-3.5 h-3.5" />
+                      <Share2 className="w-3.5 h-3.5" />
                       <span>Share</span>
-                    </a>
+                    </button>
                   </div>
                 </div>
 
@@ -1868,7 +1905,7 @@ export default function TeamManagement() {
                           </div>
                           <button
                             onClick={() => setShowAddStoreModal(true)}
-                            className="bg-[#74111d] hover:bg-[#851421] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
+                            className="bg-[#8B0000] hover:bg-[#8B0000] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Onboard Store</span>
@@ -1911,32 +1948,28 @@ export default function TeamManagement() {
 
                                   {/* 2. User Name */}
                                   <td className="py-3.5 px-4 whitespace-nowrap">
-                                    <div className="font-black text-slate-900 text-sm whitespace-nowrap flex items-center space-x-2">
-                                      <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <div className="font-black text-slate-900 text-sm whitespace-nowrap">
                                       <span>{u.name}</span>
                                     </div>
                                   </td>
 
                                   {/* 3. User Email */}
                                   <td className="py-3.5 px-4 whitespace-nowrap">
-                                    <div className="font-bold text-slate-700 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                      <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <div className="font-bold text-slate-700 text-xs whitespace-nowrap">
                                       <span>{u.email}</span>
                                     </div>
                                   </td>
 
                                   {/* 4. User Number */}
                                   <td className="py-3.5 px-4 whitespace-nowrap">
-                                    <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                                       <span>{u.number}</span>
                                     </div>
                                   </td>
 
                                   {/* 5. Joined On */}
                                   <td className="py-3.5 px-4 whitespace-nowrap">
-                                    <div className="font-mono font-bold text-slate-800 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <div className="font-mono font-bold text-slate-800 text-xs whitespace-nowrap">
                                       <span>{u.joinedOn}</span>
                                     </div>
                                   </td>
@@ -1999,7 +2032,7 @@ export default function TeamManagement() {
 
                       {/* Card 3: Referred MW */}
                       <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center font-black shadow-2xs">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-100 text-[#8B0000] flex items-center justify-center font-black shadow-2xs">
                           <Users className="w-6 h-6" />
                         </div>
                         <div>
@@ -2078,71 +2111,6 @@ export default function TeamManagement() {
                         </div>
                       </div>
 
-                      {/* Luxury Virtual Passbook / Payout Card */}
-                      <div className="bg-gradient-to-br from-slate-900 via-[#74111d] to-slate-950 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden border border-rose-950/40">
-                        {/* Background decoration */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-
-                        <div className="relative z-10 space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2.5">
-                              <div className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-rose-300">
-                                <Building2 className="w-5 h-5" />
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-black text-white tracking-wide">
-                                  {bankDetails.bankName || 'YOUR BANK NAME'}
-                                </h4>
-                                <p className="text-[10px] text-rose-200/80 font-semibold uppercase tracking-wider">
-                                  Official Payout Settlement Account
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-1.5 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 px-3 py-1 rounded-full text-[10px] font-black">
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              <span>Direct IMPS / NEFT</span>
-                            </div>
-                          </div>
-
-                          {/* Account Number with Mask toggle */}
-                          <div className="pt-2">
-                            <div className="text-[10px] uppercase font-bold text-slate-300 tracking-wider mb-1">
-                              Account Number
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <span className="text-lg sm:text-xl font-mono font-black tracking-widest text-white">
-                                {showMaskedAccount && bankDetails.accountNumber && bankDetails.accountNumber.length > 4
-                                  ? `•••• •••• ${bankDetails.accountNumber.slice(-4)}`
-                                  : (bankDetails.accountNumber || '•••• •••• ••••')}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => setShowMaskedAccount(!showMaskedAccount)}
-                                className="text-xs text-rose-200 hover:text-white underline cursor-pointer font-bold"
-                              >
-                                {showMaskedAccount ? 'Show' : 'Hide'}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Card Details Grid */}
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/10 text-xs">
-                            <div>
-                              <p className="text-[10px] uppercase text-rose-200/70 font-bold">Holder Name</p>
-                              <p className="font-black text-white truncate">{bankDetails.accountHolderName || '—'}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase text-rose-200/70 font-bold">IFSC Code</p>
-                              <p className="font-black font-mono text-white truncate">{bankDetails.ifscCode || '—'}</p>
-                            </div>
-                            <div>
-                              <p className="text-[10px] uppercase text-rose-200/70 font-bold">UPI ID</p>
-                              <p className="font-black font-mono text-white truncate">{bankDetails.upiId || '—'}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
 
                       {/* Interactive Editable Form */}
                       <form onSubmit={handleSaveBankDetails} className="space-y-5 text-xs font-bold">
@@ -2160,7 +2128,7 @@ export default function TeamManagement() {
                                 value={bankDetails.bankName}
                                 onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
                                 placeholder="e.g. Kotak Mahindra Bank"
-                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 transition"
                               />
                             </div>
 
@@ -2175,7 +2143,7 @@ export default function TeamManagement() {
                                 value={bankDetails.accountNumber}
                                 onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value.replace(/[^0-9]/g, '') })}
                                 placeholder="e.g. 921100345671"
-                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 transition"
                               />
                             </div>
 
@@ -2190,7 +2158,7 @@ export default function TeamManagement() {
                                 value={bankDetails.upiId}
                                 onChange={(e) => setBankDetails({ ...bankDetails, upiId: e.target.value })}
                                 placeholder="e.g. 22233@upi"
-                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 transition"
                               />
                             </div>
                           </div>
@@ -2208,7 +2176,7 @@ export default function TeamManagement() {
                                 value={bankDetails.accountHolderName}
                                 onChange={(e) => setBankDetails({ ...bankDetails, accountHolderName: e.target.value })}
                                 placeholder="e.g. Ajeet Kumar"
-                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 transition"
                               />
                             </div>
 
@@ -2223,7 +2191,7 @@ export default function TeamManagement() {
                                 value={bankDetails.ifscCode}
                                 onChange={(e) => setBankDetails({ ...bankDetails, ifscCode: e.target.value.toUpperCase() })}
                                 placeholder="e.g. KKBK0000154"
-                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono uppercase text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-mono uppercase text-slate-900 bg-white focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 transition"
                               />
                             </div>
 
@@ -2238,7 +2206,7 @@ export default function TeamManagement() {
                                 value={bankDetails.upiName}
                                 onChange={(e) => setBankDetails({ ...bankDetails, upiName: e.target.value })}
                                 placeholder="e.g. Ajeet Kumar"
-                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#74111d] focus:ring-2 focus:ring-[#74111d]/15 transition"
+                                className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 transition"
                               />
                             </div>
                           </div>
@@ -2252,7 +2220,7 @@ export default function TeamManagement() {
                           <div className="flex items-center space-x-2 w-full sm:w-auto">
                             <button
                               type="submit"
-                              className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5e0c15] text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-md shadow-[#74111d]/25 transition cursor-pointer flex items-center justify-center space-x-2"
+                              className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-md shadow-[#8B0000]/25 transition cursor-pointer flex items-center justify-center space-x-2"
                             >
                               <Save className="w-4 h-4" />
                               <span>Save Bank Details</span>
@@ -2263,7 +2231,7 @@ export default function TeamManagement() {
 
                       {/* Status Banner */}
                       <div className="p-3.5 rounded-2xl bg-rose-50/60 border border-rose-200/60 flex items-center space-x-3 text-xs text-slate-700">
-                        <div className="w-6 h-6 rounded-full bg-[#74111d] text-white flex items-center justify-center text-xs font-black shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-[#8B0000] text-white flex items-center justify-center text-xs font-black shrink-0">
                           ✓
                         </div>
                         <p className="font-medium text-slate-700">
@@ -2348,7 +2316,7 @@ export default function TeamManagement() {
                     <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-200 my-auto">
                       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                         <div className="flex items-center space-x-2.5">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#74111d] to-[#851421] text-white flex items-center justify-center shadow-xs">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#8B0000] to-[#8B0000] text-white flex items-center justify-center shadow-xs">
                             <Store className="w-5 h-5" />
                           </div>
                           <div>
@@ -2373,7 +2341,7 @@ export default function TeamManagement() {
                             value={newStoreForm.storeName}
                             onChange={(e) => setNewStoreForm({ ...newStoreForm, storeName: e.target.value })}
                             placeholder="e.g. Apex Cafe & Bakery"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -2386,7 +2354,7 @@ export default function TeamManagement() {
                               value={newStoreForm.owner}
                               onChange={(e) => setNewStoreForm({ ...newStoreForm, owner: e.target.value })}
                               placeholder="e.g. Rahul Singh"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                             />
                           </div>
                           <div>
@@ -2396,7 +2364,7 @@ export default function TeamManagement() {
                               value={newStoreForm.phone}
                               onChange={(e) => setNewStoreForm({ ...newStoreForm, phone: e.target.value })}
                               placeholder="98765 43210"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                             />
                           </div>
                         </div>
@@ -2407,7 +2375,7 @@ export default function TeamManagement() {
                             <select
                               value={newStoreForm.category}
                               onChange={(e) => setNewStoreForm({ ...newStoreForm, category: e.target.value })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                             >
                               <option>Cafe & Dining</option>
                               <option>Retail Store</option>
@@ -2423,7 +2391,7 @@ export default function TeamManagement() {
                               value={newStoreForm.city}
                               onChange={(e) => setNewStoreForm({ ...newStoreForm, city: e.target.value })}
                               placeholder={agentProfile.city || "Delhi"}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                             />
                           </div>
                         </div>
@@ -2434,7 +2402,7 @@ export default function TeamManagement() {
                             <select
                               value={newStoreForm.plan}
                               onChange={(e) => setNewStoreForm({ ...newStoreForm, plan: e.target.value })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                             >
                               <option>Professional Plan</option>
                               <option>Standard Plan</option>
@@ -2448,7 +2416,7 @@ export default function TeamManagement() {
                               type="text"
                               value={newStoreForm.commission}
                               onChange={(e) => setNewStoreForm({ ...newStoreForm, commission: e.target.value })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#74111d]"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#8B0000]"
                             />
                           </div>
                         </div>
@@ -2463,7 +2431,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-gradient-to-r from-[#74111d] to-[#851421] hover:from-[#5c0d17] hover:to-[#74111d] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-[#74111d]/25 cursor-pointer"
+                            className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#700000] hover:to-[#8B0000] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-[#8B0000]/25 cursor-pointer"
                           >
                             Save Store Referral
                           </button>
@@ -2493,7 +2461,7 @@ export default function TeamManagement() {
                     {/* Add Customer Button (Styled in BeAurex crimson red) */}
                     <button
                       onClick={() => setShowAddCustomerModal(true)}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-md shadow-[#74111d]/25 cursor-pointer shrink-0"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition flex items-center space-x-2 shadow-md shadow-[#8B0000]/25 cursor-pointer shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                       <span>Add Customer</span>
@@ -2553,24 +2521,21 @@ export default function TeamManagement() {
                               
                               {/* 1. Customer Name */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-black text-slate-900 text-sm whitespace-nowrap flex items-center space-x-2">
-                                  <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <div className="font-black text-slate-900 text-sm whitespace-nowrap">
                                   <span>{c.name}</span>
                                 </div>
                               </td>
 
                               {/* 2. Company Name */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                  <Building2 className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                <div className="font-black text-slate-900 text-xs whitespace-nowrap">
                                   <span>{c.companyName && c.companyName !== '—' && c.companyName !== '-' ? c.companyName : '—'}</span>
                                 </div>
                               </td>
 
                               {/* 3. Phone Number */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                                   <span>{c.phone}</span>
                                 </div>
                               </td>
@@ -2595,13 +2560,13 @@ export default function TeamManagement() {
                                   c.status === 'Important' ? 'bg-amber-50 text-amber-800 border border-amber-300' :
                                   c.status === 'Closed Won' ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' :
                                   c.status === 'Hot Lead' ? 'bg-rose-50 text-rose-800 border border-rose-300' :
-                                  'bg-rose-50 text-[#74111d] border border-rose-300'
+                                  'bg-rose-50 text-[#8B0000] border border-rose-300'
                                 }`}>
                                   <span className={`w-2 h-2 rounded-full ${
                                     c.status === 'Important' ? 'bg-amber-500' :
                                     c.status === 'Closed Won' ? 'bg-emerald-500' :
                                     c.status === 'Hot Lead' ? 'bg-rose-500' :
-                                    'bg-[#74111d]'
+                                    'bg-[#8B0000]'
                                   }`}></span>
                                   <span>{c.status || 'Followup required'}</span>
                                 </span>
@@ -2616,16 +2581,14 @@ export default function TeamManagement() {
 
                               {/* 8. Email ID */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap">
                                   <span>{c.email || '—'}</span>
                                 </div>
                               </td>
 
                               {/* 9. Website */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                  <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap">
                                   {c.website && c.website !== '—' && c.website !== '-' ? (
                                     <a
                                       href={c.website.startsWith('http') ? c.website : `https://${c.website}`}
@@ -2643,16 +2606,14 @@ export default function TeamManagement() {
 
                               {/* 10. Address */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap flex items-center space-x-1.5" title={c.address}>
-                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <div className="font-bold text-slate-600 text-xs whitespace-nowrap" title={c.address}>
                                   <span>{c.address || '—'}</span>
                                 </div>
                               </td>
 
                               {/* 11. Last updated */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <div className="font-mono font-bold text-slate-700 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                  <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <div className="font-mono font-bold text-slate-700 text-xs whitespace-nowrap">
                                   <span>{c.lastUpdated || '08-10-2026 16:19'}</span>
                                 </div>
                               </td>
@@ -2663,7 +2624,7 @@ export default function TeamManagement() {
                                   <button
                                     type="button"
                                     onClick={() => handleOpenEditCustomer(c)}
-                                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1.5 rounded-xl font-black text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs whitespace-nowrap"
+                                    className="bg-rose-50 hover:bg-rose-100 text-[#8B0000] border border-rose-200 px-3 py-1.5 rounded-xl font-black text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs whitespace-nowrap"
                                     title="Edit Customer"
                                   >
                                     <Edit3 className="w-3.5 h-3.5" />
@@ -3006,7 +2967,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md shadow-[#74111d]/25 transition text-xs cursor-pointer flex items-center space-x-1.5"
+                            className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md shadow-[#8B0000]/25 transition text-xs cursor-pointer flex items-center space-x-1.5"
                           >
                             <Save className="w-4 h-4" />
                             <span>Save Customer</span>
@@ -3023,27 +2984,30 @@ export default function TeamManagement() {
                 {/* ========================================================= */}
                 {editCustomerModal.isOpen && editCustomerModal.customer && (
                   <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto">
+                    <div 
+                      className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto"
+                      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+                    >
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                         <div className="flex items-center space-x-2.5">
-                          <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                            <Edit3 className="w-5 h-5" />
+                          <div className="w-9 h-9 rounded-xl bg-[#8B0000] text-white flex items-center justify-center shadow-md shadow-[#8B0000]/25">
+                            <Edit3 className="w-4 h-4" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-black text-slate-900">Edit Customer Lead</h3>
-                            <p className="text-xs text-slate-500">Update details for {editCustomerModal.form.name || 'Lead'}</p>
+                            <h3 className="text-lg font-black text-slate-900 tracking-tight">Edit Customer Lead</h3>
+                            <p className="text-xs text-slate-500 font-medium">Update details for {editCustomerModal.form.name || 'Lead'}</p>
                           </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'BeAurex Loyalty', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
-                          className="text-slate-400 hover:text-slate-700 p-1 rounded-lg cursor-pointer"
+                          className="text-slate-400 hover:text-slate-700 p-1 rounded-lg cursor-pointer transition"
                         >
                           <X className="w-5 h-5" />
                         </button>
                       </div>
 
-                      <form onSubmit={handleSaveEditCustomer} className="space-y-3.5 text-xs font-bold">
+                      <form onSubmit={handleSaveEditCustomer} className="space-y-3.5 text-xs font-bold" style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-slate-700 mb-1">Customer Name *</label>
@@ -3055,7 +3019,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, name: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             />
                           </div>
                           <div>
@@ -3068,7 +3032,7 @@ export default function TeamManagement() {
                                 form: { ...editCustomerModal.form, companyName: e.target.value }
                               })}
                               placeholder="e.g. Royal Sweets & Cafe"
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             />
                           </div>
                         </div>
@@ -3084,7 +3048,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, phone: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             />
                           </div>
                           <div>
@@ -3096,7 +3060,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, email: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             />
                           </div>
                         </div>
@@ -3110,7 +3074,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, approachedFor: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             >
                               <option value="BeAurex Loyalty">BeAurex Loyalty</option>
                               <option value="Standee Setup">Standee Setup</option>
@@ -3126,7 +3090,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, status: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             >
                               {statusOptions.map((st, i) => (
                                 <option key={i} value={st}>{st}</option>
@@ -3144,7 +3108,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, followupMethod: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             >
                               <option value="Call">Call</option>
                               <option value="Visit">In-Person Visit</option>
@@ -3161,7 +3125,7 @@ export default function TeamManagement() {
                                 ...editCustomerModal,
                                 form: { ...editCustomerModal.form, source: e.target.value }
                               })}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             >
                               <option value="Direct">Direct</option>
                               <option value="Referral">Referral</option>
@@ -3181,7 +3145,7 @@ export default function TeamManagement() {
                               form: { ...editCustomerModal.form, address: e.target.value }
                             })}
                             placeholder="Address..."
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                           />
                         </div>
 
@@ -3195,23 +3159,24 @@ export default function TeamManagement() {
                               form: { ...editCustomerModal.form, comments: e.target.value }
                             })}
                             placeholder="Add comments or conversation notes..."
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-blue-600 resize-none"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white resize-none transition"
                           />
                         </div>
 
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2.5">
                           <button
                             type="button"
                             onClick={() => setEditCustomerModal({ isOpen: false, customer: null, form: { name: '', phone: '', email: '', companyName: '', businessType: 'Retail', approachedFor: 'BeAurex Loyalty', followupMethod: 'Call', status: 'Followup required', source: 'Direct', website: '', address: '', comments: '' } })}
-                            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                            className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold transition text-xs cursor-pointer"
                           >
                             Cancel
                           </button>
                           <button
                             type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl shadow-md shadow-blue-600/20 text-xs cursor-pointer"
+                            className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md shadow-[#8B0000]/25 transition text-xs cursor-pointer flex items-center space-x-1.5 active:scale-95"
                           >
-                            Save Changes
+                            <Save className="w-3.5 h-3.5" />
+                            <span>Save Changes</span>
                           </button>
                         </div>
                       </form>
@@ -3320,7 +3285,7 @@ export default function TeamManagement() {
                           <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs">
                             <table className="w-full min-w-[500px] text-left text-xs border-collapse">
                               <thead>
-                                <tr className="bg-red-600 text-white font-bold text-[11px]">
+                                <tr className="bg-[#8B0000] text-white font-bold text-[11px]">
                                   <th className="py-2.5 px-3">Date & Time</th>
                                   <th className="py-2.5 px-3">Method</th>
                                   <th className="py-2.5 px-3">Status</th>
@@ -3364,7 +3329,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md shadow-[#74111d]/25 transition text-xs cursor-pointer flex items-center space-x-1.5"
+                            className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold px-5 py-2.5 rounded-xl shadow-md shadow-[#8B0000]/25 transition text-xs cursor-pointer flex items-center space-x-1.5"
                           >
                             <Save className="w-4 h-4" />
                             <span>Save Followup</span>
@@ -3397,28 +3362,18 @@ export default function TeamManagement() {
                   </div>
                 )}
 
-                {/* Top Header Row with Back to Dashboard Button & Title */}
+                {/* Top Header Row with Title */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-                  <div className="flex items-center space-x-3 sm:space-x-4">
-                    <button
-                      onClick={() => setActiveTab('dashboard')}
-                      className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-700 hover:text-[#74111d] bg-white border border-slate-200 hover:border-rose-200 px-3.5 py-2 rounded-xl shadow-2xs transition hover:bg-rose-50/40 cursor-pointer shrink-0"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Back to Dashboard</span>
-                    </button>
-                    <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                        Marketing Kit
-                      </h2>
-                      <p className="text-xs text-slate-500 font-medium">
-                        Manage promotional materials and resources for franchisees.
-                      </p>
-                    </div>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                      Marketing Kit
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Manage promotional materials and resources for franchisees.
+                    </p>
                   </div>
 
-                  <span className="text-xs font-bold text-[#74111d] bg-rose-50 border border-rose-200/80 px-3.5 py-1.5 rounded-full shrink-0 shadow-2xs self-start sm:self-center">
+                  <span className="text-xs font-bold text-[#8B0000] bg-rose-50 border border-rose-200/80 px-3.5 py-1.5 rounded-full shrink-0 shadow-2xs self-start sm:self-center">
                     Franchise Asset Hub
                   </span>
                 </div>
@@ -3427,7 +3382,7 @@ export default function TeamManagement() {
                 <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
                   <button
                     onClick={() => { setKitSubTab('mw_sales_kit'); setOpenFolder(null); }}
-                    className="px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-[#74111d] to-[#8B0000] text-white shadow-md shadow-[#74111d]/25"
+                    className="px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 bg-gradient-to-r from-[#8B0000] to-[#8B0000] text-white shadow-md shadow-[#8B0000]/25"
                   >
                     <span>Sales Kit ({salesKitItemCount})</span>
                   </button>
@@ -3485,7 +3440,7 @@ export default function TeamManagement() {
                           >
                             <div className="flex items-start justify-between mb-4">
                               <div className="w-12 h-12 rounded-xl bg-amber-50 group-hover:bg-rose-50 flex items-center justify-center transition border border-amber-200/60 group-hover:border-rose-200">
-                                <Folder className="w-7 h-7 text-amber-500 fill-amber-400 group-hover:text-[#74111d] group-hover:fill-[#8B0000] transition" />
+                                <Folder className="w-7 h-7 text-amber-500 fill-amber-400 group-hover:text-[#8B0000] group-hover:fill-[#8B0000] transition" />
                               </div>
                               <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">
                                 0 sub • {itemCount} items
@@ -3493,7 +3448,7 @@ export default function TeamManagement() {
                             </div>
 
                             <div>
-                              <h4 className="text-base font-black text-slate-900 group-hover:text-[#74111d] transition truncate">
+                              <h4 className="text-base font-black text-slate-900 group-hover:text-[#8B0000] transition truncate">
                                 {folder.name}
                               </h4>
                               <p className="text-xs text-slate-500 mt-0.5">
@@ -3501,7 +3456,7 @@ export default function TeamManagement() {
                               </p>
                             </div>
 
-                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#74111d]">
+                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#8B0000]">
                               <span>Open Folder</span>
                               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
                             </div>
@@ -3517,7 +3472,7 @@ export default function TeamManagement() {
                       <div className="flex items-center space-x-3">
                         <button
                           onClick={() => setOpenFolder(null)}
-                          className="bg-white hover:bg-rose-50 text-[#74111d] text-xs font-black px-3 py-1.5 rounded-xl border border-rose-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                          className="bg-white hover:bg-rose-50 text-[#8B0000] text-xs font-black px-3 py-1.5 rounded-xl border border-rose-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
                         >
                           <ArrowLeft className="w-3.5 h-3.5" />
                           <span>Back to Folders</span>
@@ -3527,7 +3482,7 @@ export default function TeamManagement() {
                             <Folder className="w-4 h-4 text-amber-500 fill-amber-400 inline" />
                             <span>{openFolder}</span>
                           </h3>
-                          <p className="text-[11px] text-[#74111d] font-semibold">
+                          <p className="text-[11px] text-[#8B0000] font-semibold">
                             {currentFolders.find(f => f.name === openFolder)?.items?.length || 0} items in this folder
                           </p>
                         </div>
@@ -3538,7 +3493,7 @@ export default function TeamManagement() {
                           onClick={() => {
                             showKitToast(`All assets in "${openFolder}" queued for zip download`);
                           }}
-                          className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                          className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>Download All (.zip)</span>
@@ -3573,10 +3528,10 @@ export default function TeamManagement() {
                                 <div className="h-32 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center p-3 text-center mb-3 relative overflow-hidden group">
                                   {item.type === 'image' ? (
                                     <>
-                                      <div className="w-12 h-12 rounded-full bg-rose-100 text-[#74111d] flex items-center justify-center mb-2">
+                                      <div className="w-12 h-12 rounded-full bg-rose-100 text-[#8B0000] flex items-center justify-center mb-2">
                                         <ImageIcon className="w-6 h-6" />
                                       </div>
-                                      <span className="text-[10px] font-black uppercase tracking-wider text-[#74111d] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
+                                      <span className="text-[10px] font-black uppercase tracking-wider text-[#8B0000] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
                                         {item.ext || 'PNG'}
                                       </span>
                                     </>
@@ -3639,7 +3594,7 @@ export default function TeamManagement() {
                                     triggerDownload(item.name);
                                     showKitToast(`Downloaded ${item.name}`);
                                   }}
-                                  className="flex-1 bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-bold py-1.5 rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer shadow-xs"
+                                  className="flex-1 bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-bold py-1.5 rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer shadow-xs"
                                 >
                                   <Download className="w-3 h-3" />
                                   <span>Download</span>
@@ -3659,7 +3614,7 @@ export default function TeamManagement() {
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                         <div className="flex items-center space-x-2">
-                          <Folder className="w-5 h-5 text-[#74111d]" />
+                          <Folder className="w-5 h-5 text-[#8B0000]" />
                           <h3 className="text-base font-black text-slate-900">Create New Folder</h3>
                         </div>
                         <button onClick={() => setAddFolderModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
@@ -3674,7 +3629,7 @@ export default function TeamManagement() {
                             placeholder="e.g. Social Media Banners, Retail Pitch Guides"
                             value={newFolderName}
                             onChange={(e) => setNewFolderName(e.target.value)}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -3692,7 +3647,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                            className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
                           >
                             Create Folder
                           </button>
@@ -3708,7 +3663,7 @@ export default function TeamManagement() {
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                         <div className="flex items-center space-x-2">
-                          <ImageIcon className="w-5 h-5 text-[#74111d]" />
+                          <ImageIcon className="w-5 h-5 text-[#8B0000]" />
                           <h3 className="text-base font-black text-slate-900">Add Images to Marketing Kit</h3>
                         </div>
                         <button onClick={() => setAddImagesModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
@@ -3723,7 +3678,7 @@ export default function TeamManagement() {
                             placeholder="e.g. 5x7 Counter Standee QR.png"
                             value={newImageForm.name}
                             onChange={(e) => setNewImageForm({ ...newImageForm, name: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -3732,7 +3687,7 @@ export default function TeamManagement() {
                           <select
                             value={newImageForm.targetFolder}
                             onChange={(e) => setNewImageForm({ ...newImageForm, targetFolder: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           >
                             {currentFolders.map(f => (
                               <option key={f.id} value={f.name}>{f.name}</option>
@@ -3747,7 +3702,7 @@ export default function TeamManagement() {
                               type="text"
                               value={newImageForm.size}
                               onChange={(e) => setNewImageForm({ ...newImageForm, size: e.target.value })}
-                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                             />
                           </div>
                           <div>
@@ -3756,7 +3711,7 @@ export default function TeamManagement() {
                               type="text"
                               value={newImageForm.res}
                               onChange={(e) => setNewImageForm({ ...newImageForm, res: e.target.value })}
-                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                             />
                           </div>
                         </div>
@@ -3777,7 +3732,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                            className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
                           >
                             Add Image
                           </button>
@@ -3793,7 +3748,7 @@ export default function TeamManagement() {
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                         <div className="flex items-center space-x-2">
-                          <Video className="w-5 h-5 text-[#74111d]" />
+                          <Video className="w-5 h-5 text-[#8B0000]" />
                           <h3 className="text-base font-black text-slate-900">Add Video Link</h3>
                         </div>
                         <button onClick={() => setAddVideoLinkModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
@@ -3808,7 +3763,7 @@ export default function TeamManagement() {
                             placeholder="e.g. How to Pitch BeAurex to Retailers (Walkthrough)"
                             value={newVideoLinkForm.name}
                             onChange={(e) => setNewVideoLinkForm({ ...newVideoLinkForm, name: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -3820,7 +3775,7 @@ export default function TeamManagement() {
                             placeholder="https://youtube.com/watch?v=..."
                             value={newVideoLinkForm.url}
                             onChange={(e) => setNewVideoLinkForm({ ...newVideoLinkForm, url: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -3829,7 +3784,7 @@ export default function TeamManagement() {
                           <select
                             value={newVideoLinkForm.targetFolder}
                             onChange={(e) => setNewVideoLinkForm({ ...newVideoLinkForm, targetFolder: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           >
                             {currentFolders.map(f => (
                               <option key={f.id} value={f.name}>{f.name}</option>
@@ -3847,7 +3802,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                            className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
                           >
                             Add Video Link
                           </button>
@@ -3863,7 +3818,7 @@ export default function TeamManagement() {
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                         <div className="flex items-center space-x-2">
-                          <Upload className="w-5 h-5 text-[#74111d]" />
+                          <Upload className="w-5 h-5 text-[#8B0000]" />
                           <h3 className="text-base font-black text-slate-900">Upload Video Asset</h3>
                         </div>
                         <button onClick={() => setUploadVideoModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
@@ -3878,7 +3833,7 @@ export default function TeamManagement() {
                             placeholder="e.g. BeAurex Loyalty Demo 1080p.mp4"
                             value={uploadVideoForm.name}
                             onChange={(e) => setNewImageForm({ ...uploadVideoForm, name: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -3887,7 +3842,7 @@ export default function TeamManagement() {
                           <select
                             value={uploadVideoForm.targetFolder}
                             onChange={(e) => setUploadVideoForm({ ...uploadVideoForm, targetFolder: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           >
                             {currentFolders.map(f => (
                               <option key={f.id} value={f.name}>{f.name}</option>
@@ -3911,7 +3866,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                            className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
                           >
                             Upload Video
                           </button>
@@ -3927,7 +3882,7 @@ export default function TeamManagement() {
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                         <div className="flex items-center space-x-2">
-                          <FileText className="w-5 h-5 text-[#74111d]" />
+                          <FileText className="w-5 h-5 text-[#8B0000]" />
                           <h3 className="text-base font-black text-slate-900">Add File Resource</h3>
                         </div>
                         <button onClick={() => setAddFileModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-sm">✕</button>
@@ -3942,7 +3897,7 @@ export default function TeamManagement() {
                             placeholder="e.g. Merchant Onboarding Guide 2026.pdf"
                             value={newFileForm.name}
                             onChange={(e) => setNewFileForm({ ...newFileForm, name: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           />
                         </div>
 
@@ -3952,7 +3907,7 @@ export default function TeamManagement() {
                             <select
                               value={newFileForm.ext}
                               onChange={(e) => setNewFileForm({ ...newFileForm, ext: e.target.value })}
-                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                             >
                               <option value="PDF">PDF Document</option>
                               <option value="DOCX">Word Document (.docx)</option>
@@ -3966,7 +3921,7 @@ export default function TeamManagement() {
                               type="text"
                               value={newFileForm.size}
                               onChange={(e) => setNewFileForm({ ...newFileForm, size: e.target.value })}
-                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                              className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                             />
                           </div>
                         </div>
@@ -3976,7 +3931,7 @@ export default function TeamManagement() {
                           <select
                             value={newFileForm.targetFolder}
                             onChange={(e) => setNewFileForm({ ...newFileForm, targetFolder: e.target.value })}
-                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#74111d] focus:border-[#74111d]"
+                            className="w-full text-xs font-semibold px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#8B0000] focus:border-[#8B0000]"
                           >
                             {currentFolders.map(f => (
                               <option key={f.id} value={f.name}>{f.name}</option>
@@ -3994,7 +3949,7 @@ export default function TeamManagement() {
                           </button>
                           <button
                             type="submit"
-                            className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
+                            className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-black px-5 py-2 rounded-xl shadow-md transition"
                           >
                             Upload File
                           </button>
@@ -4011,7 +3966,7 @@ export default function TeamManagement() {
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
                         <div className="flex items-center space-x-2">
                           {previewKitItem.type === 'image' ? (
-                            <ImageIcon className="w-5 h-5 text-[#74111d]" />
+                            <ImageIcon className="w-5 h-5 text-[#8B0000]" />
                           ) : previewKitItem.type === 'video' ? (
                             <Video className="w-5 h-5 text-rose-700" />
                           ) : (
@@ -4057,7 +4012,7 @@ export default function TeamManagement() {
                             showKitToast(`Downloaded ${previewKitItem.name}`);
                             setPreviewKitItem(null);
                           }}
-                          className="bg-gradient-to-r from-[#74111d] to-[#8B0000] hover:from-[#5e0c15] hover:to-[#74111d] text-white text-xs font-extrabold px-5 py-2 rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
+                          className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-extrabold px-5 py-2 rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer"
                         >
                           <Download className="w-4 h-4" />
                           <span>Download Asset</span>
@@ -4118,7 +4073,7 @@ export default function TeamManagement() {
                     </button>
                     <button
                       onClick={() => triggerDownload('Digital ID Card Badge')}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm shadow-red-600/20"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm shadow-red-600/20"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Save Badge</span>
@@ -4136,7 +4091,7 @@ export default function TeamManagement() {
                     </div>
 
                     {/* Badge Header with Brand Red Gradient */}
-                    <div className="bg-gradient-to-br from-[#74111d] via-[#851421] to-[#590d16] p-6 text-white text-center relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-[#8B0000] via-[#8B0000] to-[#590d16] p-6 text-white text-center relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
                       
                       <div className="flex items-center justify-center space-x-2 mb-2">
@@ -4335,7 +4290,7 @@ export default function TeamManagement() {
 
               {/* Avatar & Header */}
               <div className="p-6 text-center border-b border-slate-100 bg-slate-50/50">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#74111d] to-[#851421] text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#74111d]/30 overflow-hidden border-2 border-white">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#8B0000] to-[#8B0000] text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#8B0000]/30 overflow-hidden border-2 border-white">
                   {agentPhoto ? (
                     <img src={agentPhoto} alt={agentProfile.name} className="w-full h-full object-cover" />
                   ) : (
@@ -4406,6 +4361,184 @@ export default function TeamManagement() {
                 </button>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* Share Referral Link Modal */}
+        {shareModalOpen && (
+          <div 
+            className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+            onClick={() => setShareModalOpen(false)}
+          >
+            <div 
+              className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-slate-100 flex items-start justify-between">
+                <div>
+                  <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-red-50 text-[#8B0000] text-[10px] font-black uppercase tracking-wider mb-2">
+                    <Share2 className="w-3 h-3" />
+                    <span>Invite</span>
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900">Share Your Invite Link</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Choose where you want to share with store owners and merchants
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShareModalOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-5">
+                {/* 4 Social Platforms */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2.5">
+                    Select Sharing Platform
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* WhatsApp */}
+                    <button
+                      type="button"
+                      onClick={() => handleShareTo('whatsapp')}
+                      className="group p-3.5 rounded-2xl border-2 border-emerald-100 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 text-left transition flex items-center space-x-3 cursor-pointer shadow-2xs hover:shadow-sm"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-slate-900 group-hover:text-emerald-700">WhatsApp</div>
+                        <div className="text-[10px] text-slate-500 truncate">Chat & Status</div>
+                      </div>
+                    </button>
+
+                    {/* Instagram */}
+                    <button
+                      type="button"
+                      onClick={() => handleShareTo('instagram')}
+                      className="group p-3.5 rounded-2xl border-2 border-pink-100 hover:border-pink-500 bg-pink-50/40 hover:bg-pink-50 text-left transition flex items-center space-x-3 cursor-pointer shadow-2xs hover:shadow-sm"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white flex items-center justify-center shrink-0 shadow-md shadow-pink-500/20 group-hover:scale-105 transition-transform">
+                        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-slate-900 group-hover:text-pink-700">Instagram</div>
+                        <div className="text-[10px] text-slate-500 truncate">Story, Bio & DM</div>
+                      </div>
+                    </button>
+
+                    {/* Facebook */}
+                    <button
+                      type="button"
+                      onClick={() => handleShareTo('facebook')}
+                      className="group p-3.5 rounded-2xl border-2 border-blue-100 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50 text-left transition flex items-center space-x-3 cursor-pointer shadow-2xs hover:shadow-sm"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-[#1877F2] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                        <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-slate-900 group-hover:text-blue-700">Facebook</div>
+                        <div className="text-[10px] text-slate-500 truncate">Feed & Groups</div>
+                      </div>
+                    </button>
+
+                    {/* Twitter / X */}
+                    <button
+                      type="button"
+                      onClick={() => handleShareTo('twitter')}
+                      className="group p-3.5 rounded-2xl border-2 border-slate-200 hover:border-slate-800 bg-slate-50 hover:bg-slate-100 text-left transition flex items-center space-x-3 cursor-pointer shadow-2xs hover:shadow-sm"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0 shadow-md shadow-slate-900/20 group-hover:scale-105 transition-transform">
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-black text-slate-900 group-hover:text-slate-950">X (Twitter)</div>
+                        <div className="text-[10px] text-slate-500 truncate">Post a Tweet</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Instagram copy alert pill if active */}
+                {shareCopiedToast && (
+                  <div className="p-3 bg-pink-50 border border-pink-200 rounded-xl text-xs text-pink-900 flex items-center space-x-2 animate-in fade-in">
+                    <CheckCircle2 className="w-4 h-4 text-pink-600 shrink-0" />
+                    <span>Referral link copied! Opening Instagram to share in Story, DM, or Bio.</span>
+                  </div>
+                )}
+
+                {/* Direct Link Copy Bar */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                    Or Copy Direct Referral Link
+                  </label>
+                  <div className="flex items-center space-x-2 bg-slate-50 border border-slate-200 rounded-2xl p-1.5 focus-within:border-slate-400">
+                    <input
+                      type="text"
+                      readOnly
+                      value={referralLink}
+                      onClick={(e) => e.target.select()}
+                      className="w-full bg-transparent text-xs font-mono font-medium text-slate-700 px-2.5 py-1 outline-hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(referralLink, 'link')}
+                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 cursor-pointer shadow-xs active:scale-95"
+                    >
+                      {copiedLinkToast ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Native Device Share (Visible on mobile/supported browsers) */}
+                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
+                  <button
+                    type="button"
+                    onClick={() => handleShareTo('native')}
+                    className="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer shadow-2xs"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-slate-500" />
+                    <span>More Sharing Options (Device Menu)</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShareModalOpen(false)}
+                  className="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold transition cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

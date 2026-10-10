@@ -355,7 +355,7 @@ let mockMerchants = [
     planValidTill: '11 Oct 2026', 
     paymentDate: '-', 
     paymentAmount: '₹ 999', 
-    status: 'Trial', 
+    status: 'Pending', 
     isComplimentary: false, 
     dealDetails: { 
       dealType: 'FIXED_PRICE', 
@@ -544,6 +544,17 @@ router.get('/merchants', async (req, res) => {
       dbMerchants = await Merchant.find().sort({ createdAt: -1 });
     } catch (e) {}
 
+    // Aggregate real scan counts per merchant from MongoDB
+    let scanCountMap = {};
+    try {
+      const scanAgg = await Scan.aggregate([
+        { $group: { _id: '$merchantId', count: { $sum: 1 } } }
+      ]);
+      scanAgg.forEach(s => {
+        if (s._id) scanCountMap[s._id.toString()] = s.count;
+      });
+    } catch (_) {}
+
     // Merge DB merchants into list
     if (dbMerchants && dbMerchants.length > 0) {
       const merged = dbMerchants.map((m) => {
@@ -572,10 +583,15 @@ router.get('/merchants', async (req, res) => {
 
         const resolvedStatus = !m.isActive 
           ? 'Suspended' 
-          : (isPaid ? 'Paid' : (sub.isExpired ? 'Expired' : 'Trial'));
+          : (m.status === 'Pending' || m.status === 'Pending Payment')
+          ? 'Pending'
+          : (isPaid ? 'Paid' : (sub.isExpired ? 'Expired' : (m.status || 'Trial')));
+
+        const mId = m._id.toString();
+        const realTotalScans = scanCountMap[mId] !== undefined ? scanCountMap[mId] : (found?.totalScans || 0);
 
         return {
-          id: m._id.toString(),
+          id: mId,
           businessName: m.businessName,
           category: m.category,
           email: m.email,
@@ -596,15 +612,178 @@ router.get('/merchants', async (req, res) => {
           complimentaryReason: m.complimentaryReason || (found ? found.complimentaryReason : ''),
           complimentaryDays: m.complimentaryDays || (found ? found.complimentaryDays : 0),
           qrSlug: m.qrSlug || (found ? found.qrSlug : m.businessName?.toLowerCase().replace(/[^a-z0-9]/g, '-')),
+          cashierPin: m.cashierPin || '4829',
           dealDetails: m.dealDetails || (found ? found.dealDetails : { dealTitle: '', dealAmount: 0 }),
-          totalScans: found?.totalScans || 120,
-          repeatRate: found?.repeatRate || '41.5%'
+          totalScans: realTotalScans,
+          repeatRate: realTotalScans > 0 ? (found?.repeatRate || '38%') : '0%'
         };
       });
       return res.json({ success: true, merchants: merged });
     }
 
     res.json({ success: true, merchants: mockMerchants });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET Specific Merchant Live Dashboard For Super Admin View
+router.get('/merchants/:id/dashboard', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let merchant = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      merchant = await Merchant.findById(id);
+    }
+    if (!merchant) {
+      merchant = await Merchant.findOne({ qrSlug: id });
+    }
+    if (!merchant) {
+      const found = mockMerchants.find(m => m.id === id);
+      if (found) merchant = found;
+    }
+    if (!merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant not found' });
+    }
+
+    const merchantId = merchant._id || merchant.id;
+    const isMongo = mongoose.Types.ObjectId.isValid(merchantId);
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    let totalScans = 0;
+    let scansToday = 0;
+    let enrolledShoppers = 0;
+    let redeemedVouchers = 0;
+    let activeVouchers = 0;
+    let repeatRate = '0%';
+    let recentScans = [];
+    let recentVouchers = [];
+    let activeReward = null;
+
+    if (isMongo) {
+      totalScans = await Scan.countDocuments({ merchantId });
+      scansToday = await Scan.countDocuments({ merchantId, createdAt: { $gte: startOfToday } });
+      const customerIds = await Scan.distinct('customerId', { merchantId });
+      enrolledShoppers = customerIds.length;
+      redeemedVouchers = await Voucher.countDocuments({ merchantId, status: 'REDEEMED' });
+      activeVouchers = await Voucher.countDocuments({ merchantId, status: 'ACTIVE' });
+
+      if (enrolledShoppers > 0) {
+        try {
+          const repeatScans = await Scan.aggregate([
+            { $match: { merchantId: new mongoose.Types.ObjectId(merchantId) } },
+            { $group: { _id: '$customerId', count: { $sum: 1 } } },
+            { $match: { count: { $gt: 1 } } }
+          ]);
+          const rate = Math.round((repeatScans.length / enrolledShoppers) * 100);
+          repeatRate = `${rate}%`;
+        } catch (_) {
+          repeatRate = '0%';
+        }
+      }
+
+      // Fetch active reward for this merchant
+      try {
+        activeReward = await Reward.findOne({ merchantId, isActive: true });
+      } catch (_) {}
+
+      // Fetch live in-store recent scans
+      try {
+        const dbScans = await Scan.find({ merchantId })
+          .populate('customerId', 'name mobile')
+          .sort({ createdAt: -1 })
+          .limit(10);
+
+        recentScans = dbScans.map(s => ({
+          id: s._id.toString(),
+          customerPhone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
+          customerName: s.customerId?.name || 'Shopper',
+          time: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          status: 'VERIFIED'
+        }));
+      } catch (_) {}
+
+      // Fetch live in-store recent claimed vouchers
+      try {
+        const dbVouchers = await Voucher.find({ merchantId })
+          .populate('customerId', 'name mobile')
+          .sort({ createdAt: -1 })
+          .limit(10);
+
+        recentVouchers = dbVouchers.map(v => ({
+          id: v._id.toString(),
+          customerPhone: v.customerId?.mobile ? `+91 ${v.customerId.mobile}` : (v.customerMobile ? `+91 ${v.customerMobile}` : '+91 98******10'),
+          customerName: v.customerId?.name || v.customerName || 'Shopper',
+          rewardWon: v.rewardTitle || 'Loyalty Reward',
+          time: new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + new Date(v.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          status: v.status === 'ACTIVE' ? 'ACTION_REQUIRED' : (v.status || 'REDEEMED')
+        }));
+      } catch (_) {}
+    } else {
+      totalScans = merchant.totalScans || 0;
+      repeatRate = merchant.repeatRate || '0%';
+      enrolledShoppers = Math.round(totalScans * 0.45);
+      redeemedVouchers = Math.round(totalScans * 0.32);
+    }
+
+    const sub = Merchant.checkMerchantSubscription(merchant);
+
+    const activityFeed = recentVouchers.length > 0 
+      ? recentVouchers 
+      : recentScans.map(s => ({
+          id: s.id,
+          customerPhone: s.customerPhone,
+          customerName: s.customerName,
+          rewardWon: 'Counter QR Scan Verified',
+          time: `${s.date} ${s.time}`,
+          status: 'VERIFIED'
+        }));
+
+    res.json({
+      success: true,
+      dashboard: {
+        merchant: {
+          id: merchantId.toString(),
+          businessName: merchant.businessName,
+          category: merchant.category,
+          email: merchant.email,
+          mobile: merchant.mobile,
+          city: merchant.city || 'Delhi NCR',
+          qrSlug: merchant.qrSlug,
+          cashierPin: merchant.cashierPin || '4829',
+          brandColor: merchant.brandColor || '#74111d',
+          subscriptionTier: merchant.subscriptionTier,
+          plan: merchant.plan || (sub.status === 'PAID' ? 'Standard Plan' : 'Trial Plan'),
+          planValidTill: merchant.planValidTill || '14 Oct 2026',
+          paymentAmount: merchant.paymentAmount || '-',
+          status: merchant.status || (sub.isExpired ? 'Expired' : 'Paid'),
+          dealDetails: merchant.dealDetails || null,
+          isComplimentary: merchant.isComplimentary || false,
+          complimentaryDays: merchant.complimentaryDays || 0,
+          complimentaryReason: merchant.complimentaryReason || ''
+        },
+        metrics: {
+          totalScans,
+          scansToday,
+          enrolledShoppers,
+          redeemedVouchers,
+          activeVouchers,
+          repeatRate
+        },
+        gamification: {
+          activeRewardTitle: activeReward ? `${activeReward.title} (Min ₹${activeReward.minBillAmount || 0})` : '15% OFF On Total Bill (Min ₹400)',
+          cashierPin: merchant.cashierPin || '4829',
+          throttle: '12h Device Lock (Anti-abuse)',
+          tableStandeeUrl: `/scan/${merchant.qrSlug}`
+        },
+        recentScans,
+        recentVouchers,
+        recentActivity: activityFeed
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -2007,6 +2186,54 @@ router.post('/policies', async (req, res) => {
       message: 'Legal policies published and synchronized across all portals successfully!',
       policies: updated
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Platform FAQs Management (Super Admin FAQ Editor & Settings Modals)
+router.get('/faqs', async (req, res) => {
+  try {
+    const faqs = await systemStore.getAllFaqs();
+    res.json({ success: true, faqs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/faqs', async (req, res) => {
+  try {
+    let updated;
+    if (Array.isArray(req.body.faqs)) {
+      updated = await systemStore.saveFaqs(req.body.faqs);
+    } else if (Array.isArray(req.body)) {
+      updated = await systemStore.saveFaqs(req.body);
+    } else {
+      updated = await systemStore.addFaq(req.body);
+    }
+    res.json({
+      success: true,
+      message: 'FAQ saved and synchronized across all portals successfully!',
+      faqs: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/faqs/:id', async (req, res) => {
+  try {
+    const updated = await systemStore.updateFaq(req.params.id, req.body);
+    res.json({ success: true, message: 'FAQ updated successfully!', faqs: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/faqs/:id', async (req, res) => {
+  try {
+    const updated = await systemStore.deleteFaq(req.params.id);
+    res.json({ success: true, message: 'FAQ deleted successfully!', faqs: updated });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

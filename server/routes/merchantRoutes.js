@@ -165,31 +165,52 @@ router.get('/scans', async (req, res) => {
     if (!merchant && slug) {
       merchant = await Merchant.findOne({ qrSlug: slug });
     }
-    if (!merchant) {
-      merchant = await Merchant.findOne();
-    }
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
     let scansList = [];
     let totalCount = 0;
+    let scansToday = 0;
+
     if (merchant) {
       totalCount = await Scan.countDocuments({ merchantId: merchant._id });
+      scansToday = await Scan.countDocuments({ merchantId: merchant._id, createdAt: { $gte: startOfToday } });
       scansList = await Scan.find({ merchantId: merchant._id })
         .populate('customerId', 'name mobile')
         .sort({ createdAt: -1 })
         .limit(Number(limit));
+
+      const formattedScans = scansList.map(s => ({
+        id: s._id.toString(),
+        customerName: s.customerId?.name || 'Loyal Customer',
+        phone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
+        time: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+        ipAddress: s.ipAddress || '127.0.0.1',
+        device: s.userAgent?.includes('iPhone') ? 'iOS (Safari)' : 'Android (Chrome)',
+        branch: merchant?.branches?.[0]?.branchName || 'Main Counter',
+        status: 'VERIFIED'
+      }));
+
+      return res.json({
+        success: true,
+        totalScans: totalCount,
+        scansToday,
+        scansGrowth: totalCount > 0 ? '+15% this week' : '0% this week',
+        scans: formattedScans
+      });
     }
 
-    if (scansList.length === 0) {
-      scansList = await Scan.find()
-        .populate('customerId', 'name mobile')
-        .sort({ createdAt: -1 })
-        .limit(Number(limit));
-      if (scansList.length > 0) {
-        totalCount = await Scan.countDocuments();
-      }
-    }
+    // Fallback only if no merchant is selected (global default demo)
+    totalCount = await Scan.countDocuments();
+    scansToday = await Scan.countDocuments({ createdAt: { $gte: startOfToday } });
+    scansList = await Scan.find()
+      .populate('customerId', 'name mobile')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
 
-    const formattedScans = scansList.length > 0 ? scansList.map(s => ({
+    const formattedScans = scansList.map(s => ({
       id: s._id.toString(),
       customerName: s.customerId?.name || 'Loyal Customer',
       phone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
@@ -197,21 +218,15 @@ router.get('/scans', async (req, res) => {
       date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
       ipAddress: s.ipAddress || '127.0.0.1',
       device: s.userAgent?.includes('iPhone') ? 'iOS (Safari)' : 'Android (Chrome)',
-      branch: merchant?.branches?.[0]?.branchName || 'Main Counter',
+      branch: 'Main Counter',
       status: 'VERIFIED'
-    })) : [
-      { id: 'sc_1', customerName: 'Rohan Sharma', phone: '+91 9876543210', time: '10 mins ago', date: 'Today', ipAddress: '49.37.12.9', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_2', customerName: 'Priya Verma', phone: '+91 9812345678', time: '34 mins ago', date: 'Today', ipAddress: '157.42.8.11', device: 'iOS (Safari)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_3', customerName: 'Amit Saxena', phone: '+91 9765432109', time: '1 hour ago', date: 'Today', ipAddress: '103.21.5.88', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_4', customerName: 'Simran Kaur', phone: '+91 9988776655', time: '2 hours ago', date: 'Today', ipAddress: '27.56.91.4', device: 'iOS (Safari)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_5', customerName: 'Deepak Patel', phone: '+91 9123456780', time: 'Yesterday, 06:15 PM', date: 'Yesterday', ipAddress: '182.73.4.15', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' }
-    ];
+    }));
 
     res.json({
       success: true,
-      totalScans: totalCount > 0 ? totalCount : 1482,
-      scansToday: 24,
-      scansGrowth: '+28% this week',
+      totalScans: totalCount,
+      scansToday,
+      scansGrowth: '+20% this week',
       scans: formattedScans
     });
   } catch (err) {
@@ -337,13 +352,58 @@ let customersList = [
   { id: 'c7', name: 'Vikas Malhotra', phone: '9711223344', totalVisits: 5, stamps: 5, status: 'ACTIVE', lastVisit: '30 Sep 2026' }
 ];
 
+// GET Merchant Profile (Used for loading merchant dashboard by merchantId or slug)
+router.get('/profile', async (req, res) => {
+  try {
+    const { merchantId, slug, email } = req.query;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant && slug) {
+      merchant = await Merchant.findOne({ qrSlug: slug });
+    }
+    if (!merchant && email) {
+      merchant = await Merchant.findOne({ email: email.toLowerCase() });
+    }
+    if (!merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant not found' });
+    }
+
+    const subStatus = Merchant.checkMerchantSubscription(merchant);
+
+    res.json({
+      success: true,
+      merchant: {
+        id: merchant._id.toString(),
+        businessName: merchant.businessName,
+        category: merchant.category,
+        email: merchant.email,
+        mobile: merchant.mobile,
+        city: merchant.city || 'Delhi NCR',
+        qrSlug: merchant.qrSlug,
+        brandColor: merchant.brandColor || '#74111d',
+        branches: merchant.branches || [],
+        cashierPin: merchant.cashierPin || '4829',
+        subscriptionTier: merchant.subscriptionTier,
+        planValidTill: merchant.planValidTill,
+        paymentAmount: merchant.paymentAmount,
+        paymentDate: merchant.paymentDate,
+        dealDetails: merchant.dealDetails,
+        isComplimentary: merchant.isComplimentary,
+        complimentaryDays: merchant.complimentaryDays,
+        complimentaryReason: merchant.complimentaryReason,
+        subscription: subStatus
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // GET Home Dashboard Data
 router.get('/home', async (req, res) => {
   try {
-    const totalScans = await Scan.countDocuments();
-    const totalUsers = await Customer.countDocuments();
-    const totalVouchers = await Voucher.countDocuments();
-
     let merchant = null;
     const { merchantId, slug } = req.query;
     if (merchantId) {
@@ -352,25 +412,101 @@ router.get('/home', async (req, res) => {
     if (!merchant && slug) {
       merchant = await Merchant.findOne({ qrSlug: slug });
     }
-    if (!merchant) {
-      merchant = await Merchant.findOne();
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    if (merchant) {
+      const mId = merchant._id;
+      const totalScans = await Scan.countDocuments({ merchantId: mId });
+      const scansToday = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfToday } });
+      const customerIds = await Scan.distinct('customerId', { merchantId: mId });
+      const totalUsers = customerIds.length;
+      const totalVouchers = await Voucher.countDocuments({ merchantId: mId });
+      const completedToday = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfToday } });
+
+      let repeatRate = '0%';
+      if (totalUsers > 0) {
+        try {
+          const repeatScansAgg = await Scan.aggregate([
+            { $match: { merchantId: mId } },
+            { $group: { _id: '$customerId', count: { $sum: 1 } } },
+            { $match: { count: { $gt: 1 } } }
+          ]);
+          const rateNum = Math.min(100, Math.round((repeatScansAgg.length / totalUsers) * 100));
+          repeatRate = `${rateNum}%`;
+        } catch (_) {
+          repeatRate = '0%';
+        }
+      }
+
+      // Weekly scans for this merchant
+      const weekly = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        d.setHours(0, 0, 0, 0);
+        const nextD = new Date(d);
+        nextD.setDate(nextD.getDate() + 1);
+        const dayScans = await Scan.countDocuments({
+          merchantId: mId,
+          createdAt: { $gte: d, $lt: nextD }
+        });
+        weekly.push({ day: days[d.getDay()], scans: dayScans });
+      }
+
+      // Merchant's real reward
+      let activeReward = null;
+      try {
+        activeReward = await Reward.findOne({ merchantId: mId, isActive: true });
+      } catch (_) {}
+
+      const subStatus = Merchant.checkMerchantSubscription(merchant);
+
+      return res.json({
+        success: true,
+        metrics: {
+          scans: totalScans,
+          users: totalUsers,
+          rewards: totalVouchers,
+          repeatRate
+        },
+        today: {
+          scansToday,
+          completedToday
+        },
+        weekly,
+        activeRewardProgram: activeReward ? {
+          title: activeReward.title,
+          stampsRequired: 5,
+          validityDays: activeReward.validityDays || 30,
+          minBill: activeReward.minBillAmount || 200,
+          type: activeReward.discountType || 'DISCOUNT_PERCENT'
+        } : activeStampProgram,
+        subscription: subStatus
+      });
     }
 
-    const subStatus = merchant 
-      ? Merchant.checkMerchantSubscription(merchant) 
-      : { isOnline: true, isExpired: false, status: 'TRIAL', tier: 'TRIAL', daysRemaining: 2 };
+    // Fallback if no specific merchant is requested (demo fallback)
+    const totalScans = await Scan.countDocuments();
+    const totalUsers = await Customer.countDocuments();
+    const totalVouchers = await Voucher.countDocuments();
+    const scansToday = await Scan.countDocuments({ createdAt: { $gte: startOfToday } });
+    const completedToday = await Voucher.countDocuments({ status: 'REDEEMED', updatedAt: { $gte: startOfToday } });
 
     res.json({
       success: true,
       metrics: {
-        scans: totalScans > 0 ? totalScans : 1482,
-        users: totalUsers > 0 ? totalUsers : 894,
-        rewards: totalVouchers > 0 ? totalVouchers : 319,
-        repeatRate: '42%'
+        scans: totalScans,
+        users: totalUsers,
+        rewards: totalVouchers,
+        repeatRate: totalScans > 0 ? '42%' : '0%'
       },
       today: {
-        scansToday: 18,
-        completedToday: 6
+        scansToday,
+        completedToday
       },
       weekly: [
         { day: 'Mon', scans: 184 },
@@ -382,7 +518,7 @@ router.get('/home', async (req, res) => {
         { day: 'Sun', scans: 168 }
       ],
       activeRewardProgram: activeStampProgram,
-      subscription: subStatus
+      subscription: { isOnline: true, isExpired: false, status: 'TRIAL', tier: 'TRIAL', daysRemaining: 2 }
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -402,7 +538,18 @@ router.get('/customers', async (req, res) => {
       merchant = await Merchant.findOne({ qrSlug: slug });
     }
 
-    const dbCustomers = await Customer.find().sort({ updatedAt: -1, lastVisitAt: -1 });
+    let customerFilter = {};
+    if (merchant) {
+      const customerIds = await Scan.distinct('customerId', { merchantId: merchant._id });
+      customerFilter = {
+        $or: [
+          { _id: { $in: customerIds } },
+          { 'storeProgress.storeSlug': merchant.qrSlug }
+        ]
+      };
+    }
+
+    const dbCustomers = await Customer.find(customerFilter).sort({ updatedAt: -1, lastVisitAt: -1 });
     let mapped = dbCustomers.map(c => {
       const storeProg = merchant ? c.storeProgress?.find(p => p.storeSlug === merchant.qrSlug) : null;
       const visits = storeProg ? (storeProg.stampsCollected || c.totalVisits || 1) : (c.totalVisits || 1);
@@ -429,9 +576,12 @@ router.get('/customers', async (req, res) => {
       };
     });
 
-    let combined = mapped.length > 0 ? mapped : customersList;
+    let combined = mapped;
+    if (!merchant && mapped.length === 0) {
+      combined = customersList;
+    }
 
-    if (search.trim()) {
+    if (search && search.trim()) {
       const q = search.trim().toLowerCase();
       combined = combined.filter(c => 
         (c.name && c.name.toLowerCase().includes(q)) || 
@@ -494,11 +644,6 @@ router.get('/winners', async (req, res) => {
     }
 
     let dbVouchers = await Voucher.find(query).populate('customerId').sort({ createdAt: -1 });
-    
-    // If no vouchers found for specific merchant ID, load all recent vouchers so nothing is hidden
-    if (dbVouchers.length === 0 && merchant) {
-      dbVouchers = await Voucher.find().populate('customerId').sort({ createdAt: -1 });
-    }
 
     let mapped = dbVouchers.map(v => {
       const cName = (v.customerId && v.customerId.name && v.customerId.name !== 'Customer')
@@ -526,7 +671,10 @@ router.get('/winners', async (req, res) => {
       };
     });
 
-    let combined = mapped.length > 0 ? mapped : winnersList;
+    let combined = mapped;
+    if (!merchant && mapped.length === 0) {
+      combined = winnersList;
+    }
     let list = (type && type !== 'ALL') ? combined.filter(w => w.type === type) : combined;
 
     if (search.trim()) {
@@ -1024,6 +1172,76 @@ router.post('/subscribe', async (req, res) => {
         planValidTill: merchant.planValidTill
       },
       subscription: updatedStatus
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// REWARD REDEMPTION APPROVAL WORKFLOW (Merchant Review & Approve)
+// =========================================================================
+const redemptionStore = require('../services/redemptionStore');
+
+// GET Pending Redemptions for Merchant Review
+router.get('/redemptions/pending', (req, res) => {
+  try {
+    const pending = redemptionStore.getPending();
+    res.json({
+      success: true,
+      count: pending.length,
+      pending
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET All Redemptions (Pending, Approved, Declined)
+router.get('/redemptions/all', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      pending: redemptionStore.getPending(),
+      approved: redemptionStore.getApproved(),
+      declined: redemptionStore.getDeclined()
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST Merchant Approves Reward Claim
+router.post('/redemptions/approve', (req, res) => {
+  try {
+    const { claimId, customerId } = req.body;
+    const approved = redemptionStore.approveClaim(claimId, customerId);
+    if (!approved) {
+      return res.status(404).json({ success: false, message: 'Redemption claim not found or already processed.' });
+    }
+    console.log(`✅ Merchant APPROVED reward claim for ${approved.customerName} (${approved.customerId}) - ${approved.rewardTitle}`);
+    res.json({
+      success: true,
+      message: `Reward approved! Customer can now enjoy ${approved.rewardTitle}.`,
+      claim: approved
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST Merchant Declines Reward Claim
+router.post('/redemptions/decline', (req, res) => {
+  try {
+    const { claimId, customerId, reason } = req.body;
+    const declined = redemptionStore.declineClaim(claimId, customerId, reason);
+    if (!declined) {
+      return res.status(404).json({ success: false, message: 'Redemption claim not found.' });
+    }
+    res.json({
+      success: true,
+      message: 'Reward claim declined.',
+      claim: declined
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "f1",
+    "question": "Will my account be automatically charged when the trial ends?",
+    "answer": "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue.",
+    "category": "General",
+    "status": "Published",
+    "order": 1,
+    "lastUpdated": "May 24, 2026 11:20 AM",
+    "_id": "6ac9ce1e7de2411cc5d1a2e8"
+  },
+  {
+    "id": "f2",
+    "question": "How is user phone number security managed?",
+    "answer": "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing.",
+    "category": "General",
+    "status": "Published",
+    "order": 2,
+    "lastUpdated": "May 24, 2026 10:45 AM",
+    "_id": "6ac9ce1e7de2411cc5d1a2e9"
+  },
+  {
+    "id": "f3",
+    "question": "Do customers need to download an application from the App Store?",
+    "answer": "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser.",
+    "category": "General",
+    "status": "Published",
+    "order": 3,
+    "lastUpdated": "May 24, 2026 09:30 AM",
+    "_id": "6ac9ce1e7de2411cc5d1a2ea"
+  },
+  {
+    "id": "f4",
+    "question": "Can I customize the discounts and reward percentages?",
+    "answer": "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances.",
+    "category": "Rewards",
+    "status": "Published",
+    "order": 4,
+    "lastUpdated": "May 24, 2026 09:15 AM",
+    "_id": "6ac9ce1e7de2411cc5d1a2eb"
+  },
+  {
+    "id": "f5",
+    "question": "How does the acrylic counter standee get configured?",
+    "answer": "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk.",
+    "category": "Merchant",
+    "status": "Published",
+    "order": 5,
+    "lastUpdated": "May 24, 2026 08:50 AM",
+    "_id": "6ac9ce1e7de2411cc5d1a2ec"
+  }
+]

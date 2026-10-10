@@ -39,7 +39,10 @@ export default function AdminAuthGate({ children }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased flex flex-col justify-between selection:bg-red-500 selection:text-white transition-colors duration-200">
+    <div 
+      className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 super-admin-root antialiased flex flex-col justify-between selection:bg-red-500 selection:text-white transition-colors duration-200"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       
       {/* Top Bar */}
       <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 py-3.5 px-4 sm:px-8">
@@ -52,9 +55,9 @@ export default function AdminAuthGate({ children }) {
             />
             <div className="flex flex-col">
               <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white leading-none">
-                Be<span className="text-[#851421]">Aurex</span>
+                Be<span className="text-[#8B0000]">Aurex</span>
               </span>
-              <span className="text-[9px] font-extrabold text-[#851421] dark:text-rose-400 tracking-wider uppercase mt-0.5">
+              <span className="text-[9px] font-extrabold text-[#8B0000] dark:text-rose-400 tracking-wider uppercase mt-0.5">
                 Rewarding Loyalty
               </span>
             </div>
@@ -78,11 +81,11 @@ export default function AdminAuthGate({ children }) {
         <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200/90 dark:border-slate-800 p-8 sm:p-10 relative overflow-hidden">
           
           {/* Top highlight bar */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#6b0f1a] via-[#851421] to-[#5c0d16]"></div>
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#6B0000] via-[#8B0000] to-[#700000]"></div>
 
           {/* 3D Shield Badge */}
           <div className="flex justify-center mb-5">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#851421] to-[#5c0d16] text-white flex items-center justify-center shadow-lg shadow-[#74111d]/30 ring-4 ring-rose-100 dark:ring-red-950/60 transform -rotate-2">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B0000] to-[#700000] text-white flex items-center justify-center shadow-lg shadow-[#8B0000]/30 ring-4 ring-rose-100 dark:ring-red-950/60 transform -rotate-2">
               <ShieldCheck className="w-8 h-8" />
             </div>
           </div>
@@ -112,7 +115,7 @@ export default function AdminAuthGate({ children }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@beaurex.com"
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#74111d] text-slate-900 dark:text-white font-semibold"
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#8B0000] text-slate-900 dark:text-white font-semibold"
               />
             </div>
 
@@ -127,7 +130,7 @@ export default function AdminAuthGate({ children }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter master password"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#74111d] text-slate-900 dark:text-white font-semibold pr-11"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#8B0000] text-slate-900 dark:text-white font-semibold pr-11"
                 />
                 <button
                   type="button"
@@ -142,7 +145,7 @@ export default function AdminAuthGate({ children }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#74111d] to-[#851421] hover:from-[#5e0c15] hover:to-[#74111d] text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
             >
               <span>{loading ? 'Verifying Credentials...' : 'Unlock Master Console'}</span>
               <ArrowRight className="w-4 h-4" />

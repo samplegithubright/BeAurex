@@ -234,37 +234,157 @@ export default function MerchantDashboard() {
   });
 
   useEffect(() => {
-    const handleStorage = () => {
+    // 1. Storage sync for deals and redemptions
+    const handleStorage = (e) => {
       try {
         const saved = localStorage.getItem('loyalqr_platform_deals');
         if (saved) setPlatformDeals(JSON.parse(saved));
       } catch {}
+      if (e?.key === 'beaurex_pending_redemptions' && e.newValue) {
+        try {
+          const list = JSON.parse(e.newValue);
+          if (Array.isArray(list)) setPendingRedemptions(list);
+        } catch {}
+      }
     };
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+
+    // 2. Fetch latest redemptions from server
+    const fetchRedemptions = async () => {
+      try {
+        const res = await fetch('/api/merchant/redemptions/all');
+        const data = await res.json();
+        if (data.success) {
+          if (Array.isArray(data.pending) && data.pending.length > 0) {
+            setPendingRedemptions(data.pending);
+            localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(data.pending));
+          }
+          if (Array.isArray(data.approved) && data.approved.length > 0) {
+            setApprovedRedemptions(data.approved);
+          }
+        }
+      } catch (_) {}
+    };
+    fetchRedemptions();
+
+    // 3. Listen to live claim requests via BroadcastChannel
+    let channel;
+    try {
+      channel = new BroadcastChannel('beaurex_redemptions');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'CLAIM_REQUEST' && event.data.claim) {
+          setPendingRedemptions(prev => {
+            const cleanId = String(event.data.claim.customerId || '').replace(/^ID:\s*/, '').trim();
+            const exists = prev.some(p => p.id === event.data.claim.id || (p.customerId && p.customerId.includes(cleanId)));
+            if (!exists) {
+              const updated = [event.data.claim, ...prev];
+              localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+              return updated;
+            }
+            return prev;
+          });
+        }
+      };
+    } catch (_) {}
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      if (channel) channel.close();
+    };
   }, []);
 
-  const handleAcceptRedemption = (item) => {
-    setPendingRedemptions(prev => prev.filter(p => p.id !== item.id));
-    setApprovedRedemptions(prev => [
-      {
-        ...item,
-        approvedAt: 'Just now'
-      },
-      ...prev
-    ]);
+  const handleAcceptRedemption = async (item) => {
+    const now = new Date();
+    const approvedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const approvedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    setPendingRedemptions(prev => {
+      const updated = prev.filter(p => p.id !== item.id);
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      return updated;
+    });
+
+    const approvedItem = {
+      ...item,
+      status: 'APPROVED',
+      approvedAt: approvedTime,
+      approvedDate: approvedDate
+    };
+
+    setApprovedRedemptions(prev => {
+      const updated = [approvedItem, ...prev];
+      localStorage.setItem('beaurex_approved_redemptions', JSON.stringify(updated));
+      return updated;
+    });
+
+    const cleanCustomerId = String(item.customerId || '').replace(/^ID:\s*/, '').trim();
+    const payload = {
+      type: 'REWARD_APPROVED',
+      claimId: item.id,
+      customerId: cleanCustomerId,
+      rewardTitle: item.rewardTitle,
+      approvedAt: approvedTime,
+      approvedDate: approvedDate,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage(payload);
+      channel.close();
+    } catch (_) {}
+
+    try {
+      await fetch('/api/merchant/redemptions/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claimId: item.id, customerId: cleanCustomerId })
+      });
+    } catch (_) {}
   };
 
-  const handleDeclineRedemption = (item) => {
-    setPendingRedemptions(prev => prev.filter(p => p.id !== item.id));
-    setDeclinedRedemptions(prev => [
-      {
-        ...item,
-        reason: 'Declined by Merchant',
-        declinedAt: 'Just now'
-      },
-      ...prev
-    ]);
+  const handleDeclineRedemption = async (item) => {
+    setPendingRedemptions(prev => {
+      const updated = prev.filter(p => p.id !== item.id);
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      return updated;
+    });
+
+    const declinedItem = {
+      ...item,
+      status: 'DECLINED',
+      reason: 'Declined by Merchant',
+      declinedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setDeclinedRedemptions(prev => [declinedItem, ...prev]);
+
+    const cleanCustomerId = String(item.customerId || '').replace(/^ID:\s*/, '').trim();
+    const payload = {
+      type: 'REWARD_DECLINED',
+      claimId: item.id,
+      customerId: cleanCustomerId,
+      reason: 'Declined by Merchant',
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage(payload);
+      channel.close();
+    } catch (_) {}
+
+    try {
+      await fetch('/api/merchant/redemptions/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claimId: item.id, customerId: cleanCustomerId })
+      });
+    } catch (_) {}
   };
 
   const renderVoucherTile = (voucherType) => {
@@ -323,6 +443,8 @@ export default function MerchantDashboard() {
   const [offerValidity, setOfferValidity] = useState('30 Days');
   const [showOfferPreview, setShowOfferPreview] = useState(true);
   const [offerSuccessModalOpen, setOfferSuccessModalOpen] = useState(false);
+  const [offerPageView, setOfferPageView] = useState('list'); // 'list' | 'create'
+  const [editingOfferId, setEditingOfferId] = useState(null);
   const offerBannerInputRef = useRef(null);
 
   const handleOfferBannerUpload = (e) => {
@@ -337,36 +459,132 @@ export default function MerchantDashboard() {
     }
   };
 
+  const handleEditOffer = (offer) => {
+    if (!offer) return;
+    setEditingOfferId(offer.id);
+    setOfferTitle(offer.title || '');
+    setOfferDescription(offer.description || offer.condition || '');
+    setOfferStampsRequired(offer.stampsRequired || 5);
+    setOfferValidity(offer.validity || '30 Days');
+    setOfferBanner(offer.banner || '');
+    setOfferImageRemoved(!offer.banner);
+    setShowOfferPreview(true);
+    setOfferPageView('create');
+  };
+
+  const handleToggleOfferActive = (offerId) => {
+    setRewards(prev => prev.map(r => r.id === offerId ? { ...r, isActive: !r.isActive } : r));
+  };
+
   const handleResetOrNewOffer = () => {
+    // If user already typed an offer title, save current one before adding another
+    if (offerTitle && offerTitle.trim()) {
+      const finalTitle = offerTitle.trim();
+      const finalDesc = offerDescription.trim() || 'Get 30% off on your next purchase. Thank you for being our loyal customer!';
+      const newProg = {
+        id: editingOfferId || ('rw_' + Date.now()),
+        title: finalTitle,
+        description: finalDesc,
+        condition: `Collect ${offerStampsRequired} stamps • Valid for ${offerValidity}`,
+        stampsRequired: offerStampsRequired || 5,
+        validity: offerValidity || '30 Days',
+        validityDays: parseInt(offerValidity) || 30,
+        banner: offerBanner || '',
+        discountType: 'PERCENTAGE',
+        discountValue: 30,
+        minBillAmount: 0,
+        probability: '100% Milestone',
+        tag: 'Loyalty Offer',
+        isActive: true,
+        createdAt: new Date().toISOString()
+      };
+      if (editingOfferId) {
+        setRewards(prev => prev.map(r => (r.id === editingOfferId ? { ...r, ...newProg } : r)));
+      } else {
+        setRewards(prev => [newProg, ...prev]);
+      }
+      fetch('/api/merchant/rewards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId,
+          title: finalTitle,
+          description: finalDesc,
+          stampsRequired: offerStampsRequired,
+          validityDays: parseInt(offerValidity) || 30,
+          discountType: 'PERCENTAGE',
+          discountValue: 30,
+          banner: offerBanner
+        })
+      }).catch(() => {});
+    }
+
+    // Reset fields for the next new offer
     setOfferTitle('Special Loyalty Reward');
     setOfferDescription('Collect stamps on every purchase to unlock this special reward!');
     setOfferStampsRequired(5);
     setOfferValidity('30 Days');
     setOfferBanner('');
     setOfferImageRemoved(false);
+    setEditingOfferId(null);
+    setOfferPageView('create');
   };
 
   const handleSaveOfferProgram = (e) => {
     if (e) e.preventDefault();
+    const finalTitle = (offerTitle && offerTitle.trim()) ? offerTitle.trim() : '30% OFF on Next Purchase';
+    const finalDesc = (offerDescription && offerDescription.trim()) ? offerDescription.trim() : 'Get 30% off on your next purchase. Thank you for being our loyal customer!';
+    
     const newProg = {
-      id: 'rw_' + Date.now(),
-      title: offerTitle,
-      condition: `Min. order billing • Valid for ${offerValidity}`,
-      discountType: 'FREE_ITEM',
-      discountValue: 100,
+      id: editingOfferId || ('rw_' + Date.now()),
+      title: finalTitle,
+      description: finalDesc,
+      condition: `Collect ${offerStampsRequired} stamps • Valid for ${offerValidity}`,
+      stampsRequired: offerStampsRequired || 5,
+      validity: offerValidity || '30 Days',
+      validityDays: parseInt(offerValidity) || 30,
+      banner: offerBanner || '',
+      discountType: 'PERCENTAGE',
+      discountValue: 30,
       minBillAmount: 0,
       probability: '100% Milestone',
-      tag: 'Loyalty Reward',
-      isActive: true
+      tag: 'Loyalty Offer',
+      isActive: true,
+      createdAt: new Date().toISOString()
     };
-    setRewards(prev => [newProg, ...prev]);
+
+    if (editingOfferId) {
+      setRewards(prev => prev.map(r => (r.id === editingOfferId ? { ...r, ...newProg } : r)));
+    } else {
+      setRewards(prev => [newProg, ...prev]);
+    }
+
     setActiveProgram({
-      title: offerTitle,
+      title: finalTitle,
       stampsRequired: offerStampsRequired,
-      rewardTitle: offerTitle,
+      rewardTitle: finalTitle,
       validityDays: parseInt(offerValidity) || 30
     });
+
+    // Save to backend
+    fetch('/api/merchant/rewards', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        merchantId,
+        title: finalTitle,
+        description: finalDesc,
+        stampsRequired: offerStampsRequired,
+        validityDays: parseInt(offerValidity) || 30,
+        discountType: 'PERCENTAGE',
+        discountValue: 30,
+        banner: offerBanner
+      })
+    }).catch(() => {});
+
     setOfferSuccessModalOpen(true);
+    setOfferPageView('list');
+    setEditingOfferId(null);
   };
 
   // Pillar 1: Scans State
@@ -378,9 +596,45 @@ export default function MerchantDashboard() {
   // Pillar 3: Rewards State
   const [rewardsSubTab, setRewardsSubTab] = useState('rules');
   const [rewards, setRewards] = useState([
-    { id: 'r1', title: '15% OFF On Next Dine-In Bill', condition: 'Min. order ₹400 • Valid for 7 days', discountType: 'PERCENTAGE', discountValue: 15, minBillAmount: 400, probability: '70% Chance', tag: 'High Volume', isActive: true },
-    { id: 'r2', title: '₹150 Flat Discount Voucher', condition: 'Min. order ₹600 • Valid for 10 days', discountType: 'FLAT_AMOUNT', discountValue: 150, minBillAmount: 600, probability: '25% Chance', tag: 'High Value', isActive: true },
-    { id: 'r3', title: 'Free Signature Dessert or Beverage', condition: 'Any billing • Valid for 14 days', discountType: 'FREE_ITEM', discountValue: 100, minBillAmount: 0, probability: '5% Jackpot', tag: 'Jackpot', isActive: true }
+    { 
+      id: 'r1', 
+      title: '30% OFF on Next Purchase', 
+      description: 'Get 30% off on your next purchase. Thank you for being our loyal customer!', 
+      condition: 'Collect 5 stamps to unlock • Valid 30 days', 
+      stampsRequired: 5,
+      validity: '30 Days',
+      discountType: 'PERCENTAGE', 
+      discountValue: 30, 
+      minBillAmount: 0, 
+      tag: '30% OFF', 
+      isActive: true 
+    },
+    { 
+      id: 'r2', 
+      title: '₹150 Flat Discount Voucher', 
+      description: 'Collect 8 stamps to enjoy ₹150 flat discount on your next visit.', 
+      condition: 'Collect 8 stamps to unlock • Valid 10 days', 
+      stampsRequired: 8,
+      validity: '10 Days',
+      discountType: 'FLAT_AMOUNT', 
+      discountValue: 150, 
+      minBillAmount: 600, 
+      tag: 'High Value', 
+      isActive: true 
+    },
+    { 
+      id: 'r3', 
+      title: 'Free Signature Dessert or Beverage', 
+      description: 'Collect 10 stamps to get a free signature delicacy on us!', 
+      condition: 'Collect 10 stamps to unlock • Valid 14 days', 
+      stampsRequired: 10,
+      validity: '14 Days',
+      discountType: 'FREE_ITEM', 
+      discountValue: 100, 
+      minBillAmount: 0, 
+      tag: 'Jackpot', 
+      isActive: true 
+    }
   ]);
   const [newRewardModalOpen, setNewRewardModalOpen] = useState(false);
   const [newRewardForm, setNewRewardForm] = useState({
@@ -621,16 +875,18 @@ export default function MerchantDashboard() {
     expiresAt: null
   });
   const [merchantId, setMerchantId] = useState(null);
+  const [isSuperAdminImpersonation, setIsSuperAdminImpersonation] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
   const [subSuccessMsg, setSubSuccessMsg] = useState('');
 
   const navigate = useNavigate();
 
   // Dynamic Data Fetchers connected to MongoDB
-  const fetchCustomers = (search = customerSearch, filter = customerFilter) => {
+  const fetchCustomers = (search = customerSearch, filter = customerFilter, mid = merchantId) => {
     const query = new URLSearchParams();
     if (search && search.trim()) query.append('search', search.trim());
     if (filter && filter !== 'ALL') query.append('status', filter);
+    if (mid) query.append('merchantId', mid);
     fetch(`/api/merchant/customers?${query.toString()}`)
       .then(res => res.json())
       .then(data => {
@@ -641,10 +897,11 @@ export default function MerchantDashboard() {
       .catch(() => {});
   };
 
-  const fetchWinners = (search = winnerSearch, type = winnerTabType) => {
+  const fetchWinners = (search = winnerSearch, type = winnerTabType, mid = merchantId) => {
     const query = new URLSearchParams();
     if (search && search.trim()) query.append('search', search.trim());
     if (type && type !== 'ALL') query.append('type', type);
+    if (mid) query.append('merchantId', mid);
     fetch(`/api/merchant/winners?${query.toString()}`)
       .then(res => res.json())
       .then(data => {
@@ -655,14 +912,40 @@ export default function MerchantDashboard() {
       .catch(() => {});
   };
 
-  const fetchScans = () => {
-    fetch('/api/merchant/scans')
+  const fetchScans = (mid = merchantId) => {
+    const query = new URLSearchParams();
+    if (mid) query.append('merchantId', mid);
+    fetch(`/api/merchant/scans?${query.toString()}`)
       .then(res => res.json())
       .then(data => {
         if (data && data.success) {
           if (data.scans) setScansList(data.scans);
-          if (data.totalScans) setScansTotal(data.totalScans);
-          if (data.scansToday) setScansTodayCount(data.scansToday);
+          if (data.totalScans !== undefined) setScansTotal(data.totalScans);
+          if (data.scansToday !== undefined) setScansTodayCount(data.scansToday);
+        }
+      })
+      .catch(() => {});
+  };
+
+  const fetchHome = (mid = merchantId) => {
+    const homeUrl = mid ? `/api/merchant/home?merchantId=${mid}` : '/api/merchant/home';
+    fetch(homeUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success) {
+          if (data.metrics) setMetrics(data.metrics);
+          if (data.today) setTodayStats(data.today);
+          if (data.weekly) setWeeklyScans(data.weekly);
+          if (data.subscription) {
+            setSubscriptionInfo(data.subscription);
+            if (data.subscription.isExpired) {
+              setUpgradeModalOpen(true);
+            }
+          }
+          if (data.activeRewardProgram) {
+            setActiveProgram(data.activeRewardProgram);
+            setStampForm(data.activeRewardProgram);
+          }
         }
       })
       .catch(() => {});
@@ -670,82 +953,130 @@ export default function MerchantDashboard() {
 
   // Real-time synchronization & 3s auto-polling so merchant screen stays dynamically updated
   useEffect(() => {
-    fetchCustomers(customerSearch, customerFilter);
-    fetchWinners(winnerSearch, winnerTabType);
-    fetchScans();
+    fetchCustomers(customerSearch, customerFilter, merchantId);
+    fetchWinners(winnerSearch, winnerTabType, merchantId);
+    fetchScans(merchantId);
+    fetchHome(merchantId);
 
     const pollTimer = setInterval(() => {
-      fetchCustomers(customerSearch, customerFilter);
-      fetchWinners(winnerSearch, winnerTabType);
-      fetchScans();
-    }, 3000);
+      fetchCustomers(customerSearch, customerFilter, merchantId);
+      fetchWinners(winnerSearch, winnerTabType, merchantId);
+      fetchScans(merchantId);
+      fetchHome(merchantId);
+    }, 4000);
 
     return () => clearInterval(pollTimer);
-  }, [customerSearch, customerFilter, winnerSearch, winnerTabType, activeTab]);
+  }, [customerSearch, customerFilter, winnerSearch, winnerTabType, activeTab, merchantId]);
 
   // Initial load
   useEffect(() => {
-    let token = sessionStorage.getItem('loyalqr_token') || localStorage.getItem('loyalqr_token');
-    if (!token) {
-      // Seed an active demo merchant session so the dashboard is immediately accessible and works smoothly
-      const defaultMerchant = {
-        id: 'merchant_demo_default',
-        businessName: 'Royal Sweets & Cafe',
-        mobile: '9876543210',
-        email: 'owner@royalsweets.com',
-        city: 'Delhi NCR',
-        qrSlug: 'royal-sweets-delhi',
-        category: 'CAFE_RESTAURANT',
-        trialDays: 3,
-        subscriptionTier: 'TRIAL'
-      };
-      token = 'demo_token_' + Date.now();
-      sessionStorage.setItem('loyalqr_token', token);
-      sessionStorage.setItem('loyalqr_merchant', JSON.stringify(defaultMerchant));
-      sessionStorage.setItem('loyalqr_biz', defaultMerchant.businessName);
-      localStorage.setItem('loyalqr_token', token);
-      localStorage.setItem('loyalqr_merchant', JSON.stringify(defaultMerchant));
-      localStorage.setItem('loyalqr_biz', defaultMerchant.businessName);
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryMerchantId = searchParams.get('merchantId');
+    const isSuperAdmin = searchParams.get('asAdmin') === 'true';
+    let currentMid = queryMerchantId || null;
+
+    if (isSuperAdmin) {
+      setIsSuperAdminImpersonation(true);
     }
 
-    const savedBiz = sessionStorage.getItem('loyalqr_biz') || localStorage.getItem('loyalqr_biz');
-    if (savedBiz && typeof savedBiz === 'string' && savedBiz.trim() && savedBiz !== 'undefined' && savedBiz !== 'null') {
-      setStoreName(savedBiz.trim());
-      setStoreSlug(savedBiz.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
-    } else {
-      setStoreName('Royal Sweets & Cafe');
-      setStoreSlug('royal-sweets-delhi');
-    }
-
-    let currentMid = null;
-    const savedMerchantRaw = sessionStorage.getItem('loyalqr_merchant') || localStorage.getItem('loyalqr_merchant');
-    if (savedMerchantRaw) {
-      try {
-        const m = JSON.parse(savedMerchantRaw);
-        if (m && typeof m === 'object') {
-          currentMid = m.id || m._id;
-          if (currentMid) setMerchantId(currentMid);
-          if (m.businessName) {
+    if (queryMerchantId) {
+      // Super Admin opening a specific merchant dashboard or direct merchantId link
+      setMerchantId(queryMerchantId);
+      fetch(`/api/merchant/profile?merchantId=${queryMerchantId}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.success && d.merchant) {
+            const m = d.merchant;
             setStoreName(m.businessName);
-            setStoreSlug(m.qrSlug || m.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
-          } else if (m.qrSlug) {
             setStoreSlug(m.qrSlug);
+            if (m.category) setStoreCategory(m.category);
+            if (m.mobile) {
+              setPhoneEmail(prev => ({ ...prev, phone: '+91 ' + m.mobile }));
+              setOwnerAccount(prev => ({ ...prev, phone: m.mobile }));
+            }
+            if (m.email) {
+              setPhoneEmail(prev => ({ ...prev, email: m.email }));
+              setOwnerAccount(prev => ({ ...prev, email: m.email }));
+            }
+            if (m.subscription) setSubscriptionInfo(m.subscription);
+            sessionStorage.setItem('loyalqr_merchant', JSON.stringify(m));
+            sessionStorage.setItem('loyalqr_biz', m.businessName);
+
+            // Fetch live data for this specific merchant
+            fetchScans(queryMerchantId);
+            fetchCustomers(customerSearch, customerFilter, queryMerchantId);
+            fetchWinners(winnerSearch, winnerTabType, queryMerchantId);
+            fetchHome(queryMerchantId);
           }
-          if (m.category) setStoreCategory(m.category);
-          if (m.mobile) {
-            setPhoneEmail(prev => ({ ...prev, phone: '+91 ' + m.mobile }));
-            setOwnerAccount(prev => ({ ...prev, phone: m.mobile }));
+        })
+        .catch(() => {});
+    } else {
+      let token = sessionStorage.getItem('loyalqr_token') || localStorage.getItem('loyalqr_token');
+      if (!token) {
+        // Seed an active demo merchant session so the dashboard is immediately accessible and works smoothly
+        const defaultMerchant = {
+          id: 'merchant_demo_default',
+          businessName: 'Royal Sweets & Cafe',
+          mobile: '9876543210',
+          email: 'owner@royalsweets.com',
+          city: 'Delhi NCR',
+          qrSlug: 'royal-sweets-delhi',
+          category: 'CAFE_RESTAURANT',
+          trialDays: 3,
+          subscriptionTier: 'TRIAL'
+        };
+        token = 'demo_token_' + Date.now();
+        sessionStorage.setItem('loyalqr_token', token);
+        sessionStorage.setItem('loyalqr_merchant', JSON.stringify(defaultMerchant));
+        sessionStorage.setItem('loyalqr_biz', defaultMerchant.businessName);
+        localStorage.setItem('loyalqr_token', token);
+        localStorage.setItem('loyalqr_merchant', JSON.stringify(defaultMerchant));
+        localStorage.setItem('loyalqr_biz', defaultMerchant.businessName);
+      }
+
+      const savedBiz = sessionStorage.getItem('loyalqr_biz') || localStorage.getItem('loyalqr_biz');
+      if (savedBiz && typeof savedBiz === 'string' && savedBiz.trim() && savedBiz !== 'undefined' && savedBiz !== 'null') {
+        setStoreName(savedBiz.trim());
+        setStoreSlug(savedBiz.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+      } else {
+        setStoreName('Royal Sweets & Cafe');
+        setStoreSlug('royal-sweets-delhi');
+      }
+
+      const savedMerchantRaw = sessionStorage.getItem('loyalqr_merchant') || localStorage.getItem('loyalqr_merchant');
+      if (savedMerchantRaw) {
+        try {
+          const m = JSON.parse(savedMerchantRaw);
+          if (m && typeof m === 'object') {
+            currentMid = m.id || m._id;
+            if (currentMid) setMerchantId(currentMid);
+            if (m.businessName) {
+              setStoreName(m.businessName);
+              setStoreSlug(m.qrSlug || m.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+            } else if (m.qrSlug) {
+              setStoreSlug(m.qrSlug);
+            }
+            if (m.category) setStoreCategory(m.category);
+            if (m.mobile) {
+              setPhoneEmail(prev => ({ ...prev, phone: '+91 ' + m.mobile }));
+              setOwnerAccount(prev => ({ ...prev, phone: m.mobile }));
+            }
+            if (m.email) {
+              setPhoneEmail(prev => ({ ...prev, email: m.email }));
+              setOwnerAccount(prev => ({ ...prev, email: m.email }));
+            }
           }
-          if (m.email) {
-            setPhoneEmail(prev => ({ ...prev, email: m.email }));
-            setOwnerAccount(prev => ({ ...prev, email: m.email }));
-          }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
+
+      // Initial loads
+      fetchScans(currentMid);
+      fetchCustomers(customerSearch, customerFilter, currentMid);
+      fetchWinners(winnerSearch, winnerTabType, currentMid);
+      fetchHome(currentMid);
     }
 
     // Check if redirected due to expired trial/subscription or onboarding
-    const searchParams = new URLSearchParams(window.location.search);
     const expiredParam = searchParams.get('expired') === 'true';
     const tabParam = searchParams.get('tab');
     if (expiredParam || tabParam === 'subscription') {
@@ -775,7 +1106,8 @@ export default function MerchantDashboard() {
       .catch(() => {});
 
     // Fetch live home metrics & subscription status
-    const homeUrl = currentMid ? `/api/merchant/home?merchantId=${currentMid}` : '/api/merchant/home';
+    const midToFetch = currentMid || merchantId;
+    const homeUrl = midToFetch ? `/api/merchant/home?merchantId=${midToFetch}` : '/api/merchant/home';
     fetch(homeUrl)
       .then(res => res.json())
       .then(data => {
@@ -886,7 +1218,7 @@ export default function MerchantDashboard() {
             contact: ownerAccount?.phone || phoneEmail?.phone || '',
             email: ownerAccount?.email || phoneEmail?.email || ''
           },
-          theme: { color: '#74111d' },
+          theme: { color: '#8B0000' },
           handler: async function (response) {
             setSubscribing(true);
             try {
@@ -1036,7 +1368,7 @@ export default function MerchantDashboard() {
         const centerY = (1024 - centerSize) / 2;
         const cornerRadius = 36;
 
-        // Draw rounded brand badge container in #74111d with white border
+        // Draw rounded brand badge container in #8B0000 with white border
         ctx.save();
         ctx.beginPath();
         if (ctx.roundRect) {
@@ -1044,7 +1376,7 @@ export default function MerchantDashboard() {
         } else {
           ctx.rect(centerX, centerY, centerSize, centerSize);
         }
-        ctx.fillStyle = '#74111d';
+        ctx.fillStyle = '#8B0000';
         ctx.fill();
         ctx.lineWidth = 14;
         ctx.strokeStyle = '#ffffff';
@@ -1155,7 +1487,7 @@ export default function MerchantDashboard() {
               color: #1e293b;
             }
             .standee {
-              border: 3px solid #74111d;
+              border: 3px solid #8B0000;
               border-radius: 28px;
               padding: 36px 28px;
               text-align: center;
@@ -1165,7 +1497,7 @@ export default function MerchantDashboard() {
             }
             .brand-badge {
               display: inline-block;
-              background: #74111d;
+              background: #8B0000;
               color: #ffffff;
               font-weight: 800;
               font-size: 13px;
@@ -1203,7 +1535,7 @@ export default function MerchantDashboard() {
             .cta {
               font-size: 16px;
               font-weight: 800;
-              color: #74111d;
+              color: #8B0000;
               margin: 0 0 6px 0;
             }
             .sub-cta {
@@ -1596,7 +1928,10 @@ export default function MerchantDashboard() {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 text-slate-900 font-sans antialiased flex flex-col selection:bg-red-500 selection:text-white">
+    <div 
+      className="min-h-screen w-full bg-slate-50 text-slate-900 font-sans antialiased flex flex-col selection:bg-red-500 selection:text-white merchant-portal merchant-root"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       
       {/* Toast Notification */}
       {copiedToast && (
@@ -1629,12 +1964,34 @@ export default function MerchantDashboard() {
         className="hidden" 
       />
 
+      {/* Super Admin Live Impersonation Banner */}
+      {isSuperAdminImpersonation && (
+        <div className="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 px-4 sm:px-6 py-2.5 text-xs font-bold flex flex-wrap items-center justify-between border-b border-amber-500 shadow-md sticky top-0 z-50">
+          <div className="flex items-center space-x-2.5">
+            <span className="bg-slate-950 text-white text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full shadow-xs tracking-wider">
+              Super Admin Mode
+            </span>
+            <span className="text-slate-900">
+              Viewing exact store dashboard for: <strong className="font-black text-slate-950">{storeName}</strong> <span className="text-slate-700 font-mono">({merchantId})</span>
+            </span>
+          </div>
+          <button 
+            type="button"
+            onClick={() => navigate('/admin')} 
+            className="bg-slate-950 hover:bg-slate-800 text-white font-black px-3.5 py-1 rounded-xl text-xs transition cursor-pointer flex items-center space-x-1.5 shadow-sm mt-1 sm:mt-0"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
+            <span>Return to Super Admin</span>
+          </button>
+        </div>
+      )}
+
       {/* ========================================================= */}
       {/* ========================================================= */}
-      {/* THEME COLOR HEADER (Crimson #74111d Brand Header) */}
+      {/* THEME COLOR HEADER (Crimson #8B0000 Brand Header) */}
       {/* Normal nav bar links without pill container */}
       {/* ========================================================= */}
-      <header className="sticky top-0 inset-x-0 z-40 w-full bg-gradient-to-r from-[#690005] via-[#74111d] to-[#590104] border-b border-[#5e0c15] shadow-md">
+      <header className="sticky top-0 inset-x-0 z-40 w-full bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] border-b border-[#720000] shadow-md">
         
         {/* MOBILE HEADER */}
         <div className="md:hidden px-4 py-3 relative z-10 flex items-center justify-between">
@@ -1669,7 +2026,7 @@ export default function MerchantDashboard() {
             onClick={() => setActiveTab('profile')}
             className={`w-9 h-9 rounded-xl border flex items-center justify-center transition cursor-pointer shrink-0 ${
               activeTab === 'profile'
-                ? 'bg-white text-[#74111d] border-white shadow-xs'
+                ? 'bg-white text-[#8B0000] border-white shadow-xs'
                 : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
             }`}
             title="Store Profile & Settings"
@@ -1753,7 +2110,7 @@ export default function MerchantDashboard() {
                 onClick={() => setActiveTab('profile')}
                 className={`h-9 px-3.5 rounded-xl border flex items-center space-x-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap ${
                   activeTab === 'profile'
-                    ? 'bg-white text-[#74111d] border-white shadow-xs font-black'
+                    ? 'bg-white text-[#8B0000] border-white shadow-xs font-black'
                     : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
                 }`}
                 title="Store Profile & Settings"
@@ -1765,10 +2122,10 @@ export default function MerchantDashboard() {
               <button
                 type="button"
                 onClick={handleMerchantLogout}
-                className="h-9 px-4 rounded-xl bg-white text-[#74111d] hover:bg-rose-50 font-black flex items-center space-x-1.5 text-xs transition-all shadow-md shadow-black/25 hover:-translate-y-0.5 cursor-pointer whitespace-nowrap"
+                className="h-9 px-4 rounded-xl bg-white text-[#8B0000] hover:bg-rose-50 font-black flex items-center space-x-1.5 text-xs transition-all shadow-md shadow-black/25 hover:-translate-y-0.5 cursor-pointer whitespace-nowrap"
                 title="Logout"
               >
-                <LogOut className="w-3.5 h-3.5 text-[#74111d]" />
+                <LogOut className="w-3.5 h-3.5 text-[#8B0000]" />
                 <span>Logout</span>
               </button>
             </div>
@@ -1782,7 +2139,7 @@ export default function MerchantDashboard() {
             <span>3-DAY TRIAL EXPIRED — STORE OFFLINE: Please buy a subscription plan to bring your store back online.</span>
             <button 
               onClick={() => setBuyPlanModalOpen(true)}
-              className="ml-2 bg-gradient-to-r from-[#74111d] to-[#981b2a] hover:from-[#5e0c15] hover:to-[#801321] text-white font-black px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider cursor-pointer shadow-xs"
+              className="ml-2 bg-gradient-to-r from-[#8B0000] to-[#981b2a] hover:from-[#720000] hover:to-[#801321] text-white font-black px-2.5 py-0.5 rounded-lg text-[10px] uppercase tracking-wider cursor-pointer shadow-xs"
             >
               Renew Now
             </button>
@@ -1832,7 +2189,7 @@ export default function MerchantDashboard() {
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
                   <div className="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
                     <span>Total Scans</span>
-                    <Smartphone className="w-4 h-4 text-[#851421]" />
+                    <Smartphone className="w-4 h-4 text-[#8B0000]" />
                   </div>
                   <div className="text-2xl font-black text-slate-900">{scansTotal.toLocaleString()}</div>
                   <div className="text-[11px] font-bold text-emerald-600 mt-1">+28% this week</div>
@@ -1923,7 +2280,7 @@ export default function MerchantDashboard() {
                             <td className="py-3.5 px-4 text-right">
                               <button
                                 onClick={() => setActiveTab('customers')}
-                                className="text-xs font-bold text-[#74111d] hover:underline cursor-pointer"
+                                className="text-xs font-bold text-[#8B0000] hover:underline cursor-pointer"
                               >
                                 View CRM
                               </button>
@@ -1957,14 +2314,14 @@ export default function MerchantDashboard() {
                   onClick={() => setRewardsViewTab('pending')}
                   className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
                     rewardsViewTab === 'pending'
-                      ? 'bg-white text-[#74111d] border border-rose-300 shadow-xs font-black'
+                      ? 'bg-white text-[#8B0000] border border-rose-300 shadow-xs font-black'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   <span>Pending</span>
                   {pendingRedemptions.length > 0 && (
                     <span className={`w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center ${
-                      rewardsViewTab === 'pending' ? 'bg-[#74111d] text-white' : 'bg-slate-300 text-slate-700'
+                      rewardsViewTab === 'pending' ? 'bg-[#8B0000] text-white' : 'bg-slate-300 text-slate-700'
                     }`}>
                       {pendingRedemptions.length}
                     </span>
@@ -1977,7 +2334,7 @@ export default function MerchantDashboard() {
                   onClick={() => setRewardsViewTab('approved')}
                   className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
                     rewardsViewTab === 'approved'
-                      ? 'bg-[#74111d] text-white shadow-xs font-black'
+                      ? 'bg-[#8B0000] text-white shadow-xs font-black'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -1990,7 +2347,7 @@ export default function MerchantDashboard() {
                   onClick={() => setRewardsViewTab('declined')}
                   className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
                     rewardsViewTab === 'declined'
-                      ? 'bg-[#74111d] text-white shadow-xs font-black'
+                      ? 'bg-[#8B0000] text-white shadow-xs font-black'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
@@ -2147,51 +2504,6 @@ export default function MerchantDashboard() {
                   )}
                 </div>
               )}
-
-              {/* Active Reward Program Rules Section & Delete Modal Trigger */}
-              <div className="pt-6 border-t border-slate-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-black text-slate-900">Active Reward Programs ({rewards.length})</h3>
-                  <button
-                    onClick={() => setActiveTab('create_offer')}
-                    className="text-xs font-bold text-[#74111d] hover:underline flex items-center space-x-1 cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Create Another Offer</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {rewards.map((r, i) => (
-                    <div key={r.id || i} className="bg-white border border-slate-200 rounded-3xl p-5 shadow-xs relative flex flex-col justify-between hover:border-slate-300 transition">
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-50 text-[#74111d] border border-rose-200">
-                            {r.tag || 'Stamp Card'}
-                          </span>
-                          <span className="text-xs font-bold text-slate-400">Live</span>
-                        </div>
-                        <h4 className="font-black text-slate-900 text-sm mb-1">{r.title}</h4>
-                        <p className="text-xs text-slate-500 font-medium">{r.condition}</p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
-                        <span className="text-emerald-600 flex items-center space-x-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          <span>Active Program</span>
-                        </span>
-                        <button
-                          onClick={() => setDeleteRewardModal({ isOpen: true, reward: r })}
-                          className="text-slate-400 hover:text-rose-600 p-1 transition cursor-pointer"
-                          title="Delete Reward"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
             </div>
           )}
 
@@ -2207,7 +2519,7 @@ export default function MerchantDashboard() {
                 </div>
                 <button
                   onClick={() => setScratchModalOpen(true)}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-[#74111d]/25 cursor-pointer"
+                  className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-[#8B0000]/25 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Configure Rules</span>
@@ -2219,7 +2531,7 @@ export default function MerchantDashboard() {
                 {scratchRules.map((r, i) => (
                   <div key={r.id || i} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="w-7 h-7 rounded-lg bg-rose-100 text-[#74111d] flex items-center justify-center font-black text-xs">
+                      <span className="w-7 h-7 rounded-lg bg-rose-100 text-[#8B0000] flex items-center justify-center font-black text-xs">
                         #{i + 1}
                       </span>
                       <span className="text-xs font-black text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
@@ -2265,7 +2577,7 @@ export default function MerchantDashboard() {
                 </div>
                 <button
                   onClick={() => setMenuModalOpen(true)}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-[#74111d]/25 cursor-pointer"
+                  className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-[#8B0000]/25 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Menu Item</span>
@@ -2602,7 +2914,7 @@ export default function MerchantDashboard() {
                       onClick={() => setCustomerFilter('ALL')}
                       className={`px-4 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
                         customerFilter === 'ALL'
-                          ? 'bg-[#74111d] text-white shadow-xs'
+                          ? 'bg-[#8B0000] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -2612,7 +2924,7 @@ export default function MerchantDashboard() {
                       onClick={() => setCustomerFilter('ACTIVE')}
                       className={`px-4 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
                         customerFilter === 'ACTIVE'
-                          ? 'bg-[#74111d] text-white shadow-xs'
+                          ? 'bg-[#8B0000] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -2622,7 +2934,7 @@ export default function MerchantDashboard() {
                       onClick={() => setCustomerFilter('COMPLETED')}
                       className={`px-4 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
                         customerFilter === 'COMPLETED'
-                          ? 'bg-[#74111d] text-white shadow-xs'
+                          ? 'bg-[#8B0000] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
@@ -2656,7 +2968,7 @@ export default function MerchantDashboard() {
                   <div className="pt-2">
                     <button
                       onClick={handleCopyLink}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer inline-flex items-center space-x-2"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer inline-flex items-center space-x-2"
                     >
                       <Copy className="w-3.5 h-3.5" />
                       <span>Copy Customer QR Link</span>
@@ -2686,7 +2998,7 @@ export default function MerchantDashboard() {
                         <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
                           <button
                             onClick={() => handleGiveStampToCustomer(c.phone)}
-                            className="bg-red-50 hover:bg-red-100 text-[#74111d] text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl border border-red-200 transition flex items-center space-x-1 cursor-pointer shrink-0 shadow-2xs"
+                            className="bg-red-50 hover:bg-red-100 text-[#8B0000] text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl border border-red-200 transition flex items-center space-x-1 cursor-pointer shrink-0 shadow-2xs"
                             title="Authorize 1 Stamp for this Customer"
                           >
                             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
@@ -2738,7 +3050,7 @@ export default function MerchantDashboard() {
                     onClick={() => setWinnerTabType('stamp')}
                     className={`flex items-center space-x-2 px-6 py-2 rounded-full text-xs font-black transition cursor-pointer ${
                       winnerTabType === 'stamp'
-                        ? 'bg-[#74111d] text-white shadow-md'
+                        ? 'bg-[#8B0000] text-white shadow-md'
                         : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
@@ -2755,7 +3067,7 @@ export default function MerchantDashboard() {
                     onClick={() => setWinnerTabType('scratch')}
                     className={`flex items-center space-x-2 px-6 py-2 rounded-full text-xs font-black transition cursor-pointer ${
                       winnerTabType === 'scratch'
-                        ? 'bg-[#74111d] text-white shadow-md'
+                        ? 'bg-[#8B0000] text-white shadow-md'
                         : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
@@ -2826,7 +3138,7 @@ export default function MerchantDashboard() {
                         {w.status === 'ACTION_REQUIRED' ? (
                           <button
                             onClick={() => handleBurnWinner(w.id)}
-                            className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer flex items-center space-x-1.5"
+                            className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition cursor-pointer flex items-center space-x-1.5"
                           >
                             <Check className="w-3.5 h-3.5" />
                             <span>Verify & Burn PIN</span>
@@ -2857,271 +3169,467 @@ export default function MerchantDashboard() {
           {/* Responsive for Mobile and Laptop */}
           {/* ============================================================= */}
           {activeTab === 'create_offer' && (
-            <div className="space-y-4 sm:space-y-6 pb-24 md:pb-12 max-w-xl mx-auto animate-in fade-in duration-200">
+            <div className="space-y-4 sm:space-y-6 pb-24 md:pb-12 max-w-4xl mx-auto animate-in fade-in duration-200">
               
-              {/* Main Card Form */}
-              <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-5">
-                
-                {/* 1. Offer Image */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-800">Offer Image</label>
-                  <p className="text-xs text-slate-400 mt-0.5">Upload attractive image for your offer</p>
-
-                  <div className="flex items-center space-x-3 mt-3">
-                    {/* Active Offer Image / Default Red 30% OFF Badge */}
-                    {!offerImageRemoved && (
-                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl relative overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white flex flex-col items-center justify-center p-2 text-center shadow-xs border border-red-950/20 shrink-0">
-                        {offerBanner ? (
-                          <img src={offerBanner} alt="Offer Banner" className="w-full h-full object-cover rounded-xl" />
-                        ) : (
-                          <>
-                            <span className="text-2xl sm:text-3xl font-black leading-none">30%</span>
-                            <span className="text-sm sm:text-base font-black leading-tight">OFF</span>
-                            <span className="text-[8px] font-bold text-red-200 mt-1 uppercase tracking-wider">LIMITED TIME</span>
-                          </>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOfferBanner('');
-                            setOfferImageRemoved(true);
-                          }}
-                          className="w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center absolute top-1.5 right-1.5 text-xs transition cursor-pointer shadow-xs"
-                          title="Remove image"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Upload Image Box */}
-                    <input 
-                      type="file" 
-                      ref={offerBannerInputRef} 
-                      accept="image/*" 
-                      onChange={handleOfferBannerUpload} 
-                      className="hidden" 
-                    />
-                    <div 
-                      onClick={() => offerBannerInputRef.current?.click()}
-                      className="w-28 h-24 sm:w-32 sm:h-28 rounded-2xl border-2 border-dashed border-slate-300 hover:border-red-400 bg-slate-50/50 flex flex-col items-center justify-center p-2 text-center cursor-pointer transition shrink-0 group"
-                    >
-                      <ImageIcon className="w-6 h-6 text-red-600 mb-1 group-hover:scale-110 transition" />
-                      <span className="text-xs font-bold text-red-700">Upload Image</span>
-                      <span className="text-[9px] text-slate-400 mt-0.5">JPG, PNG up to 5MB</span>
+              {/* Header Bar */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {offerPageView === 'list' ? (
+                  <>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center space-x-2">
+                        <span>All Created Offers</span>
+                        <span className="text-xs font-black text-[#8B0000] bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full">
+                          {rewards.length} Live
+                        </span>
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Every offer created for your store is displayed below. Customers automatically unlock these rewards as they collect stamps.
+                      </p>
                     </div>
-                  </div>
-                </div>
 
-                {/* 2. Offer Title */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">Offer Title</label>
-                  <div className="relative flex items-center bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus-within:border-red-600 focus-within:ring-1 focus-within:ring-red-600/20 transition">
-                    <input
-                      type="text"
-                      maxLength={100}
-                      value={offerTitle}
-                      onChange={(e) => setOfferTitle(e.target.value)}
-                      placeholder="30% OFF on Next Purchase"
-                      className="w-full text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none bg-transparent pr-14"
-                    />
-                    <span className="absolute right-3 text-xs text-slate-400 font-medium">
-                      {offerTitle.length}/100
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. Offer Description */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">Offer Description</label>
-                  <div className="relative bg-white border border-slate-200 rounded-xl p-3 focus-within:border-red-600 focus-within:ring-1 focus-within:ring-red-600/20 transition">
-                    <textarea
-                      rows={3}
-                      maxLength={200}
-                      value={offerDescription}
-                      onChange={(e) => setOfferDescription(e.target.value)}
-                      placeholder="Get 30% off on your next purchase. Thank you for being our loyal customer!"
-                      className="w-full text-xs sm:text-sm font-medium text-slate-800 focus:outline-none bg-transparent resize-none pb-4"
-                    />
-                    <span className="absolute bottom-2 right-3 text-xs text-slate-400 font-medium">
-                      {offerDescription.length}/200
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4. Two Columns: Required Stamps & Expiry */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Left: Required Stamps */}
-                  <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
-                    <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
-                      <User className="w-4 h-4 text-red-700" />
-                      <span>Required Stamps</span>
-                    </div>
-                    <div className="flex items-center justify-center space-x-4 my-2">
-                      <button
-                        type="button"
-                        onClick={() => setOfferStampsRequired(Math.max(1, offerStampsRequired - 1))}
-                        className="w-8 h-8 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-lg transition cursor-pointer shadow-2xs"
-                      >
-                        -
-                      </button>
-                      <span className="text-xl font-black text-slate-900 w-8 text-center">{offerStampsRequired}</span>
-                      <button
-                        type="button"
-                        onClick={() => setOfferStampsRequired(Math.min(20, offerStampsRequired + 1))}
-                        className="w-8 h-8 rounded-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold flex items-center justify-center text-lg transition cursor-pointer shadow-xs"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-1">
-                      Customer needs to collect {offerStampsRequired} stamps to unlock this offer
-                    </p>
-                  </div>
-
-                  {/* Right: Expiry */}
-                  <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
-                    <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
-                      <Calendar className="w-4 h-4 text-red-700" />
-                      <span>Expiry</span>
-                    </div>
-                    <div className="relative my-2">
-                      <select
-                        value={offerValidity}
-                        onChange={(e) => setOfferValidity(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 appearance-none focus:outline-none focus:border-red-600 cursor-pointer pr-8"
-                      >
-                        <option value="30 Days">30 Days</option>
-                        <option value="60 Days">60 Days</option>
-                        <option value="90 Days">90 Days</option>
-                        <option value="180 Days">6 Months</option>
-                        <option value="365 Days">1 Year</option>
-                        <option value="No Expiry">No Expiry</option>
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-tight mt-1">
-                      Offer will expire after {offerValidity} from creation
-                    </p>
-                  </div>
-                </div>
-
-                {/* 5. Highlight Banner */}
-                <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-red-700 flex items-center justify-center shrink-0">
-                    <Gift className="w-4 h-4 text-red-700" />
-                  </div>
-                  <p className="text-xs font-medium text-slate-700 leading-snug">
-                    This offer will be available for all customers once they collect the required stamps.
-                  </p>
-                </div>
-
-                {/* 6. Action Buttons */}
-                <div className="space-y-2.5 pt-1">
-                  {/* Button 1: Add Another Offer */}
-                  <button
-                    type="button"
-                    onClick={handleResetOrNewOffer}
-                    className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-[#74111d] font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-4 h-4 text-[#74111d]" />
-                    <span>Add Another Offer</span>
-                  </button>
-
-                  {/* Button 2: Save Offer Program */}
-                  <button
-                    type="button"
-                    onClick={handleSaveOfferProgram}
-                    className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#74111d]/20"
-                  >
-                    <span>Save Offer Program</span>
-                  </button>
-
-                  {/* Button 3: View Offer Preview */}
-                  <div>
                     <button
                       type="button"
-                      onClick={() => setShowOfferPreview(!showOfferPreview)}
-                      className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-[#74111d]/40 font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-xs"
+                      onClick={() => {
+                        handleResetOrNewOffer();
+                        setEditingOfferId(null);
+                        setOfferPageView('create');
+                      }}
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-[#8B0000]/20 cursor-pointer self-start sm:self-auto shrink-0"
                     >
-                      <Eye className="w-4 h-4 text-[#74111d]" />
-                      <span>{showOfferPreview ? 'Hide Offer Preview' : 'View Offer Preview'}</span>
+                      <Plus className="w-4 h-4" />
+                      <span>Create Offer</span>
                     </button>
-                    <p className="text-[11px] text-slate-400 text-center mt-1.5">
-                      See how this offer will appear to your customers
-                    </p>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                        {editingOfferId ? 'Edit Offer' : 'Create New Offer'}
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Upload banner, specify discount title, required stamps, and validity duration.
+                      </p>
+                    </div>
 
+                    <button
+                      type="button"
+                      onClick={() => setOfferPageView('list')}
+                      className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto shrink-0"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Back to All Offers ({rewards.length})</span>
+                    </button>
+                  </>
+                )}
               </div>
 
-              {/* 7. Offer Preview (As seen by customers) - Matching Image 1 */}
-              {showOfferPreview && (
-                <div className="space-y-2 pt-1 animate-in fade-in duration-200">
-                  <div className="flex items-center space-x-1.5 px-1">
-                    <span className="text-xs font-bold text-[#74111d]">Offer Preview</span>
-                    <span className="text-[11px] text-slate-400 font-medium">(As seen by customers)</span>
-                  </div>
+              {/* ============================================================= */}
+              {/* VIEW 1: ALL CREATED OFFERS LIST VIEW                          */}
+              {/* Shows every offer created, with status, requirements, actions */}
+              {/* ============================================================= */}
+              {offerPageView === 'list' && (
+                <div className="space-y-4">
 
-                  {/* Customer View Card */}
-                  <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm space-y-3">
-                    <div className="flex items-start space-x-3 sm:space-x-4">
-                      {/* Left Thumbnail */}
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white shrink-0 flex flex-col items-center justify-center text-center p-1.5 shadow-2xs">
-                        {offerBanner && !offerImageRemoved ? (
-                          <img src={offerBanner} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-                        ) : (
-                          <>
-                            <span className="text-xl sm:text-2xl font-black leading-none">30%</span>
-                            <span className="text-xs sm:text-sm font-black leading-tight">OFF</span>
-                            <span className="text-[7px] font-bold text-red-200 uppercase tracking-wider mt-0.5">LIMITED TIME</span>
-                          </>
-                        )}
+                  {rewards.length === 0 ? (
+                    <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center space-y-3 shadow-xs">
+                      <div className="w-16 h-16 rounded-full bg-rose-50 text-[#8B0000] flex items-center justify-center mx-auto">
+                        <Gift className="w-8 h-8" />
                       </div>
+                      <h3 className="text-base font-black text-slate-900">No Offers Created Yet</h3>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                        You haven't created any loyalty offers yet. Create your first offer with stamp goals to incentivize customers to return.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleResetOrNewOffer();
+                          setEditingOfferId(null);
+                          setOfferPageView('create');
+                        }}
+                        className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-xl transition inline-flex items-center space-x-2 shadow-md shadow-[#8B0000]/25 cursor-pointer mt-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Create Your First Offer</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {rewards.map((r, i) => (
+                        <div 
+                          key={r.id || i}
+                          className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs hover:border-[#8B0000]/30 hover:shadow-md transition flex flex-col justify-between space-y-3.5 group"
+                        >
+                          <div>
+                            {/* Top Badge & Status Row */}
+                            <div className="flex items-center justify-between mb-2.5">
+                              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-50 text-[#8B0000] border border-rose-200">
+                                {r.tag || 'Loyalty Offer'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleOfferActive(r.id)}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition ${
+                                  r.isActive !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
+                                }`}
+                                title="Click to toggle Active/Paused"
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${r.isActive !== false ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                <span>{r.isActive !== false ? 'Active' : 'Paused'}</span>
+                              </button>
+                            </div>
 
-                      {/* Right Content */}
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                          {offerTitle || '30% OFF on Next Purchase'}
-                        </h4>
-                        <p className="text-[11px] sm:text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed font-medium">
-                          {offerDescription || 'Get 30% off on your next purchase. Thank you for being our loyal customer!'}
-                        </p>
+                            {/* Thumbnail & Title/Description */}
+                            <div className="flex items-start space-x-3">
+                              <div className="w-16 h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white shrink-0 flex flex-col items-center justify-center text-center p-1 shadow-xs border border-red-950/20">
+                                {r.banner ? (
+                                  <img src={r.banner} alt={r.title} className="w-full h-full object-cover rounded-xl" />
+                                ) : (
+                                  <>
+                                    <span className="text-base font-black leading-none">{r.discountValue ? `${r.discountValue}%` : '30%'}</span>
+                                    <span className="text-[10px] font-black leading-tight">OFF</span>
+                                    <span className="text-[6px] font-bold text-red-200 uppercase tracking-wider">LIMITED</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-black text-slate-900 text-sm leading-snug line-clamp-1">{r.title}</h4>
+                                <p className="text-xs text-slate-500 font-medium line-clamp-2 mt-1 leading-relaxed">
+                                  {r.description || r.condition || 'Collect stamps to unlock this offer.'}
+                                </p>
+                              </div>
+                            </div>
 
-                        {/* Meta Badges */}
-                        <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] font-bold text-slate-600">
-                          <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
-                            <User className="w-3 h-3 text-slate-500" />
-                            <span>{offerStampsRequired} Stamps Required</span>
+                            {/* Stamps & Expiry Details Box */}
+                            <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-2.5 mt-3 flex items-center justify-between text-[11px] font-bold text-slate-700">
+                              <div className="flex items-center space-x-1.5">
+                                <User className="w-3.5 h-3.5 text-[#8B0000]" />
+                                <span>{r.stampsRequired || 5} Stamps Goal</span>
+                              </div>
+                              <div className="flex items-center space-x-1.5 text-slate-500">
+                                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                                <span>{r.validity || '30 Days'}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
-                            <Calendar className="w-3 h-3 text-slate-500" />
-                            <span>Valid for {offerValidity}</span>
+
+                          {/* Footer Actions */}
+                          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOfferTitle(r.title);
+                                setOfferDescription(r.description || r.condition || '');
+                                setOfferStampsRequired(r.stampsRequired || 5);
+                                setOfferValidity(r.validity || '30 Days');
+                                setOfferBanner(r.banner || '');
+                                setOfferImageRemoved(!r.banner);
+                                setShowOfferPreview(true);
+                                setOfferPageView('create');
+                              }}
+                              className="text-xs font-bold text-[#8B0000] hover:underline flex items-center space-x-1 cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Customer Preview</span>
+                            </button>
+
+                            <div className="flex items-center space-x-1">
+                              <button
+                                type="button"
+                                onClick={() => handleEditOffer(r)}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                                title="Edit Offer"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteRewardModal({ isOpen: true, reward: r })}
+                                className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                                title="Delete Offer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ============================================================= */}
+              {/* VIEW 2: CREATE / EDIT OFFER PAGE (Matching Image Form)         */}
+              {/* ============================================================= */}
+              {offerPageView === 'create' && (
+                <div className="max-w-xl mx-auto space-y-4 sm:space-y-6">
+                  
+                  {/* Main Card Form */}
+                  <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 sm:space-y-5">
+                    
+                    {/* 1. Offer Image */}
+                    <div>
+                      <label className="block text-sm font-bold text-slate-800">Offer Image</label>
+                      <p className="text-xs text-slate-400 mt-0.5">Upload attractive image for your offer</p>
+
+                      <div className="flex items-center space-x-3 mt-3">
+                        {/* Active Offer Image / Default Red 30% OFF Badge */}
+                        {!offerImageRemoved && (
+                          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl relative overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white flex flex-col items-center justify-center p-2 text-center shadow-xs border border-red-950/20 shrink-0">
+                            {offerBanner ? (
+                              <img src={offerBanner} alt="Offer Banner" className="w-full h-full object-cover rounded-xl" />
+                            ) : (
+                              <>
+                                <span className="text-2xl sm:text-3xl font-black leading-none">30%</span>
+                                <span className="text-sm sm:text-base font-black leading-tight">OFF</span>
+                                <span className="text-[8px] font-bold text-red-200 mt-1 uppercase tracking-wider">LIMITED TIME</span>
+                              </>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOfferBanner('');
+                                setOfferImageRemoved(true);
+                              }}
+                              className="w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center absolute top-1.5 right-1.5 text-xs transition cursor-pointer shadow-xs"
+                              title="Remove image"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Upload Image Box */}
+                        <input 
+                          type="file" 
+                          ref={offerBannerInputRef} 
+                          accept="image/*" 
+                          onChange={handleOfferBannerUpload} 
+                          className="hidden" 
+                        />
+                        <div 
+                          onClick={() => offerBannerInputRef.current?.click()}
+                          className="w-28 h-24 sm:w-32 sm:h-28 rounded-2xl border-2 border-dashed border-slate-300 hover:border-red-400 bg-slate-50/50 flex flex-col items-center justify-center p-2 text-center cursor-pointer transition shrink-0 group"
+                        >
+                          <ImageIcon className="w-6 h-6 text-red-600 mb-1 group-hover:scale-110 transition" />
+                          <span className="text-xs font-bold text-red-700">Upload Image</span>
+                          <span className="text-[9px] text-slate-400 mt-0.5">JPG, PNG up to 5MB</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Customer Bottom Navigation Mockup */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-around text-[10px] font-bold">
-                      <div className="flex flex-col items-center space-y-0.5 text-[#74111d]">
-                        <Home className="w-3.5 h-3.5 stroke-[2.5]" />
-                        <span>Home</span>
-                      </div>
-                      <div className="flex flex-col items-center space-y-0.5 text-slate-400">
-                        <Award className="w-3.5 h-3.5" />
-                        <span>Stamps</span>
-                      </div>
-                      <div className="flex flex-col items-center space-y-0.5 text-slate-400">
-                        <Gift className="w-3.5 h-3.5" />
-                        <span>Rewards</span>
-                      </div>
-                      <div className="flex flex-col items-center space-y-0.5 text-slate-400">
-                        <User className="w-3.5 h-3.5" />
-                        <span>Profile</span>
+                    {/* 2. Offer Title */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">Offer Title</label>
+                      <div className="relative flex items-center bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus-within:border-red-600 focus-within:ring-1 focus-within:ring-red-600/20 transition">
+                        <input
+                          type="text"
+                          maxLength={100}
+                          value={offerTitle}
+                          onChange={(e) => setOfferTitle(e.target.value)}
+                          placeholder="30% OFF on Next Purchase"
+                          className="w-full text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none bg-transparent pr-14"
+                        />
+                        <span className="absolute right-3 text-xs text-slate-400 font-medium">
+                          {offerTitle.length}/100
+                        </span>
                       </div>
                     </div>
+
+                    {/* 3. Offer Description */}
+                    <div>
+                      <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">Offer Description</label>
+                      <div className="relative bg-white border border-slate-200 rounded-xl p-3 focus-within:border-red-600 focus-within:ring-1 focus-within:ring-red-600/20 transition">
+                        <textarea
+                          rows={3}
+                          maxLength={200}
+                          value={offerDescription}
+                          onChange={(e) => setOfferDescription(e.target.value)}
+                          placeholder="Get 30% off on your next purchase. Thank you for being our loyal customer!"
+                          className="w-full text-xs sm:text-sm font-medium text-slate-800 focus:outline-none bg-transparent resize-none pb-4"
+                        />
+                        <span className="absolute bottom-2 right-3 text-xs text-slate-400 font-medium">
+                          {offerDescription.length}/200
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 4. Two Columns: Required Stamps & Expiry */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* Left: Required Stamps */}
+                      <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
+                          <User className="w-4 h-4 text-red-700" />
+                          <span>Required Stamps</span>
+                        </div>
+                        <div className="flex items-center justify-center space-x-4 my-2">
+                          <button
+                            type="button"
+                            onClick={() => setOfferStampsRequired(Math.max(1, offerStampsRequired - 1))}
+                            className="w-8 h-8 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-lg transition cursor-pointer shadow-2xs"
+                          >
+                            -
+                          </button>
+                          <span className="text-xl font-black text-slate-900 w-8 text-center">{offerStampsRequired}</span>
+                          <button
+                            type="button"
+                            onClick={() => setOfferStampsRequired(Math.min(20, offerStampsRequired + 1))}
+                            className="w-8 h-8 rounded-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold flex items-center justify-center text-lg transition cursor-pointer shadow-xs"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-tight mt-1">
+                          Customer needs to collect {offerStampsRequired} stamps to unlock this offer
+                        </p>
+                      </div>
+
+                      {/* Right: Expiry */}
+                      <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
+                        <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
+                          <Calendar className="w-4 h-4 text-red-700" />
+                          <span>Expiry</span>
+                        </div>
+                        <div className="relative my-2">
+                          <select
+                            value={offerValidity}
+                            onChange={(e) => setOfferValidity(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 appearance-none focus:outline-none focus:border-red-600 cursor-pointer pr-8"
+                          >
+                            <option value="30 Days">30 Days</option>
+                            <option value="60 Days">60 Days</option>
+                            <option value="90 Days">90 Days</option>
+                            <option value="180 Days">6 Months</option>
+                            <option value="365 Days">1 Year</option>
+                            <option value="No Expiry">No Expiry</option>
+                          </select>
+                          <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-tight mt-1">
+                          Offer will expire after {offerValidity} from creation
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 5. Highlight Banner */}
+                    <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-xl bg-amber-100 text-red-700 flex items-center justify-center shrink-0">
+                        <Gift className="w-4 h-4 text-red-700" />
+                      </div>
+                      <p className="text-xs font-medium text-slate-700 leading-snug">
+                        This offer will be available for all customers once they collect the required stamps.
+                      </p>
+                    </div>
+
+                    {/* 6. Action Buttons */}
+                    <div className="space-y-2.5 pt-1">
+                      {/* Button 1: Add Another Offer */}
+                      <button
+                        type="button"
+                        onClick={handleResetOrNewOffer}
+                        className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000] font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-xs"
+                      >
+                        <Plus className="w-4 h-4 text-[#8B0000]" />
+                        <span>Add Another Offer</span>
+                      </button>
+
+                      {/* Button 2: Save Offer Program */}
+                      <button
+                        type="button"
+                        onClick={handleSaveOfferProgram}
+                        className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#8B0000]/20"
+                      >
+                        <span>Save Offer Program</span>
+                      </button>
+
+                      {/* Button 3: View Offer Preview */}
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => setShowOfferPreview(!showOfferPreview)}
+                          className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000]/40 font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-xs"
+                        >
+                          <Eye className="w-4 h-4 text-[#8B0000]" />
+                          <span>{showOfferPreview ? 'Hide Offer Preview' : 'View Offer Preview'}</span>
+                        </button>
+                        <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                          See how this offer will appear to your customers
+                        </p>
+                      </div>
+                    </div>
+
                   </div>
+
+                  {/* 7. Offer Preview (As seen by customers) - Matching Image 1 */}
+                  {showOfferPreview && (
+                    <div className="space-y-2 pt-1 animate-in fade-in duration-200">
+                      <div className="flex items-center space-x-1.5 px-1">
+                        <span className="text-xs font-bold text-[#8B0000]">Offer Preview</span>
+                        <span className="text-[11px] text-slate-400 font-medium">(As seen by customers)</span>
+                      </div>
+
+                      {/* Customer View Card */}
+                      <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm space-y-3">
+                        <div className="flex items-start space-x-3 sm:space-x-4">
+                          {/* Left Thumbnail */}
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white shrink-0 flex flex-col items-center justify-center text-center p-1.5 shadow-2xs">
+                            {offerBanner && !offerImageRemoved ? (
+                              <img src={offerBanner} alt="Preview" className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                              <>
+                                <span className="text-xl sm:text-2xl font-black leading-none">30%</span>
+                                <span className="text-xs sm:text-sm font-black leading-tight">OFF</span>
+                                <span className="text-[7px] font-bold text-red-200 uppercase tracking-wider mt-0.5">LIMITED TIME</span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Right Content */}
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                              {offerTitle || '30% OFF on Next Purchase'}
+                            </h4>
+                            <p className="text-[11px] sm:text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed font-medium">
+                              {offerDescription || 'Get 30% off on your next purchase. Thank you for being our loyal customer!'}
+                            </p>
+
+                            {/* Meta Badges */}
+                            <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] font-bold text-slate-600">
+                              <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
+                                <User className="w-3 h-3 text-slate-500" />
+                                <span>{offerStampsRequired} Stamps Required</span>
+                              </div>
+                              <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
+                                <Calendar className="w-3 h-3 text-slate-500" />
+                                <span>Valid for {offerValidity}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Customer Bottom Navigation Mockup */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-around text-[10px] font-bold">
+                          <div className="flex flex-col items-center space-y-0.5 text-[#8B0000]">
+                            <Home className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Home</span>
+                          </div>
+                          <div className="flex flex-col items-center space-y-0.5 text-slate-400">
+                            <Award className="w-3.5 h-3.5" />
+                            <span>Stamps</span>
+                          </div>
+                          <div className="flex flex-col items-center space-y-0.5 text-slate-400">
+                            <Gift className="w-3.5 h-3.5" />
+                            <span>Rewards</span>
+                          </div>
+                          <div className="flex flex-col items-center space-y-0.5 text-slate-400">
+                            <User className="w-3.5 h-3.5" />
+                            <span>Profile</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
 
@@ -3138,7 +3646,7 @@ export default function MerchantDashboard() {
             <div className="space-y-3.5 pb-20 animate-in fade-in duration-200 max-w-2xl mx-auto">
               
               {/* Top Curved Crimson Header (Profile & Settings) */}
-              <div className="bg-[#74111d] text-white rounded-b-3xl sm:rounded-b-[2.5rem] px-5 sm:px-8 pt-6 pb-8 shadow-md relative overflow-hidden -mx-4 sm:-mx-8 -mt-6 mb-2">
+              <div className="bg-[#8B0000] text-white rounded-b-3xl sm:rounded-b-[2.5rem] px-5 sm:px-8 pt-6 pb-8 shadow-md relative overflow-hidden -mx-4 sm:-mx-8 -mt-6 mb-2">
                 <div className="flex items-center space-x-3 mb-1">
                   <button
                     type="button"
@@ -3167,14 +3675,14 @@ export default function MerchantDashboard() {
                       {storeLogo ? (
                         <img src={storeLogo} alt={storeName} className="w-full h-full object-cover" />
                       ) : (
-                        <Store className="w-8 h-8 text-[#74111d]" />
+                        <Store className="w-8 h-8 text-[#8B0000]" />
                       )}
                     </div>
                     <button 
                       type="button"
                       onClick={() => storeLogoInputRef.current?.click()}
                       title="Change Store Photo"
-                      className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#8B0000] hover:bg-[#5e0c15] text-white rounded-full flex items-center justify-center shadow-md cursor-pointer transition transform active:scale-95 border border-white"
+                      className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#8B0000] hover:bg-[#720000] text-white rounded-full flex items-center justify-center shadow-md cursor-pointer transition transform active:scale-95 border border-white"
                     >
                       <Camera className="w-2.5 h-2.5" />
                     </button>
@@ -3275,7 +3783,7 @@ export default function MerchantDashboard() {
                       alert(`Auto approve scans is now ${nextVal ? 'ENABLED' : 'DISABLED'}.`);
                     }}
                     className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 shrink-0 ${
-                      autoApproveScans ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                      autoApproveScans ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
                     }`}
                   >
                     <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
@@ -3443,7 +3951,7 @@ export default function MerchantDashboard() {
                   className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
@@ -3461,7 +3969,7 @@ export default function MerchantDashboard() {
                 <button
                   type="button"
                   onClick={handleMerchantLogout}
-                  className="w-full bg-[#e53935] hover:bg-[#d32f2f] text-white font-bold py-3.5 rounded-2xl shadow-md transition flex items-center justify-center space-x-2 text-sm cursor-pointer"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition flex items-center justify-center space-x-2 text-sm cursor-pointer active:scale-[0.99]"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
@@ -3477,7 +3985,7 @@ export default function MerchantDashboard() {
           {activeTab === 'burn' && (
             <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs max-w-xl mx-auto space-y-5 animate-in fade-in duration-200">
               <div className="flex items-center space-x-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-[#74111d] text-white flex items-center justify-center shadow-md shadow-red-500/25 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#8B0000] text-white flex items-center justify-center shadow-md shadow-red-500/25 shrink-0">
                   <Zap className="w-5 h-5" />
                 </div>
                 <div>
@@ -3511,7 +4019,7 @@ export default function MerchantDashboard() {
                 <button
                   type="submit"
                   disabled={loadingRedeem}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3.5 rounded-xl transition text-sm cursor-pointer shadow-md shadow-red-600/25"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold py-3.5 rounded-xl transition text-sm cursor-pointer shadow-md shadow-red-600/25"
                 >
                   {loadingRedeem ? 'Verifying...' : 'Verify PIN & Apply Discount'}
                 </button>
@@ -3549,7 +4057,7 @@ export default function MerchantDashboard() {
                   <span className="font-black text-sm text-slate-900 capitalize">{storeName}</span>
                 </div>
 
-                <div className="bg-[#74111d] text-white font-black text-base py-2 rounded-xl mb-4 tracking-tight shadow-xs">
+                <div className="bg-[#8B0000] text-white font-black text-base py-2 rounded-xl mb-4 tracking-tight shadow-xs">
                   SCAN WITH PHONE CAMERA
                 </div>
 
@@ -3573,7 +4081,7 @@ export default function MerchantDashboard() {
               <div className="flex flex-col sm:flex-row justify-center gap-3">
                 <button
                   onClick={handleDownload}
-                  className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold px-6 py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 flex items-center justify-center space-x-2 cursor-pointer"
+                  className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold px-6 py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 flex items-center justify-center space-x-2 cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Standee PDF (5x7")</span>
@@ -3726,7 +4234,7 @@ export default function MerchantDashboard() {
                     <button 
                       onClick={() => setEditStoreModalOpen(true)}
                       title="Change Store Photo"
-                      className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#8B0000] hover:bg-[#5e0c15] text-white rounded-full flex items-center justify-center shadow-md cursor-pointer transition transform active:scale-95"
+                      className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#8B0000] hover:bg-[#720000] text-white rounded-full flex items-center justify-center shadow-md cursor-pointer transition transform active:scale-95"
                     >
                       <Camera className="w-2.5 h-2.5" />
                     </button>
@@ -3770,7 +4278,7 @@ export default function MerchantDashboard() {
                 className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
               >
                 <div className="flex items-center space-x-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
@@ -3819,7 +4327,7 @@ export default function MerchantDashboard() {
                     alert(`Auto approve scans is now ${nextVal ? 'ENABLED' : 'DISABLED'}.`);
                   }}
                   className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 shrink-0 ${
-                    autoApproveScans ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                    autoApproveScans ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
                   }`}
                 >
                   <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
@@ -3878,7 +4386,7 @@ export default function MerchantDashboard() {
                   className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
                       <Play className="w-5 h-5 fill-current" />
                     </div>
                     <div>
@@ -3952,7 +4460,7 @@ export default function MerchantDashboard() {
                   className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
@@ -3990,8 +4498,9 @@ export default function MerchantDashboard() {
               {/* 9. BOTTOM LOGOUT BUTTON */}
               <div className="pt-2">
                 <button
+                  type="button"
                   onClick={handleMerchantLogout}
-                  className="w-full bg-[#e53935] hover:bg-[#d32f2f] text-white font-black py-3.5 rounded-2xl shadow-md transition flex items-center justify-center space-x-2 text-sm cursor-pointer"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition flex items-center justify-center space-x-2 text-sm cursor-pointer active:scale-[0.99]"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
@@ -4024,7 +4533,7 @@ export default function MerchantDashboard() {
             </button>
 
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-[#74111d] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#8B0000] text-white flex items-center justify-center">
                 <Stamp className="w-5 h-5" />
               </div>
               <div>
@@ -4111,7 +4620,7 @@ export default function MerchantDashboard() {
 
               <button
                 type="submit"
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
               >
                 Save & Activate Loyalty Program
               </button>
@@ -4456,9 +4965,9 @@ export default function MerchantDashboard() {
             )}
             <div className="text-center space-y-1.5">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto ${
-                subscriptionInfo.isExpired ? 'bg-red-100 text-red-600' : 'bg-rose-100 text-[#74111d]'
+                subscriptionInfo.isExpired ? 'bg-red-100 text-red-600' : 'bg-rose-100 text-[#8B0000]'
               }`}>
-                {subscriptionInfo.isExpired ? <AlertTriangle className="w-6 h-6 text-red-600" /> : <Sparkles className="w-6 h-6 text-[#74111d]" />}
+                {subscriptionInfo.isExpired ? <AlertTriangle className="w-6 h-6 text-red-600" /> : <Sparkles className="w-6 h-6 text-[#8B0000]" />}
               </div>
               <h3 className="text-xl font-black text-slate-900">
                 {subscriptionInfo.isExpired ? 'Trial Expired — Buy Subscription' : 'Upgrade Merchant Subscription'}
@@ -4490,12 +4999,12 @@ export default function MerchantDashboard() {
                     onClick={() => setSelectedPlanId(p.id)}
                     className={`p-4 rounded-2xl border-2 transition cursor-pointer relative ${
                       isSelected
-                        ? 'border-[#74111d] bg-rose-50/50 shadow-sm'
+                        ? 'border-[#8B0000] bg-rose-50/50 shadow-sm'
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
                     {p.highlightBadge && (
-                      <span className="absolute -top-2.5 right-4 bg-[#74111d] text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="absolute -top-2.5 right-4 bg-[#8B0000] text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                         {p.highlightBadge}
                       </span>
                     )}
@@ -4503,7 +5012,7 @@ export default function MerchantDashboard() {
                       <div>
                         <div className="flex items-center space-x-2">
                           <h4 className="text-sm font-black text-slate-900">{p.name}</h4>
-                          {isSelected && <span className="w-2 h-2 rounded-full bg-[#74111d]"></span>}
+                          {isSelected && <span className="w-2 h-2 rounded-full bg-[#8B0000]"></span>}
                         </div>
                         <p className="text-[11px] text-slate-500 font-medium mt-0.5">{p.subtext}</p>
                       </div>
@@ -4540,7 +5049,7 @@ export default function MerchantDashboard() {
                 <button
                   disabled={subscribing}
                   onClick={() => handleBuySubscription(currentP.id)}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-50"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
                   {subscribing ? (
                     <span>Activating Subscription in Database...</span>
@@ -4578,7 +5087,7 @@ export default function MerchantDashboard() {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-full bg-[#74111d] text-white flex items-center justify-center font-black text-lg">
+              <div className="w-12 h-12 rounded-full bg-[#8B0000] text-white flex items-center justify-center font-black text-lg">
                 {customerModalOpen.name.charAt(0)}
               </div>
               <div>
@@ -4680,7 +5189,7 @@ export default function MerchantDashboard() {
                   setEditStoreModalOpen(false);
                   alert('Store profile updated successfully!');
                 }}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
               >
                 Save Store Information
               </button>
@@ -4791,7 +5300,7 @@ export default function MerchantDashboard() {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-[#74111d] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-[#8B0000] flex items-center justify-center">
                 <Mail className="w-5 h-5" />
               </div>
               <div>
@@ -4828,7 +5337,7 @@ export default function MerchantDashboard() {
                   setContactModalOpen(false);
                   alert('Contact details updated successfully!');
                 }}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-[#74111d]/25 cursor-pointer mt-2"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-[#8B0000]/25 cursor-pointer mt-2"
               >
                 Save Phone & Email
               </button>
@@ -5126,7 +5635,7 @@ export default function MerchantDashboard() {
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-[#74111d] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-[#8B0000] flex items-center justify-center">
                 <HelpCircle className="w-5 h-5" />
               </div>
               <div>
@@ -5283,7 +5792,7 @@ export default function MerchantDashboard() {
                 <button
                   type="submit"
                   disabled={updatingPassword}
-                  className="w-1/2 bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-2.5 rounded-xl shadow-md transition text-xs cursor-pointer flex items-center justify-center space-x-1.5"
+                  className="w-1/2 bg-[#8B0000] hover:bg-[#720000] text-white font-black py-2.5 rounded-xl shadow-md transition text-xs cursor-pointer flex items-center justify-center space-x-1.5"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
                   <span>{updatingPassword ? 'Updating...' : 'Update Password'}</span>
@@ -5495,7 +6004,7 @@ export default function MerchantDashboard() {
 
               <button
                 type="submit"
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
               >
                 Save & Add Reward
               </button>
@@ -5526,7 +6035,7 @@ export default function MerchantDashboard() {
           <div className="bg-white rounded-[2rem] max-w-sm w-full shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-150 border border-slate-100 flex flex-col">
             
             {/* Top Red Header Strip */}
-            <div className="bg-[#74111d] text-white py-3.5 px-6 text-center">
+            <div className="bg-[#8B0000] text-white py-3.5 px-6 text-center">
               <h3 className="text-sm font-black tracking-wide">Reward Created</h3>
             </div>
 
@@ -5567,7 +6076,7 @@ export default function MerchantDashboard() {
               {/* Reward Summary Card */}
               <div className="bg-white border border-slate-200/90 rounded-2xl p-3 flex items-center space-x-3.5 text-left shadow-xs">
                 {/* Voucher Thumbnail */}
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#74111d] to-[#45080f] text-white flex flex-col items-center justify-center p-1 shrink-0 shadow-xs text-center border border-red-950/30">
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#8B0000] to-[#45080f] text-white flex flex-col items-center justify-center p-1 shrink-0 shadow-xs text-center border border-red-950/30">
                   <span className="text-sm font-black leading-none font-mono">30%</span>
                   <span className="text-[11px] font-black leading-tight font-mono text-rose-200">OFF</span>
                   <span className="text-[7px] font-bold text-amber-300 uppercase tracking-widest mt-0.5">LIMITED TIME</span>
@@ -5595,23 +6104,24 @@ export default function MerchantDashboard() {
                   type="button"
                   onClick={() => {
                     setOfferSuccessModalOpen(false);
-                    setActiveTab('home');
+                    setOfferPageView('list');
+                    setActiveTab('create_offer');
                   }}
-                  className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 rounded-xl shadow-md shadow-[#74111d]/20 transition cursor-pointer text-xs"
+                  className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 rounded-xl shadow-md shadow-[#8B0000]/20 transition cursor-pointer text-xs"
                 >
-                  Back to Home
+                  View All Created Offers
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setOfferSuccessModalOpen(false);
+                    handleResetOrNewOffer();
+                    setOfferPageView('create');
                     setActiveTab('create_offer');
-                    setOfferTitle('');
-                    setOfferDescription('');
                   }}
-                  className="w-full bg-white hover:bg-rose-50 text-[#74111d] border border-rose-300 font-black py-3.5 rounded-xl transition cursor-pointer text-xs"
+                  className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-rose-300 font-black py-3.5 rounded-xl transition cursor-pointer text-xs"
                 >
-                  Create Another Reward
+                  + Create Another Offer
                 </button>
               </div>
 
@@ -5627,8 +6137,8 @@ export default function MerchantDashboard() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-3xl max-w-xs sm:max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative animate-in zoom-in-95 duration-150 border border-slate-100">
             {/* Red Trash Icon in Soft Circle */}
-            <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-[#74111d]">
-              <Trash2 className="w-6 h-6 text-[#74111d]" strokeWidth={2} />
+            <div className="w-14 h-14 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center mx-auto text-[#8B0000]">
+              <Trash2 className="w-6 h-6 text-[#8B0000]" strokeWidth={2} />
             </div>
 
             {/* Title & Description matching Screen 2 */}
@@ -5645,7 +6155,7 @@ export default function MerchantDashboard() {
               <button
                 type="button"
                 onClick={() => setDeleteRewardModal({ isOpen: false, reward: null })}
-                className="flex-1 bg-white hover:bg-rose-50 text-[#74111d] border border-rose-300 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
+                className="flex-1 bg-white hover:bg-rose-50 text-[#8B0000] border border-rose-300 font-bold py-2.5 rounded-xl text-xs transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -5657,7 +6167,7 @@ export default function MerchantDashboard() {
                   }
                   setDeleteRewardModal({ isOpen: false, reward: null });
                 }}
-                className="flex-1 bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                className="flex-1 bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#8B0000]/20"
               >
                 Delete
               </button>
