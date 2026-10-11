@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Store, Gift, ShieldCheck, Sparkles, Check, X, ArrowRight, 
+  Store, Gift, ShieldCheck, Sparkles, Check, X, ArrowRight, ArrowDown,
   Smartphone, Lock, AlertTriangle, ChevronDown, 
   CheckCircle2, Mail, MapPin, Zap, Star, Shield, Eye, Menu,
   QrCode, Phone, Bell, Sliders, Layers, Users, Clock, BarChart3,
-  HelpCircle, CreditCard, Award, Flame, Calendar
+  HelpCircle, CreditCard, Award, Flame, Calendar, ShoppingCart, TrendingDown
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 
@@ -366,7 +366,6 @@ export default function LandingPage() {
 
           {/* Center Links (Desktop) */}
           <div className="hidden lg:flex items-center space-x-8 text-xs font-bold text-slate-600">
-            <a href="#strengths" className="hover:text-[#8B0000] transition-colors duration-200">Strengths</a>
             <a href="#features" className="hover:text-[#8B0000] transition-colors duration-200">Features</a>
             <a href="#reality-check" className="hover:text-[#8B0000] transition-colors duration-200">The Reality</a>
             <a href="#how-it-works" className="hover:text-[#8B0000] transition-colors duration-200">How It Works</a>
@@ -630,164 +629,304 @@ export default function LandingPage() {
       {/* ========================================================= */}
       {/* 6. CRITICAL PAIN POINTS & SOLUTIONS (THE REALITY CHECK) */}
       {/* ========================================================= */}
-      <section id="reality-check" className="bg-white py-20 border-b border-slate-200/80">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="reality-check" className="bg-gradient-to-b from-slate-50/50 via-white to-slate-50/40 py-20 sm:py-24 border-b border-slate-200/80 relative overflow-hidden">
+        {/* Subtle decorative dot pattern in corners matching image */}
+        <div className="absolute top-4 left-4 w-32 h-32 opacity-25 pointer-events-none bg-[radial-gradient(#8B0000_1.5px,transparent_1.5px)] [background-size:12px_12px]" />
+        <div className="absolute top-4 right-4 w-32 h-32 opacity-25 pointer-events-none bg-[radial-gradient(#10B981_1.5px,transparent_1.5px)] [background-size:12px_12px]" />
+        <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-rose-100/40 blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-bold text-[#8B0000] uppercase tracking-widest bg-rose-50 border border-rose-200 px-3 py-1 rounded-full">
-              The Reality Check
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-950 mt-3">
-              Why Traditional Stores Lose Valued Customers
+          {/* Section Header matching exact image styling */}
+          <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
+            <div className="inline-flex items-center space-x-2.5 mb-3.5">
+              <span className="w-5 sm:w-7 h-[1.5px] bg-[#8B0000]/60 rounded-full" />
+              <span className="text-[11px] sm:text-xs font-black text-[#8B0000] uppercase tracking-widest bg-rose-50 border border-rose-200/90 px-3.5 py-1 rounded-full shadow-2xs">
+                THE REALITY CHECK
+              </span>
+              <span className="w-5 sm:w-7 h-[1.5px] bg-[#8B0000]/60 rounded-full" />
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-black text-slate-900 tracking-tight leading-tight">
+              Why Traditional Stores Lose
+              <span className="text-[#8B0000] block mt-1">Valued Customers</span>
             </h2>
-            <p className="text-slate-600 text-sm mt-3 font-normal leading-relaxed">
+
+            <p className="text-slate-600 text-xs sm:text-sm mt-3.5 font-medium leading-relaxed max-w-xl mx-auto">
               Without an automated retention loop, local customers naturally shift to aggressive delivery apps.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+          {/* Two-Column Comparison Grid with Center Arrow matching image */}
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
             
-            {/* The Retention Leak Box */}
-            <div className="bg-gradient-to-b from-rose-100/95 via-rose-100/65 to-red-100/85 border-2 border-rose-300 shadow-xl shadow-rose-950/5 rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 relative overflow-hidden">
+            {/* Center Linking Pill Arrow (Desktop) */}
+            <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white border border-slate-200/90 shadow-lg shadow-slate-900/10 items-center justify-center text-[#8B0000] hover:scale-105 transition-transform">
+              <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+            </div>
+
+            {/* LEFT CARD: THE PROBLEM (The Retention Leak) */}
+            <div className="bg-gradient-to-b from-[#FFE4E8] via-[#FFF1F4] to-[#FFDDE3] border border-rose-300/90 rounded-3xl p-6 sm:p-7 relative flex flex-col justify-between transition-all duration-300 shadow-md shadow-rose-950/5 hover:shadow-lg hover:border-rose-400 hover:translate-y-[-2px]">
               <div>
-                <div className="flex items-center justify-between pb-6 border-b border-rose-200/80 mb-6">
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-[#8B0000] text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-md shadow-red-600/30 shrink-0">
-                      <X className="w-5 h-5 stroke-[2.5]" />
-                    </div>
-                    <div>
-                      <h3 className="text-rose-950 font-black text-xl tracking-tight">The Retention Leak</h3>
-                      <p className="text-[11px] text-rose-800 font-semibold mt-0.5">Where traditional stores lose daily repeat walk-ins</p>
-                    </div>
+                {/* Header Row: Problem Tag, Title & 3D Store Illustration */}
+                <div className="flex items-start justify-between gap-3 mb-6">
+                  <div className="space-y-1">
+                    <span className="bg-rose-100 text-rose-800 border border-rose-200 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full inline-block shadow-2xs">
+                      THE PROBLEM
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight pt-1">
+                      The Retention Leak
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-snug">
+                      Where traditional stores lose daily repeat walk-ins.
+                    </p>
                   </div>
-                  <span className="bg-rose-200 text-rose-900 border border-rose-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block shadow-2xs">
-                    Without BeAurex
-                  </span>
+
+                  {/* 3D Isometric Store with Red Leak Illustration */}
+                  <div className="w-24 h-20 sm:w-28 sm:h-24 shrink-0 flex items-center justify-center -mt-2 -mr-1">
+                    <svg viewBox="0 0 160 140" className="w-full h-full overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g transform="translate(10, 10)">
+                        {/* Ground Shadow */}
+                        <ellipse cx="65" cy="102" rx="46" ry="11" fill="#8B0000" fillOpacity="0.08" />
+                        
+                        {/* Store Body */}
+                        <path d="M25 45 L75 35 L115 50 L115 95 L75 105 L25 90 Z" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="2" />
+                        <path d="M75 35 L115 50 L115 95 L75 105 Z" fill="#E2E8F0" />
+                        
+                        {/* Awning Canopy - Red & White Striped */}
+                        <path d="M15 48 L75 32 L125 48 L115 62 L75 48 L25 62 Z" fill="#DC2626" />
+                        <path d="M35 44 L45 42 L55 58 L45 60 Z" fill="#FFFFFF" />
+                        <path d="M65 38 L75 36 L85 52 L75 54 Z" fill="#FFFFFF" />
+                        <path d="M95 42 L105 44 L110 58 L100 56 Z" fill="#FFFFFF" />
+                        
+                        {/* Window */}
+                        <rect x="35" y="66" width="18" height="18" rx="3" fill="#93C5FD" fillOpacity="0.45" stroke="#94A3B8" strokeWidth="1.5" />
+                        <line x1="44" y1="66" x2="44" y2="84" stroke="#FFFFFF" strokeWidth="1.2" />
+                        <line x1="35" y1="75" x2="53" y2="75" stroke="#FFFFFF" strokeWidth="1.2" />
+                        
+                        {/* Door */}
+                        <rect x="65" y="68" width="22" height="36" rx="2" fill="#1E293B" />
+                        <rect x="67" y="70" width="18" height="16" rx="1" fill="#93C5FD" fillOpacity="0.5" />
+                        
+                        {/* Red Churn Leak spilling on floor */}
+                        <path d="M72 100 Q70 108 58 112 Q44 116 62 122 Q85 125 98 118 Q102 114 90 108 Q86 104 84 100 Z" fill="#DC2626" />
+                        <ellipse cx="68" cy="116" rx="14" ry="4" fill="#B91C1C" fillOpacity="0.5" />
+                        
+                        {/* Declining Zig-Zag Arrow */}
+                        <path d="M100 78 L115 86 L110 96 L128 108" stroke="#DC2626" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M120 110 L129 108 L126 99" fill="#DC2626" stroke="#DC2626" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+                      </g>
+                    </svg>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all duration-200 group">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                {/* 3 Problem Item Rows matching exact image */}
+                <div className="space-y-3 sm:space-y-3.5">
+                  {/* Row 1: Lost After the Sale */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-4.5 border border-rose-200/80 shadow-xs hover:shadow-md hover:border-rose-300 transition-all duration-200">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100/80 border border-rose-200 text-[#8B0000] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                        <ShoppingCart className="w-5 h-5 text-[#8B0000]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                            Lost After the Sale
+                          </h4>
+                          <span className="bg-rose-100 text-rose-800 border border-rose-200 text-[9.5px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full shrink-0">
+                            UNREACHABLE
+                          </span>
                         </div>
-                        <span>Lost After the Sale</span>
-                      </h4>
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md shrink-0">
-                        Unreachable
-                      </span>
+                        <p className="text-slate-500 text-xs sm:text-[12.5px] leading-relaxed font-normal mt-1.5">
+                          Most customers buy, pay cash or UPI, and leave—making them completely unreachable tomorrow for repeat purchases.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
-                      Most customers buy, pay cash or UPI, and leave—making them completely unreachable tomorrow for repeat purchases.
-                    </p>
                   </div>
 
-                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all duration-200 group">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-600 to-red-700 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                  {/* Row 2: Profit-Bleeding Discounts */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-4.5 border border-rose-200/80 shadow-xs hover:shadow-md hover:border-rose-300 transition-all duration-200">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100/80 border border-rose-200 text-[#8B0000] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                        <TrendingDown className="w-5 h-5 text-[#8B0000]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                            Profit-Bleeding Discounts
+                          </h4>
+                          <span className="bg-rose-100 text-rose-800 border border-rose-200 text-[9.5px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full shrink-0">
+                            MARGIN BURN
+                          </span>
                         </div>
-                        <span>Profit-Bleeding Discounts</span>
-                      </h4>
-                      <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-md shrink-0">
-                        Margin Burn
-                      </span>
+                        <p className="text-slate-500 text-xs sm:text-[12.5px] leading-relaxed font-normal mt-1.5">
+                          Displaying flat percentage cuts on checkout counters permanently burns your daily profit margin without driving future curiosity.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
-                      Displaying flat percentage cuts on checkout counters permanently burns your daily profit margin without driving future curiosity.
-                    </p>
                   </div>
 
-                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-rose-200 shadow-xs hover:shadow-md hover:border-rose-400 hover:-translate-y-0.5 transition-all duration-200 group">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                          <AlertTriangle className="w-3.5 h-3.5 text-white" />
+                  {/* Row 3: Aggressive App Competition */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-4.5 border border-rose-200/80 shadow-xs hover:shadow-md hover:border-rose-300 transition-all duration-200">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100/80 border border-rose-200 text-[#8B0000] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                        <Users className="w-5 h-5 text-[#8B0000]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                            Aggressive App Competition
+                          </h4>
+                          <span className="bg-rose-100 text-rose-800 border border-rose-200 text-[9.5px] font-black tracking-wider uppercase px-2.5 py-0.5 rounded-full shrink-0">
+                            CUSTOMER DRAIN
+                          </span>
                         </div>
-                        <span>Aggressive App Competition</span>
-                      </h4>
-                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-200/80 px-2 py-0.5 rounded-md shrink-0">
-                        Customer Drain
-                      </span>
+                        <p className="text-slate-500 text-xs sm:text-[12.5px] leading-relaxed font-normal mt-1.5">
+                          Online delivery platforms spend millions to capture your daily offline neighborhood clients away with targeted push promotions.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
-                      Online delivery platforms spend millions to capture your daily offline neighborhood clients away with targeted push promotions.
-                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* The BeAurex Solution Box */}
-            <div className="bg-gradient-to-b from-emerald-100/95 via-emerald-100/65 to-teal-100/85 border-2 border-emerald-300 shadow-xl shadow-emerald-950/5 rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 relative overflow-hidden">
+            {/* Mobile Arrow linking the two cards */}
+            <div className="flex lg:hidden justify-center -my-2 z-20">
+              <div className="w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md flex items-center justify-center text-[#8B0000]">
+                <ArrowDown className="w-4 h-4 stroke-[2.5]" />
+              </div>
+            </div>
+
+            {/* RIGHT CARD: THE SOLUTION (The BeAurex Solution) */}
+            <div className="bg-gradient-to-b from-[#E6F8ED] via-[#F0FBF4] to-[#DCF5E5] border border-emerald-300/80 rounded-3xl p-6 sm:p-7 relative flex flex-col justify-between transition-all duration-300 shadow-md shadow-emerald-950/5 hover:shadow-lg hover:border-emerald-400 hover:translate-y-[-2px]">
               <div>
-                <div className="flex items-center justify-between pb-6 border-b border-emerald-200/80 mb-6">
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-11 h-11 bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-md shadow-emerald-600/30 shrink-0">
-                      <Check className="w-5 h-5 stroke-[2.5]" />
-                    </div>
-                    <div>
-                      <h3 className="text-emerald-950 font-black text-xl tracking-tight">The BeAurex Solution</h3>
-                      <p className="text-[11px] text-emerald-800 font-semibold mt-0.5">Automated counter QR retention loop</p>
-                    </div>
+                {/* Header Row: Solution Tag, Title & 3D QR Mobile Loop Illustration */}
+                <div className="flex items-start justify-between gap-3 mb-6">
+                  <div className="space-y-1">
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full inline-block">
+                      THE SOLUTION
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight pt-1">
+                      The BeAurex Solution
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-500 font-medium leading-snug">
+                      Automated counter QR retention loop
+                    </p>
                   </div>
-                  <span className="bg-emerald-200 text-emerald-900 border border-emerald-300 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider hidden sm:inline-block shadow-2xs">
-                    With BeAurex
-                  </span>
+
+                  {/* 3D Mobile Phone with QR Code and Looping Green Cycle Arrows */}
+                  <div className="w-24 h-20 sm:w-28 sm:h-24 shrink-0 flex items-center justify-center -mt-2 -mr-1">
+                    <svg viewBox="0 0 160 140" className="w-full h-full overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <g transform="translate(10, 5)">
+                        {/* Soft Ambient Glow */}
+                        <ellipse cx="70" cy="70" rx="55" ry="55" fill="#10B981" fillOpacity="0.08" />
+                        
+                        {/* Back Loop Arrow */}
+                        <path d="M25 65 C20 40, 45 15, 80 18 C105 20, 125 35, 128 58" stroke="#10B981" strokeWidth="5" strokeLinecap="round" fill="none" />
+                        <path d="M124 50 L128 58 L120 62" fill="#10B981" stroke="#10B981" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                        
+                        {/* Smartphone Body */}
+                        <rect x="42" y="24" width="56" height="92" rx="14" fill="#0F172A" stroke="#334155" strokeWidth="2" />
+                        <rect x="46" y="28" width="48" height="84" rx="10" fill="#FFFFFF" />
+                        <rect x="62" y="32" width="16" height="3" rx="1.5" fill="#CBD5E1" />
+                        
+                        {/* BeAurex "B" Red App Badge */}
+                        <rect x="58" y="40" width="24" height="24" rx="6" fill="#DC2626" />
+                        <text x="70" y="57" fill="#FFFFFF" fontSize="14" fontWeight="900" fontFamily="sans-serif" textAnchor="middle">B</text>
+                        
+                        {/* QR Code Graphic */}
+                        <rect x="54" y="70" width="32" height="32" rx="4" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1" />
+                        <rect x="57" y="73" width="9" height="9" fill="#0F172A" rx="1" />
+                        <rect x="59" y="75" width="5" height="5" fill="#FFFFFF" />
+                        <rect x="74" y="73" width="9" height="9" fill="#0F172A" rx="1" />
+                        <rect x="76" y="75" width="5" height="5" fill="#FFFFFF" />
+                        <rect x="57" y="90" width="9" height="9" fill="#0F172A" rx="1" />
+                        <rect x="59" y="92" width="5" height="5" fill="#FFFFFF" />
+                        <rect x="69" y="77" width="2" height="4" fill="#0F172A" />
+                        <rect x="74" y="87" width="4" height="2" fill="#0F172A" />
+                        <rect x="69" y="86" width="3" height="3" fill="#0F172A" />
+                        <rect x="78" y="92" width="4" height="4" fill="#0F172A" />
+                        
+                        {/* Front Loop Arrow */}
+                        <path d="M120 75 C122 102, 95 125, 60 122 C35 120, 18 102, 16 80" stroke="#10B981" strokeWidth="5" strokeLinecap="round" fill="none" />
+                        <path d="M22 88 L16 80 L24 76" fill="#10B981" stroke="#10B981" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                        
+                        {/* Sparkles / Speed dashes */}
+                        <path d="M130 38 L133 42 L137 45 L133 48 L130 52 L127 48 L123 45 L127 42 Z" fill="#10B981" />
+                        <path d="M14 62 L16 65 L19 67 L16 69 L14 72 L12 69 L9 67 L12 65 Z" fill="#10B981" />
+                      </g>
+                    </svg>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-emerald-200 shadow-xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 group">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                          <Sparkles className="w-3.5 h-3.5 text-white" />
+                {/* 3 Solution Item Rows matching exact image */}
+                <div className="space-y-3 sm:space-y-3.5">
+                  {/* Row 1: Automated Dynamic Retention */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-4.5 border border-emerald-100 shadow-xs hover:shadow-md hover:border-emerald-200 transition-all duration-200">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                        <QrCode className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                            Automated Dynamic Retention
+                          </h4>
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shrink-0">
+                            100% AUTOMATIC
+                          </span>
                         </div>
-                        <span>Automated Dynamic Retention</span>
-                      </h4>
-                      <span className="text-[10px] font-bold text-cyan-700 bg-cyan-50 border border-cyan-200/80 px-2 py-0.5 rounded-md shrink-0">
-                        100% Automatic
-                      </span>
+                        <p className="text-slate-500 text-xs sm:text-[12.5px] leading-relaxed font-normal mt-1.5">
+                          Customers scan the QR code right at your register. It opens instantly on their phone, unlocking time-sensitive vouchers that bring them back.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
-                      Customers scan the QR code right at your register. It opens instantly on their phone, unlocking time-sensitive vouchers that bring them back.
-                    </p>
                   </div>
 
-                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-emerald-200 shadow-xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 group">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                          <Gift className="w-3.5 h-3.5 text-white" />
+                  {/* Row 2: Instant QR Reward Gamification */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-4.5 border border-emerald-100 shadow-xs hover:shadow-md hover:border-emerald-200 transition-all duration-200">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                        <Gift className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                            Instant QR Reward Gamification
+                          </h4>
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shrink-0">
+                            HIGH RETURN
+                          </span>
                         </div>
-                        <span>Instant QR Reward Gamification</span>
-                      </h4>
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md shrink-0">
-                        High Return
-                      </span>
+                        <p className="text-slate-500 text-xs sm:text-[12.5px] leading-relaxed font-normal mt-1.5">
+                          Instant Aurex coin reveal mechanics convert regular checkout loops into exciting loyalty moments that customers love coming back for.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
-                      Instant Aurex coin reveal mechanics convert regular checkout loops into exciting loyalty moments that customers love coming back for.
-                    </p>
                   </div>
 
-                  <div className="bg-white/95 backdrop-blur-xs p-5 rounded-2xl border border-emerald-200 shadow-xs hover:shadow-md hover:border-emerald-400 hover:-translate-y-0.5 transition-all duration-200 group">
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base flex items-center space-x-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-                          <ShieldCheck className="w-3.5 h-3.5 text-white" />
+                  {/* Row 3: 100% Privacy & Zero Spam */}
+                  <div className="bg-white rounded-2xl p-4 sm:p-4.5 border border-emerald-100 shadow-xs hover:shadow-md hover:border-emerald-200 transition-all duration-200">
+                    <div className="flex items-start space-x-3.5">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                        <ShieldCheck className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm sm:text-base leading-tight">
+                            100% Privacy & Zero Spam
+                          </h4>
+                          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-[9px] font-black tracking-wider uppercase px-2 py-0.5 rounded-full shrink-0">
+                            BANK-GRADE TRUST
+                          </span>
                         </div>
-                        <span>100% Privacy & Zero Spam</span>
-                      </h4>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md shrink-0">
-                        Bank-Grade Trust
-                      </span>
+                        <p className="text-slate-500 text-xs sm:text-[12.5px] leading-relaxed font-normal mt-1.5">
+                          We protect customer data completely. No promotional spam. Shoppers feel safe and respect your business's modern digital environment.
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-slate-600 text-xs sm:text-[13px] pl-9 leading-relaxed font-normal">
-                      We protect customer data completely. No promotional spam. Shoppers feel safe and respect your business's modern digital environment.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1324,7 +1463,6 @@ export default function LandingPage() {
                 Platform
               </h4>
               <ul className="space-y-2.5 text-xs">
-                <li><a href="#strengths" className="hover:text-white transition-colors">Counter Strengths</a></li>
                 <li><a href="#features" className="hover:text-white transition-colors">Platform Features</a></li>
                 <li><a href="#reality-check" className="hover:text-white transition-colors">The Reality Check</a></li>
                 <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>

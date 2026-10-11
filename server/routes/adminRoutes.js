@@ -593,10 +593,18 @@ router.get('/merchants', async (req, res) => {
         return {
           id: mId,
           businessName: m.businessName,
+          ownerName: m.ownerName || '',
+          logo: m.logo || '',
           category: m.category,
           email: m.email,
           mobile: m.mobile,
           city: m.city || 'Delhi NCR',
+          state: m.state || '',
+          addressLine1: m.addressLine1 || (m.branches?.[0]?.address || ''),
+          addressLine2: m.addressLine2 || '',
+          address: m.address || m.addressLine1 || (m.branches?.[0]?.address || ''),
+          pinCode: m.pinCode || m.pincode || (m.branches?.[0]?.pincode || ''),
+          pincode: m.pinCode || m.pincode || (m.branches?.[0]?.pincode || ''),
           subscriptionTier: isPaid ? (m.subscriptionTier || 'PROFESSIONAL') : (m.subscriptionTier || 'TRIAL'),
           plan: displayPlan,
           planValidTill: m.planValidTill || (found ? found.planValidTill : (isPaid ? '04 Oct 2029' : '14 Oct 2026')),
@@ -748,10 +756,18 @@ router.get('/merchants/:id/dashboard', async (req, res) => {
         merchant: {
           id: merchantId.toString(),
           businessName: merchant.businessName,
+          ownerName: merchant.ownerName || '',
+          logo: merchant.logo || '',
           category: merchant.category,
           email: merchant.email,
           mobile: merchant.mobile,
           city: merchant.city || 'Delhi NCR',
+          state: merchant.state || '',
+          addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+          addressLine2: merchant.addressLine2 || '',
+          address: merchant.address || merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+          pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+          pincode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
           qrSlug: merchant.qrSlug,
           cashierPin: merchant.cashierPin || '4829',
           brandColor: merchant.brandColor || '#74111d',
@@ -804,7 +820,20 @@ router.patch('/merchants/:id', async (req, res) => {
       complimentaryDays,
       dealDetails,
       trialDays,
-      trialExpiresAt
+      trialExpiresAt,
+      businessName,
+      ownerName,
+      category,
+      email,
+      mobile,
+      city,
+      state,
+      addressLine1,
+      addressLine2,
+      address,
+      pinCode,
+      pincode,
+      logo
     } = req.body;
     
     // Normalize incoming plan and tier
@@ -834,6 +863,21 @@ router.patch('/merchants/:id', async (req, res) => {
     // Update local mock
     const idx = mockMerchants.findIndex(m => m.id === req.params.id);
     if (idx !== -1) {
+      if (businessName !== undefined) mockMerchants[idx].businessName = businessName;
+      if (ownerName !== undefined) mockMerchants[idx].ownerName = ownerName;
+      if (category !== undefined) mockMerchants[idx].category = category;
+      if (email !== undefined) mockMerchants[idx].email = email;
+      if (mobile !== undefined) mockMerchants[idx].mobile = mobile;
+      if (city !== undefined) mockMerchants[idx].city = city;
+      if (state !== undefined) mockMerchants[idx].state = state;
+      if (addressLine1 !== undefined) mockMerchants[idx].addressLine1 = addressLine1;
+      if (addressLine2 !== undefined) mockMerchants[idx].addressLine2 = addressLine2;
+      if (address !== undefined) mockMerchants[idx].address = address;
+      if (pinCode !== undefined || pincode !== undefined) {
+        mockMerchants[idx].pinCode = pinCode || pincode;
+        mockMerchants[idx].pincode = pinCode || pincode;
+      }
+      if (logo !== undefined) mockMerchants[idx].logo = logo;
       if (status !== undefined) mockMerchants[idx].status = status;
       if (normalizedTier !== undefined) mockMerchants[idx].subscriptionTier = normalizedTier;
       if (normalizedPlan !== undefined) mockMerchants[idx].plan = normalizedPlan;
@@ -857,6 +901,33 @@ router.patch('/merchants/:id', async (req, res) => {
     try {
       const dbM = await Merchant.findById(req.params.id);
       if (dbM) {
+        if (businessName !== undefined) dbM.businessName = businessName.trim();
+        if (ownerName !== undefined) dbM.ownerName = ownerName.trim();
+        if (category !== undefined) dbM.category = category;
+        if (email !== undefined) dbM.email = email.toLowerCase().trim();
+        if (mobile !== undefined) dbM.mobile = mobile;
+        if (logo !== undefined) dbM.logo = logo;
+        if (addressLine1 !== undefined) dbM.addressLine1 = addressLine1.trim();
+        if (addressLine2 !== undefined) dbM.addressLine2 = addressLine2.trim();
+        if (city !== undefined) dbM.city = city.trim();
+        if (state !== undefined) dbM.state = state.trim();
+        if (pinCode !== undefined || pincode !== undefined) {
+          const pin = (pinCode || pincode || '').trim();
+          dbM.pinCode = pin;
+          dbM.pincode = pin;
+        }
+        if (address !== undefined) {
+          dbM.address = address.trim();
+        } else if (addressLine1 !== undefined || addressLine2 !== undefined) {
+          dbM.address = dbM.addressLine1 ? (dbM.addressLine2 ? `${dbM.addressLine1}, ${dbM.addressLine2}` : dbM.addressLine1) : dbM.city;
+        }
+
+        if (dbM.branches && dbM.branches.length > 0) {
+          if (dbM.address) dbM.branches[0].address = dbM.address;
+          if (dbM.city) dbM.branches[0].city = dbM.city;
+          if (dbM.pinCode) dbM.branches[0].pincode = dbM.pinCode;
+        }
+
         if (status !== undefined) {
           dbM.isActive = (status !== 'Suspended');
           if (status === 'Paid') {
@@ -933,6 +1004,12 @@ router.patch('/merchants/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+});
+
+router.put('/merchants/:id', async (req, res) => {
+  // Delegate to PATCH handler logic
+  req.method = 'PATCH';
+  router.handle(req, res);
 });
 
 // Delete Merchant (MongoDB & associated scans/rewards/vouchers)
@@ -1743,57 +1820,31 @@ router.get('/customers', async (req, res) => {
       dbC = await Customer.find().sort({ updatedAt: -1, lastVisitAt: -1 });
     } catch (e) {}
 
-    const fallbackCustomers = [
-      { id: 'c1', customerId: 'LQR-ROHIT1', mobile: '9876543210', name: 'Rohit Verma', email: 'rohit@gmail.com', totalVisits: 8, points: 280, stamps: 4, tier: 'Silver Member', favoriteStore: 'Royal Sweets & Cafe', activeVouchers: 1, lastVisit: 'Today, 14:22', lastLoginAt: 'Today, 14:22', createdAt: '01 Oct 2026', isActive: true, status: 'Active' },
-      { id: 'c2', customerId: 'LQR-ANANYA2', mobile: '9812345678', name: 'Ananya Deshmukh', email: 'ananya@outlook.com', totalVisits: 14, points: 420, stamps: 6, tier: 'Gold Member', favoriteStore: 'Gourmet Organic Supermarket', activeVouchers: 2, lastVisit: 'Yesterday, 19:10', lastLoginAt: 'Yesterday, 19:10', createdAt: '28 Sep 2026', isActive: true, status: 'Active' },
-      { id: 'c3', customerId: 'LQR-KUNAL3', mobile: '9789012345', name: 'Kunal Malhotra', email: 'kunal@yahoo.com', totalVisits: 5, points: 150, stamps: 2, tier: 'Bronze Member', favoriteStore: 'Spice Junction Biryani', activeVouchers: 1, lastVisit: '2 days ago', lastLoginAt: '2 days ago', createdAt: '25 Sep 2026', isActive: true, status: 'Active' },
-      { id: 'c4', customerId: 'LQR-MEERA4', mobile: '9823456789', name: 'Meera Iyer', email: 'meera@gmail.com', totalVisits: 19, points: 610, stamps: 8, tier: 'Platinum Member', favoriteStore: 'Glamour Salon & Spa', activeVouchers: 1, lastVisit: '3 days ago', lastLoginAt: '3 days ago', createdAt: '20 Sep 2026', isActive: true, status: 'Active' },
-      { id: 'c5', customerId: 'LQR-SIDD5', mobile: '9911223344', name: 'Siddharth Rao', email: 'siddharth@gmail.com', totalVisits: 3, points: 100, stamps: 1, tier: 'Bronze Member', favoriteStore: 'Urban Fitness Studio', activeVouchers: 0, lastVisit: '1 week ago', lastLoginAt: '1 week ago', createdAt: '15 Sep 2026', isActive: true, status: 'Active' }
-    ];
+    const formatted = (dbC || []).map(c => ({
+      id: c._id.toString(),
+      customerId: c.customerId || ('LQR-' + c._id.toString().slice(-6).toUpperCase()),
+      mobile: c.mobile || '—',
+      name: c.name || 'Valued Customer',
+      email: c.email || '',
+      totalVisits: c.totalVisits || 1,
+      points: c.points || 100,
+      stamps: c.stamps || 0,
+      tier: c.tier || 'Bronze Member',
+      favoriteStore: (c.storeProgress && c.storeProgress[0]?.storeName) || 'Store Visit',
+      activeVouchers: c.activeCardsCount || 1,
+      lastVisit: c.lastVisitAt ? new Date(c.lastVisitAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Today',
+      lastLoginAt: c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'Recent'),
+      createdAt: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent',
+      isActive: c.isActive !== false,
+      status: c.isActive === false ? 'Suspended' : 'Active'
+    }));
 
-    if (dbC && dbC.length > 0) {
-      const formatted = dbC.map(c => ({
-        id: c._id.toString(),
-        customerId: c.customerId || ('LQR-' + c._id.toString().slice(-6).toUpperCase()),
-        mobile: c.mobile,
-        name: c.name || 'Valued Customer',
-        email: c.email || '-',
-        totalVisits: c.totalVisits || 1,
-        points: c.points || 100,
-        stamps: c.stamps || 0,
-        tier: c.tier || 'Bronze Member',
-        favoriteStore: (c.storeProgress && c.storeProgress[0]?.storeName) || 'Royal Sweets & Cafe',
-        activeVouchers: c.activeCardsCount || 1,
-        lastVisit: c.lastVisitAt ? new Date(c.lastVisitAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Today',
-        lastLoginAt: c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'Recent'),
-        createdAt: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent',
-        isActive: c.isActive !== false,
-        status: c.isActive === false ? 'Suspended' : 'Active'
-      }));
-
-      // Merge mock fallbacks if DB has few entries
-      const mergedList = [...formatted];
-      fallbackCustomers.forEach(fc => {
-        if (!mergedList.some(m => m.mobile === fc.mobile)) {
-          mergedList.push(fc);
-        }
-      });
-
-      return res.json({ 
-        success: true, 
-        total: mergedList.length,
-        activeCount: mergedList.filter(c => c.isActive).length,
-        suspendedCount: mergedList.filter(c => !c.isActive).length,
-        customers: mergedList 
-      });
-    }
-
-    res.json({ 
+    return res.json({ 
       success: true, 
-      total: fallbackCustomers.length,
-      activeCount: fallbackCustomers.length,
-      suspendedCount: 0,
-      customers: fallbackCustomers 
+      total: formatted.length,
+      activeCount: formatted.filter(c => c.isActive).length,
+      suspendedCount: formatted.filter(c => !c.isActive).length,
+      customers: formatted 
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -1806,7 +1857,17 @@ router.patch('/customers/:id/status', async (req, res) => {
     const { isActive } = req.body;
     let customer = null;
     try {
-      customer = await Customer.findById(req.params.id);
+      if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+        customer = await Customer.findById(req.params.id);
+      }
+      if (!customer) {
+        customer = await Customer.findOne({
+          $or: [
+            { customerId: req.params.id },
+            { mobile: req.params.id }
+          ]
+        });
+      }
     } catch (_) {}
 
     if (customer) {
@@ -1842,16 +1903,44 @@ router.delete('/customers/:id', async (req, res) => {
     let deleted = null;
     if (mongoose.Types.ObjectId.isValid(id)) {
       deleted = await Customer.findByIdAndDelete(id);
-      if (deleted) {
-        await Scan.deleteMany({ customerId: id });
-        await Voucher.deleteMany({ customerId: id });
-      }
+    }
+    if (!deleted) {
+      deleted = await Customer.findOneAndDelete({
+        $or: [
+          { customerId: id },
+          { mobile: id },
+          { email: id }
+        ]
+      });
+    }
+
+    if (deleted) {
+      await Scan.deleteMany({ customerId: deleted._id }).catch(() => {});
+      await Voucher.deleteMany({ customerId: deleted._id }).catch(() => {});
     }
 
     res.json({
       success: true,
       message: 'Customer record deleted successfully from CRM and database.'
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Delete Customer Lead from CRM
+router.delete('/crm/customers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    mockCrmCustomers = mockCrmCustomers.filter(c => c.id !== id);
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      await Customer.findByIdAndDelete(id).catch(() => {});
+    } else {
+      await Customer.findOneAndDelete({
+        $or: [{ customerId: id }, { mobile: id }]
+      }).catch(() => {});
+    }
+    res.json({ success: true, message: 'CRM customer lead deleted successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

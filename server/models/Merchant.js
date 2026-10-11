@@ -6,9 +6,16 @@ const merchantSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  ownerName: {
+    type: String,
+    default: ''
+  },
+  logo: {
+    type: String,
+    default: ''
+  },
   category: {
     type: String,
-    enum: ['RETAIL', 'CAFE_RESTAURANT', 'SALON_SPA', 'GROCERY', 'HEALTHCARE', 'OTHER'],
     default: 'RETAIL'
   },
   email: {
@@ -28,9 +35,33 @@ const merchantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  addressLine1: {
+    type: String,
+    default: ''
+  },
+  addressLine2: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
   city: {
     type: String,
     default: 'Delhi NCR'
+  },
+  state: {
+    type: String,
+    default: ''
+  },
+  pinCode: {
+    type: String,
+    default: ''
+  },
+  pincode: {
+    type: String,
+    default: ''
   },
   tagline: {
     type: String,

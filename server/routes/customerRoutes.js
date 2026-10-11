@@ -546,7 +546,7 @@ router.post('/auth/verify-otp', async (req, res) => {
 // =========================================================================
 router.post('/auth/google', async (req, res) => {
   try {
-    const { email, name, googleId, avatar } = req.body;
+    const { email, name, googleId, avatar, referralCode } = req.body;
     const cleanEmail = email ? String(email).trim().toLowerCase() : '';
 
     if (!cleanEmail) {
@@ -564,6 +564,25 @@ router.post('/auth/google', async (req, res) => {
     }
 
     if (!customer) {
+      // Check referral bonus
+      let referrer = null;
+      if (referralCode && mongoose.connection.readyState === 1) {
+        try {
+          referrer = await Customer.findOne({
+            $or: [
+              { referralCode: String(referralCode).trim().toUpperCase() },
+              { customerId: String(referralCode).trim().toUpperCase() }
+            ]
+          });
+          if (referrer) {
+            referrer.referralCount = (referrer.referralCount || 0) + 1;
+            referrer.points = (referrer.points || 0) + 50;
+            referrer.referralEarnings = (referrer.referralEarnings || 0) + 50;
+            await referrer.save();
+          }
+        } catch (_) {}
+      }
+
       // New Customer via Google Sign In
       const customerId = 'BX-' + Math.random().toString(36).substring(2, 8).toUpperCase();
       customer = await Customer.create({
@@ -572,8 +591,9 @@ router.post('/auth/google', async (req, res) => {
         googleId: googleId || undefined,
         avatar: avatar || '',
         customerId,
+        referredBy: referrer ? (referrer.referralCode || referrer.customerId) : '',
         referralCode: 'BX-' + customerId.slice(-4),
-        points: 100, // 100 Welcome Points
+        points: referrer ? 150 : 100, // Extra 50 bonus points if referred
         tier: 'Bronze Member',
         stamps: 0,
         activeCardsCount: 1,
@@ -660,6 +680,57 @@ router.get('/profile', async (req, res) => {
       }
     });
   } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// 4b. Customer Profile Update (in MongoDB)
+// =========================================================================
+router.put('/profile', async (req, res) => {
+  try {
+    const { customerId, id, name, phone, mobile, email } = req.body;
+    const cleanMobile = cleanPhone(phone || mobile);
+    const cleanEmail = email ? String(email).trim().toLowerCase() : '';
+
+    let customer = null;
+    if (id || customerId) {
+      const searchId = id || customerId;
+      if (mongoose.Types.ObjectId.isValid(searchId)) {
+        customer = await Customer.findById(searchId);
+      }
+      if (!customer && customerId) {
+        customer = await Customer.findOne({ customerId: String(customerId).trim() });
+      }
+    }
+    if (!customer && cleanEmail) {
+      customer = await Customer.findOne({ email: cleanEmail });
+    }
+    if (!customer && cleanMobile) {
+      customer = await Customer.findOne({ mobile: cleanMobile });
+    }
+
+    if (customer) {
+      if (name) customer.name = String(name).trim();
+      if (cleanMobile) customer.mobile = cleanMobile;
+      if (cleanEmail) customer.email = cleanEmail;
+      await customer.save();
+      return res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        customer: {
+          id: customer._id,
+          name: customer.name,
+          phone: `+91 ${customer.mobile}`,
+          mobile: customer.mobile,
+          email: customer.email
+        }
+      });
+    }
+
+    return res.json({ success: true, message: 'Profile updated in session.' });
+  } catch (err) {
+    console.error('Error updating customer profile:', err);
     return res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -897,10 +968,10 @@ router.post('/scan', async (req, res) => {
     return res.json({
       success: true,
       message: isNewCustomer 
-        ? `Welcome to ${resolvedStoreName}! Stamp #1 collected & 150 points added!` 
+        ? `Welcome to ${resolvedStoreName}! Aurex Coin #1 collected & 150 points added!` 
         : rewardAvailable
-        ? `🎉 Congratulations! You reached ${currentProg.totalStamps} stamps! Reward Unlocked!`
-        : `Stamp #${currentProg.stampsCollected} collected successfully! +50 Points awarded.`,
+        ? `🎉 Congratulations! You reached ${currentProg.totalStamps} Aurex Coins! Reward Unlocked!`
+        : `Aurex Coin #${currentProg.stampsCollected} collected successfully! +50 Points awarded.`,
       isNewCustomer,
       earnedStamps: 1,
       currentStamps: currentProg.stampsCollected,
@@ -1047,7 +1118,7 @@ router.post('/checkin', async (req, res) => {
       currentStamps: prog.stampsCollected,
       totalStamps: prog.totalStamps,
       isNewCustomer,
-      message: `Check-in recorded at ${resolvedStoreName}! Ask the cashier/merchant to issue your visit stamp.`
+      message: `Check-in recorded at ${resolvedStoreName}! Ask the cashier/merchant to issue your visit Aurex Coin.`
     });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
@@ -1080,7 +1151,7 @@ router.post('/grant-stamp', async (req, res) => {
     if (!isAuthorized) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid Merchant Authority PIN. Stamp authority is restricted exclusively to the merchant account holder.'
+        message: 'Invalid Merchant Authority PIN. Aurex Coin authority is restricted exclusively to the merchant account holder.'
       });
     }
 
@@ -1105,7 +1176,7 @@ router.post('/grant-stamp', async (req, res) => {
 
     return res.json({
       success: true,
-      message: `Stamp granted by merchant! ${customer.name} can now claim their stamp on their phone screen.`,
+      message: `Aurex Coin granted by merchant! ${customer.name} can now claim their Aurex Coin on their phone screen.`,
       customer: {
         id: customer._id,
         name: customer.name,
@@ -1173,7 +1244,7 @@ router.post('/claim-stamp', async (req, res) => {
     if (!customer.pendingStamp || !customer.pendingStamp.granted) {
       return res.status(403).json({
         success: false,
-        message: 'Stamp not yet authorized by merchant. The merchant account holder must give the stamp before you can claim it.'
+        message: 'Aurex Coin not yet authorized by merchant. The merchant account holder must give the Aurex Coin before you can claim it.'
       });
     }
 
@@ -1406,14 +1477,15 @@ const redemptionStore = require('../services/redemptionStore');
 // POST Customer Submits Reward Claim Request (Waiting for Merchant Approval)
 router.post('/reward/request-approval', async (req, res) => {
   try {
-    const { customerId, customerName, rewardTitle, storeSlug = 'ka-feen', stamps, voucherType } = req.body;
+    const { customerId, customerName, rewardTitle, storeSlug = 'ka-feen', stamps, voucherType, requestType } = req.body;
     
     const claim = redemptionStore.addPendingClaim({
+      requestType: requestType || (voucherType === 'coin' ? 'coin' : 'offer'),
       customerId: customerId || 'LQR-8F4A29',
       customerName: customerName || 'Customer',
       rewardTitle: rewardTitle || '30% OFF on next purchase',
       storeSlug,
-      stamps: stamps || '5/5 Stamps completed',
+      stamps: stamps || '5/5 Aurex Coins completed',
       voucherType: voucherType || '30'
     });
 
@@ -1430,7 +1502,37 @@ router.post('/reward/request-approval', async (req, res) => {
   }
 });
 
-// GET Customer Polls Approval Status for their Reward Claim
+// POST Customer Submits Aurex Coin Collection Request (Waiting for Merchant Approval)
+router.post('/coin/request-approval', async (req, res) => {
+  try {
+    const { customerId, customerName, storeSlug = 'ka-feen', coins = 1 } = req.body;
+    
+    const claim = redemptionStore.addPendingClaim({
+      requestType: 'coin',
+      customerId: customerId || 'LQR-8F4A29',
+      customerName: customerName || 'Customer',
+      rewardTitle: `Wants to collect ${coins} Aurex Coin`,
+      coins,
+      storeSlug,
+      voucherType: 'coin',
+      stamps: `${coins} Aurex Coin Requested`,
+      expiresIn: 'Aurex Coin Request'
+    });
+
+    console.log(`🪙 Aurex Coin collection requested by ${claim.customerName} (${claim.customerId}). Waiting for merchant approval.`);
+
+    return res.json({
+      success: true,
+      status: 'PENDING_APPROVAL',
+      message: 'Aurex Coin request submitted. Waiting for cashier to approve.',
+      claim
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET Customer Polls Approval Status for their Reward Claim or Aurex Coin
 router.get('/reward/check-approval', (req, res) => {
   try {
     const { customerId, claimId } = req.query;

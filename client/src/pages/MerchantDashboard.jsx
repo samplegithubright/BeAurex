@@ -100,10 +100,11 @@ export default function MerchantDashboard() {
   const [pendingRedemptions, setPendingRedemptions] = useState([
     {
       id: 'rem_1',
+      requestType: 'offer',
       customerName: 'Sumit',
       customerId: 'ID: LQR-8F4A29',
       rewardTitle: '30% OFF on Next Purchase',
-      stamps: '5/5 Stamps completed',
+      stamps: '5/5 Aurex Coins completed',
       timeAgo: 'Today, 2:18 PM',
       expiresIn: 'Expires: 30 Jul 2026',
       voucherType: '30',
@@ -111,10 +112,11 @@ export default function MerchantDashboard() {
     },
     {
       id: 'rem_2',
+      requestType: 'offer',
       customerName: 'Ajeet',
       customerId: 'ID: LQR-3K9D21',
       rewardTitle: 'Free Coffee on Any Purchase',
-      stamps: '5/5 Stamps completed',
+      stamps: '5/5 Aurex Coins completed',
       timeAgo: 'Today, 12:45 PM',
       expiresIn: 'Expires: 28 Jul 2026',
       voucherType: 'coffee',
@@ -122,13 +124,15 @@ export default function MerchantDashboard() {
     },
     {
       id: 'rem_3',
-      customerName: 'Pooja',
-      customerId: 'ID: LQR-7H2M56',
-      rewardTitle: '20% OFF on Next Purchase',
-      stamps: '5/5 Stamps completed',
-      timeAgo: 'Yesterday, 6:30 PM',
-      expiresIn: 'Expires: 27 Jul 2026',
-      voucherType: '20',
+      requestType: 'coin',
+      customerName: 'Rohan Sharma',
+      customerId: 'ID: BX-8F4A29',
+      rewardTitle: 'Wants to collect 1 Aurex Coin',
+      coins: 1,
+      stamps: '1 Aurex Coin Requested',
+      timeAgo: 'Today, 11:30 AM',
+      expiresIn: 'Aurex Coin Request',
+      voucherType: 'coin',
       avatarBg: 'bg-amber-500'
     }
   ]);
@@ -179,7 +183,7 @@ export default function MerchantDashboard() {
       customerName: 'Ishita',
       customerId: 'ID: LQR-4Z5W62',
       rewardTitle: 'Free Coffee on Any Purchase',
-      reason: 'Invalid Stamp',
+      reason: 'Invalid Aurex Coin',
       declinedAt: 'Yesterday, 5:40 PM',
       voucherType: 'coffee',
       avatarBg: 'bg-rose-500'
@@ -317,11 +321,15 @@ export default function MerchantDashboard() {
       return updated;
     });
 
+    const isCoinRequest = item.requestType === 'coin' || item.voucherType === 'coin';
     const cleanCustomerId = String(item.customerId || '').replace(/^ID:\s*/, '').trim();
     const payload = {
-      type: 'REWARD_APPROVED',
+      type: isCoinRequest ? 'COIN_COLLECT_APPROVED' : 'REWARD_APPROVED',
+      requestType: isCoinRequest ? 'coin' : 'offer',
+      coins: item.coins || 1,
       claimId: item.id,
       customerId: cleanCustomerId,
+      customerName: item.customerName,
       rewardTitle: item.rewardTitle,
       approvedAt: approvedTime,
       approvedDate: approvedDate,
@@ -361,11 +369,15 @@ export default function MerchantDashboard() {
 
     setDeclinedRedemptions(prev => [declinedItem, ...prev]);
 
+    const isCoinRequest = item.requestType === 'coin' || item.voucherType === 'coin';
     const cleanCustomerId = String(item.customerId || '').replace(/^ID:\s*/, '').trim();
     const payload = {
-      type: 'REWARD_DECLINED',
+      type: isCoinRequest ? 'COIN_COLLECT_DECLINED' : 'REWARD_DECLINED',
+      requestType: isCoinRequest ? 'coin' : 'offer',
+      coins: item.coins || 1,
       claimId: item.id,
       customerId: cleanCustomerId,
+      customerName: item.customerName,
       reason: 'Declined by Merchant',
       timestamp: Date.now()
     };
@@ -389,40 +401,56 @@ export default function MerchantDashboard() {
 
   const renderVoucherTile = (voucherType) => {
     const vStr = String(voucherType || '').toLowerCase();
-    if (vStr === 'coffee' || vStr.includes('coffee')) {
+    if (vStr === 'coin' || vStr.includes('coin')) {
       return (
-        <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-b from-[#26150e] to-[#120804] text-white flex flex-col items-center justify-between p-2 shrink-0 shadow-xs border border-amber-950/40 relative overflow-hidden text-center">
+        <div className="w-20 h-[88px] sm:w-24 sm:h-[96px] rounded-2xl bg-gradient-to-b from-[#2a1705] to-[#120800] text-white flex flex-col items-center justify-between p-2 shrink-0 shadow-xs border border-amber-500/40 relative overflow-hidden text-center">
           <div className="flex flex-col items-center leading-tight">
-            <span className="text-[11px] font-black uppercase tracking-wider text-amber-200">FREE</span>
-            <span className="text-xs font-black uppercase tracking-wider text-white">COFFEE</span>
+            <span className="text-[9px] font-black uppercase tracking-wider text-amber-300">AUREX</span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-white">COIN</span>
+          </div>
+          {/* Gold Coin Emblem */}
+          <div className="my-auto flex flex-col items-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-600 border-2 border-amber-200/90 shadow-md shadow-amber-500/30 flex items-center justify-center text-amber-950 font-black text-xs">
+              🪙
+            </div>
+          </div>
+          <span className="text-[7.5px] text-amber-300/80 font-mono tracking-widest uppercase">COLLECT</span>
+        </div>
+      );
+    } else if (vStr === 'coffee' || vStr.includes('coffee')) {
+      return (
+        <div className="w-20 h-[88px] sm:w-24 sm:h-[96px] rounded-2xl bg-gradient-to-b from-[#26150e] to-[#120804] text-white flex flex-col items-center justify-between p-2 shrink-0 shadow-xs border border-amber-950/40 relative overflow-hidden text-center">
+          <div className="flex flex-col items-center leading-tight">
+            <span className="text-[9px] font-black uppercase tracking-wider text-amber-200">FREE</span>
+            <span className="text-[11px] font-black uppercase tracking-wider text-white">COFFEE</span>
           </div>
           {/* Coffee cup illustration on saucer */}
           <div className="my-auto flex flex-col items-center">
-            <div className="w-9 h-7 bg-white rounded-b-xl border-t-2 border-amber-900/40 relative shadow-xs flex items-center justify-center">
-              <div className="w-6 h-2 bg-amber-900/70 rounded-full" />
-              <div className="w-3 h-4 border-2 border-white rounded-r-md absolute -right-2 top-0.5" />
+            <div className="w-8 h-6 bg-white rounded-b-xl border-t-2 border-amber-900/40 relative shadow-xs flex items-center justify-center">
+              <div className="w-5 h-1.5 bg-amber-900/70 rounded-full" />
+              <div className="w-2.5 h-3.5 border-2 border-white rounded-r-md absolute -right-1.5 top-0.5" />
             </div>
-            <div className="w-11 h-1.5 bg-white/70 rounded-full mt-0.5 shadow-2xs" />
+            <div className="w-10 h-1.5 bg-white/70 rounded-full mt-0.5 shadow-2xs" />
           </div>
-          <span className="text-[8px] text-amber-200/60 font-mono tracking-widest uppercase">PERK</span>
+          <span className="text-[7.5px] text-amber-200/60 font-mono tracking-widest uppercase">PERK</span>
         </div>
       );
     } else if (vStr === '20' || vStr.includes('20%')) {
       return (
-        <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-b from-[#0e4d2a] to-[#062915] text-white flex flex-col items-center justify-center p-2 shrink-0 shadow-xs border border-emerald-900/40 relative overflow-hidden text-center">
-          <div className="w-5 h-5 rounded-full bg-emerald-400/20 text-emerald-200 flex items-center justify-center text-[10px] font-bold mb-1">✓</div>
-          <span className="text-2xl sm:text-3xl font-black leading-none text-white font-sans">20%</span>
-          <span className="text-sm font-black leading-tight text-emerald-200 font-sans">OFF</span>
-          <span className="text-[8px] font-bold text-emerald-400/80 mt-1 uppercase tracking-widest">DISCOUNT</span>
+        <div className="w-20 h-[88px] sm:w-24 sm:h-[96px] rounded-2xl bg-gradient-to-b from-[#0e4d2a] to-[#062915] text-white flex flex-col items-center justify-center p-2 shrink-0 shadow-xs border border-emerald-900/40 relative overflow-hidden text-center">
+          <div className="w-4.5 h-4.5 rounded-full bg-emerald-400/20 text-emerald-200 flex items-center justify-center text-[9px] font-bold mb-0.5">✓</div>
+          <span className="text-xl sm:text-2xl font-black leading-none text-white font-sans">20%</span>
+          <span className="text-xs sm:text-sm font-black leading-tight text-emerald-200 font-sans">OFF</span>
+          <span className="text-[7.5px] font-bold text-emerald-400/80 mt-0.5 uppercase tracking-wider">DISCOUNT</span>
         </div>
       );
     } else {
       return (
-        <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-gradient-to-b from-[#800d1a] to-[#45070e] text-white flex flex-col items-center justify-center p-2 shrink-0 shadow-xs border border-red-950/40 relative overflow-hidden text-center">
-          <div className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-bold mb-1">%</div>
-          <span className="text-2xl sm:text-3xl font-black leading-none text-white font-sans">30%</span>
-          <span className="text-sm font-black leading-tight text-rose-200 font-sans">OFF</span>
-          <span className="text-[8px] font-bold text-amber-300 mt-1 uppercase tracking-widest">LIMITED TIME</span>
+        <div className="w-20 h-[88px] sm:w-24 sm:h-[96px] rounded-2xl bg-gradient-to-b from-[#800d1a] to-[#45070e] text-white flex flex-col items-center justify-center p-2 shrink-0 shadow-xs border border-red-950/40 relative overflow-hidden text-center">
+          <div className="w-4.5 h-4.5 rounded-full bg-white/20 text-white flex items-center justify-center text-[9px] font-bold mb-0.5">%</div>
+          <span className="text-xl sm:text-2xl font-black leading-none text-white font-sans">30%</span>
+          <span className="text-xs sm:text-sm font-black leading-tight text-rose-200 font-sans">OFF</span>
+          <span className="text-[7.5px] font-bold text-amber-300 mt-0.5 uppercase tracking-wider">LIMITED TIME</span>
         </div>
       );
     }
@@ -441,7 +469,7 @@ export default function MerchantDashboard() {
   const [offerDescription, setOfferDescription] = useState('Get 30% off on your next purchase. Thank you for being our loyal customer!');
   const [offerStampsRequired, setOfferStampsRequired] = useState(5);
   const [offerValidity, setOfferValidity] = useState('30 Days');
-  const [showOfferPreview, setShowOfferPreview] = useState(true);
+  const [showOfferPreview, setShowOfferPreview] = useState(false);
   const [offerSuccessModalOpen, setOfferSuccessModalOpen] = useState(false);
   const [offerPageView, setOfferPageView] = useState('list'); // 'list' | 'create'
   const [editingOfferId, setEditingOfferId] = useState(null);
@@ -468,7 +496,7 @@ export default function MerchantDashboard() {
     setOfferValidity(offer.validity || '30 Days');
     setOfferBanner(offer.banner || '');
     setOfferImageRemoved(!offer.banner);
-    setShowOfferPreview(true);
+    setShowOfferPreview(false);
     setOfferPageView('create');
   };
 
@@ -485,7 +513,7 @@ export default function MerchantDashboard() {
         id: editingOfferId || ('rw_' + Date.now()),
         title: finalTitle,
         description: finalDesc,
-        condition: `Collect ${offerStampsRequired} stamps • Valid for ${offerValidity}`,
+        condition: `Collect ${offerStampsRequired} Aurex Coins • Valid for ${offerValidity}`,
         stampsRequired: offerStampsRequired || 5,
         validity: offerValidity || '30 Days',
         validityDays: parseInt(offerValidity) || 30,
@@ -521,7 +549,7 @@ export default function MerchantDashboard() {
 
     // Reset fields for the next new offer
     setOfferTitle('Special Loyalty Reward');
-    setOfferDescription('Collect stamps on every purchase to unlock this special reward!');
+    setOfferDescription('Collect Aurex Coins on every purchase to unlock this special reward!');
     setOfferStampsRequired(5);
     setOfferValidity('30 Days');
     setOfferBanner('');
@@ -539,7 +567,7 @@ export default function MerchantDashboard() {
       id: editingOfferId || ('rw_' + Date.now()),
       title: finalTitle,
       description: finalDesc,
-      condition: `Collect ${offerStampsRequired} stamps • Valid for ${offerValidity}`,
+      condition: `Collect ${offerStampsRequired} Aurex Coins • Valid for ${offerValidity}`,
       stampsRequired: offerStampsRequired || 5,
       validity: offerValidity || '30 Days',
       validityDays: parseInt(offerValidity) || 30,
@@ -600,7 +628,7 @@ export default function MerchantDashboard() {
       id: 'r1', 
       title: '30% OFF on Next Purchase', 
       description: 'Get 30% off on your next purchase. Thank you for being our loyal customer!', 
-      condition: 'Collect 5 stamps to unlock • Valid 30 days', 
+      condition: 'Collect 5 Aurex Coins to unlock • Valid 30 days', 
       stampsRequired: 5,
       validity: '30 Days',
       discountType: 'PERCENTAGE', 
@@ -612,8 +640,8 @@ export default function MerchantDashboard() {
     { 
       id: 'r2', 
       title: '₹150 Flat Discount Voucher', 
-      description: 'Collect 8 stamps to enjoy ₹150 flat discount on your next visit.', 
-      condition: 'Collect 8 stamps to unlock • Valid 10 days', 
+      description: 'Collect 8 Aurex Coins to enjoy ₹150 flat discount on your next visit.', 
+      condition: 'Collect 8 Aurex Coins to unlock • Valid 10 days', 
       stampsRequired: 8,
       validity: '10 Days',
       discountType: 'FLAT_AMOUNT', 
@@ -625,8 +653,8 @@ export default function MerchantDashboard() {
     { 
       id: 'r3', 
       title: 'Free Signature Dessert or Beverage', 
-      description: 'Collect 10 stamps to get a free signature delicacy on us!', 
-      condition: 'Collect 10 stamps to unlock • Valid 14 days', 
+      description: 'Collect 10 Aurex Coins to get a free signature delicacy on us!', 
+      condition: 'Collect 10 Aurex Coins to unlock • Valid 14 days', 
       stampsRequired: 10,
       validity: '14 Days',
       discountType: 'FREE_ITEM', 
@@ -1057,6 +1085,13 @@ export default function MerchantDashboard() {
               setStoreSlug(m.qrSlug);
             }
             if (m.category) setStoreCategory(m.category);
+            if (m.ownerName) {
+              setOwnerAccount(prev => ({ ...prev, ownerName: m.ownerName }));
+            }
+            if (m.logo) {
+              setStoreLogo(m.logo);
+              try { localStorage.setItem('beaurex_store_logo', m.logo); } catch (_) {}
+            }
             if (m.mobile) {
               setPhoneEmail(prev => ({ ...prev, phone: '+91 ' + m.mobile }));
               setOwnerAccount(prev => ({ ...prev, phone: m.mobile }));
@@ -1064,6 +1099,21 @@ export default function MerchantDashboard() {
             if (m.email) {
               setPhoneEmail(prev => ({ ...prev, email: m.email }));
               setOwnerAccount(prev => ({ ...prev, email: m.email }));
+            }
+            const addr = m.addressLine1 
+              ? (m.addressLine2 ? `${m.addressLine1}, ${m.addressLine2}` : m.addressLine1)
+              : (m.address || m.branches?.[0]?.address || '');
+            const cty = m.city || m.branches?.[0]?.city || '';
+            const pin = m.pinCode || m.pincode || m.branches?.[0]?.pincode || '';
+            const ste = m.state || '';
+            if (addr || cty || pin || ste) {
+              setLocationHours(prev => ({
+                ...prev,
+                address: addr || prev.address,
+                city: cty || prev.city,
+                pincode: pin || prev.pincode,
+                state: ste || prev.state || ''
+              }));
             }
           }
         } catch (e) {}
@@ -1549,7 +1599,7 @@ export default function MerchantDashboard() {
           <div class="standee">
             <div class="brand-badge">Scan &amp; Win</div>
             <h1 class="store-title">${storeName || 'Store'}</h1>
-            <p class="tagline">Collect Stamps &bull; Unlock Exclusive Rewards</p>
+            <p class="tagline">Collect Aurex Coins &bull; Unlock Exclusive Rewards</p>
             <div class="qr-wrapper">
               <img class="qr-img" src="${qrSrc}" alt="Store QR Code" />
             </div>
@@ -1575,7 +1625,7 @@ export default function MerchantDashboard() {
       alert("No customer records currently available to export. Share your QR code to collect customers!");
       return;
     }
-    const headers = "Name,Phone,Total Visits,Stamps,Status,Last Visit\n";
+    const headers = "Name,Phone,Total Visits,Aurex Coins,Status,Last Visit\n";
     const rows = dataList.map(c => `"${c.name}","${c.phone}",${c.totalVisits},${c.stamps},"${c.status}","${c.lastVisit}"`).join("\n");
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -1609,12 +1659,12 @@ export default function MerchantDashboard() {
     }
   };
 
-  // Save Stamp Program
+  // Save Aurex Coin Program
   const handleSaveStampProgram = (e) => {
     e.preventDefault();
     requestConfirm({
-      title: 'Permission Required: Activate Stamp Card Program',
-      message: `Are you sure you want to activate the ${stampForm.totalStamps}-stamp loyalty card program offering "${stampForm.rewardTitle}"?`,
+      title: 'Permission Required: Activate Aurex Coin Program',
+      message: `Are you sure you want to activate the ${stampForm.totalStamps}-coin Aurex loyalty program offering "${stampForm.rewardTitle}"?`,
       confirmText: 'Yes, Activate Program',
       type: 'primary',
       onConfirm: () => {
@@ -1807,7 +1857,7 @@ export default function MerchantDashboard() {
     });
   };
 
-  // Merchant Authority: Give 1 Stamp to Customer
+  // Merchant Authority: Give 1 Aurex Coin to Customer
   const handleGiveStampToCustomer = async (customerPhone) => {
     const clean = String(customerPhone || '').replace(/[^0-9]/g, '').slice(-10);
     if (!clean || clean.length !== 10) {
@@ -1816,9 +1866,9 @@ export default function MerchantDashboard() {
     }
 
     requestConfirm({
-      title: 'Permission Required: Issue Loyalty Stamp',
-      message: `Are you sure you want to manually issue 1 loyalty stamp to phone number +91 ${clean}?`,
-      confirmText: 'Yes, Grant Stamp',
+      title: 'Permission Required: Issue Aurex Coin',
+      message: `Are you sure you want to manually issue 1 Aurex Coin to phone number +91 ${clean}?`,
+      confirmText: 'Yes, Grant Aurex Coin',
       type: 'primary',
       onConfirm: async () => {
         try {
@@ -1846,7 +1896,7 @@ export default function MerchantDashboard() {
   const handleDeleteCustomer = async (customerId, customerName) => {
     requestConfirm({
       title: 'Permission Required: Delete Customer Record',
-      message: `Are you sure you want to permanently delete customer "${customerName || 'Customer'}"? All stamps, visits, and vouchers belonging to them will be permanently erased.`,
+      message: `Are you sure you want to permanently delete customer "${customerName || 'Customer'}"? All Aurex Coins, visits, and vouchers belonging to them will be permanently erased.`,
       confirmText: 'Yes, Delete Customer',
       type: 'danger',
       onConfirm: async () => {
@@ -2184,42 +2234,58 @@ export default function MerchantDashboard() {
                 </div>
               </div>
 
-              {/* Metric Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                  <div className="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
-                    <span>Total Scans</span>
-                    <Smartphone className="w-4 h-4 text-[#8B0000]" />
+              {/* Metric Cards (Exact Match to Landing Page Gradient Style & Left Icon Squircle) */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Smartphone className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-rose-700" />
                   </div>
-                  <div className="text-2xl font-black text-slate-900">{scansTotal.toLocaleString()}</div>
-                  <div className="text-[11px] font-bold text-emerald-600 mt-1">+28% this week</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Scans</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      {scansTotal.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+28% this week</div>
+                  </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                  <div className="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
-                    <span>Scans Today</span>
-                    <Clock className="w-4 h-4 text-blue-600" />
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Clock className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-blue-600" />
                   </div>
-                  <div className="text-2xl font-black text-slate-900">{scansTodayCount}</div>
-                  <div className="text-[11px] font-bold text-blue-600 mt-1">Real-time counter</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Scans Today</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      {scansTodayCount}
+                    </div>
+                    <div className="text-[10px] sm:text-xs font-bold text-blue-600 leading-none whitespace-nowrap truncate">Real-time counter</div>
+                  </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                  <div className="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
-                    <span>Unique Scanners</span>
-                    <Users className="w-4 h-4 text-amber-600" />
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Users className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-amber-500" />
                   </div>
-                  <div className="text-2xl font-black text-slate-900">{customers.length || 894}</div>
-                  <div className="text-[11px] font-bold text-emerald-600 mt-1">42.8% repeat rate</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Unique Scanners</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      {customers.length || 894}
+                    </div>
+                    <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">42.8% repeat rate</div>
+                  </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                  <div className="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
-                    <span>Active Display</span>
-                    <QrCode className="w-4 h-4 text-emerald-600" />
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <QrCode className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
                   </div>
-                  <div className="text-2xl font-black text-slate-900">1 Standee</div>
-                  <div className="text-[11px] font-bold text-slate-500 mt-1">Main Counter Online</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Active Display</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      1 Standee
+                    </div>
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-500 leading-none whitespace-nowrap truncate">Main Counter Online</div>
+                  </div>
                 </div>
               </div>
 
@@ -2301,12 +2367,12 @@ export default function MerchantDashboard() {
           {/* SCREEN 9, 10, 11: REWARDS WORKFLOW (Pending, Approved, Declined) */}
           {/* ============================================================= */}
           {/* ============================================================= */}
-          {/* SCREEN 9, 10, 11: REWARDS WORKFLOW (Matching media_1791468660903.png) */}
+          {/* SCREEN 9, 10, 11: REWARDS & REQUESTS WORKFLOW (Matching media_1791700415153_2bd32057.png) */}
           {/* ============================================================= */}
           {activeTab === 'rewards' && (
             <div className="space-y-4 sm:space-y-5 pb-24 md:pb-12 max-w-xl mx-auto animate-in fade-in duration-200">
               
-              {/* 3-Tab Segmented Control (Screen 9, 10, 11 - Matching media_1791468660903.png) */}
+              {/* 3-Tab Segmented Control (Screen 9, 10, 11 - Matching media_1791700415153_2bd32057.png) */}
               <div className="bg-slate-100/90 p-1 rounded-2xl flex items-center justify-between border border-slate-200/80 shadow-2xs">
                 {/* Pending Tab */}
                 <button
@@ -2355,16 +2421,16 @@ export default function MerchantDashboard() {
                 </button>
               </div>
 
-              {/* Subheading matching Screen 9, 10, 11 */}
+              {/* Subheading matching Screen 9, 10, 11 (media_1791700415153_2bd32057.png) */}
               <div className="flex items-center justify-between pt-1 px-0.5">
                 <h3 className="text-sm sm:text-base font-bold text-slate-800">
                   {rewardsViewTab === 'pending' && 'Pending Requests'}
-                  {rewardsViewTab === 'approved' && 'Approved Rewards'}
+                  {rewardsViewTab === 'approved' && 'Approved Requests'}
                   {rewardsViewTab === 'declined' && 'Declined Requests'}
                 </h3>
                 <span className="text-xs text-slate-400 font-medium">
                   {rewardsViewTab === 'pending' && `${pendingRedemptions.length} requests`}
-                  {rewardsViewTab === 'approved' && `${approvedRedemptions.length} rewards`}
+                  {rewardsViewTab === 'approved' && `${approvedRedemptions.length} approved`}
                   {rewardsViewTab === 'declined' && `${declinedRedemptions.length} declined`}
                 </span>
               </div>
@@ -2375,52 +2441,74 @@ export default function MerchantDashboard() {
                   {pendingRedemptions.length === 0 ? (
                     <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center text-slate-400 shadow-xs">
                       <Gift className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                      <p className="text-sm font-bold text-slate-700">No pending redemption claims</p>
-                      <p className="text-xs text-slate-400 mt-0.5">When customers complete all stamps on their card, their claim will appear here</p>
+                      <p className="text-sm font-bold text-slate-700">No pending requests</p>
+                      <p className="text-xs text-slate-400 mt-0.5">When customers request to collect Aurex Coins or claim an offer, their request will appear here</p>
                     </div>
                   ) : (
-                    pendingRedemptions.map((item) => (
-                      <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3.5">
-                        <div className="flex items-start space-x-3.5 sm:space-x-4">
-                          {/* Left Voucher Thumbnail */}
-                          {renderVoucherTile(item.voucherType || item.rewardTitle)}
+                    pendingRedemptions.map((item) => {
+                      const isCoinReq = item.requestType === 'coin' || item.voucherType === 'coin';
+                      return (
+                        <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs hover:border-slate-300 transition space-y-4 sm:space-y-4.5">
+                          <div className="flex items-start space-x-3.5 sm:space-x-4">
+                            {/* Left Voucher / Coin Thumbnail */}
+                            {renderVoucherTile(item.voucherType || item.rewardTitle)}
 
-                          {/* Middle Claim Info */}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
-                            <p className="text-xs text-slate-400 font-mono font-medium mt-0.5">{item.customerId}</p>
-                            <p className="text-xs sm:text-sm font-bold text-slate-900 mt-1.5 leading-snug">{item.rewardTitle}</p>
-                            
-                            <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-1.5">
-                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span>{item.timeAgo}</span>
-                            </div>
-                            <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-700 mt-0.5">
-                              <Calendar className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                              <span>{item.expiresIn}</span>
+                            {/* Middle Claim Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1.5">
+                                <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
+                                {isCoinReq ? (
+                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 flex items-center space-x-1">
+                                    <span>🪙 Aurex Coin</span>
+                                  </span>
+                                ) : (
+                                  <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 flex items-center space-x-1">
+                                    <span>🎁 Offer Claim</span>
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-900 font-mono font-black mt-1">{item.customerId}</p>
+                              <p className="text-xs sm:text-sm font-bold text-slate-900 mt-2 leading-snug">
+                                {isCoinReq ? `Wants to collect ${item.coins || 1} Aurex Coin` : item.rewardTitle}
+                              </p>
+                              
+                              <div className="flex items-center space-x-1.5 text-xs text-slate-500 mt-2">
+                                <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <span>{item.timeAgo}</span>
+                              </div>
+                              {isCoinReq ? (
+                                <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-700 mt-1">
+                                  <span>🪙 +{item.coins || 1} Aurex Coin to customer upon Accept</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-700 mt-1">
+                                  <Calendar className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                  <span>{item.expiresIn}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
-                        </div>
 
-                        {/* Action Buttons: Side-by-side Decline and Accept */}
-                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-100/80">
-                          <button
-                            type="button"
-                            onClick={() => handleDeclineRedemption(item)}
-                            className="bg-white hover:bg-rose-50 text-red-700 border border-red-300 font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
-                          >
-                            <span>Decline</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAcceptRedemption(item)}
-                            className="bg-[#0e5c36] hover:bg-[#094728] text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
-                          >
-                            <span>Accept</span>
-                          </button>
+                          {/* Action Buttons: Side-by-side Decline and Accept (Matching media_1791700415153_2bd32057.png) */}
+                          <div className="grid grid-cols-2 gap-3 pt-2.5 sm:pt-3 border-t border-slate-100/90">
+                            <button
+                              type="button"
+                              onClick={() => handleDeclineRedemption(item)}
+                              className="bg-white hover:bg-rose-50 text-red-700 border border-red-300 font-bold py-3 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
+                            >
+                              <span>Decline</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleAcceptRedemption(item)}
+                              className="bg-[#0e5c36] hover:bg-[#094728] text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                            >
+                              <span>Accept</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
@@ -2430,37 +2518,53 @@ export default function MerchantDashboard() {
                 <div className="space-y-3.5">
                   {approvedRedemptions.length === 0 ? (
                     <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center text-slate-400 shadow-xs">
-                      <p className="text-sm font-bold text-slate-700">No approved redemptions yet</p>
+                      <p className="text-sm font-bold text-slate-700">No approved requests yet</p>
                     </div>
                   ) : (
-                    approvedRedemptions.map((item) => (
-                      <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3">
-                        <div className="flex items-start space-x-3.5 sm:space-x-4">
-                          {/* Left Voucher Thumbnail */}
-                          {renderVoucherTile(item.voucherType || item.rewardTitle)}
+                    approvedRedemptions.map((item) => {
+                      const isCoinReq = item.requestType === 'coin' || item.voucherType === 'coin';
+                      return (
+                        <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs hover:border-slate-300 transition space-y-4">
+                          <div className="flex items-start space-x-3.5 sm:space-x-4">
+                            {/* Left Voucher Thumbnail */}
+                            {renderVoucherTile(item.voucherType || item.rewardTitle)}
 
-                          {/* Middle Claim Info */}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
-                            <p className="text-xs text-slate-400 font-mono font-medium mt-0.5">{item.customerId}</p>
-                            <p className="text-xs sm:text-sm font-bold text-blue-900 mt-1.5 leading-snug">{item.rewardTitle}</p>
-                            
-                            <div className="mt-1.5 text-xs text-slate-500">
-                              <span className="block text-slate-400 text-[11px]">Approved on</span>
-                              <span className="font-semibold text-slate-700">{item.approvedAt}</span>
+                            {/* Middle Claim Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1.5">
+                                <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
+                                {isCoinReq ? (
+                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
+                                    🪙 Coin
+                                  </span>
+                                ) : (
+                                  <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
+                                    🎁 Offer
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-900 font-mono font-black mt-1">{item.customerId}</p>
+                              <p className="text-xs sm:text-sm font-bold text-blue-900 mt-2 leading-snug">
+                                {isCoinReq ? `+${item.coins || 1} Aurex Coin Added` : item.rewardTitle}
+                              </p>
+                              
+                              <div className="mt-2 text-xs text-slate-500">
+                                <span className="block text-slate-400 text-[11px]">Approved on</span>
+                                <span className="font-semibold text-slate-700">{item.approvedAt}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Bottom Right Approved Badge */}
-                        <div className="flex justify-end pt-1 border-t border-slate-100/80">
-                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5">
-                            <span>Approved</span>
-                            <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[2.5]" />
-                          </span>
+                          {/* Bottom Right Approved Badge */}
+                          <div className="flex justify-end pt-2 sm:pt-2.5 border-t border-slate-100/90">
+                            <span className="bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5">
+                              <span>Approved</span>
+                              <Check className="w-3.5 h-3.5 text-emerald-700 stroke-[2.5]" />
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
@@ -2473,34 +2577,48 @@ export default function MerchantDashboard() {
                       <p className="text-sm font-bold text-slate-700">No declined redemption requests</p>
                     </div>
                   ) : (
-                    declinedRedemptions.map((item) => (
-                      <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3">
-                        <div className="flex items-start space-x-3.5 sm:space-x-4">
-                          {/* Left Voucher Thumbnail */}
-                          {renderVoucherTile(item.voucherType || item.rewardTitle)}
+                    declinedRedemptions.map((item) => {
+                      const isCoinReq = item.requestType === 'coin' || item.voucherType === 'coin';
+                      return (
+                        <div key={item.id} className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs hover:border-slate-300 transition space-y-4">
+                          <div className="flex items-start space-x-3.5 sm:space-x-4">
+                            {/* Left Voucher Thumbnail */}
+                            {renderVoucherTile(item.voucherType || item.rewardTitle)}
 
-                          {/* Middle Claim Info */}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
-                            <p className="text-xs text-slate-400 font-mono font-medium mt-0.5">{item.customerId}</p>
-                            <p className="text-xs sm:text-sm font-bold text-slate-700 mt-1.5 leading-snug">{item.rewardTitle}</p>
-                            
-                            <div className="mt-1.5 text-xs text-rose-600">
-                              <span className="block text-slate-400 text-[11px]">Declined on</span>
-                              <span className="font-semibold text-rose-700">{item.declinedAt}</span>
+                            {/* Middle Claim Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1.5">
+                                <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
+                                {isCoinReq ? (
+                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
+                                    🪙 Coin
+                                  </span>
+                                ) : (
+                                  <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
+                                    🎁 Offer
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-900 font-mono font-black mt-1">{item.customerId}</p>
+                              <p className="text-xs sm:text-sm font-bold text-slate-700 mt-2 leading-snug">{item.rewardTitle}</p>
+                              
+                              <div className="mt-2 text-xs text-rose-600">
+                                <span className="block text-slate-400 text-[11px]">Declined on</span>
+                                <span className="font-semibold text-rose-700">{item.declinedAt}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Bottom Right Declined Badge */}
-                        <div className="flex justify-end pt-1 border-t border-slate-100/80">
-                          <span className="bg-rose-50 text-rose-800 border border-rose-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5">
-                            <span>Declined</span>
-                            <X className="w-3.5 h-3.5 text-rose-700 stroke-[2.5]" />
-                          </span>
+                          {/* Bottom Right Declined Badge */}
+                          <div className="flex justify-end pt-2 sm:pt-2.5 border-t border-slate-100/90">
+                            <span className="bg-rose-50 text-rose-800 border border-rose-300 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center space-x-1.5">
+                              <span>Declined</span>
+                              <X className="w-3.5 h-3.5 text-rose-700 stroke-[2.5]" />
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
@@ -2697,61 +2815,61 @@ export default function MerchantDashboard() {
                     </div>
                   </div>
 
-                  {/* 4 Overview Metric Cards (2x2 on Mobile, 4-in-a-row on Laptop - Matching media_1791468006886.png) */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+                  {/* 4 Overview Metric Cards (Exact Match to Landing Page Gradient Style & Left Icon Squircle) */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
                     {/* Card 1: Total Scans */}
-                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-rose-50 flex items-center justify-center shrink-0">
-                        <FileText className="w-6 h-6 text-rose-700 stroke-[2]" />
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                        <FileText className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-rose-700" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Total Scans</div>
-                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Scans</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
                           {overviewPeriod === 'Today' ? todayStats.scansToday : '2,453'}
                         </div>
-                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+18.5%</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+18.5%</div>
                       </div>
                     </div>
 
                     {/* Card 2: Total Customers */}
-                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-50 flex items-center justify-center shrink-0">
-                        <User className="w-6 h-6 text-purple-600 stroke-[2]" />
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 shadow-2xs">
+                        <User className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-purple-600" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Total Customers</div>
-                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Customers</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
                           {overviewPeriod === 'Today' ? (todayStats.completedToday * 2) : '586'}
                         </div>
-                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+12.3%</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+12.3%</div>
                       </div>
                     </div>
 
                     {/* Card 3: Rewards Redeemed */}
-                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0">
-                        <Gift className="w-6 h-6 text-emerald-600 stroke-[2]" />
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                        <Gift className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Rewards Redeemed</div>
-                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Rewards Redeemed</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
                           {overviewPeriod === 'Today' ? todayStats.completedToday : '128'}
                         </div>
-                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+15.7%</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+15.7%</div>
                       </div>
                     </div>
 
                     {/* Card 4: Repeat Rate */}
-                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 transition flex items-center space-x-3.5 sm:space-x-4">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-amber-50 flex items-center justify-center shrink-0">
-                        <RefreshCw className="w-6 h-6 text-amber-500 stroke-[2]" />
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 shadow-2xs">
+                        <RefreshCw className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-amber-500" />
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-xs sm:text-sm font-semibold text-slate-500 truncate">Repeat Rate</div>
-                        <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Repeat Rate</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
                           42%
                         </div>
-                        <div className="text-xs sm:text-sm font-bold text-emerald-500">+8.2%</div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+8.2%</div>
                       </div>
                     </div>
                   </div>
@@ -2764,7 +2882,7 @@ export default function MerchantDashboard() {
                   <div>
                     <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">Your QR Code</h3>
                     <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                      Let customers scan to collect stamps
+                      Let customers scan to collect Aurex Coins
                     </p>
                   </div>
 
@@ -2999,10 +3117,10 @@ export default function MerchantDashboard() {
                           <button
                             onClick={() => handleGiveStampToCustomer(c.phone)}
                             className="bg-red-50 hover:bg-red-100 text-[#8B0000] text-xs font-black px-2.5 sm:px-3 py-1.5 rounded-xl border border-red-200 transition flex items-center space-x-1 cursor-pointer shrink-0 shadow-2xs"
-                            title="Authorize 1 Stamp for this Customer"
+                            title="Authorize 1 Aurex Coin for this Customer"
                           >
                             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Give Stamp</span>
+                            <span>Give Aurex Coin</span>
                           </button>
 
                           <div className="text-right hidden sm:block">
@@ -3011,7 +3129,7 @@ export default function MerchantDashboard() {
                             }`}>
                               {c.status}
                             </span>
-                            <span className="text-xs text-slate-500 block mt-1">{c.totalVisits} visits • {c.stamps} stamps</span>
+                            <span className="text-xs text-slate-500 block mt-1">{c.totalVisits} visits • {c.stamps} Aurex Coins</span>
                           </div>
                           <button 
                             onClick={() => setCustomerModalOpen(c)}
@@ -3055,7 +3173,7 @@ export default function MerchantDashboard() {
                     }`}
                   >
                     <Gift className="w-3.5 h-3.5" />
-                    <span>Stamp Cards</span>
+                    <span>Aurex Coin Cards</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                       winnerTabType === 'stamp' ? 'bg-white/20 text-white' : 'bg-slate-300 text-slate-700'
                     }`}>
@@ -3183,7 +3301,7 @@ export default function MerchantDashboard() {
                         </span>
                       </h2>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Every offer created for your store is displayed below. Customers automatically unlock these rewards as they collect stamps.
+                        Every offer created for your store is displayed below. Customers automatically unlock these rewards as they collect Aurex Coins.
                       </p>
                     </div>
 
@@ -3207,7 +3325,7 @@ export default function MerchantDashboard() {
                         {editingOfferId ? 'Edit Offer' : 'Create New Offer'}
                       </h2>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        Upload banner, specify discount title, required stamps, and validity duration.
+                        Upload banner, specify discount title, required Aurex Coins, and validity duration.
                       </p>
                     </div>
 
@@ -3237,7 +3355,7 @@ export default function MerchantDashboard() {
                       </div>
                       <h3 className="text-base font-black text-slate-900">No Offers Created Yet</h3>
                       <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                        You haven't created any loyalty offers yet. Create your first offer with stamp goals to incentivize customers to return.
+                        You haven't created any loyalty offers yet. Create your first offer with Aurex Coin goals to incentivize customers to return.
                       </p>
                       <button
                         type="button"
@@ -3294,7 +3412,7 @@ export default function MerchantDashboard() {
                               <div className="flex-1 min-w-0">
                                 <h4 className="font-black text-slate-900 text-sm leading-snug line-clamp-1">{r.title}</h4>
                                 <p className="text-xs text-slate-500 font-medium line-clamp-2 mt-1 leading-relaxed">
-                                  {r.description || r.condition || 'Collect stamps to unlock this offer.'}
+                                  {r.description || r.condition || 'Collect Aurex Coins to unlock this offer.'}
                                 </p>
                               </div>
                             </div>
@@ -3303,7 +3421,7 @@ export default function MerchantDashboard() {
                             <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-2.5 mt-3 flex items-center justify-between text-[11px] font-bold text-slate-700">
                               <div className="flex items-center space-x-1.5">
                                 <User className="w-3.5 h-3.5 text-[#8B0000]" />
-                                <span>{r.stampsRequired || 5} Stamps Goal</span>
+                                <span>{r.stampsRequired || 5} Aurex Coins Goal</span>
                               </div>
                               <div className="flex items-center space-x-1.5 text-slate-500">
                                 <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -3460,7 +3578,7 @@ export default function MerchantDashboard() {
                       <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
                         <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
                           <User className="w-4 h-4 text-red-700" />
-                          <span>Required Stamps</span>
+                          <span>Required Aurex Coins</span>
                         </div>
                         <div className="flex items-center justify-center space-x-4 my-2">
                           <button
@@ -3480,7 +3598,7 @@ export default function MerchantDashboard() {
                           </button>
                         </div>
                         <p className="text-[11px] text-slate-500 leading-tight mt-1">
-                          Customer needs to collect {offerStampsRequired} stamps to unlock this offer
+                          Customer needs to collect {offerStampsRequired} Aurex Coins to unlock this offer
                         </p>
                       </div>
 
@@ -3511,29 +3629,10 @@ export default function MerchantDashboard() {
                       </div>
                     </div>
 
-                    {/* 5. Highlight Banner */}
-                    <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-xl bg-amber-100 text-red-700 flex items-center justify-center shrink-0">
-                        <Gift className="w-4 h-4 text-red-700" />
-                      </div>
-                      <p className="text-xs font-medium text-slate-700 leading-snug">
-                        This offer will be available for all customers once they collect the required stamps.
-                      </p>
-                    </div>
 
                     {/* 6. Action Buttons */}
                     <div className="space-y-2.5 pt-1">
-                      {/* Button 1: Add Another Offer */}
-                      <button
-                        type="button"
-                        onClick={handleResetOrNewOffer}
-                        className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000] font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-xs"
-                      >
-                        <Plus className="w-4 h-4 text-[#8B0000]" />
-                        <span>Add Another Offer</span>
-                      </button>
-
-                      {/* Button 2: Save Offer Program */}
+                      {/* Button: Save Offer Program */}
                       <button
                         type="button"
                         onClick={handleSaveOfferProgram}
@@ -3542,7 +3641,7 @@ export default function MerchantDashboard() {
                         <span>Save Offer Program</span>
                       </button>
 
-                      {/* Button 3: View Offer Preview */}
+                      {/* Button: Preview */}
                       <div>
                         <button
                           type="button"
@@ -3550,7 +3649,7 @@ export default function MerchantDashboard() {
                           className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000]/40 font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-xs"
                         >
                           <Eye className="w-4 h-4 text-[#8B0000]" />
-                          <span>{showOfferPreview ? 'Hide Offer Preview' : 'View Offer Preview'}</span>
+                          <span>{showOfferPreview ? 'Hide Preview' : 'Preview'}</span>
                         </button>
                         <p className="text-[11px] text-slate-400 text-center mt-1.5">
                           See how this offer will appear to your customers
@@ -3560,14 +3659,9 @@ export default function MerchantDashboard() {
 
                   </div>
 
-                  {/* 7. Offer Preview (As seen by customers) - Matching Image 1 */}
+                  {/* 7. Customer View Card */}
                   {showOfferPreview && (
                     <div className="space-y-2 pt-1 animate-in fade-in duration-200">
-                      <div className="flex items-center space-x-1.5 px-1">
-                        <span className="text-xs font-bold text-[#8B0000]">Offer Preview</span>
-                        <span className="text-[11px] text-slate-400 font-medium">(As seen by customers)</span>
-                      </div>
-
                       {/* Customer View Card */}
                       <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm space-y-3">
                         <div className="flex items-start space-x-3 sm:space-x-4">
@@ -3597,7 +3691,7 @@ export default function MerchantDashboard() {
                             <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] font-bold text-slate-600">
                               <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
                                 <User className="w-3 h-3 text-slate-500" />
-                                <span>{offerStampsRequired} Stamps Required</span>
+                                <span>{offerStampsRequired} Aurex Coins Required</span>
                               </div>
                               <div className="flex items-center space-x-1 bg-slate-50 border border-slate-200/80 px-2 py-0.5 rounded-md">
                                 <Calendar className="w-3 h-3 text-slate-500" />
@@ -3615,7 +3709,7 @@ export default function MerchantDashboard() {
                           </div>
                           <div className="flex flex-col items-center space-y-0.5 text-slate-400">
                             <Award className="w-3.5 h-3.5" />
-                            <span>Stamps</span>
+                            <span>Aurex Coins</span>
                           </div>
                           <div className="flex flex-col items-center space-y-0.5 text-slate-400">
                             <Gift className="w-3.5 h-3.5" />
@@ -3751,7 +3845,7 @@ export default function MerchantDashboard() {
                   className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
                 >
                   <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 border border-pink-100">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-200/70">
                       <Globe className="w-5 h-5" />
                     </div>
                     <div>
@@ -3828,7 +3922,7 @@ export default function MerchantDashboard() {
                     </div>
                     <div>
                       <h4 className="text-xs sm:text-sm font-black text-slate-900">Allow First Coin Without Approval</h4>
-                      <p className="text-[11px] text-slate-500 font-medium">Customer's first visit stamp/coin is awarded instantly without review</p>
+                      <p className="text-[11px] text-slate-500 font-medium">Customer's first visit Aurex Coin is awarded instantly without review</p>
                     </div>
                   </div>
                   <button
@@ -4139,32 +4233,45 @@ export default function MerchantDashboard() {
           {/* ------------------------------------------------------------- */}
           {activeTab === 'analytics' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase mb-2">
-                    <span>Total Scans</span>
-                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+              {/* 3 Analytics Metric Cards (Matching Landing Page Gradient Style & Left Icon Squircle) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3.5 lg:gap-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 min-h-[84px] sm:min-h-0 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <TrendingUp className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-emerald-600" />
                   </div>
-                  <div className="text-3xl font-black text-slate-900">1,482</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Unique customer phones captured</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Scans</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      1,482
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Phones captured</div>
+                  </div>
                 </div>
 
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase mb-2">
-                    <span>Repeat Visits</span>
-                    <Users className="w-4 h-4 text-red-600" />
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 min-h-[84px] sm:min-h-0 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Users className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-rose-700" />
                   </div>
-                  <div className="text-3xl font-black text-red-600">42.8%</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Returned within 14 days</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Repeat Visits</div>
+                    <div className="text-lg sm:text-2xl font-black text-rose-600 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      42.8%
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-bold text-emerald-600 leading-none whitespace-nowrap truncate">Within 14 days</div>
+                  </div>
                 </div>
 
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase mb-2">
-                    <span>Vouchers Burned</span>
-                    <Ticket className="w-4 h-4 text-amber-600" />
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 min-h-[84px] sm:min-h-0 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Ticket className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-500" />
                   </div>
-                  <div className="text-3xl font-black text-slate-900">419</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Redeemed at checkout register</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Vouchers Burned</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                      419
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">At checkout register</div>
+                  </div>
                 </div>
               </div>
 
@@ -4297,7 +4404,7 @@ export default function MerchantDashboard() {
                 className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
               >
                 <div className="flex items-center space-x-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center shrink-0 border border-pink-100">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-200/70">
                     <Globe className="w-5 h-5" />
                   </div>
                   <div>
@@ -4520,30 +4627,30 @@ export default function MerchantDashboard() {
       </div>
 
       {/* ========================================================= */}
-      {/* MODAL 1: STAMP CARD BUILDER */}
+      {/* MODAL 1: AUREX COIN CARD BUILDER */}
       {/* ========================================================= */}
       {stampModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setStampModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-[#8B0000] text-white flex items-center justify-center">
-                <Stamp className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Stamp className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Stamp Card Loyalty Builder</h3>
-                <p className="text-xs text-slate-500">Configure customer visit stamps & milestone reward</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Aurex Coin Loyalty Builder</h3>
+                <p className="text-xs text-slate-500 font-medium">Configure customer visit Aurex Coins & milestone reward</p>
               </div>
             </div>
 
             {/* Live Visual Customer Stamp Card Preview */}
-            <div className="bg-gradient-to-br from-red-600 to-rose-700 text-white rounded-2xl p-5 shadow-lg space-y-3">
+            <div className="bg-gradient-to-br from-[#8B0000] via-[#981b2a] to-[#590104] text-white rounded-2xl p-5 shadow-lg space-y-3">
               <div className="flex justify-between items-center text-xs font-bold">
                 <span className="capitalize">{storeName} Loyalty Pass</span>
                 <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px]">{stampForm.validityDays} Days Validity</span>
@@ -4564,41 +4671,41 @@ export default function MerchantDashboard() {
               </div>
             </div>
 
-            <form onSubmit={handleSaveStampProgram} className="space-y-4 text-xs font-bold">
+            <form onSubmit={handleSaveStampProgram} className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Reward Description</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Reward Description</label>
                 <input
                   type="text"
                   required
                   value={stampForm.title}
                   onChange={(e) => setStampForm({ ...stampForm, title: e.target.value })}
                   placeholder="e.g. Get 5% discount on total bill after 5 visits"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Stamps Required</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Aurex Coins Required</label>
                   <select
                     value={stampForm.stampsRequired}
                     onChange={(e) => setStampForm({ ...stampForm, stampsRequired: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all cursor-pointer"
                   >
-                    <option value={4}>4 Stamps</option>
-                    <option value={5}>5 Stamps</option>
-                    <option value={6}>6 Stamps</option>
-                    <option value={8}>8 Stamps</option>
-                    <option value={10}>10 Stamps</option>
+                    <option value={4}>4 Aurex Coins</option>
+                    <option value={5}>5 Aurex Coins</option>
+                    <option value={6}>6 Aurex Coins</option>
+                    <option value={8}>8 Aurex Coins</option>
+                    <option value={10}>10 Aurex Coins</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Validity (Days)</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Validity (Days)</label>
                   <select
                     value={stampForm.validityDays}
                     onChange={(e) => setStampForm({ ...stampForm, validityDays: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all cursor-pointer"
                   >
                     <option value={15}>15 Days</option>
                     <option value={30}>30 Days</option>
@@ -4609,18 +4716,18 @@ export default function MerchantDashboard() {
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Minimum Bill per Stamp (₹)</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Minimum Bill per Aurex Coin (₹)</label>
                 <input
                   type="number"
                   value={stampForm.minBill}
                   onChange={(e) => setStampForm({ ...stampForm, minBill: Number(e.target.value) })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save & Activate Loyalty Program
               </button>
@@ -4634,21 +4741,21 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {scratchModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setScratchModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center">
-                <Layers className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Layers className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Scratch Card Campaign Rules</h3>
-                <p className="text-xs text-slate-500">Configure instant scratch gifts & win probabilities</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Scratch Card Campaign Rules</h3>
+                <p className="text-xs text-slate-500 font-medium">Configure instant scratch gifts & win probabilities</p>
               </div>
             </div>
 
@@ -4656,7 +4763,7 @@ export default function MerchantDashboard() {
               {scratchRules.map((rule, idx) => (
                 <div key={rule.id} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
                   <div className="flex justify-between items-center text-xs font-black">
-                    <span className="text-amber-800">Prize Tier {idx + 1}</span>
+                    <span className="text-[#8B0000]">Prize Tier {idx + 1}</span>
                     <span className="text-slate-500 font-mono">{rule.probability}</span>
                   </div>
                   <input
@@ -4667,7 +4774,7 @@ export default function MerchantDashboard() {
                       updated[idx].title = e.target.value;
                       setScratchRules(updated);
                     }}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
+                    className="w-full bg-white border border-slate-200/90 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
                   />
                   <input
                     type="text"
@@ -4677,7 +4784,7 @@ export default function MerchantDashboard() {
                       updated[idx].condition = e.target.value;
                       setScratchRules(updated);
                     }}
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1 text-[11px] text-slate-600"
+                    className="w-full bg-white border border-slate-200/90 rounded-xl px-3 py-1.5 text-[11px] text-slate-600 focus:outline-none focus:border-[#8B0000]"
                   />
                 </div>
               ))}
@@ -4688,7 +4795,7 @@ export default function MerchantDashboard() {
                 setScratchModalOpen(false);
                 alert("Scratch Card rules saved successfully!");
               }}
-              className="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-amber-600/25 cursor-pointer"
+              className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer"
             >
               Save Scratch Card Campaign
             </button>
@@ -4701,27 +4808,27 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {menuModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col border border-slate-100">
             <button 
               onClick={() => setMenuModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center space-x-3 shrink-0">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
-                <Utensils className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5 shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Utensils className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Digital Menu (QR Menu Card)</h3>
-                <p className="text-xs text-slate-500">Contactless QR Menu displayed to customers upon scanning</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Digital Menu (QR Menu Card)</h3>
+                <p className="text-xs text-slate-500 font-medium">Contactless QR Menu displayed to customers upon scanning</p>
               </div>
             </div>
 
             {/* Add Item Form */}
-            <form onSubmit={handleAddMenuItem} className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-3 shrink-0">
-              <span className="text-xs font-black text-emerald-950 uppercase block">+ Add Item to QR Menu</span>
+            <form onSubmit={handleAddMenuItem} className="p-4 bg-rose-50/40 border border-rose-200/70 rounded-2xl space-y-3 shrink-0">
+              <span className="text-xs font-black text-slate-900 uppercase block">+ Add Item to QR Menu</span>
               
               <div className="grid grid-cols-2 gap-3 text-xs font-bold">
                 <input
@@ -4730,7 +4837,7 @@ export default function MerchantDashboard() {
                   placeholder="Dish / Product Name"
                   value={newItemForm.name}
                   onChange={(e) => setNewItemForm({ ...newItemForm, name: e.target.value })}
-                  className="bg-white border border-emerald-200 rounded-xl px-3 py-2 text-slate-900"
+                  className="bg-white border border-slate-200/90 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
                 <input
                   type="number"
@@ -4738,7 +4845,7 @@ export default function MerchantDashboard() {
                   placeholder="Price (₹)"
                   value={newItemForm.price}
                   onChange={(e) => setNewItemForm({ ...newItemForm, price: e.target.value })}
-                  className="bg-white border border-emerald-200 rounded-xl px-3 py-2 text-slate-900"
+                  className="bg-white border border-slate-200/90 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#8B0000]"
                 />
               </div>
 
@@ -4746,7 +4853,7 @@ export default function MerchantDashboard() {
                 <select
                   value={newItemForm.category}
                   onChange={(e) => setNewItemForm({ ...newItemForm, category: e.target.value })}
-                  className="bg-white border border-emerald-200 rounded-xl px-3 py-2 text-slate-800"
+                  className="bg-white border border-slate-200/90 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#8B0000]"
                 >
                   <option>Starters</option>
                   <option>Mains</option>
@@ -4754,13 +4861,13 @@ export default function MerchantDashboard() {
                   <option>Desserts</option>
                 </select>
 
-                <div className="flex items-center space-x-2 bg-white border border-emerald-200 rounded-xl px-3 py-2">
+                <div className="flex items-center space-x-2 bg-white border border-slate-200/90 rounded-xl px-3 py-2">
                   <input
                     type="checkbox"
                     id="vegCheck"
                     checked={newItemForm.isVeg}
                     onChange={(e) => setNewItemForm({ ...newItemForm, isVeg: e.target.checked })}
-                    className="rounded text-emerald-600 focus:ring-0"
+                    className="rounded text-[#8B0000] focus:ring-0"
                   />
                   <label htmlFor="vegCheck" className="text-xs font-bold text-slate-700 cursor-pointer">
                     Pure Veg
@@ -4770,7 +4877,7 @@ export default function MerchantDashboard() {
 
               <button
                 type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2 rounded-xl text-xs transition cursor-pointer"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer shadow-sm"
               >
                 Add Item
               </button>
@@ -4808,7 +4915,7 @@ export default function MerchantDashboard() {
                 setMenuModalOpen(false);
                 alert("Digital QR Menu updated and published!");
               }}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-xl transition text-xs shrink-0 cursor-pointer"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition text-xs shrink-0 cursor-pointer"
             >
               Close & Publish Digital Menu
             </button>
@@ -4821,21 +4928,21 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {standOrderModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => { setStandOrderModalOpen(false); setStandSuccess(''); }}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <ShoppingBag className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Order Physical QR Standee</h3>
-                <p className="text-xs text-slate-500">Delivered to your business address across India</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Order Physical QR Standee</h3>
+                <p className="text-xs text-slate-500 font-medium">Delivered to your business address across India</p>
               </div>
             </div>
 
@@ -4847,58 +4954,58 @@ export default function MerchantDashboard() {
                 <p className="text-xs text-slate-600">Your high-clarity 5x7" acrylic standee is in production and will ship within 24-48 hours.</p>
               </div>
             ) : (
-              <form onSubmit={handleOrderStandSubmit} className="space-y-4 text-xs font-bold">
+              <form onSubmit={handleOrderStandSubmit} className="space-y-4">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Store / Business Name</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Store / Business Name</label>
                   <input
                     type="text"
                     required
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Delivery Address</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Delivery Address</label>
                   <textarea
                     required
                     rows={2}
                     placeholder="Shop No, Street, Landmark"
                     value={standForm.address}
                     onChange={(e) => setStandForm({ ...standForm, address: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block uppercase text-slate-600 mb-1">City</label>
+                    <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">City</label>
                     <input
                       type="text"
                       required
                       value={standForm.city}
                       onChange={(e) => setStandForm({ ...standForm, city: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                      className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block uppercase text-slate-600 mb-1">PIN Code</label>
+                    <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">PIN Code</label>
                     <input
                       type="text"
                       required
                       placeholder="110001"
                       value={standForm.pincode}
                       onChange={(e) => setStandForm({ ...standForm, pincode: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                      className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                     />
                   </div>
                 </div>
 
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 space-y-1">
-                  <div className="flex justify-between">
+                <div className="p-3.5 bg-rose-50/50 rounded-2xl border border-rose-200/70 text-slate-800 space-y-1">
+                  <div className="flex justify-between text-xs">
                     <span>1-Year BeAurex Platform + Acrylic Stand:</span>
-                    <span className="font-black">₹999</span>
+                    <span className="font-black text-[#8B0000]">₹999</span>
                   </div>
                   <div className="flex justify-between text-[11px] text-emerald-700">
                     <span>Delivery & Logistics:</span>
@@ -4908,7 +5015,7 @@ export default function MerchantDashboard() {
 
                 <button
                   type="submit"
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 rounded-xl transition text-xs shadow-md cursor-pointer"
+                  className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer"
                 >
                   Confirm & Place Order @ ₹999
                 </button>
@@ -4935,7 +5042,7 @@ export default function MerchantDashboard() {
               <Play className="w-12 h-12 text-red-500 fill-current animate-pulse" />
               <div>
                 <p className="text-sm font-black">1. Display Stand on Checkout Counter</p>
-                <p className="text-xs text-slate-300">2. Customer scans camera QR & receives scratch card / stamps</p>
+                <p className="text-xs text-slate-300">2. Customer scans camera QR & receives scratch card / Aurex Coins</p>
                 <p className="text-xs text-amber-400 mt-1">3. Cashier verifies 4-digit PIN for repeat visits</p>
               </div>
             </div>
@@ -5102,7 +5209,7 @@ export default function MerchantDashboard() {
                 <span className="font-black text-slate-900">{customerModalOpen.totalVisits}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Stamps Collected:</span>
+                <span className="text-slate-500">Aurex Coins Collected:</span>
                 <span className="font-black text-slate-900">{customerModalOpen.stamps}</span>
               </div>
               <div className="flex justify-between">
@@ -5139,40 +5246,41 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {editStoreModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setEditStoreModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
-                <Store className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Store className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Edit Store Profile</h3>
-                <p className="text-xs text-slate-500">Update your business name and category</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Edit Store Profile</h3>
+                <p className="text-xs text-slate-500 font-medium">Update your business name and category</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs font-bold">
+            <div className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Store / Business Name</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Store / Business Name</label>
                 <input
                   type="text"
                   value={storeName}
                   onChange={(e) => setStoreName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                  placeholder="Enter business name"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Store Category</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Store Category</label>
                 <select
                   value={storeCategory}
                   onChange={(e) => setStoreCategory(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all cursor-pointer"
                 >
                   <option value="Cafe">Cafe</option>
                   <option value="Restaurant">Restaurant</option>
@@ -5189,7 +5297,7 @@ export default function MerchantDashboard() {
                   setEditStoreModalOpen(false);
                   alert('Store profile updated successfully!');
                 }}
-                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save Store Information
               </button>
@@ -5203,82 +5311,112 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {locationModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setLocationModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                <MapPin className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <MapPin className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Location & Hours</h3>
-                <p className="text-xs text-slate-500">Configure your store address and operational timings</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Location & Hours</h3>
+                <p className="text-xs text-slate-500 font-medium">Configure your store address and operational timings</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs font-bold">
+            <div className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Street Address</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Street Address</label>
                 <input
                   type="text"
                   value={locationHours.address}
                   onChange={(e) => setLocationHours({ ...locationHours, address: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                  placeholder="Plot / Street / Area"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">City</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">City</label>
                   <input
                     type="text"
                     value={locationHours.city}
                     onChange={(e) => setLocationHours({ ...locationHours, city: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                    placeholder="e.g. New Delhi"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">PIN Code</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">PIN Code</label>
                   <input
                     type="text"
                     value={locationHours.pincode}
                     onChange={(e) => setLocationHours({ ...locationHours, pincode: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                    placeholder="e.g. 110001"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Opening Time</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Opening Time</label>
                   <input
                     type="text"
                     value={locationHours.openTime}
                     onChange={(e) => setLocationHours({ ...locationHours, openTime: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                    placeholder="e.g. 10:00 AM"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Closing Time</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Closing Time</label>
                   <input
                     type="text"
                     value={locationHours.closeTime}
                     onChange={(e) => setLocationHours({ ...locationHours, closeTime: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                    placeholder="e.g. 11:00 PM"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <button
-                onClick={() => {
+                onClick={async () => {
+                  try {
+                    const mid = merchantId || (JSON.parse(sessionStorage.getItem('loyalqr_merchant') || '{}').id);
+                    if (mid) {
+                      await fetch('/api/merchant/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          merchantId: mid,
+                          addressLine1: locationHours.address,
+                          city: locationHours.city,
+                          state: locationHours.state || '',
+                          pinCode: locationHours.pincode
+                        })
+                      });
+                      const stored = JSON.parse(sessionStorage.getItem('loyalqr_merchant') || '{}');
+                      if (stored && typeof stored === 'object') {
+                        stored.addressLine1 = locationHours.address;
+                        stored.city = locationHours.city;
+                        stored.state = locationHours.state || '';
+                        stored.pinCode = locationHours.pincode;
+                        sessionStorage.setItem('loyalqr_merchant', JSON.stringify(stored));
+                        localStorage.setItem('loyalqr_merchant', JSON.stringify(stored));
+                      }
+                    }
+                  } catch (_) {}
                   setLocationModalOpen(false);
                   alert('Store address and timings saved successfully!');
                 }}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save Location & Hours
               </button>
@@ -5292,43 +5430,43 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {contactModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setContactModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-[#8B0000] flex items-center justify-center">
-                <Mail className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Mail className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Phone & Email</h3>
-                <p className="text-xs text-slate-500">Contact information displayed to customers and receipts</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Phone & Email</h3>
+                <p className="text-xs text-slate-500 font-medium">Contact information displayed to customers and receipts</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs font-bold">
+            <div className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Business Mobile Number</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Business Mobile Number</label>
                 <input
                   type="text"
                   value={phoneEmail.phone}
                   onChange={(e) => setPhoneEmail({ ...phoneEmail, phone: e.target.value })}
                   placeholder="+91 98765 43210"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Official Business Email</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Official Business Email</label>
                 <input
                   type="email"
                   value={phoneEmail.email}
                   onChange={(e) => setPhoneEmail({ ...phoneEmail, email: e.target.value })}
                   placeholder="contact@bluecode.in"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
@@ -5337,7 +5475,7 @@ export default function MerchantDashboard() {
                   setContactModalOpen(false);
                   alert('Contact details updated successfully!');
                 }}
-                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-[#8B0000]/25 cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save Phone & Email
               </button>
@@ -5351,63 +5489,72 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {socialModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setSocialModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center">
-                <Globe className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Globe className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Social Links & Reviews</h3>
-                <p className="text-xs text-slate-500">Collect 5-star Google reviews and Instagram followers</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Social Links & Reviews</h3>
+                <p className="text-xs text-slate-500 font-medium">Collect 5-star Google reviews and Instagram followers</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs font-bold">
+            <div className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Google Maps / Review URL</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">
+                  Google Maps / Review URL
+                </label>
                 <input
                   type="text"
                   value={socialLinks.googleReview}
                   onChange={(e) => setSocialLinks({ ...socialLinks, googleReview: e.target.value })}
                   placeholder="https://g.page/r/.../review"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Instagram Handle</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">
+                  Instagram Handle
+                </label>
                 <input
                   type="text"
                   value={socialLinks.instagram}
                   onChange={(e) => setSocialLinks({ ...socialLinks, instagram: e.target.value })}
                   placeholder="@yourstore"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">WhatsApp Business Number</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">
+                  WhatsApp Business Number
+                </label>
                 <input
                   type="text"
                   value={socialLinks.whatsapp}
                   onChange={(e) => setSocialLinks({ ...socialLinks, whatsapp: e.target.value })}
                   placeholder="+91 98765 43210"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <button
                 onClick={() => {
+                  try {
+                    localStorage.setItem('beaurex_social_links', JSON.stringify(socialLinks));
+                  } catch (_) {}
                   setSocialModalOpen(false);
-                  alert('Social links and review URL saved!');
+                  alert('Social links and review URL saved successfully!');
                 }}
-                className="w-full bg-pink-600 hover:bg-pink-700 text-white font-black py-3 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save Social & Review Links
               </button>
@@ -5421,52 +5568,52 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {ownerModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setOwnerModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
-                <Store className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Store className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Owner Account</h3>
-                <p className="text-xs text-slate-500">Master account credentials and security PIN</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Owner Account</h3>
+                <p className="text-xs text-slate-500 font-medium">Master account credentials and security PIN</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs font-bold">
+            <div className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Owner Name</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Owner Name</label>
                 <input
                   type="text"
                   value={ownerAccount.ownerName}
                   onChange={(e) => setOwnerAccount({ ...ownerAccount, ownerName: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Registered Phone</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Registered Phone</label>
                 <input
                   type="text"
                   value={ownerAccount.phone}
                   onChange={(e) => setOwnerAccount({ ...ownerAccount, phone: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Security PIN / Password</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Security PIN / Password</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="password"
                     disabled
                     value="••••••••••••"
-                    className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-500 cursor-not-allowed font-mono"
+                    className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-500 cursor-not-allowed font-mono"
                   />
                   <button
                     type="button"
@@ -5477,7 +5624,7 @@ export default function MerchantDashboard() {
                       setPasswordChangeForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
                       setUpdatePasswordModalOpen(true);
                     }}
-                    className="shrink-0 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl border border-rose-200 transition cursor-pointer flex items-center space-x-1"
+                    className="shrink-0 px-3.5 py-3 bg-rose-50 hover:bg-rose-100 text-[#8B0000] font-bold text-xs rounded-2xl border border-rose-200/70 transition cursor-pointer flex items-center space-x-1"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                     <span>Change</span>
@@ -5490,7 +5637,7 @@ export default function MerchantDashboard() {
                   setOwnerModalOpen(false);
                   alert('Owner profile updated successfully!');
                 }}
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl transition text-xs shadow-md cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save Owner Account
               </button>
@@ -5504,41 +5651,41 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {downloadAppModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setDownloadAppModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
-                <Download className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Download className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Download BeAurex App</h3>
-                <p className="text-xs text-slate-500">Install web app directly to your home screen</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Download BeAurex App</h3>
+                <p className="text-xs text-slate-500 font-medium">Install web app directly to your home screen</p>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-600">
-              <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-2xl space-y-1.5">
-                <h4 className="font-black text-purple-950">📲 For Android & iPhone</h4>
-                <p className="leading-relaxed">
+            <div className="space-y-3.5 text-xs text-slate-600">
+              <div className="p-4 bg-rose-50/50 border border-rose-200/70 rounded-2xl space-y-1.5">
+                <h4 className="font-black text-slate-900">📲 For Android & iPhone</h4>
+                <p className="leading-relaxed text-slate-600">
                   Open this page in Chrome or Safari, tap the <strong>Share / Menu</strong> icon, and select <strong>"Add to Home Screen"</strong>. It launches in full-screen native mode without needing Google Play / App Store!
                 </p>
               </div>
 
-              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5">
                 <h4 className="font-black text-slate-900">🖨️ For Counter Staff</h4>
-                <p className="leading-relaxed">
+                <p className="leading-relaxed text-slate-600">
                   Pin this merchant hub tab on your cashier POS browser for fast 4-digit PIN redemptions.
                 </p>
               </div>
 
               <button
                 onClick={() => setDownloadAppModalOpen(false)}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-black py-3 rounded-xl transition text-xs shadow-md cursor-pointer mt-1"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-1"
               >
                 Done
               </button>
@@ -5552,38 +5699,38 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {privacyModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setPrivacyModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <ShieldCheck className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Privacy & Security</h3>
-                <p className="text-xs text-slate-500">Enterprise data protection & scan encryption</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Privacy & Security</h3>
+                <p className="text-xs text-slate-500 font-medium">Enterprise data protection & scan encryption</p>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="font-black text-slate-900 block">Single-Use Redemption Hashes</span>
                   <span className="text-[11px] text-slate-500">Prevents screenshot reuse by customers</span>
                 </div>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Active</span>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Active</span>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="font-black text-slate-900 block">256-Bit SSL Data In Transit</span>
                   <span className="text-[11px] text-slate-500">End-to-end HTTPS encrypted counter traffic</span>
                 </div>
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Secured</span>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">Secured</span>
               </div>
 
               <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
@@ -5593,9 +5740,9 @@ export default function MerchantDashboard() {
                     setLegalPolicyModalTab('privacy');
                     setLegalPolicyModalOpen(true);
                   }}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center space-x-1"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center space-x-1"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#8B0000]" />
                   <span>Privacy Policy</span>
                 </button>
                 <button
@@ -5604,7 +5751,7 @@ export default function MerchantDashboard() {
                     setLegalPolicyModalTab('terms');
                     setLegalPolicyModalOpen(true);
                   }}
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center space-x-1"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-xl text-[11px] transition cursor-pointer flex items-center justify-center space-x-1"
                 >
                   <FileText className="w-3.5 h-3.5 text-amber-600" />
                   <span>Terms &amp; Conditions</span>
@@ -5613,7 +5760,7 @@ export default function MerchantDashboard() {
 
               <button
                 onClick={() => setPrivacyModalOpen(false)}
-                className="w-full bg-slate-900 text-white font-black py-2.5 rounded-xl transition text-xs cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3 rounded-2xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer mt-2"
               >
                 Close
               </button>
@@ -5627,20 +5774,20 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {supportModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setSupportModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-[#8B0000] flex items-center justify-center">
-                <HelpCircle className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <HelpCircle className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">BeAurex Help & Support</h3>
-                <p className="text-xs text-slate-500">Dedicated assistance for merchant store owners</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">BeAurex Help & Support</h3>
+                <p className="text-xs text-slate-500 font-medium">Dedicated assistance for merchant store owners</p>
               </div>
             </div>
 
@@ -5670,7 +5817,7 @@ export default function MerchantDashboard() {
 
               <button
                 onClick={() => setSupportModalOpen(false)}
-                className="w-full bg-slate-900 text-white font-black py-2.5 rounded-xl transition text-xs cursor-pointer mt-1"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3 rounded-2xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer mt-1"
               >
                 Done
               </button>
@@ -5684,41 +5831,41 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {updatePasswordModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setUpdatePasswordModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                <KeyRound className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <KeyRound className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Update Password</h3>
-                <p className="text-xs text-slate-500">Manage your store account login security</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Update Password</h3>
+                <p className="text-xs text-slate-500 font-medium">Manage your store account login security</p>
               </div>
             </div>
 
             {passwordChangeSuccess && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center space-x-2">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-center space-x-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                 <span>{passwordChangeSuccess}</span>
               </div>
             )}
 
             {passwordChangeError && (
-              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center space-x-2">
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-2xl flex items-center space-x-2">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
                 <span>{passwordChangeError}</span>
               </div>
             )}
 
-            <form onSubmit={handleUpdatePassword} className="space-y-3.5 text-xs font-bold">
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Current Password</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Current Password</label>
                 <div className="relative">
                   <input
                     type={showCurrentPass ? 'text' : 'password'}
@@ -5726,20 +5873,20 @@ export default function MerchantDashboard() {
                     value={passwordChangeForm.currentPassword}
                     onChange={(e) => setPasswordChangeForm({ ...passwordChangeForm, currentPassword: e.target.value })}
                     placeholder="Enter current password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-600 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl pl-4 pr-11 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    {showCurrentPass ? <EyeOff className="w-4 h-4 text-rose-600" /> : <Eye className="w-4 h-4" />}
+                    {showCurrentPass ? <Eye className="w-4 h-4 text-[#8B0000]" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">New Password (Min. 6 characters)</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">New Password (Min. 6 characters)</label>
                 <div className="relative">
                   <input
                     type={showNewPass ? 'text' : 'password'}
@@ -5748,20 +5895,20 @@ export default function MerchantDashboard() {
                     value={passwordChangeForm.newPassword}
                     onChange={(e) => setPasswordChangeForm({ ...passwordChangeForm, newPassword: e.target.value })}
                     placeholder="Enter strong new password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-600 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl pl-4 pr-11 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPass(!showNewPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    {showNewPass ? <EyeOff className="w-4 h-4 text-rose-600" /> : <Eye className="w-4 h-4" />}
+                    {showNewPass ? <Eye className="w-4 h-4 text-[#8B0000]" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Confirm New Password</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Confirm New Password</label>
                 <div className="relative">
                   <input
                     type={showConfirmPass ? 'text' : 'password'}
@@ -5769,30 +5916,30 @@ export default function MerchantDashboard() {
                     value={passwordChangeForm.confirmPassword}
                     onChange={(e) => setPasswordChangeForm({ ...passwordChangeForm, confirmPassword: e.target.value })}
                     placeholder="Confirm new password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-rose-600 focus:bg-white"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl pl-4 pr-11 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPass(!showConfirmPass)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    {showConfirmPass ? <EyeOff className="w-4 h-4 text-rose-600" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPass ? <Eye className="w-4 h-4 text-[#8B0000]" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <div className="pt-2 flex items-center space-x-2">
+              <div className="pt-2 flex items-center space-x-2.5">
                 <button
                   type="button"
                   onClick={() => setUpdatePasswordModalOpen(false)}
-                  className="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition text-xs cursor-pointer"
+                  className="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl transition text-xs cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updatingPassword}
-                  className="w-1/2 bg-[#8B0000] hover:bg-[#720000] text-white font-black py-2.5 rounded-xl shadow-md transition text-xs cursor-pointer flex items-center justify-center space-x-1.5"
+                  className="w-1/2 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3 rounded-2xl shadow-md shadow-[#8B0000]/25 transition text-xs cursor-pointer flex items-center justify-center space-x-1.5"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
                   <span>{updatingPassword ? 'Updating...' : 'Update Password'}</span>
@@ -5830,9 +5977,17 @@ export default function MerchantDashboard() {
 
             {/* Avatar & Header */}
             <div className="p-6 text-center border-b border-slate-100 bg-slate-50/50">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-700 text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-red-600/30 capitalize">
-                {getStoreInitials(storeName)}
-              </div>
+              {storeLogo ? (
+                <img 
+                  src={storeLogo} 
+                  alt={storeName || 'Store Logo'} 
+                  className="w-20 h-20 rounded-2xl object-cover border border-rose-200 mx-auto mb-3 shadow-lg shadow-red-600/20"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-700 text-white font-black text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-red-600/30 capitalize">
+                  {getStoreInitials(storeName)}
+                </div>
+              )}
 
               <h4 className="text-xl font-black text-slate-900 capitalize">
                 {storeName || 'Store'}
@@ -5864,10 +6019,13 @@ export default function MerchantDashboard() {
                   {ownerAccount.email || phoneEmail.email || `owner@${String(storeName || 'store').toLowerCase().replace(/\s+/g, '')}.com`}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-1">
-                <span className="text-slate-500 font-medium">Location</span>
-                <span className="font-bold text-slate-900 truncate max-w-[190px]">
-                  {locationHours.address ? `${locationHours.address}, ${locationHours.city}` : 'Delhi NCR'}
+              <div className="flex items-start justify-between py-1 gap-2">
+                <span className="text-slate-500 font-medium shrink-0">Store Address</span>
+                <span className="font-bold text-slate-900 text-right leading-tight max-w-[210px]">
+                  {locationHours.address || 'Main Street'}
+                  {locationHours.city && `, ${locationHours.city}`}
+                  {locationHours.state && `, ${locationHours.state}`}
+                  {locationHours.pincode && ` - ${locationHours.pincode}`}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1">
@@ -5882,7 +6040,7 @@ export default function MerchantDashboard() {
             <div className="p-4 bg-slate-50 space-y-2">
               <button
                 onClick={() => { setActiveTab('settings'); setMerchantProfileModalOpen(false); }}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md shadow-[#8B0000]/20"
               >
                 <Settings className="w-3.5 h-3.5" />
                 <span>Manage Store Settings</span>
@@ -5890,7 +6048,7 @@ export default function MerchantDashboard() {
 
               <button
                 onClick={handleMerchantLogout}
-                className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-black py-2.5 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
+                className="w-full bg-white hover:bg-rose-50 text-[#8B0000] border border-rose-200 font-bold py-2.5 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Logout Merchant Account</span>
@@ -5906,43 +6064,43 @@ export default function MerchantDashboard() {
       {/* ========================================================= */}
       {newRewardModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-100">
             <button 
               onClick={() => setNewRewardModalOpen(false)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
-                <Gift className="w-5 h-5" />
+            <div className="flex items-center space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center shrink-0 shadow-2xs">
+                <Gift className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900">Create New Reward</h3>
-                <p className="text-xs text-slate-500">Add an offer or discount to your customer pool</p>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Create New Reward</h3>
+                <p className="text-xs text-slate-500 font-medium">Add an offer or discount to your customer pool</p>
               </div>
             </div>
 
-            <form onSubmit={handleCreateReward} className="space-y-3.5 text-xs font-bold">
+            <form onSubmit={handleCreateReward} className="space-y-4">
               <div>
-                <label className="block uppercase text-slate-600 mb-1">Reward Title</label>
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Reward Title</label>
                 <input
                   type="text"
                   required
                   value={newRewardForm.title}
                   onChange={(e) => setNewRewardForm({ ...newRewardForm, title: e.target.value })}
                   placeholder="e.g. 20% Off Weekend Special"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Discount Type</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Discount Type</label>
                   <select
                     value={newRewardForm.discountType}
                     onChange={(e) => setNewRewardForm({ ...newRewardForm, discountType: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all cursor-pointer"
                   >
                     <option value="PERCENTAGE">Percentage (%)</option>
                     <option value="FLAT">Flat Off (₹)</option>
@@ -5950,7 +6108,7 @@ export default function MerchantDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">
                     {newRewardForm.discountType === 'PERCENTAGE' ? 'Discount (%)' : 'Discount Value (₹)'}
                   </label>
                   <input
@@ -5959,36 +6117,36 @@ export default function MerchantDashboard() {
                     required
                     value={newRewardForm.discountValue}
                     onChange={(e) => setNewRewardForm({ ...newRewardForm, discountValue: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Min Bill Amount (₹)</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Min Bill Amount (₹)</label>
                   <input
                     type="number"
                     min="0"
                     value={newRewardForm.minBillAmount}
                     onChange={(e) => setNewRewardForm({ ...newRewardForm, minBillAmount: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block uppercase text-slate-600 mb-1">Validity (Days)</label>
+                  <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">Validity (Days)</label>
                   <input
                     type="number"
                     min="1"
                     value={newRewardForm.validityDays}
                     onChange={(e) => setNewRewardForm({ ...newRewardForm, validityDays: Number(e.target.value) })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                    className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block uppercase text-slate-600 mb-1">
+                <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 block">
                   Probability / Win Chance ({newRewardForm.probabilityWeight}%)
                 </label>
                 <input
@@ -5998,13 +6156,13 @@ export default function MerchantDashboard() {
                   step="5"
                   value={newRewardForm.probabilityWeight}
                   onChange={(e) => setNewRewardForm({ ...newRewardForm, probabilityWeight: Number(e.target.value) })}
-                  className="w-full accent-red-600"
+                  className="w-full accent-[#8B0000]"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl transition text-xs shadow-md shadow-red-600/25 cursor-pointer mt-2"
+                className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 text-xs sm:text-sm cursor-pointer mt-2"
               >
                 Save & Add Reward
               </button>
@@ -6093,7 +6251,7 @@ export default function MerchantDashboard() {
                   </div>
                   <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 font-medium">
                     <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>{offerStampsRequired || 5} Stamps Required</span>
+                    <span>{offerStampsRequired || 5} Aurex Coins Required</span>
                   </div>
                 </div>
               </div>

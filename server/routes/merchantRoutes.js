@@ -377,10 +377,18 @@ router.get('/profile', async (req, res) => {
       merchant: {
         id: merchant._id.toString(),
         businessName: merchant.businessName,
+        ownerName: merchant.ownerName || '',
+        logo: merchant.logo || '',
         category: merchant.category,
         email: merchant.email,
         mobile: merchant.mobile,
+        addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        addressLine2: merchant.addressLine2 || '',
+        address: merchant.address || merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
         city: merchant.city || 'Delhi NCR',
+        state: merchant.state || '',
+        pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+        pincode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
         qrSlug: merchant.qrSlug,
         brandColor: merchant.brandColor || '#74111d',
         branches: merchant.branches || [],
@@ -394,6 +402,71 @@ router.get('/profile', async (req, res) => {
         complimentaryDays: merchant.complimentaryDays,
         complimentaryReason: merchant.complimentaryReason,
         subscription: subStatus
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /profile - Update Merchant Profile & Location
+router.put('/profile', async (req, res) => {
+  try {
+    const { merchantId, id, businessName, ownerName, category, addressLine1, addressLine2, city, state, pinCode, pincode, logo } = req.body;
+    const targetId = merchantId || id;
+    let merchant = null;
+    if (targetId) {
+      try { merchant = await Merchant.findById(targetId); } catch (_) {}
+    }
+    if (!merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant not found' });
+    }
+
+    if (businessName !== undefined) merchant.businessName = businessName.trim();
+    if (ownerName !== undefined) merchant.ownerName = ownerName.trim();
+    if (category !== undefined) merchant.category = category;
+    if (logo !== undefined) merchant.logo = logo;
+    if (addressLine1 !== undefined) merchant.addressLine1 = addressLine1.trim();
+    if (addressLine2 !== undefined) merchant.addressLine2 = addressLine2.trim();
+    if (city !== undefined) merchant.city = city.trim();
+    if (state !== undefined) merchant.state = state.trim();
+    if (pinCode !== undefined || pincode !== undefined) {
+      const pin = (pinCode || pincode || '').trim();
+      merchant.pinCode = pin;
+      merchant.pincode = pin;
+    }
+    const fullAddr = merchant.addressLine1 
+      ? (merchant.addressLine2 ? `${merchant.addressLine1}, ${merchant.addressLine2}` : merchant.addressLine1)
+      : merchant.city;
+    merchant.address = fullAddr;
+
+    if (merchant.branches && merchant.branches.length > 0) {
+      merchant.branches[0].address = fullAddr;
+      if (merchant.city) merchant.branches[0].city = merchant.city;
+      if (merchant.pinCode) merchant.branches[0].pincode = merchant.pinCode;
+    }
+
+    await merchant.save();
+
+    res.json({
+      success: true,
+      message: 'Profile and address updated successfully!',
+      merchant: {
+        id: merchant._id.toString(),
+        businessName: merchant.businessName,
+        ownerName: merchant.ownerName,
+        logo: merchant.logo,
+        category: merchant.category,
+        email: merchant.email,
+        mobile: merchant.mobile,
+        addressLine1: merchant.addressLine1,
+        addressLine2: merchant.addressLine2,
+        address: merchant.address,
+        city: merchant.city,
+        state: merchant.state,
+        pinCode: merchant.pinCode,
+        pincode: merchant.pincode,
+        branches: merchant.branches
       }
     });
   } catch (err) {
@@ -773,7 +846,7 @@ router.post('/give-stamp', async (req, res) => {
 
     res.json({
       success: true,
-      message: `1 Stamp authorized for ${customer.name} (+91 ${customer.mobile})! Customer can now claim it on their screen.`,
+      message: `1 Aurex Coin authorized for ${customer.name} (+91 ${customer.mobile})! Customer can now claim it on their screen.`,
       customer: {
         id: customer._id,
         name: customer.name,
@@ -796,7 +869,7 @@ router.post('/offers/stamp', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Stamp Card Loyalty Program activated successfully!',
+      message: 'Aurex Coin Loyalty Program activated successfully!',
       program: activeStampProgram
     });
   } catch (err) {

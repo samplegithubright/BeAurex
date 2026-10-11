@@ -32,7 +32,7 @@ export default function ActionConfirmModal({
           iconBg: 'bg-rose-50 text-[#8B0000] border-rose-200',
           badgeText: 'Permanent Action',
           badgeBg: 'bg-rose-50 text-[#8B0000] border-rose-200/80 font-black',
-          btnBg: 'bg-[#8B0000] hover:bg-[#720000] text-white shadow-md shadow-[#8B0000]/25',
+          btnBg: 'bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-md shadow-[#8B0000]/25',
           icon: Trash2
         };
       case 'primary':
@@ -41,7 +41,7 @@ export default function ActionConfirmModal({
           iconBg: 'bg-rose-50 text-[#8B0000] border-rose-200',
           badgeText: 'Save to Database',
           badgeBg: 'bg-rose-50 text-[#8B0000] border-rose-200/80 font-black',
-          btnBg: 'bg-[#8B0000] hover:bg-[#720000] text-white shadow-md shadow-[#8B0000]/25',
+          btnBg: 'bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-md shadow-[#8B0000]/25',
           icon: Save
         };
       case 'success':
@@ -58,7 +58,7 @@ export default function ActionConfirmModal({
           iconBg: 'bg-amber-50 text-amber-800 border-amber-200',
           badgeText: 'Admin Permission Required',
           badgeBg: 'bg-amber-50 text-amber-800 border-amber-200 font-black',
-          btnBg: 'bg-[#8B0000] hover:bg-[#720000] text-white shadow-md shadow-[#8B0000]/25',
+          btnBg: 'bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-md shadow-[#8B0000]/25',
           icon: ShieldAlert
         };
     }
@@ -80,7 +80,7 @@ export default function ActionConfirmModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* Subtle top ambient glow */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104]" />
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000]" />
 
           {/* Close button top right */}
           <button

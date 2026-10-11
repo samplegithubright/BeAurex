@@ -9,27 +9,27 @@ import {
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
   RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft,
-  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3
+  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3, ChevronDown, Coins
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 
-// Official BeAurex Stamp Indicator (Crisp star in BeAurex maroon when stamped, dashed circle when uncollected)
+// Official BeAurex Coin Indicator (Crisp Aurex Coin in BeAurex maroon when stamped, dashed circle when uncollected)
 function BeAurexStamp({ stamped = true, size = 'md' }) {
   const sizeClasses = size === 'lg' ? 'w-10 h-10' : size === 'md' ? 'w-8 h-8' : 'w-7 h-7';
   if (!stamped) {
     return (
       <div 
         className={`${sizeClasses} rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center transition shrink-0`}
-        title="Uncollected Stamp"
+        title="Uncollected Aurex Coin"
       />
     );
   }
   return (
     <div 
       className={`${sizeClasses} rounded-full bg-[#8B0000] flex items-center justify-center shadow-xs transition transform hover:scale-105 shrink-0 text-white`}
-      title="Collected Stamp"
+      title="Collected Aurex Coin"
     >
-      <Star className="w-4 h-4 text-white fill-white" />
+      <Coins className="w-4 h-4 text-amber-300" />
     </div>
   );
 }
@@ -49,7 +49,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // Rewards sub-tab: 'to_claim' (Screen 8) or 'history' (Screen 14)
   const [rewardsSubTab, setRewardsSubTab] = useState('to_claim');
   const [historyFilter, setHistoryFilter] = useState('All'); // 'All' | 'Active' | 'Used' | 'Expired'
-  const [selectedHistoryVoucher, setSelectedHistoryVoucher] = useState(null);
 
   // Dynamic Reward History items for All / Active / Used / Expired
   const [rewardHistory, setRewardHistory] = useState([
@@ -124,7 +123,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         validTill: '15 Aug 2026',
         image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
         approvedAt: 'Ready Now',
-        description: '5 of 5 stamps collected! Ready to claim at checkout.'
+        description: '5 of 5 Aurex Coins collected! Ready to claim at checkout.'
       }
     ];
   });
@@ -163,19 +162,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   });
 
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
-  const [editProfileForm, setEditProfileForm] = useState({ name: '', email: '' });
+  const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
 
-  const handleSaveCustomerProfile = (e) => {
+  const handleSaveCustomerProfile = async (e) => {
     e.preventDefault();
     const updated = {
       ...customerUser,
       name: editProfileForm.name.trim() || customerUser.name,
+      phone: editProfileForm.phone.trim() || customerUser.phone,
       email: editProfileForm.email.trim() || customerUser.email,
     };
     setCustomerUser(updated);
     try {
       localStorage.setItem('beaurex_customer_user', JSON.stringify(updated));
     } catch (err) {}
+
+    try {
+      fetch('/api/customer/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: customerUser.id || customerUser.customerId,
+          name: updated.name,
+          phone: updated.phone,
+          email: updated.email
+        })
+      }).catch(() => {});
+    } catch (_) {}
+
     setEditProfileModalOpen(false);
   };
 
@@ -219,6 +233,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   const [pendingClaimId, setPendingClaimId] = useState(null);
   const [waitingApprovalActive, setWaitingApprovalActive] = useState(false);
+  const [approvalType, setApprovalType] = useState('offer'); // 'offer' or 'coin'
+  const [coinApprovedMsg, setCoinApprovedMsg] = useState('');
 
   // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
@@ -242,6 +258,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleCustomEmail, setGoogleCustomEmail] = useState('');
   const [googleCustomName, setGoogleCustomName] = useState('');
+  const [showCustomGoogleInput, setShowCustomGoogleInput] = useState(false);
+
+  // Sync authMode when initialAuthMode changes via route navigation
+  useEffect(() => {
+    if (initialAuthMode) {
+      setAuthMode(initialAuthMode);
+    }
+  }, [initialAuthMode]);
 
   // Customer OTP Verification states
   const [otpSent, setOtpSent] = useState(false);
@@ -295,7 +319,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const handleShareReferral = async () => {
     const code = customerUser.referralCode || 'BEAUREX-8F4A';
     const shareUrl = `${window.location.origin}/customer/signup?ref=${code}`;
-    const shareText = `Hey! Join me on BeAurex to get digital stamps and free rewards. Use my referral code ${code} to get a 10% welcome discount on your first visit! Sign up here: ${shareUrl}`;
+    const shareText = `Hey! Join me on BeAurex to get Aurex Coins and free rewards. Use my referral code ${code} to get a 10% welcome discount on your first visit! Sign up here: ${shareUrl}`;
 
     if (navigator.share) {
       try {
@@ -316,7 +340,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const code = customerUser.referralCode || 'BEAUREX-8F4A';
     const shareUrl = `${window.location.origin}/customer/signup?ref=${code}`;
     const message = encodeURIComponent(
-      `Hey! Use my referral code *${code}* on BeAurex to get a flat *10% Welcome Discount* on your first store visit! Collect stamps & earn free rewards: ${shareUrl}`
+      `Hey! Use my referral code *${code}* on BeAurex to get a flat *10% Welcome Discount* on your first store visit! Collect Aurex Coins & earn free rewards: ${shareUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
   };
@@ -356,12 +380,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         localStorage.setItem('beaurex_customer_auth', 'true');
         setIsAuthenticated(true);
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-        if (slug) setCurrentScreen('after_scan');
-        else setCurrentScreen('home');
+        if (slug) {
+          setCurrentScreen('after_scan');
+          navigate(`/scan/${slug}`, { replace: true });
+        } else {
+          setCurrentScreen('home');
+          navigate('/customer', { replace: true });
+        }
       } else if (data && data.notRegistered) {
         setLoginError('Account not found with this email. Please create an account.');
         setTimeout(() => {
           setAuthMode('signup');
+          navigate('/customer/signup');
           setLoginError('');
         }, 1500);
       } else {
@@ -392,8 +422,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       localStorage.setItem('beaurex_customer_auth', 'true');
       setIsAuthenticated(true);
       confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      if (slug) {
+        setCurrentScreen('after_scan');
+        navigate(`/scan/${slug}`, { replace: true });
+      } else {
+        setCurrentScreen('home');
+        navigate('/customer', { replace: true });
+      }
     }
   };
 
@@ -445,11 +480,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         localStorage.setItem('beaurex_customer_auth', 'true');
         setIsAuthenticated(true);
         confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-        if (slug) setCurrentScreen('after_scan');
-        else setCurrentScreen('home');
+        if (slug) {
+          setCurrentScreen('after_scan');
+          navigate(`/scan/${slug}`, { replace: true });
+        } else {
+          setCurrentScreen('home');
+          navigate('/customer', { replace: true });
+        }
       } else if (data && data.alreadyExists) {
         setLoginError(data.message || 'An account already exists with this email. Please sign in.');
-        setTimeout(() => setAuthMode('signin'), 1800);
+        setTimeout(() => {
+          setAuthMode('signin');
+          navigate('/customer/login');
+        }, 1800);
       } else {
         setLoginError(data?.message || 'Could not create account. Please check your details.');
       }
@@ -478,16 +521,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       localStorage.setItem('beaurex_customer_auth', 'true');
       setIsAuthenticated(true);
       confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      if (slug) {
+        setCurrentScreen('after_scan');
+        navigate(`/scan/${slug}`, { replace: true });
+      } else {
+        setCurrentScreen('home');
+        navigate('/customer', { replace: true });
+      }
     }
   };
 
   // Google Sign-In Handler
   const handleGoogleSignInSelect = async (accountEmail, accountName) => {
     setGoogleLoading(true);
-    const targetEmail = accountEmail || loginEmail || 'customer@gmail.com';
-    const targetName = accountName || (targetEmail.split('@')[0]) || 'BeAurex Customer';
+    const targetEmail = (accountEmail || loginEmail || 'customer.rewards@gmail.com').trim().toLowerCase();
+    const targetName = (accountName || (loginName ? loginName.trim() : targetEmail.split('@')[0]) || 'BeAurex Customer').trim();
 
     try {
       const res = await fetch('/api/customer/auth/google', {
@@ -496,7 +544,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         body: JSON.stringify({
           email: targetEmail,
           name: targetName,
-          googleId: 'g_' + Math.random().toString(36).substring(2, 10)
+          googleId: 'g_' + Math.random().toString(36).substring(2, 10),
+          referralCode: referralInput?.trim() || undefined
         })
       });
       const data = await res.json();
@@ -512,9 +561,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           name: targetName,
           email: targetEmail,
           customerId: custId,
-          phone: '',
+          phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '',
           tier: 'Bronze Member',
-          points: 100,
+          points: referralInput?.trim() ? 150 : 100,
           stamps: 3,
           totalStamps: 5,
           activeCardsCount: 1,
@@ -530,12 +579,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
       setIsAuthenticated(true);
       localStorage.setItem('beaurex_customer_auth', 'true');
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
 
       if (slug) {
         setCurrentScreen('after_scan');
+        navigate(`/scan/${slug}`, { replace: true });
       } else {
         setCurrentScreen('home');
+        navigate('/customer', { replace: true });
       }
     } catch (_) {
       setGoogleLoading(false);
@@ -545,9 +596,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         name: targetName,
         email: targetEmail,
         customerId: custId,
-        phone: '',
+        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '',
         tier: 'Bronze Member',
-        points: 100,
+        points: referralInput?.trim() ? 150 : 100,
         stamps: 3,
         totalStamps: 5,
         activeCardsCount: 1,
@@ -561,9 +612,168 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
       setIsAuthenticated(true);
       localStorage.setItem('beaurex_customer_auth', 'true');
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+      if (slug) {
+        setCurrentScreen('after_scan');
+        navigate(`/scan/${slug}`, { replace: true });
+      } else {
+        setCurrentScreen('home');
+        navigate('/customer', { replace: true });
+      }
     }
+  };
+
+  // Reusable Google Account Selector Modal
+  const renderGoogleModal = () => {
+    if (!googleSignInModalOpen) return null;
+
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+        onClick={() => !googleLoading && setGoogleSignInModalOpen(false)}
+      >
+        <div 
+          className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 leading-tight">Sign in with Google</h3>
+                <p className="text-[11px] text-slate-500">to continue to BeAurex Loyalty</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              disabled={googleLoading}
+              onClick={() => setGoogleSignInModalOpen(false)} 
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {googleLoading ? (
+            <div className="py-8 flex flex-col items-center justify-center space-y-3">
+              <RefreshCw className="w-8 h-8 text-[#8B0000] animate-spin" />
+              <div className="text-xs font-bold text-slate-800">Signing in with Google...</div>
+              <div className="text-[11px] text-slate-500 text-center">Connecting your account safely to BeAurex</div>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <p className="text-[11px] text-slate-500">Choose an account to continue:</p>
+
+              {/* Account 1: Rohan Sharma */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSignInSelect('rohan.sharma@gmail.com', 'Rohan Sharma')}
+                className="w-full p-2.5 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  R
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#8B0000] transition">Rohan Sharma</div>
+                  <div className="text-[11px] text-slate-500 truncate">rohan.sharma@gmail.com</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#8B0000] transition shrink-0" />
+              </button>
+
+              {/* Account 2: BeAurex Customer */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
+                className="w-full p-2.5 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-full bg-rose-100 text-[#8B0000] font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  G
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#8B0000] transition">Google Customer Account</div>
+                  <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#8B0000] transition shrink-0" />
+              </button>
+
+              {/* Optional: If user entered an email in the input form */}
+              {loginEmail && !['rohan.sharma@gmail.com', 'customer.rewards@gmail.com'].includes(loginEmail.toLowerCase()) && (
+                <button
+                  type="button"
+                  onClick={() => handleGoogleSignInSelect(loginEmail, loginName || loginEmail.split('@')[0])}
+                  className="w-full p-2.5 rounded-2xl border border-rose-200 bg-rose-50/30 hover:bg-rose-50/70 hover:border-[#8B0000] text-left flex items-center space-x-3 transition cursor-pointer group"
+                >
+                  <div className="w-9 h-9 rounded-full bg-[#8B0000] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    {(loginName?.charAt(0) || loginEmail.charAt(0)).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900 group-hover:text-[#8B0000] transition flex items-center space-x-1.5">
+                      <span>{loginName || 'Entered Account'}</span>
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 rounded font-semibold">Active</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 truncate">{loginEmail}</div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#8B0000] transition shrink-0" />
+                </button>
+              )}
+
+              {/* Use another account toggle */}
+              <button
+                type="button"
+                onClick={() => setShowCustomGoogleInput(!showCustomGoogleInput)}
+                className="w-full p-2.5 rounded-2xl border border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50/50 text-left flex items-center space-x-3 transition cursor-pointer text-slate-600 hover:text-slate-900"
+              >
+                <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="text-xs font-bold flex-1">Use another account</div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showCustomGoogleInput ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Custom account inputs accordion */}
+              {showCustomGoogleInput && (
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 animate-in fade-in duration-150">
+                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Enter Google Account:</span>
+                  <input
+                    type="text"
+                    value={googleCustomName}
+                    onChange={(e) => setGoogleCustomName(e.target.value)}
+                    placeholder="Full Name"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
+                  />
+                  <input
+                    type="email"
+                    value={googleCustomEmail}
+                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
+                    placeholder="yourname@gmail.com"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!googleCustomEmail || !googleCustomEmail.includes('@')}
+                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
+                    className="w-full py-2.5 bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+                  >
+                    <span>Continue with this account</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Disclaimer */}
+              <p className="text-[10px] text-slate-400 pt-1 text-center leading-normal">
+                To continue, Google will share your name and email address with BeAurex Loyalty.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // OTP Handlers for Customer Login & Verification
@@ -824,16 +1034,70 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     setCurrentScreen('reward_details');
   };
 
+  // Request Aurex Coin Approval Flow: Customer wants to collect 1 Aurex Coin
+  const handleRequestAurexCoin = () => {
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const claimId = `coin_${Date.now()}`;
+    const coinObj = {
+      id: claimId,
+      requestType: 'coin',
+      voucherType: 'coin',
+      coins: 1,
+      customerName: customerUser.name || 'Rohan Sharma',
+      customerId: `ID: ${cleanCustomerId}`,
+      rewardTitle: 'Collect 1 Aurex Coin',
+      stamps: '1 Aurex Coin Requested',
+      timeAgo: 'Just now',
+      expiresIn: 'Session',
+      avatarBg: 'bg-amber-500',
+      status: 'PENDING',
+      storeSlug: storeInfo?.qrSlug || slug || 'ka-feen'
+    };
+
+    setPendingClaimId(claimId);
+    setWaitingApprovalActive(true);
+    setApprovalType('coin');
+    setCurrentScreen('waiting_approval');
+
+    // 1. Sync locally in localStorage for cross-tab merchant dashboard
+    try {
+      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+    } catch (_) {}
+
+    // 2. Broadcast to Merchant via BroadcastChannel
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage({ type: 'COIN_REQUEST', claim: coinObj });
+      channel.close();
+    } catch (_) {}
+
+    // 3. Submit to server endpoint
+    fetch('/api/customer/coin/request-approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: cleanCustomerId,
+        customerName: customerUser.name || 'Rohan Sharma',
+        coins: 1,
+        storeSlug: coinObj.storeSlug
+      })
+    }).catch(() => {});
+  };
+
   // Reward Claim Approval Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting for Merchant Approval) -> Screen 13 (Merchant Approved & Claimed)
   const handleInitiateClaim = () => {
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
     const claimId = `rem_${Date.now()}`;
     const claimObj = {
       id: claimId,
+      requestType: 'offer',
       customerName: customerUser.name || 'Sumit',
       customerId: `ID: ${cleanCustomerId}`,
       rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
-      stamps: '5/5 Stamps completed',
+      stamps: '5/5 Aurex Coins completed',
       timeAgo: 'Just now',
       expiresIn: `Expires: ${selectedReward.validTill || '30 Jul 2026'}`,
       voucherType: selectedReward.title?.includes('30') ? '30' : (selectedReward.title?.includes('Coffee') ? 'coffee' : '20'),
@@ -844,6 +1108,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     setPendingClaimId(claimId);
     setWaitingApprovalActive(true);
+    setApprovalType('offer');
     setCurrentScreen('waiting_approval');
 
     // 1. Sync locally in localStorage for cross-tab merchant dashboard
@@ -876,7 +1141,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }).catch(() => {});
   };
 
-  // Listen for Merchant Approval while waiting on Screen 12
+  // Listen for Merchant Approval or Decline while waiting on Screen 12
   useEffect(() => {
     if (currentScreen !== 'waiting_approval') return;
 
@@ -884,6 +1149,26 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     const handleApproved = (payload) => {
       confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+      const isCoin = payload?.type === 'COIN_COLLECT_APPROVED' || payload?.requestType === 'coin' || approvalType === 'coin';
+      
+      if (isCoin) {
+        const addedCoins = Number(payload?.coins) || 1;
+        setCustomerUser(prev => {
+          const updated = {
+            ...prev,
+            stamps: Math.min(prev.totalStamps || 5, (Number(prev.stamps) || 0) + addedCoins)
+          };
+          try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
+          return updated;
+        });
+        setWaitingApprovalActive(false);
+        setCoinApprovedMsg(`Merchant approved! You received ${addedCoins} Aurex Coin! 🎉`);
+        setTimeout(() => {
+          setCurrentScreen('after_scan');
+        }, 1200);
+        return;
+      }
+
       setSelectedReward(prev => ({
         ...prev,
         approvedDate: payload?.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -893,15 +1178,33 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setCurrentScreen('reward_congrats');
     };
 
+    const handleDeclined = (payload) => {
+      setWaitingApprovalActive(false);
+      const isCoin = payload?.type === 'COIN_COLLECT_DECLINED' || payload?.requestType === 'coin' || approvalType === 'coin';
+      if (isCoin) {
+        alert('Merchant declined the Aurex Coin collection request.');
+        setCurrentScreen('after_scan');
+      } else {
+        alert('Merchant declined the reward claim request.');
+        setCurrentScreen('reward_details');
+      }
+    };
+
     // 1. Listen via BroadcastChannel
     let channel;
     try {
       channel = new BroadcastChannel('beaurex_redemptions');
       channel.onmessage = (event) => {
-        if (event.data?.type === 'REWARD_APPROVED') {
-          const pCust = String(event.data.customerId || '').replace(/^ID:\s*/, '').trim();
-          if (!pCust || pCust === cleanCustomerId || (pendingClaimId && event.data.claimId === pendingClaimId)) {
-            handleApproved(event.data);
+        const d = event.data;
+        if (!d) return;
+        const pCust = String(d.customerId || '').replace(/^ID:\s*/, '').trim();
+        const matchesCust = !pCust || pCust === cleanCustomerId || (pendingClaimId && d.claimId === pendingClaimId);
+
+        if (matchesCust) {
+          if (d.type === 'REWARD_APPROVED' || d.type === 'COIN_COLLECT_APPROVED') {
+            handleApproved(d);
+          } else if (d.type === 'REWARD_DECLINED' || d.type === 'COIN_COLLECT_DECLINED') {
+            handleDeclined(d);
           }
         }
       };
@@ -912,10 +1215,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (e.key === 'beaurex_latest_approval' && e.newValue) {
         try {
           const payload = JSON.parse(e.newValue);
-          if (payload.type === 'REWARD_APPROVED') {
-            const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
-            if (!pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId)) {
+          const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+          const matchesCust = !pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId);
+
+          if (matchesCust) {
+            if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
               handleApproved(payload);
+            } else if (payload.type === 'REWARD_DECLINED' || payload.type === 'COIN_COLLECT_DECLINED') {
+              handleDeclined(payload);
             }
           }
         } catch (_) {}
@@ -930,12 +1237,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const raw = localStorage.getItem('beaurex_latest_approval');
         if (raw) {
           const payload = JSON.parse(raw);
-          if (payload.type === 'REWARD_APPROVED') {
-            const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
-            if (!pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId)) {
-              if (Date.now() - (payload.timestamp || 0) < 120000) {
+          const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+          const matchesCust = !pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId);
+
+          if (matchesCust) {
+            if (Date.now() - (payload.timestamp || 0) < 120000) {
+              if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
                 clearInterval(pollInterval);
                 handleApproved(payload);
+                return;
+              } else if (payload.type === 'REWARD_DECLINED' || payload.type === 'COIN_COLLECT_DECLINED') {
+                clearInterval(pollInterval);
+                handleDeclined(payload);
                 return;
               }
             }
@@ -950,6 +1263,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         if (data.status === 'APPROVED' && data.claim) {
           clearInterval(pollInterval);
           handleApproved(data.claim);
+        } else if (data.status === 'DECLINED') {
+          clearInterval(pollInterval);
+          handleDeclined(data.claim || {});
         }
       } catch (_) {}
     }, 1200);
@@ -959,7 +1275,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       window.removeEventListener('storage', handleStorage);
       if (channel) channel.close();
     };
-  }, [currentScreen, pendingClaimId, customerUser.customerId]);
+  }, [currentScreen, pendingClaimId, customerUser.customerId, approvalType]);
 
   // Method to trigger approval simulation directly if testing locally
   const handleSimulateMerchantApproval = () => {
@@ -968,8 +1284,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const approvedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const approvedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
-    const payload = {
+    const isCoin = approvalType === 'coin';
+    const payload = isCoin ? {
+      type: 'COIN_COLLECT_APPROVED',
+      requestType: 'coin',
+      coins: 1,
+      claimId: pendingClaimId || 'coin_1',
+      customerId: cleanCustomerId,
+      customerName: customerUser.name || 'Rohan Sharma',
+      rewardTitle: 'Collect 1 Aurex Coin',
+      approvedAt: approvedTime,
+      approvedDate: approvedDate,
+      timestamp: Date.now()
+    } : {
       type: 'REWARD_APPROVED',
+      requestType: 'offer',
       claimId: pendingClaimId || 'rem_1',
       customerId: cleanCustomerId,
       rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
@@ -987,6 +1316,24 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     } catch (_) {}
 
     confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+
+    if (isCoin) {
+      setCustomerUser(prev => {
+        const updated = {
+          ...prev,
+          stamps: Math.min(prev.totalStamps || 5, (Number(prev.stamps) || 0) + 1)
+        };
+        try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
+        return updated;
+      });
+      setWaitingApprovalActive(false);
+      setCoinApprovedMsg('Merchant approved! You received 1 Aurex Coin! 🎉');
+      setTimeout(() => {
+        setCurrentScreen('after_scan');
+      }, 1200);
+      return;
+    }
+
     setSelectedReward(prev => ({
       ...prev,
       approvedDate: approvedDate,
@@ -1071,7 +1418,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 ● Store Counter Online
               </span>
               <h2 className="text-xl font-black text-slate-900">{storeInfo.storeName}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">{storeInfo.categoryName} • Collect stamps &amp; rewards</p>
+              <p className="text-xs text-slate-500 mt-0.5">{storeInfo.categoryName} • Collect Aurex Coins &amp; rewards</p>
             </div>
 
             {/* Offer highlight card */}
@@ -1081,7 +1428,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-black text-slate-900 leading-snug">30% OFF on next purchase</div>
-                <div className="text-[11px] text-[#8B0000] font-bold mt-0.5">Collect 5 stamps to unlock</div>
+                <div className="text-[11px] text-[#8B0000] font-bold mt-0.5">Collect 5 Aurex Coins to unlock</div>
               </div>
             </div>
 
@@ -1113,7 +1460,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </div>
 
             <p className="text-[11px] text-slate-400">
-              Sign in once to save your stamps &amp; rewards safely across all participating stores.
+              Sign in once to save your Aurex Coins &amp; rewards safely across all participating stores.
             </p>
           </div>
         </main>
@@ -1123,69 +1470,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         </footer>
 
         {/* Google Account Selector Modal */}
-        {googleSignInModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <h3 className="font-bold text-sm text-slate-900">Sign in with Google</h3>
-                </div>
-                <button onClick={() => setGoogleSignInModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <p className="text-xs text-slate-500">Choose or enter your Google account to continue to BeAurex</p>
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#8B0000] font-bold text-xs flex items-center justify-center shrink-0">
-                    G
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Google Customer Account</div>
-                    <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
-                  </div>
-                </button>
-
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Or enter your Google account:</span>
-                  <input
-                    type="text"
-                    value={googleCustomName}
-                    onChange={(e) => setGoogleCustomName(e.target.value)}
-                    placeholder="Your Name"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
-                  />
-                  <input
-                    type="email"
-                    value={googleCustomEmail}
-                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
-                    placeholder="yourname@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
-                  />
-                  <button
-                    type="button"
-                    disabled={!googleCustomEmail}
-                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
-                    className="w-full py-2 bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <span>Sign in with this account</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {renderGoogleModal()}
       </div>
     );
   }
@@ -1341,7 +1626,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Create Account
               </h2>
               <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto relative z-10">
-                Join BeAurex to collect stamps and unlock rewards.
+                Join BeAurex to collect Aurex Coins and unlock rewards.
               </p>
             </div>
 
@@ -1358,6 +1643,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <span>{loginSuccessMsg}</span>
                 </div>
               )}
+
+              {/* Google Sign Up Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginError('');
+                  setLoginSuccessMsg('');
+                  setGoogleSignInModalOpen(true);
+                }}
+                className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Sign up with Google</span>
+              </button>
+
+              {/* Divider */}
+              <div className="relative flex items-center justify-center my-3">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                  or sign up with email
+                </span>
+                <div className="border-t border-slate-200 w-full" />
+              </div>
 
               <form onSubmit={handleCustomerSignup} className="space-y-3.5">
                 <div className="relative">
@@ -1410,7 +1723,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </button>
                 </div>
 
@@ -1446,6 +1759,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     type="button"
                     onClick={() => {
                       setAuthMode('signin');
+                      navigate('/customer/login');
                       setLoginError('');
                       setLoginSuccessMsg('');
                     }}
@@ -1472,7 +1786,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Welcome Back!
               </h2>
               <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto relative z-10">
-                Login to continue collecting stamps and earning rewards.
+                Login to continue collecting Aurex Coins and earning rewards.
               </p>
             </div>
 
@@ -1490,6 +1804,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <span>{loginSuccessMsg}</span>
                 </div>
               )}
+
+              {/* Google Sign In Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginError('');
+                  setLoginSuccessMsg('');
+                  setGoogleSignInModalOpen(true);
+                }}
+                className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              {/* Divider */}
+              <div className="relative flex items-center justify-center my-3">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                  or login with email
+                </span>
+                <div className="border-t border-slate-200 w-full" />
+              </div>
 
               <form onSubmit={handleCustomerLogin} className="space-y-4">
                 {/* Email input */}
@@ -1522,7 +1864,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </button>
                   </div>
 
@@ -1567,6 +1909,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     type="button"
                     onClick={() => {
                       setAuthMode('signup');
+                      navigate('/customer/signup');
                       setLoginError('');
                       setLoginSuccessMsg('');
                     }}
@@ -1602,69 +1945,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         </div>
 
         {/* Google Account Selector Modal */}
-        {googleSignInModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <h3 className="font-bold text-sm text-slate-900">Sign in with Google</h3>
-                </div>
-                <button onClick={() => setGoogleSignInModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <p className="text-xs text-slate-500">Choose or enter your Google account to continue to BeAurex</p>
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#8B0000] font-bold text-xs flex items-center justify-center shrink-0">
-                    G
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Google Customer Account</div>
-                    <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
-                  </div>
-                </button>
-
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Or enter your Google account:</span>
-                  <input
-                    type="text"
-                    value={googleCustomName}
-                    onChange={(e) => setGoogleCustomName(e.target.value)}
-                    placeholder="Your Name"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
-                  />
-                  <input
-                    type="email"
-                    value={googleCustomEmail}
-                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
-                    placeholder="yourname@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
-                  />
-                  <button
-                    type="button"
-                    disabled={!googleCustomEmail}
-                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
-                    className="w-full py-2 bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <span>Sign in with this account</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {renderGoogleModal()}
       </div>
     );
   }
@@ -1892,33 +2173,61 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {currentScreen === 'home' && (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
-          {/* Two Stat Cards (Active Loyalty Cards & Rewards Redeemed) in one single line */}
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-5 shadow-xs flex items-center space-x-2.5 sm:space-x-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/80 shrink-0">
-                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
+          {/* 4 Stat Cards in 2x2 grid (Exact match to Image 1 & 3 Card View with Left Icon Squircle & 1-line text) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
+            {/* Card 1: Total Scans */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <FileText className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-rose-700" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block leading-tight truncate">
-                  Active Loyalty Cards
-                </span>
-                <span className="text-xl sm:text-3xl font-black text-slate-900 block mt-0.5">
-                  {customerUser.activeCardsCount ?? 1}
-                </span>
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Scans</div>
+                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                  2,453
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+18.5%</div>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-5 shadow-xs flex items-center space-x-2.5 sm:space-x-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100/80 shrink-0">
-                <Gift className="w-5 h-5 sm:w-6 sm:h-6 text-sky-600" />
+            {/* Card 2: Total Customers */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <User className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-purple-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block leading-tight truncate">
-                  Rewards Redeemed
-                </span>
-                <span className="text-xl sm:text-3xl font-black text-slate-900 block mt-0.5">
-                  {customerUser.rewardsRedeemedCount ?? 3}
-                </span>
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Customers</div>
+                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                  {customerUser.activeCardsCount ? `${customerUser.activeCardsCount * 146 || 586}` : '586'}
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+12.3%</div>
+              </div>
+            </div>
+
+            {/* Card 3: Rewards Redeemed */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <Gift className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Rewards Redeemed</div>
+                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                  {customerUser.rewardsRedeemedCount ?? 128}
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+15.7%</div>
+              </div>
+            </div>
+
+            {/* Card 4: Repeat Rate */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <RefreshCw className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-amber-500" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Repeat Rate</div>
+                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                  42%
+                </div>
+                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+8.2%</div>
               </div>
             </div>
           </div>
@@ -1934,7 +2243,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </div>
                   <h3 className="text-lg font-black text-slate-900">No Loyalty Cards Yet</h3>
                   <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-                    You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting stamps and earn exciting rewards!
+                    You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting Aurex Coins and earn exciting rewards!
                   </p>
                   <button
                     onClick={openScanScreen}
@@ -1980,7 +2289,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </div>
                         </div>
                         <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                          2 more stamps
+                          2 more Aurex Coins
                         </span>
                       </div>
 
@@ -1994,7 +2303,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <BeAurexStamp key={n} stamped={false} size="md" />
                           ))}
                         </div>
-                        <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
+                        <span className="text-[11px] text-slate-400 font-bold">3 of 5 Aurex Coins</span>
                       </div>
                     </div>
 
@@ -2021,7 +2330,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <BeAurexStamp key={n} stamped={true} size="md" />
                           ))}
                         </div>
-                        <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
+                        <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Aurex Coins Collected!</span>
                       </div>
                     </div>
 
@@ -2038,7 +2347,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </div>
                         </div>
                         <span className="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
-                          3 more stamps
+                          3 more Aurex Coins
                         </span>
                       </div>
 
@@ -2051,7 +2360,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <BeAurexStamp key={n} stamped={false} size="md" />
                           ))}
                         </div>
-                        <span className="text-[11px] text-slate-400 font-bold">2 of 5 Stamps Collected</span>
+                        <span className="text-[11px] text-slate-400 font-bold">2 of 5 Aurex Coins Collected</span>
                       </div>
                     </div>
 
@@ -2068,7 +2377,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </div>
                         </div>
                         <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                          1 more stamp
+                          1 more Aurex Coin
                         </span>
                       </div>
 
@@ -2081,7 +2390,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <BeAurexStamp key={n} stamped={false} size="md" />
                           ))}
                         </div>
-                        <span className="text-[11px] text-slate-400 font-bold">4 of 5 Stamps Collected</span>
+                        <span className="text-[11px] text-slate-400 font-bold">4 of 5 Aurex Coins Collected</span>
                       </div>
                     </div>
 
@@ -2124,7 +2433,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           {/* Subtitle */}
           <div className="text-center px-6">
             <p className="text-xs text-white/80 font-medium">
-              Position the QR code within the frame to collect stamp
+              Position the QR code within the frame to collect Aurex Coin
             </p>
           </div>
 
@@ -2183,27 +2492,43 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </div>
           </div>
 
-          {/* Stamp Earned Card */}
-          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-2.5 shadow-xs">
-            <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 stamp!</h3>
-            <p className="text-xs text-slate-600 font-medium">3 of 5 stamps collected</p>
+          {/* Aurex Coin Earned Card */}
+          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-3 shadow-xs">
+            {coinApprovedMsg ? (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold py-2.5 px-3 rounded-2xl flex items-center justify-center space-x-1.5 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{coinApprovedMsg}</span>
+              </div>
+            ) : (
+              <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 Aurex Coin!</h3>
+            )}
+            <p className="text-xs text-slate-600 font-medium">{customerUser.stamps || 3} of {customerUser.totalStamps || 5} Aurex Coins collected</p>
             
-            <div className="flex items-center justify-center space-x-2.5 pt-1.5 pb-1">
-              {[1, 2, 3].map((n) => (
+            <div className="flex items-center justify-center space-x-2.5 pt-1 pb-1">
+              {Array.from({ length: Math.min(customerUser.totalStamps || 5, customerUser.stamps || 3) }).map((_, idx) => (
                 <div
-                  key={n}
+                  key={`coin-${idx}`}
                   className="w-9 h-9 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
                 >
-                  <Crown className="w-4 h-4 text-white fill-white" />
+                  <Coins className="w-4 h-4 text-amber-300" />
                 </div>
               ))}
-              {[4, 5, 6].map((n) => (
+              {Array.from({ length: Math.max(0, (customerUser.totalStamps || 5) - (customerUser.stamps || 3)) }).map((_, idx) => (
                 <div
-                  key={n}
+                  key={`empty-coin-${idx}`}
                   className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 bg-white/70"
                 />
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={handleRequestAurexCoin}
+              className="w-full bg-[#8B0000] hover:bg-[#720000] text-white text-xs sm:text-sm font-black py-3 px-4 rounded-2xl shadow-md shadow-[#8B0000]/20 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-[0.99]"
+            >
+              <Coins className="w-4 h-4 text-amber-300" />
+              <span>Collect 1 More Aurex Coin (Ask Cashier)</span>
+            </button>
           </div>
 
           {/* Available Rewards Section */}
@@ -2240,7 +2565,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </div>
                   <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
                     <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                      2 STAMPS
+                      2 AUREX COINS
                     </span>
                     <span className="text-[11px] text-slate-600 font-medium">Ready to claim! 🎉</span>
                   </div>
@@ -2276,7 +2601,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">50% discount</h4>
                   <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
                     <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                      5 STAMPS
+                      5 AUREX COINS
                     </span>
                     <span className="text-[11px] text-slate-500 font-medium">• Collect 2 more</span>
                   </div>
@@ -2312,7 +2637,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Free Coffee</h4>
                   <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
                     <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                      3 STAMPS
+                      3 AUREX COINS
                     </span>
                     <span className="text-[11px] text-slate-500 font-medium">• Collect 1 more</span>
                   </div>
@@ -2380,7 +2705,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                         No Rewards Yet
                       </h3>
                       <p className="text-xs sm:text-sm text-slate-500 font-medium max-w-xs mx-auto mt-2 leading-relaxed">
-                        Collect more stamps from your favourite businesses to earn exciting rewards!
+                        Collect more Aurex Coins from your favourite businesses to earn exciting rewards!
                       </p>
                     </div>
                     <div className="pt-2">
@@ -2430,7 +2755,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
                           <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-xs text-emerald-800 font-medium flex items-center space-x-2">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span>{reward.description || `${reward.requiresStamps || 5} of ${reward.requiresStamps || 5} stamps collected! Ready to claim at checkout.`}</span>
+                            <span>{reward.description || `${reward.requiresStamps || 5} of ${reward.requiresStamps || 5} Aurex Coins collected! Ready to claim at checkout.`}</span>
                           </div>
                         </div>
 
@@ -2505,8 +2830,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     {filteredHistory.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedHistoryVoucher(item)}
-                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-md transition cursor-pointer"
+                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 transition"
                       >
                         {/* Top Section: Thumbnail + Title + Status + Store */}
                         <div className="flex items-start space-x-3.5">
@@ -2536,7 +2860,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </div>
                         </div>
 
-                        {/* Bottom Section: Claimed on | Used on / Valid till > */}
+                        {/* Bottom Section: Claimed on | Used on / Valid till */}
                         <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                           <div className="flex-1">
                             <span className="text-[11px] text-slate-400 font-medium block">Claimed on</span>
@@ -2548,10 +2872,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           <div className="flex-1">
                             <span className="text-[11px] text-slate-400 font-medium block">{item.dateLabel || 'Used on'}</span>
                             <span className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5 block">{item.dateValue}</span>
-                          </div>
-
-                          <div className="pl-2">
-                            <ChevronRight className="w-5 h-5 text-slate-800 shrink-0" />
                           </div>
                         </div>
                       </div>
@@ -2586,7 +2906,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </p>
               <div className="mt-3">
                 <span className="inline-block px-3.5 py-1.5 rounded-full bg-rose-50 text-[#8B0000] text-xs font-black tracking-tight">
-                  Requires {selectedReward.requiresStamps || 2} Stamps
+                  Requires {selectedReward.requiresStamps || 2} Aurex Coins
                 </span>
               </div>
             </div>
@@ -2596,7 +2916,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-black text-slate-900">Your Progress</span>
-              <span className="text-sm font-black text-slate-900">3 / 5 Stamps</span>
+              <span className="text-sm font-black text-slate-900">{customerUser.stamps || 3} / {customerUser.totalStamps || 5} Aurex Coins</span>
             </div>
             
             <div className="flex items-center space-x-3 pt-1 pb-0.5">
@@ -2605,7 +2925,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   key={n}
                   className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
                 >
-                  <Coffee className="w-5 h-5 text-white" />
+                  <Coins className="w-5 h-5 text-amber-300" />
                 </div>
               ))}
               {[4, 5].map((n) => (
@@ -2650,16 +2970,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
             {/* Spinning gradient ring border */}
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#8B0000] border-r-rose-400 border-b-rose-100 animate-spin" />
-            {/* Hourglass icon */}
-            <Hourglass className="w-10 h-10 text-[#8B0000]" />
+            {/* Hourglass or Coin icon */}
+            {approvalType === 'coin' ? (
+              <Coins className="w-10 h-10 text-amber-500 animate-bounce" />
+            ) : (
+              <Hourglass className="w-10 h-10 text-[#8B0000]" />
+            )}
           </div>
 
           <div className="space-y-1.5 pt-1">
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Waiting for Approval
+              {approvalType === 'coin' ? 'Waiting for Coin Approval' : 'Waiting for Approval'}
             </h2>
             <p className="text-xs sm:text-sm font-semibold text-slate-600 max-w-xs mx-auto">
-              Your request is being reviewed by the merchant.
+              {approvalType === 'coin' 
+                ? 'Your request to collect 1 Aurex Coin is being reviewed by the merchant.'
+                : 'Your reward claim request is being reviewed by the merchant.'}
             </p>
           </div>
 
@@ -2688,29 +3014,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="space-y-2">
             <span className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold shadow-xs">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>Awaiting Cashier Approval</span>
+              <span>{approvalType === 'coin' ? 'Awaiting Cashier Approval for Aurex Coin' : 'Awaiting Cashier Approval'}</span>
             </span>
             <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed">
-              Show your Customer ID to the merchant. Once they click <strong>Accept</strong> on their BeAurex Terminal, your reward will unlock here automatically.
+              {approvalType === 'coin' 
+                ? <>Show your Customer ID to the cashier. Once they click <strong>Accept</strong> on their BeAurex Terminal, 1 Aurex Coin will be added to your card.</>
+                : <>Show your Customer ID to the merchant. Once they click <strong>Accept</strong> on their BeAurex Terminal, your reward will unlock here automatically.</>}
             </p>
-          </div>
-
-          {/* Actions & Simulation */}
-          <div className="pt-2 space-y-2">
-            <button
-              type="button"
-              onClick={handleSimulateMerchantApproval}
-              className="text-xs font-bold text-slate-500 hover:text-[#8B0000] underline block mx-auto transition cursor-pointer"
-            >
-              [Simulate Cashier Approval Now]
-            </button>
-            <button
-              type="button"
-              onClick={() => setCurrentScreen('reward_details')}
-              className="text-xs text-slate-400 hover:text-slate-600 block mx-auto transition cursor-pointer"
-            >
-              Cancel &amp; Go Back
-            </button>
           </div>
         </div>
       )}
@@ -2849,7 +3159,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <button
                 type="button"
                 onClick={() => {
-                  setEditProfileForm({ name: customerUser.name, email: customerUser.email });
+                  setEditProfileForm({ 
+                    name: customerUser.name || '', 
+                    phone: customerUser.phone || '', 
+                    email: customerUser.email || '' 
+                  });
                   setEditProfileModalOpen(true);
                 }}
                 className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
@@ -2862,7 +3176,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             {/* 2. Phone & Email Card (matching image) */}
             <div 
               onClick={() => {
-                setEditProfileForm({ name: customerUser.name, email: customerUser.email });
+                setEditProfileForm({ 
+                  name: customerUser.name || '', 
+                  phone: customerUser.phone || '', 
+                  email: customerUser.email || '' 
+                });
                 setEditProfileModalOpen(true);
               }}
               className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
@@ -2873,7 +3191,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-slate-900">Phone &amp; Email</h4>
-                  <p className="text-[11px] text-slate-500 font-medium">{customerUser.email}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {customerUser.phone ? `${customerUser.phone} • ` : ''}{customerUser.email}
+                  </p>
                 </div>
               </div>
               <Edit3 className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
@@ -3027,90 +3347,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         initialTab={legalModalTab}
       />
 
-      {/* Voucher Detail Modal for Reward History */}
-      {selectedHistoryVoucher && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl space-y-0 border border-slate-100">
-            {/* Header Image */}
-            <div className="relative h-36 bg-slate-100">
-              <img
-                src={selectedHistoryVoucher.image}
-                alt={selectedHistoryVoucher.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => setSelectedHistoryVoucher(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white cursor-pointer shadow-md"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <div className="absolute bottom-3 left-3">
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs ${
-                  selectedHistoryVoucher.status === 'Active'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    : selectedHistoryVoucher.status === 'Used'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-slate-100 text-slate-600 border-slate-200'
-                }`}>
-                  {selectedHistoryVoucher.status}
-                </span>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-5 space-y-4">
-              <div>
-                <h3 className="text-sm font-black text-slate-900 leading-tight">
-                  {selectedHistoryVoucher.title}
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {selectedHistoryVoucher.storeName}
-                </p>
-              </div>
-
-              {/* Voucher Code Box */}
-              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-3.5 text-center space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  Voucher Code
-                </span>
-                <div className="text-base font-black font-mono text-[#8B0000] tracking-wider">
-                  {selectedHistoryVoucher.voucherCode}
-                </div>
-                <p className="text-[10px] text-slate-500">
-                  {selectedHistoryVoucher.status === 'Active'
-                    ? 'Show this voucher code or QR to the cashier to redeem'
-                    : selectedHistoryVoucher.status === 'Used'
-                    ? `Redeemed on ${selectedHistoryVoucher.dateValue}`
-                    : `Expired on ${selectedHistoryVoucher.dateValue}`}
-                </p>
-              </div>
-
-              {/* Date info */}
-              <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">Claimed</span>
-                  <span className="font-bold text-slate-700">{selectedHistoryVoucher.claimedDate}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">{selectedHistoryVoucher.dateLabel}</span>
-                  <span className="font-bold text-slate-700">{selectedHistoryVoucher.dateValue}</span>
-                </div>
-              </div>
-
-              {/* Action button */}
-              <button
-                type="button"
-                onClick={() => setSelectedHistoryVoucher(null)}
-                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Edit Customer Profile Modal */}
       {editProfileModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
@@ -3135,6 +3371,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]"
                   placeholder="Your Name"
                   required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editProfileForm.phone}
+                  onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]"
+                  placeholder="+91 98765 43210"
                 />
               </div>
               <div>

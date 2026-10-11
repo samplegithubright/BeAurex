@@ -192,12 +192,12 @@ At BeAurex, we value your privacy and are committed to protecting your personal 
 We collect necessary information to provide and operate digital loyalty programs:
 • Merchant Business Information (Store name, business category, counter address, contact details)
 • Customer Profile Data (Name, email address, customer ID, phone number if provided)
-• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)
+• QR & Aurex Coin Activity (Counter scan timestamps, Aurex Coins earned, rewards unlocked and redeemed)
 • Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)
 
 2. How We Use Your Information
 We use information strictly for:
-• Operating customer rewards and digital stamp issuance
+• Operating customer rewards and Aurex Coin issuance
 • Validating customer reward claims at merchant physical counters
 • Preventing fraudulent or duplicate scans
 • Facilitating peer-to-peer customer referral rewards
@@ -228,13 +228,13 @@ Welcome to BeAurex. These Terms and Conditions govern your access to and usage o
 By accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.
 
 2. Merchant Obligations & Counter Conduct
-• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.
+• Participating merchants agree to honor validly earned Aurex Coins and approved reward claims presented by registered customers.
 • Merchants must not manipulate scan telemetry or create counterfeit QR displays.
 • Counter staff must verify the 6-character Customer ID before confirming reward redemptions.
 
 3. Customer Rewards & Points Policy
-• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
-• Stamps and points carry no direct legal tender cash value outside designated partner stores.
+• Loyalty Aurex Coins and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
+• Aurex Coins and points carry no direct legal tender cash value outside designated partner stores.
 • Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.
 
 4. Platform Availability & Fair Use

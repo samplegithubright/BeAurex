@@ -8,7 +8,7 @@ import {
   Store, Award, Plus, Calendar, AlertCircle, LogOut, User, Building2, Globe, Save,
   History, RotateCcw, MessageSquare, ChevronDown, ChevronUp, Camera, Upload, Trash2,
   Eye, Folder, Video, Play, File, Edit3, Image as ImageIcon, Briefcase, Megaphone, Handshake,
-  ArrowLeft, MoreVertical, Film, CheckCircle, Gift
+  ArrowLeft, MoreVertical, Film, CheckCircle, Gift, PhoneCall
 } from 'lucide-react';
 
 export default function TeamManagement() {
@@ -1366,7 +1366,7 @@ export default function TeamManagement() {
 
   return (
     <div 
-      className="h-screen w-full bg-slate-50 text-slate-900 team-root antialiased flex flex-col md:flex-row overflow-hidden selection:bg-red-500 selection:text-white"
+      className="min-h-screen md:h-screen w-full bg-slate-50 text-slate-900 team-root antialiased flex flex-col md:flex-row md:overflow-hidden selection:bg-red-500 selection:text-white"
       style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
     >
         
@@ -1397,42 +1397,44 @@ export default function TeamManagement() {
         )}
 
         {/* ========================================================= */}
-        {/* MOBILE TOPBAR WITH HAMBURGER (Visible only on < md screens) */}
+        {/* MOBILE TOPBAR (Signature BeAurex Crimson Header) */}
         {/* ========================================================= */}
-        <header className="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
-          <Link to="/" className="flex items-center space-x-2">
+        <header className="md:hidden sticky top-0 z-40 bg-gradient-to-r from-[#8B0000] via-[#9B0000] to-[#720000] text-white px-4 py-2.5 flex items-center justify-between shadow-md border-b border-red-950/30">
+          <Link to="/" className="flex items-center space-x-2.5">
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-8 h-8 rounded-xl object-cover shadow-xs"
+              className="w-9 h-9 rounded-xl object-cover ring-2 ring-white/20 shadow-sm shrink-0"
             />
             <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight leading-none text-slate-900">
-                Be<span className="text-[#8B0000]">Aurex</span>
-              </span>
-              <span className="text-[9px] font-black text-red-600 uppercase tracking-widest mt-0.5">
-                Team Hub
+              <div className="flex items-center space-x-1.5">
+                <span className="text-base font-black tracking-tight leading-none text-white">
+                  BeAurex
+                </span>
+                <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-extrabold px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider shadow-xs">
+                  Team
+                </span>
+              </div>
+              <span className="text-[9px] font-bold text-rose-200/90 tracking-widest mt-0.5">
+                EXECUTIVE HUB
               </span>
             </div>
           </Link>
 
-          <div className="flex items-center space-x-1.5">
-            <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-1 rounded-lg">
-              {agentProfile.id}
-            </span>
+          <div className="flex items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded-xl text-slate-700 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
+              className="p-1.5 rounded-xl text-white hover:bg-white/15 active:bg-white/25 border border-white/20 transition cursor-pointer"
               aria-label="Toggle team navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5 text-red-600" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 text-amber-300" /> : <Menu className="w-5 h-5 text-white" />}
             </button>
           </div>
         </header>
 
         {/* Mobile Navigation Drawer Modal */}
         {mobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-50 flex">
+          <div className="md:hidden fixed inset-0 z-50 flex animate-in fade-in duration-150">
             {/* Backdrop */}
             <div 
               className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
@@ -1442,22 +1444,27 @@ export default function TeamManagement() {
             {/* Drawer Panel */}
             <div className="relative w-4/5 max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-200 overflow-y-auto">
               <div>
-                {/* Drawer Header */}
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                {/* Drawer Header (Signature BeAurex Crimson Gradient) */}
+                <div className="p-4 bg-gradient-to-r from-[#8B0000] via-[#9B0000] to-[#720000] text-white flex items-center justify-between border-b border-red-950/30">
                   <div className="flex items-center space-x-2.5">
                     <img 
                       src="/beaurex-icon.jpg" 
                       alt="BeAurex Logo" 
-                      className="w-8 h-8 rounded-xl object-cover"
+                      className="w-9 h-9 rounded-xl object-cover ring-2 ring-white/20 shadow-xs"
                     />
                     <div className="flex flex-col">
-                      <span className="font-black text-slate-900 text-sm">Team Portal</span>
-                      <span className="text-[9px] font-bold text-red-600 uppercase">{agentProfile.name}</span>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="font-black text-white text-base leading-none">BeAurex</span>
+                        <span className="bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-extrabold px-1.5 py-0.5 rounded text-[8px] uppercase tracking-wider">
+                          Portal
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-rose-200 truncate max-w-[140px] mt-0.5">{agentProfile.name}</span>
                     </div>
                   </div>
                   <button 
                     onClick={() => setMobileMenuOpen(false)}
-                    className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 border border-slate-200 cursor-pointer"
+                    className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/15 border border-white/20 transition cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1469,10 +1476,9 @@ export default function TeamManagement() {
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span className="font-bold text-slate-700 text-[11px]">Authorized Specialist</span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-600 bg-slate-100 font-bold px-1.5 py-0.5 rounded">{agentProfile.id}</span>
                 </div>
 
-                {/* Drawer Links: ONLY the 5 requested items */}
+                {/* Drawer Links: 5 core items */}
                 <div className="p-3 space-y-1">
                   <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     Navigation
@@ -1489,7 +1495,7 @@ export default function TeamManagement() {
                         }}
                         className={`w-full flex items-center px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                           isActive
-                            ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/25'
+                            ? 'bg-gradient-to-r from-[#8B0000] to-[#720000] text-white shadow-md shadow-[#8B0000]/25'
                             : 'text-slate-600 hover:bg-rose-50 hover:text-[#8B0000]'
                         }`}
                       >
@@ -1635,11 +1641,11 @@ export default function TeamManagement() {
         {/* ========================================================= */}
         {/* MAIN WORKSPACE CONTENT AREA (Only right side scrolls) */}
         {/* ========================================================= */}
-        <div className="flex-1 md:ml-72 flex flex-col min-w-0 min-h-0 h-full md:h-screen overflow-y-auto">
+        <div className="flex-1 md:ml-72 flex flex-col min-w-0 min-h-0 overflow-y-visible md:overflow-y-auto md:h-screen">
           
 
           {/* Main Content Area */}
-          <main className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
+          <main className="p-3 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 max-w-7xl">
             
             {/* ========================================================= */}
             {/* TAB 1: DASHBOARD */}
@@ -1684,76 +1690,86 @@ export default function TeamManagement() {
                   </div>
                 </div>
 
-                {/* 4 Stat Cards (Dynamic per Agent with Landing Page Style Icons - Image 2) */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Referred Stores</span>
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
-                        <Store className="w-5 h-5 text-white" />
-                      </div>
+                {/* 4 Stat Cards (Responsive Grid for Mobile & Laptop) */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
+                  {/* Card 1: Referred Stores */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#8B0000] to-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                      <Store className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="text-2xl font-black text-slate-900">{referrals.length}</div>
-                    <div className="text-[11px] text-emerald-600 font-bold mt-1 flex items-center">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      <span>{referrals.length > 0 ? `+${Math.min(referrals.length, 4)} active` : 'Ready to onboard'}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight truncate">Referred Stores</div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1">
+                        {referrals.length}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none truncate flex items-center">
+                        <TrendingUp className="w-3 h-3 mr-1 shrink-0" />
+                        <span>{referrals.length > 0 ? `+${Math.min(referrals.length, 4)} active` : 'Ready'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Tracked Leads</span>
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-                        <Users className="w-5 h-5 text-white" />
-                      </div>
+                  {/* Card 2: Tracked Leads */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="text-2xl font-black text-slate-900">{crmCustomers.length}</div>
-                    <div className="text-[11px] text-emerald-600 font-bold mt-1 flex items-center">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      <span>{crmCustomers.length > 0 ? `${crmCustomers.length} CRM records` : 'Add first lead'}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight truncate">Tracked Leads</div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1">
+                        {crmCustomers.length}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none truncate flex items-center">
+                        <TrendingUp className="w-3 h-3 mr-1 shrink-0" />
+                        <span>{crmCustomers.length > 0 ? `${crmCustomers.length} records` : 'Add first lead'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Total Commission</span>
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-                        <Wallet className="w-5 h-5 text-white" />
+                  {/* Card 3: Total Commission */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                      <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight truncate">Commission</div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1">
+                        ₹{agentProfile.totalSales && agentProfile.totalSales !== '0' ? agentProfile.totalSales : (referrals.length * 1500).toLocaleString('en-IN')}
                       </div>
-                    </div>
-                    <div className="text-2xl font-black text-slate-900">
-                      ₹{agentProfile.totalSales && agentProfile.totalSales !== '0' ? agentProfile.totalSales : (referrals.length * 1500).toLocaleString('en-IN')}
-                    </div>
-                    <div className="text-[11px] text-amber-600 font-bold mt-1">
-                      <span>{referrals.length > 0 ? `₹${Math.floor(referrals.length * 1500 * 0.25).toLocaleString('en-IN')} pending` : '₹0 pending payout'}</span>
+                      <div className="text-[10px] sm:text-xs font-bold text-amber-600 leading-none truncate flex items-center">
+                        <span>{referrals.length > 0 ? `₹${Math.floor(referrals.length * 1500 * 0.25).toLocaleString('en-IN')} pending` : '₹0 pending'}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:border-slate-300 hover:shadow-md transition group">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-slate-500 text-[11px] font-black uppercase tracking-wider">Conversion Rate</span>
-                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
-                        <Award className="w-5 h-5 text-white" />
-                      </div>
+                  {/* Card 4: Conversion Rate */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/25">
+                      <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="text-2xl font-black text-slate-900">{referrals.length > 0 ? '71.4%' : '0%'}</div>
-                    <div className="text-[11px] text-emerald-600 font-bold mt-1">
-                      <span>Trial to Paid tier</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight truncate">Conversion</div>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1">
+                        {referrals.length > 0 ? '71.4%' : '0%'}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none truncate flex items-center">
+                        <span>Trial to Paid tier</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Action Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5">
                   <div 
                     onClick={() => setActiveTab('referral_details')}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
+                    className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+                    <div className="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center mb-3 group-hover:scale-105 transition">
                       <Share2 className="w-5 h-5" />
                     </div>
                     <h3 className="font-black text-slate-900 text-sm mb-1">Referral Details</h3>
-                    <p className="text-xs text-slate-500 mb-3">View all 28 stores onboarded through your link and track payouts.</p>
+                    <p className="text-xs text-slate-500 mb-3">View all stores onboarded through your link and track payouts.</p>
                     <div className="text-xs font-bold text-red-600 flex items-center space-x-1">
                       <span>Open Referrals</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition transform" />
@@ -1762,9 +1778,9 @@ export default function TeamManagement() {
 
                   <div 
                     onClick={() => setActiveTab('marketing_kit')}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
+                    className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center mb-4 group-hover:scale-105 transition">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center mb-3 group-hover:scale-105 transition">
                       <Layers className="w-5 h-5" />
                     </div>
                     <h3 className="font-black text-slate-900 text-sm mb-1">Field Marketing Kit</h3>
@@ -1777,9 +1793,9 @@ export default function TeamManagement() {
 
                   <div 
                     onClick={() => setActiveTab('id_card')}
-                    className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
+                    className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-xs hover:border-red-300 hover:shadow-md transition cursor-pointer group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-105 transition">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover:scale-105 transition">
                       <CreditCard className="w-5 h-5" />
                     </div>
                     <h3 className="font-black text-slate-900 text-sm mb-1">Official ID Card</h3>
@@ -1913,8 +1929,74 @@ export default function TeamManagement() {
                         </div>
                       </div>
 
-                      {/* Table with SuperAdmin Merchants Horizontal Scrollbar and Bold Typography */}
-                      <div className="overflow-x-auto custom-scrollbar pb-3">
+                      {/* Mobile Responsive Cards View (< md screens) */}
+                      <div className="md:hidden p-3 space-y-3">
+                        {referredUsers
+                          .filter(u => {
+                            if (!referralSearch) return true;
+                            const q = referralSearch.toLowerCase();
+                            return (
+                              u.id.toLowerCase().includes(q) ||
+                              u.email.toLowerCase().includes(q) ||
+                              u.name.toLowerCase().includes(q) ||
+                              u.number.toLowerCase().includes(q)
+                            );
+                          })
+                          .map((u) => (
+                            <div key={u.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-3">
+                              {/* Top Row: User Name + Payment Status */}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <h4 className="font-black text-slate-900 text-sm truncate">{u.name}</h4>
+                                  <span className="font-mono font-bold text-[11px] text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded inline-block mt-0.5">
+                                    ID: {u.id}
+                                  </span>
+                                </div>
+                                <span className={`inline-flex items-center space-x-1 font-black px-2.5 py-1 rounded-xl text-[11px] shrink-0 ${
+                                  u.paymentStatus?.toLowerCase() === 'paid'
+                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
+                                    : 'bg-amber-50 text-amber-800 border border-amber-300'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                    u.paymentStatus?.toLowerCase() === 'paid' ? 'bg-emerald-500' : 'bg-amber-500'
+                                  }`} />
+                                  <span>{u.paymentStatus || 'Paid'}</span>
+                                </span>
+                              </div>
+
+                              {/* Contact Details */}
+                              <div className="grid grid-cols-1 gap-2 text-xs pt-1 border-t border-slate-100">
+                                <div className="flex items-center space-x-2 text-slate-600">
+                                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <a href={`tel:${u.number}`} className="font-mono font-bold text-slate-900 hover:text-[#8B0000]">
+                                    {u.number}
+                                  </a>
+                                </div>
+                                <div className="flex items-center space-x-2 text-slate-600 truncate">
+                                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <a href={`mailto:${u.email}`} className="font-medium text-slate-700 truncate hover:text-[#8B0000]">
+                                    {u.email}
+                                  </a>
+                                </div>
+                              </div>
+
+                              {/* Timeline & Validity */}
+                              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-2 border-t border-slate-100 bg-slate-50/80 -mx-4 -mb-4 p-3 rounded-b-2xl">
+                                <div>
+                                  <span className="text-slate-400 font-normal">Joined: </span>
+                                  <span className="font-mono text-slate-800">{u.joinedOn}</span>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400 font-normal">Valid: </span>
+                                  <span className="font-mono text-slate-800">{u.validityDate}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+
+                      {/* Table with SuperAdmin Merchants Horizontal Scrollbar (Hidden on mobile, visible on desktop/laptop) */}
+                      <div className="hidden md:block overflow-x-auto custom-scrollbar pb-3">
                         <table className="w-full min-w-[1200px] text-left text-xs border-collapse">
                           <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
@@ -2313,7 +2395,7 @@ export default function TeamManagement() {
                 {/* Modal: Onboard Store Referral */}
                 {showAddStoreModal && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-200 my-auto">
+                    <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 relative animate-in zoom-in-95 duration-200 my-auto max-h-[92vh] overflow-y-auto custom-scrollbar">
                       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
                         <div className="flex items-center space-x-2.5">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#8B0000] to-[#8B0000] text-white flex items-center justify-center shadow-xs">
@@ -2481,8 +2563,131 @@ export default function TeamManagement() {
                   </div>
                 </div>
 
-                {/* Customer Tracker Table (SuperAdmin Merchants Design System) */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                {/* Mobile Responsive Lead Cards View (< md screens) */}
+                <div className="md:hidden space-y-3">
+                  {filteredCrmCustomers.length === 0 ? (
+                    <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-400">
+                      <Users className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                      <p className="font-black text-xs text-slate-500">No customer leads found matching your search</p>
+                      <button
+                        onClick={() => setShowAddCustomerModal(true)}
+                        className="mt-3 text-[#8B0000] font-black hover:underline text-xs cursor-pointer"
+                      >
+                        + Add first customer lead
+                      </button>
+                    </div>
+                  ) : (
+                    filteredCrmCustomers.map((c) => (
+                      <div key={c.id} className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
+                        {/* Header: Name, Company, Status Badge */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-black text-slate-900 text-sm leading-snug">{c.name}</h3>
+                            {c.companyName && c.companyName !== '—' && c.companyName !== '-' && (
+                              <p className="text-xs font-bold text-slate-600 flex items-center space-x-1 mt-0.5">
+                                <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                                <span className="truncate">{c.companyName}</span>
+                              </p>
+                            )}
+                          </div>
+                          
+                          {/* Status Badge */}
+                          <span className={`inline-flex items-center space-x-1.5 font-black px-2.5 py-1 rounded-xl text-[11px] shrink-0 ${
+                            c.status === 'Important' ? 'bg-amber-50 text-amber-800 border border-amber-300' :
+                            c.status === 'Closed Won' ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' :
+                            c.status === 'Hot Lead' ? 'bg-rose-50 text-rose-800 border border-rose-300' :
+                            'bg-rose-50 text-[#8B0000] border border-rose-300'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              c.status === 'Important' ? 'bg-amber-500' :
+                              c.status === 'Closed Won' ? 'bg-emerald-500' :
+                              c.status === 'Hot Lead' ? 'bg-rose-500' :
+                              'bg-[#8B0000]'
+                            }`} />
+                            <span>{c.status || 'Followup required'}</span>
+                          </span>
+                        </div>
+
+                        {/* Approached For & Follow-up Method */}
+                        <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-100">
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Approached For</span>
+                            <span className="font-bold text-slate-800 truncate block">{c.approachedFor || 'BeAurex Loyalty'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Method</span>
+                            <span className="inline-block font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 text-[11px] mt-0.5">
+                              {c.followupMethod || 'Call'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Phone with One-Tap Call Button */}
+                        <div className="flex items-center justify-between bg-slate-50 rounded-xl p-2.5 border border-slate-200/80">
+                          <div className="flex items-center space-x-2 text-xs">
+                            <Phone className="w-3.5 h-3.5 text-slate-500" />
+                            <span className="font-mono font-bold text-slate-900">{c.phone}</span>
+                          </div>
+                          <a
+                            href={`tel:${c.phone}`}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black px-3 py-1 rounded-lg flex items-center space-x-1 shadow-2xs transition cursor-pointer"
+                          >
+                            <PhoneCall className="w-3 h-3" />
+                            <span>Call</span>
+                          </a>
+                        </div>
+
+                        {/* Location / Address */}
+                        {(c.address || c.city || c.state) && (
+                          <div className="text-[11px] text-slate-500 flex items-start space-x-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                            <span className="line-clamp-2">
+                              {[c.address, c.city, c.state].filter(Boolean).join(', ')}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Footer: Timestamp & Action Buttons */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {c.lastUpdated || 'Recent'}
+                          </span>
+
+                          <div className="flex items-center space-x-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenFollowup(c)}
+                              className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-xl font-bold text-xs transition cursor-pointer flex items-center space-x-1"
+                              title="Follow up"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>Follow up</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditCustomer(c)}
+                              className="bg-rose-50 hover:bg-rose-100 text-[#8B0000] border border-rose-200 p-1.5 rounded-xl transition cursor-pointer"
+                              title="Edit Customer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCrmCustomer(c.id)}
+                              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition cursor-pointer"
+                              title="Delete Customer Lead"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Customer Tracker Table (SuperAdmin Merchants Design System - Visible on md and up) */}
+                <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                   <div className="overflow-x-auto custom-scrollbar pb-3">
                     <table className="w-full min-w-[1650px] text-left text-xs border-collapse">
                       <thead>
@@ -2662,7 +2867,7 @@ export default function TeamManagement() {
                 {/* ========================================================= */}
                 {showAddCustomerModal && (
                   <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200">
+                    <div className="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto max-h-[92vh] overflow-y-auto custom-scrollbar">
                       
                       {/* Top Modal Header */}
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -2985,7 +3190,7 @@ export default function TeamManagement() {
                 {editCustomerModal.isOpen && editCustomerModal.customer && (
                   <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
                     <div 
-                      className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto"
+                      className="bg-white rounded-3xl max-w-lg w-full p-4 sm:p-7 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto max-h-[92vh] overflow-y-auto custom-scrollbar"
                       style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
                     >
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -3189,7 +3394,7 @@ export default function TeamManagement() {
                 {/* ========================================================= */}
                 {selectedCustomerForFollowup && (
                   <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-200">
+                    <div className="bg-white rounded-3xl max-w-xl w-full p-4 sm:p-7 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150 border border-slate-200 my-auto max-h-[92vh] overflow-y-auto custom-scrollbar">
                       
                       {/* Top Header */}
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -3388,37 +3593,39 @@ export default function TeamManagement() {
                   </button>
                 </div>
 
-                {/* Landing Page Themed Banner - Exact Metrics from Image 4 */}
-                <div className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] rounded-2xl p-5 text-white shadow-md border border-[#590104]">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-6 text-sm sm:text-base font-extrabold divide-x divide-rose-400/30">
-                      <div className="flex items-center space-x-2">
-                        <Folder className="w-4 h-4 text-rose-200" />
-                        <span>{currentTotalFolders} Folders</span>
+                {/* Marketing Kit Metrics Banner (Shown only on Folders Overview) */}
+                {openFolder === null && (
+                  <div className="bg-gradient-to-r from-[#8B0000] via-[#9B0000] to-[#720000] rounded-2xl p-4 sm:p-5 text-white shadow-md border border-red-950/30">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm font-extrabold">
+                        <div className="flex items-center space-x-2 bg-white/10 sm:bg-transparent px-2.5 py-1.5 sm:p-0 rounded-xl sm:rounded-none">
+                          <Folder className="w-4 h-4 text-rose-200 shrink-0" />
+                          <span>{currentTotalFolders} Folders</span>
+                        </div>
+                        <div className="flex items-center space-x-2 bg-white/10 sm:bg-transparent px-2.5 py-1.5 sm:p-0 rounded-xl sm:rounded-none">
+                          <ImageIcon className="w-4 h-4 text-rose-200 shrink-0" />
+                          <span>{currentImagesCount} Images</span>
+                        </div>
+                        <div className="flex items-center space-x-2 bg-white/10 sm:bg-transparent px-2.5 py-1.5 sm:p-0 rounded-xl sm:rounded-none">
+                          <Video className="w-4 h-4 text-rose-200 shrink-0" />
+                          <span>{currentVideosCount} Videos</span>
+                        </div>
+                        <div className="flex items-center space-x-2 bg-white/10 sm:bg-transparent px-2.5 py-1.5 sm:p-0 rounded-xl sm:rounded-none">
+                          <FileText className="w-4 h-4 text-rose-200 shrink-0" />
+                          <span>{currentFilesCount} Files</span>
+                        </div>
+                        <div className="col-span-2 sm:col-span-1 flex items-center space-x-2 bg-white/10 sm:bg-transparent px-2.5 py-1.5 sm:p-0 rounded-xl sm:rounded-none">
+                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                          <span className="text-rose-100">{currentActiveItemsCount} Active</span>
+                        </div>
                       </div>
-                      <div className="pl-6 flex items-center space-x-2">
-                        <ImageIcon className="w-4 h-4 text-rose-200" />
-                        <span>{currentImagesCount} Images</span>
-                      </div>
-                      <div className="pl-6 flex items-center space-x-2">
-                        <Video className="w-4 h-4 text-rose-200" />
-                        <span>{currentVideosCount} Videos</span>
-                      </div>
-                      <div className="pl-6 flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-rose-200" />
-                        <span>{currentFilesCount} Files</span>
-                      </div>
-                      <div className="pl-6 flex items-center space-x-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span className="text-rose-100">{currentActiveItemsCount} Active Items</span>
-                      </div>
-                    </div>
 
-                    <div className="text-xs text-rose-200 font-semibold bg-[#49070f]/70 px-3 py-1.5 rounded-lg border border-rose-300/20">
-                      All Assets Synced
+                      <div className="text-[11px] text-rose-200 font-semibold bg-black/20 px-3 py-1.5 rounded-lg border border-white/10 self-start sm:self-center">
+                        All Assets Synced
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Content View: Folders Grid OR Folder Contents */}
                 {openFolder === null ? (
@@ -3468,32 +3675,32 @@ export default function TeamManagement() {
                 ) : (
                   /* ================= FOLDER ITEMS VIEW ================= */
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between bg-rose-50/70 border border-rose-200 rounded-2xl px-5 py-3">
-                      <div className="flex items-center space-x-3">
+                    <div className="bg-rose-50/70 border border-rose-200 rounded-2xl p-3 sm:px-5 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center space-x-2.5 min-w-0">
                         <button
                           onClick={() => setOpenFolder(null)}
-                          className="bg-white hover:bg-rose-50 text-[#8B0000] text-xs font-black px-3 py-1.5 rounded-xl border border-rose-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer"
+                          className="bg-white hover:bg-rose-50 text-[#8B0000] text-xs font-black px-3 py-2 rounded-xl border border-rose-200 transition shadow-xs flex items-center space-x-1.5 cursor-pointer shrink-0"
                         >
                           <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>Back to Folders</span>
+                          <span>Back</span>
                         </button>
-                        <div>
-                          <h3 className="text-sm font-black text-slate-900 flex items-center space-x-2">
-                            <Folder className="w-4 h-4 text-amber-500 fill-amber-400 inline" />
-                            <span>{openFolder}</span>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm font-black text-slate-900 flex items-center space-x-1.5 truncate">
+                            <Folder className="w-4 h-4 text-amber-500 fill-amber-400 shrink-0 inline" />
+                            <span className="truncate">{openFolder}</span>
                           </h3>
-                          <p className="text-[11px] text-[#8B0000] font-semibold">
+                          <p className="text-[11px] text-[#8B0000] font-semibold truncate">
                             {currentFolders.find(f => f.name === openFolder)?.items?.length || 0} items in this folder
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 w-full sm:w-auto shrink-0">
                         <button
                           onClick={() => {
                             showKitToast(`All assets in "${openFolder}" queued for zip download`);
                           }}
-                          className="bg-gradient-to-r from-[#8B0000] to-[#8B0000] hover:from-[#720000] hover:to-[#8B0000] text-white text-xs font-bold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                          className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold px-4 py-2 rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>Download All (.zip)</span>
@@ -4040,16 +4247,16 @@ export default function TeamManagement() {
                   className="hidden" 
                 />
 
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-black text-slate-900">Official Field Representative Identification</h3>
                     <p className="text-xs text-slate-500">Authorized digital credential for in-person retail merchant visits and onboarding</p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => photoInputRef.current?.click()}
-                      className="bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer border border-red-200 shadow-xs"
+                      className="flex-1 sm:flex-initial bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer border border-red-200 shadow-xs"
                       title="Upload custom ID photo"
                     >
                       <Camera className="w-3.5 h-3.5" />
@@ -4066,14 +4273,14 @@ export default function TeamManagement() {
                     )}
                     <button
                       onClick={() => window.print()}
-                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs"
+                      className="flex-1 sm:flex-initial bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Print ID</span>
                     </button>
                     <button
                       onClick={() => triggerDownload('Digital ID Card Badge')}
-                      className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-sm shadow-red-600/20"
+                      className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold px-3.5 py-2.5 rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm shadow-red-600/20"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Save Badge</span>
@@ -4082,8 +4289,8 @@ export default function TeamManagement() {
                 </div>
 
                 {/* Vertical ID Badge Card Representation */}
-                <div className="flex justify-center py-4">
-                  <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative">
+                <div className="flex justify-center py-2 sm:py-4">
+                  <div className="w-full max-w-[340px] sm:max-w-sm bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative">
                     
                     {/* Top Lanyard Slot Graphic */}
                     <div className="h-6 bg-slate-100 flex items-center justify-center border-b border-slate-200">
@@ -4273,7 +4480,7 @@ export default function TeamManagement() {
               onClick={() => setAgentProfileModalOpen(false)}
             />
 
-            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200 border border-slate-200 my-auto">
+            <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200 border border-slate-200 my-auto max-h-[92vh] overflow-y-auto custom-scrollbar">
               
               {/* Top Bar */}
               <div className="p-4 border-b border-slate-100 flex items-center justify-between">
@@ -4372,7 +4579,7 @@ export default function TeamManagement() {
             onClick={() => setShareModalOpen(false)}
           >
             <div 
-              className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200"
+              className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200 my-auto max-h-[92vh] overflow-y-auto custom-scrollbar"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}

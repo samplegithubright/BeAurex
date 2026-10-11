@@ -484,7 +484,7 @@ export default function MerchantOnboardingModal({
                 <Gift className="w-5 h-5 text-[#8B0000]" />
                 <span>Customer Loyalty Reward</span>
               </div>
-              <p className="text-xs text-slate-500 mb-3">Configure the reward offer unlocked when customers complete their stamps.</p>
+              <p className="text-xs text-slate-500 mb-3">Configure the reward offer unlocked when customers collect their Aurex Coins.</p>
 
               {/* Quick Presets */}
               <div>
@@ -714,7 +714,7 @@ export default function MerchantOnboardingModal({
                 </div>
 
                 <div className="text-[11px] font-black text-slate-900 uppercase tracking-wide">
-                  Scan to Collect Loyalty Stamps
+                  Scan to Collect Aurex Coins
                 </div>
                 <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
                   🎁 Reward: {rewardTitle}

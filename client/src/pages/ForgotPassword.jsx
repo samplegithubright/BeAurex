@@ -97,8 +97,8 @@ export default function ForgotPassword() {
       {/* Right Action Card */}
       <div className="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between bg-white">
         <div>
-          {/* Circular Badge with Pink Background & Red Lock */}
-          <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-red-600 mb-6 shadow-xs border border-rose-100 mx-auto sm:mx-0">
+          {/* Circular Badge with Rose Background & Crimson Lock */}
+          <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-[#8B0000] mb-6 shadow-xs border border-rose-100 mx-auto sm:mx-0">
             <Lock className="w-7 h-7" />
           </div>
 
@@ -110,7 +110,7 @@ export default function ForgotPassword() {
           </p>
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-bold flex items-center space-x-2">
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-[#8B0000] font-bold flex items-center space-x-2">
               <span>{error}</span>
             </div>
           )}
@@ -118,8 +118,8 @@ export default function ForgotPassword() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Field 1: Email */}
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center space-x-1.5">
-                <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
+              <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 flex items-center space-x-1.5">
+                <span className="w-4 h-4 rounded-full bg-[#8B0000] text-white text-[10px] flex items-center justify-center font-bold">1</span>
                 <span>Registered Email Address</span>
               </label>
               <div className="relative">
@@ -132,14 +132,14 @@ export default function ForgotPassword() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your registered email address"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white text-slate-900 font-semibold transition-all"
                 />
               </div>
             </div>
 
             {/* Field 2: Mobile Number (Optional) */}
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5 flex items-center space-x-1.5">
+              <label className="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5 flex items-center space-x-1.5">
                 <span className="w-4 h-4 rounded-full bg-slate-300 text-slate-700 text-[10px] flex items-center justify-center font-bold">2</span>
                 <span>Mobile Number <span className="text-slate-400 font-normal normal-case">(Optional)</span></span>
               </label>
@@ -152,7 +152,7 @@ export default function ForgotPassword() {
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="Enter your mobile number (optional)"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-red-600 focus:bg-white text-slate-900 font-medium transition"
+                  className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:bg-white text-slate-900 font-semibold transition-all"
                 />
               </div>
             </div>
@@ -161,7 +161,7 @@ export default function ForgotPassword() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2 mt-4"
+              className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#590104] text-white font-bold py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-sm flex items-center justify-center space-x-2 mt-4"
             >
               <Send className="w-4 h-4" />
               <span>{loading ? 'Sending OTP...' : 'Send OTP'}</span>
@@ -170,7 +170,7 @@ export default function ForgotPassword() {
             {/* Button 4: Back to Login */}
             <Link
               to="/admin/login"
-              className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-2.5 rounded-xl transition cursor-pointer text-sm flex items-center justify-center space-x-2"
+              className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold py-3 rounded-2xl transition cursor-pointer text-sm flex items-center justify-center space-x-2"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Login</span>

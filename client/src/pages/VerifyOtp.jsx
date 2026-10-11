@@ -84,7 +84,7 @@ export default function VerifyOtp() {
       userGoalText="Admin wants to verify the OTP received on their mobile number to reset their password."
     >
       {/* Left Brand Panel */}
-      <div className="md:w-5/12 bg-gradient-to-br from-red-600 via-red-700 to-rose-950 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl">
+      <div className="md:w-5/12 bg-gradient-to-br from-[#8B0000] via-[#981b2a] to-[#720000] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl">
         {/* Subtle dot pattern background overlay */}
         <div className="absolute inset-0 hero-dot-pattern opacity-30 pointer-events-none" />
 
@@ -151,7 +151,7 @@ export default function VerifyOtp() {
       <div className="md:w-7/12 p-8 sm:p-12 flex flex-col justify-between bg-white">
         <div>
           {/* Circular Badge with Envelope */}
-          <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-red-600 mb-6 shadow-xs border border-rose-100 mx-auto sm:mx-0">
+          <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-[#8B0000] mb-6 shadow-xs border border-rose-200/70 mx-auto sm:mx-0">
             <Mail className="w-7 h-7" />
           </div>
 
@@ -163,7 +163,7 @@ export default function VerifyOtp() {
           </p>
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-bold flex items-center space-x-2">
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-[#8B0000] font-bold flex items-center space-x-2">
               <span>{error}</span>
             </div>
           )}
@@ -171,7 +171,7 @@ export default function VerifyOtp() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-xs font-bold uppercase text-slate-600 mb-3 text-center sm:text-left flex items-center space-x-1.5 justify-center sm:justify-start">
-                <span className="w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                <span className="w-4 h-4 rounded-full bg-[#8B0000] text-white text-[10px] flex items-center justify-center font-bold">1</span>
                 <span>Enter OTP</span>
               </label>
 
@@ -186,7 +186,7 @@ export default function VerifyOtp() {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(idx, e)}
-                    className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-red-600 focus:outline-none transition shadow-2xs text-slate-900"
+                    className="w-11 h-13 sm:w-12 sm:h-14 text-center text-xl font-black rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-[#8B0000] focus:ring-4 focus:ring-[#8B0000]/10 focus:outline-none transition shadow-2xs text-slate-900"
                   />
                 ))}
               </div>
@@ -196,12 +196,12 @@ export default function VerifyOtp() {
             <div className="text-xs text-slate-500 font-medium text-center sm:text-left">
               Didn't receive the OTP?{' '}
               {countdown > 0 ? (
-                <span className="text-red-600 font-bold">Resend OTP (00:{countdown < 10 ? `0${countdown}` : countdown})</span>
+                <span className="text-[#8B0000] font-bold">Resend OTP (00:{countdown < 10 ? `0${countdown}` : countdown})</span>
               ) : (
                 <button
                   type="button"
                   onClick={() => setCountdown(45)}
-                  className="text-red-600 font-bold hover:underline cursor-pointer"
+                  className="text-[#8B0000] font-bold hover:underline cursor-pointer"
                 >
                   Resend OTP Now
                 </button>
@@ -212,7 +212,7 @@ export default function VerifyOtp() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-[#8B0000]/25 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center justify-center space-x-2"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>{loading ? 'Verifying...' : 'Verify OTP'}</span>
@@ -221,7 +221,7 @@ export default function VerifyOtp() {
             {/* Button 3: Back to Forgot Password */}
             <Link
               to="/admin/forgot-password"
-              className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-2.5 rounded-xl transition cursor-pointer text-sm flex items-center justify-center space-x-2"
+              className="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold py-3 rounded-2xl transition cursor-pointer text-sm flex items-center justify-center space-x-2"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Forgot Password</span>

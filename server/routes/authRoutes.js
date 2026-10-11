@@ -147,8 +147,16 @@ router.post('/login', async (req, res) => {
       merchant: {
         id: merchantId,
         businessName: merchant.businessName,
+        ownerName: merchant.ownerName || '',
+        logo: merchant.logo || '',
         email: merchant.email,
         mobile: merchant.mobile,
+        addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        addressLine2: merchant.addressLine2 || '',
+        address: merchant.address || merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        state: merchant.state || '',
+        pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+        pincode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
         subscriptionTier: merchant.subscriptionTier || 'TRIAL',
         qrSlug: merchant.qrSlug || 'royal-sweets-delhi',
         city: merchant.city || 'Delhi NCR',
@@ -312,8 +320,16 @@ router.post('/login-otp', async (req, res) => {
       merchant: {
         id: merchantId,
         businessName: merchant.businessName,
+        ownerName: merchant.ownerName || '',
+        logo: merchant.logo || '',
         email: merchant.email,
         mobile: merchant.mobile,
+        addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        addressLine2: merchant.addressLine2 || '',
+        address: merchant.address || merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        state: merchant.state || '',
+        pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+        pincode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
         subscriptionTier: merchant.subscriptionTier || 'TRIAL',
         qrSlug: merchant.qrSlug || ('store-' + cleanMobile.slice(-4)),
         city: merchant.city || 'Delhi NCR',
@@ -534,10 +550,28 @@ router.post('/update-password', async (req, res) => {
 // =========================================================================
 router.post('/register', async (req, res) => {
   try {
-    const { businessName, email, mobile, password, category, city } = req.body;
+    const { 
+      ownerName,
+      businessName, 
+      email, 
+      mobile, 
+      password, 
+      category, 
+      logo,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      pinCode,
+      pincode
+    } = req.body;
 
     const cleanEmail = email ? email.toLowerCase().trim() : '';
     const cleanMobile = mobile ? mobile.replace(/[^0-9]/g, '').slice(-10) : '';
+    const resolvedPin = String(pinCode || pincode || '').trim();
+    const resolvedAddress = addressLine1 
+      ? (addressLine2 ? `${addressLine1}, ${addressLine2}` : addressLine1)
+      : (city || 'Main Market');
 
     if (!businessName || !cleanEmail || !password) {
       return res.status(400).json({ success: false, message: 'Business Name, Email Address and Password are required.' });
@@ -563,12 +597,20 @@ router.post('/register', async (req, res) => {
         merchant: {
           id: merchantId,
           businessName: businessName.trim(),
+          ownerName: ownerName || businessName.trim(),
+          logo: logo || '',
           email: cleanEmail,
           mobile: cleanMobile || undefined,
+          addressLine1: addressLine1 || '',
+          addressLine2: addressLine2 || '',
+          address: resolvedAddress,
+          city: city || 'Delhi NCR',
+          state: state || '',
+          pinCode: resolvedPin,
+          pincode: resolvedPin,
           subscriptionTier: 'TRIAL',
           qrSlug,
-          city: city || 'Delhi NCR',
-          category: category || 'CAFE_RESTAURANT',
+          category: category || 'Cafe & Restaurant',
           trialDays: 3,
           trialExpiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
           onboardingCompleted: false,
@@ -576,9 +618,9 @@ router.post('/register', async (req, res) => {
           branches: [
             {
               branchName: `${businessName.trim()} - Main Outlet`,
-              address: city || 'Main Market',
+              address: resolvedAddress,
               city: city || 'Delhi NCR',
-              pincode: '110001',
+              pincode: resolvedPin || '110001',
               counterName: 'Billing Counter',
               qrSlug,
               isPrimary: true
@@ -610,9 +652,17 @@ router.post('/register', async (req, res) => {
 
     // Save directly to MongoDB Merchant collection
     const newMerchant = await Merchant.create({
+      ownerName: ownerName || '',
       businessName: businessName.trim(),
-      category: category || 'CAFE_RESTAURANT',
+      logo: logo || '',
+      category: category || 'Cafe & Restaurant',
+      addressLine1: addressLine1 || '',
+      addressLine2: addressLine2 || '',
+      address: resolvedAddress,
       city: city || 'Delhi NCR',
+      state: state || '',
+      pinCode: resolvedPin,
+      pincode: resolvedPin,
       email: cleanEmail,
       mobile: cleanMobile || undefined,
       password: hashedPassword,
@@ -625,9 +675,9 @@ router.post('/register', async (req, res) => {
       branches: [
         {
           branchName: `${businessName.trim()} - Main Outlet`,
-          address: city || 'Main Market',
+          address: resolvedAddress,
           city: city || 'Delhi NCR',
-          pincode: '110001',
+          pincode: resolvedPin || '110001',
           counterName: 'Billing Counter',
           qrSlug,
           isPrimary: true
@@ -647,11 +697,19 @@ router.post('/register', async (req, res) => {
       merchant: {
         id: merchantId,
         businessName: newMerchant.businessName,
+        ownerName: newMerchant.ownerName || '',
+        logo: newMerchant.logo || '',
         email: newMerchant.email,
         mobile: newMerchant.mobile,
+        addressLine1: newMerchant.addressLine1 || '',
+        addressLine2: newMerchant.addressLine2 || '',
+        address: newMerchant.address || resolvedAddress,
+        city: newMerchant.city,
+        state: newMerchant.state || '',
+        pinCode: newMerchant.pinCode || resolvedPin,
+        pincode: newMerchant.pincode || resolvedPin,
         subscriptionTier: 'TRIAL',
         qrSlug: newMerchant.qrSlug,
-        city: newMerchant.city,
         category: newMerchant.category,
         trialDays: 3,
         trialExpiresAt: newMerchant.trialExpiresAt,

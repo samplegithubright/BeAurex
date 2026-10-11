@@ -5,14 +5,15 @@ const path = require('path');
 const DATA_DIR = path.join(__dirname, '../data');
 const REDEMPTIONS_FILE = path.join(DATA_DIR, 'redemptions.json');
 
-// Initial pending redemptions matching demo state
+// Initial pending redemptions matching demo state (Both Aurex Coin requests and Offer claims)
 const defaultPending = [
   {
     id: 'rem_1',
+    requestType: 'offer',
     customerName: 'Sumit',
     customerId: 'ID: LQR-8F4A29',
     rewardTitle: '30% OFF on Next Purchase',
-    stamps: '5/5 Stamps completed',
+    stamps: '5/5 Aurex Coins completed',
     timeAgo: 'Today, 2:18 PM',
     expiresIn: 'Expires: 30 Jul 2026',
     voucherType: '30',
@@ -22,10 +23,11 @@ const defaultPending = [
   },
   {
     id: 'rem_2',
+    requestType: 'offer',
     customerName: 'Ajeet',
     customerId: 'ID: LQR-3K9D21',
     rewardTitle: 'Free Coffee on Any Purchase',
-    stamps: '5/5 Stamps completed',
+    stamps: '5/5 Aurex Coins completed',
     timeAgo: 'Today, 12:45 PM',
     expiresIn: 'Expires: 28 Jul 2026',
     voucherType: 'coffee',
@@ -35,13 +37,15 @@ const defaultPending = [
   },
   {
     id: 'rem_3',
-    customerName: 'Pooja',
-    customerId: 'ID: LQR-7H2M56',
-    rewardTitle: '20% OFF on Next Purchase',
-    stamps: '5/5 Stamps completed',
-    timeAgo: 'Yesterday, 6:30 PM',
-    expiresIn: 'Expires: 27 Jul 2026',
-    voucherType: '20',
+    requestType: 'coin',
+    customerName: 'Rohan Sharma',
+    customerId: 'ID: BX-8F4A29',
+    rewardTitle: 'Wants to collect 1 Aurex Coin',
+    coins: 1,
+    stamps: '1 Aurex Coin Requested',
+    timeAgo: 'Today, 11:30 AM',
+    expiresIn: 'Aurex Coin Request',
+    voucherType: 'coin',
     avatarBg: 'bg-amber-500',
     status: 'PENDING',
     storeSlug: 'ka-feen'
@@ -52,6 +56,7 @@ let pendingList = [...defaultPending];
 let approvedList = [
   {
     id: 'rem_4',
+    requestType: 'offer',
     customerName: 'Rohit',
     customerId: 'ID: LQR-1A2B34',
     rewardTitle: 'Free Coffee on Any Purchase',
@@ -110,14 +115,16 @@ function addPendingClaim(claim) {
 
   const newClaim = {
     id: claim.id || `rem_${Date.now()}`,
+    requestType: claim.requestType || (claim.voucherType === 'coin' || claim.coins ? 'coin' : 'offer'),
+    coins: claim.coins || (claim.voucherType === 'coin' ? 1 : undefined),
     customerName: claim.customerName || 'Customer',
     customerId: claim.customerId?.startsWith('ID:') ? claim.customerId : `ID: ${cleanId}`,
-    rewardTitle: claim.rewardTitle || '30% OFF on Next Purchase',
-    stamps: claim.stamps || '5/5 Stamps completed',
+    rewardTitle: claim.rewardTitle || (claim.coins ? 'Wants to collect 1 Aurex Coin' : '30% OFF on Next Purchase'),
+    stamps: claim.stamps || (claim.coins ? '1 Aurex Coin Requested' : '5/5 Aurex Coins completed'),
     timeAgo: 'Just now',
-    expiresIn: claim.expiresIn || 'Expires: 30 Jul 2026',
-    voucherType: claim.voucherType || '30',
-    avatarBg: claim.avatarBg || 'bg-emerald-500',
+    expiresIn: claim.expiresIn || (claim.coins ? 'Aurex Coin Request' : 'Expires: 30 Jul 2026'),
+    voucherType: claim.voucherType || (claim.coins ? 'coin' : '30'),
+    avatarBg: claim.avatarBg || (claim.coins ? 'bg-amber-500' : 'bg-emerald-500'),
     status: 'PENDING',
     storeSlug: claim.storeSlug || 'ka-feen',
     requestedAt: new Date().toISOString()
