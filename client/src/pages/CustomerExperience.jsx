@@ -133,6 +133,61 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [noInternetModalOpen, setNoInternetModalOpen] = useState(false);
   const [googleSignInModalOpen, setGoogleSignInModalOpen] = useState(false);
   const [emptyStateDemo, setEmptyStateDemo] = useState(false); // Screen 17 demo toggle
+  const [showAllCards, setShowAllCards] = useState(false);
+  const [loyaltyCardsList, setLoyaltyCardsList] = useState([
+    {
+      id: 'lc-1',
+      name: 'Ka-feen',
+      category: 'Coffee Shop',
+      iconBg: 'bg-black text-white',
+      Icon: Coffee,
+      iconColor: 'text-white',
+      stamps: 3,
+      totalStamps: 5,
+      badgeText: '2 more Aurex Coins',
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
+      statusText: '3 of 5 Aurex Coins'
+    },
+    {
+      id: 'lc-2',
+      name: 'Brew House',
+      category: 'Bakery & Bistro • Cyber Hub',
+      iconBg: 'bg-amber-950 text-white',
+      Icon: Utensils,
+      iconColor: 'text-amber-200',
+      stamps: 5,
+      totalStamps: 5,
+      badgeText: 'Reward Ready 🎉',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+      statusText: '5 of 5 Aurex Coins Collected!'
+    },
+    {
+      id: 'lc-3',
+      name: 'The Daily Roastery',
+      category: 'Artisanal Coffee & Bakes',
+      iconBg: 'bg-amber-800 text-white',
+      Icon: Coffee,
+      iconColor: 'text-white',
+      stamps: 2,
+      totalStamps: 5,
+      badgeText: '3 more Aurex Coins',
+      badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+      statusText: '2 of 5 Aurex Coins Collected'
+    },
+    {
+      id: 'lc-4',
+      name: 'Royal Sweets & Treats',
+      category: 'Confectionery & Desserts',
+      iconBg: 'bg-rose-700 text-white',
+      Icon: ShoppingBag,
+      iconColor: 'text-white',
+      stamps: 4,
+      totalStamps: 5,
+      badgeText: '1 more Aurex Coin',
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
+      statusText: '4 of 5 Aurex Coins Collected'
+    }
+  ]);
   const [splashLoading, setSplashLoading] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalModalTab, setLegalModalTab] = useState('privacy'); // 'privacy' | 'terms'
@@ -2173,70 +2228,72 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {currentScreen === 'home' && (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
-          {/* 4 Stat Cards in 2x2 grid (Exact match to Image 1 & 3 Card View with Left Icon Squircle & 1-line text) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
-            {/* Card 1: Total Scans */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
-                <FileText className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-rose-700" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Scans</div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
-                  2,453
+          {/* 4 Stat Cards in 2x2 grid (Hidden in empty state so second image has no scan/activity stats) */}
+          {!emptyStateDemo && loyaltyCardsList.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4">
+              {/* Card 1: Total Scans */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <FileText className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-rose-700" />
                 </div>
-                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+18.5%</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Scans</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                    2,453
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+18.5%</div>
+                </div>
               </div>
-            </div>
 
-            {/* Card 2: Total Customers */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 shadow-2xs">
-                <User className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-purple-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Customers</div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
-                  {customerUser.activeCardsCount ? `${customerUser.activeCardsCount * 146 || 586}` : '586'}
+              {/* Card 2: Total Customers */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <User className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-purple-600" />
                 </div>
-                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+12.3%</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Customers</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                    {customerUser.activeCardsCount ? `${customerUser.activeCardsCount * 146 || 586}` : '586'}
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+12.3%</div>
+                </div>
               </div>
-            </div>
 
-            {/* Card 3: Rewards Redeemed */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
-                <Gift className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Rewards Redeemed</div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
-                  {customerUser.rewardsRedeemedCount ?? 128}
+              {/* Card 3: Rewards Redeemed */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Gift className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
                 </div>
-                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+15.7%</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Rewards Redeemed</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                    {customerUser.rewardsRedeemedCount ?? 128}
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+15.7%</div>
+                </div>
               </div>
-            </div>
 
-            {/* Card 4: Repeat Rate */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 shadow-2xs">
-                <RefreshCw className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-amber-500" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Repeat Rate</div>
-                <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
-                  42%
+              {/* Card 4: Repeat Rate */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <RefreshCw className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-amber-500" />
                 </div>
-                <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+8.2%</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Repeat Rate</div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                    42%
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+8.2%</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Main Layout: Active Loyalty Programs */}
           <div className="space-y-4">
               
-              {/* Empty State Toggle Demo */}
-              {emptyStateDemo ? (
+              {/* Empty State (Second Image: QR scan button, active loyalty link, and activity stats removed as requested) */}
+              {(emptyStateDemo || loyaltyCardsList.length === 0) ? (
                 <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xs">
                   <div className="w-24 h-24 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
                     <ShoppingBag className="w-12 h-12 text-rose-300 stroke-[1.5]" />
@@ -2245,19 +2302,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
                     You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting Aurex Coins and earn exciting rewards!
                   </p>
-                  <button
-                    onClick={openScanScreen}
-                    className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3.5 px-8 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span>Scan QR Code Standee</span>
-                  </button>
-                  <button
-                    onClick={() => setEmptyStateDemo(false)}
-                    className="text-xs text-slate-400 hover:text-slate-600 underline block mx-auto cursor-pointer"
-                  >
-                    Show Active Loyalty Cards
-                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2265,135 +2309,57 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     <div>
                       <h3 className="text-base sm:text-lg font-black text-slate-900">Continue Collecting</h3>
                     </div>
-                    <button
-                      onClick={() => setEmptyStateDemo(prev => !prev)}
-                      className="text-xs font-bold text-[#8B0000] hover:underline cursor-pointer"
-                    >
-                      View All
-                    </button>
+                    {loyaltyCardsList.length > 1 && (
+                      <button
+                        onClick={() => setShowAllCards(prev => !prev)}
+                        className="text-xs font-bold text-[#8B0000] hover:underline cursor-pointer"
+                      >
+                        {showAllCards ? 'Show Less' : 'View All'}
+                      </button>
+                    )}
                   </div>
 
                   {/* Loyalty Cards Grid (Responsive: 1 col on mobile, 2 cols on tablet/laptop) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* Card 1: Ka-feen Coffee Shop */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs">
-                            <Coffee className="w-5 h-5 text-white" />
+                    {(showAllCards ? loyaltyCardsList : loyaltyCardsList.slice(0, 1)).map((card) => {
+                      const CardIcon = card.Icon;
+                      return (
+                        <div 
+                          key={card.id}
+                          className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-11 h-11 rounded-2xl ${card.iconBg} flex items-center justify-center shadow-xs`}>
+                                <CardIcon className={`w-5 h-5 ${card.iconColor || 'text-white'}`} />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-black text-slate-900 leading-tight">{card.name}</h4>
+                                <p className="text-[11px] text-slate-500 font-medium">{card.category}</p>
+                              </div>
+                            </div>
+                            <span className={`${card.badgeClass} text-xs font-bold px-3 py-1 rounded-full border`}>
+                              {card.badgeText}
+                            </span>
                           </div>
+
+                          {/* Stamp Indicators */}
                           <div>
-                            <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
-                            <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
+                            <div className="flex items-center space-x-2 mb-1.5">
+                              {Array.from({ length: card.stamps }).map((_, idx) => (
+                                <BeAurexStamp key={`stamped-${card.id}-${idx}`} stamped={true} size="md" />
+                              ))}
+                              {Array.from({ length: Math.max(0, card.totalStamps - card.stamps) }).map((_, idx) => (
+                                <BeAurexStamp key={`unstamped-${card.id}-${idx}`} stamped={false} size="md" />
+                              ))}
+                            </div>
+                            <span className={`text-[11px] font-bold ${card.stamps >= card.totalStamps ? 'text-emerald-700' : 'text-slate-400'}`}>
+                              {card.statusText}
+                            </span>
                           </div>
                         </div>
-                        <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                          2 more Aurex Coins
-                        </span>
-                      </div>
-
-                      {/* Stamp Indicators */}
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1.5">
-                          {[1, 2, 3].map((n) => (
-                            <BeAurexStamp key={n} stamped={true} size="md" />
-                          ))}
-                          {[4, 5].map((n) => (
-                            <BeAurexStamp key={n} stamped={false} size="md" />
-                          ))}
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-bold">3 of 5 Aurex Coins</span>
-                      </div>
-                    </div>
-
-                    {/* Card 2: Brew House */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
-                            <Utensils className="w-5 h-5 text-amber-200" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
-                            <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro • Cyber Hub</p>
-                          </div>
-                        </div>
-                        <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
-                          Reward Ready 🎉
-                        </span>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1.5">
-                          {[1, 2, 3, 4, 5].map((n) => (
-                            <BeAurexStamp key={n} stamped={true} size="md" />
-                          ))}
-                        </div>
-                        <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Aurex Coins Collected!</span>
-                      </div>
-                    </div>
-
-                    {/* Card 3: The Daily Roastery */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-11 h-11 rounded-2xl bg-amber-800 text-white flex items-center justify-center shadow-xs">
-                            <Coffee className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black text-slate-900 leading-tight">The Daily Roastery</h4>
-                            <p className="text-[11px] text-slate-500 font-medium">Artisanal Coffee &amp; Bakes</p>
-                          </div>
-                        </div>
-                        <span className="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
-                          3 more Aurex Coins
-                        </span>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1.5">
-                          {[1, 2].map((n) => (
-                            <BeAurexStamp key={n} stamped={true} size="md" />
-                          ))}
-                          {[3, 4, 5].map((n) => (
-                            <BeAurexStamp key={n} stamped={false} size="md" />
-                          ))}
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-bold">2 of 5 Aurex Coins Collected</span>
-                      </div>
-                    </div>
-
-                    {/* Card 4: Royal Sweets & Treats */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-11 h-11 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-xs">
-                            <ShoppingBag className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black text-slate-900 leading-tight">Royal Sweets &amp; Treats</h4>
-                            <p className="text-[11px] text-slate-500 font-medium">Confectionery &amp; Desserts</p>
-                          </div>
-                        </div>
-                        <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                          1 more Aurex Coin
-                        </span>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1.5">
-                          {[1, 2, 3, 4].map((n) => (
-                            <BeAurexStamp key={n} stamped={true} size="md" />
-                          ))}
-                          {[5].map((n) => (
-                            <BeAurexStamp key={n} stamped={false} size="md" />
-                          ))}
-                        </div>
-                        <span className="text-[11px] text-slate-400 font-bold">4 of 5 Aurex Coins Collected</span>
-                      </div>
-                    </div>
-
+                      );
+                    })}
                   </div>
                 </div>
               )}
