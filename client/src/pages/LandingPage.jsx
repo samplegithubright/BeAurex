@@ -88,8 +88,8 @@ const darkenHex = (hex, percent = 15) => {
 function PlanCardButton({ plan, isDark }) {
   const [hovered, setHovered] = useState(false);
   const isPopular = Boolean(plan.isPopular || plan.highlightBadge === 'Most Popular');
-  const defaultBg = isPopular ? '#8B0000' : (isDark ? '#FFFFFF' : '#0D1527');
-  const defaultHover = isPopular ? '#720000' : (isDark ? '#F1F5F9' : '#8B0000');
+  const defaultBg = isPopular ? 'var(--brand-primary, #8B0000)' : (isDark ? '#FFFFFF' : '#0D1527');
+  const defaultHover = isPopular ? 'var(--brand-secondary, #720000)' : (isDark ? '#F1F5F9' : 'var(--brand-primary, #8B0000)');
   const btnBg = plan.btnBg || defaultBg;
   const btnHoverBg = plan.btnHoverBg || (plan.btnBg ? darkenHex(plan.btnBg, 15) : defaultHover);
   const activeBg = hovered ? btnHoverBg : btnBg;

@@ -500,7 +500,16 @@ export default function MerchantDashboard() {
   const [offerImageRemoved, setOfferImageRemoved] = useState(false);
   const [offerTitle, setOfferTitle] = useState('30% OFF on Next Purchase');
   const [offerDescription, setOfferDescription] = useState('Get 30% off on your next purchase. Thank you for being our loyal customer!');
-  const [offerStampsRequired, setOfferStampsRequired] = useState(5);
+  const [offerStampsRequired, setOfferStampsRequired] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_coin_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.targetCoins && Number(parsed.targetCoins) > 0) return Number(parsed.targetCoins);
+      }
+    } catch (_) {}
+    return 5;
+  });
   const [offerValidity, setOfferValidity] = useState('30 Days');
   const [offerValidityMode, setOfferValidityMode] = useState('30 Days');
   const [customValidityText, setCustomValidityText] = useState('');
@@ -805,8 +814,25 @@ export default function MerchantDashboard() {
         } catch (_) {}
       }
     };
+
+    const handleCoinUpdate = (e) => {
+      if (e?.detail?.targetCoins) {
+        setOfferStampsRequired(Number(e.detail.targetCoins));
+      } else {
+        try {
+          const saved = localStorage.getItem('beaurex_coin_config');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed?.targetCoins) setOfferStampsRequired(Number(parsed.targetCoins));
+          }
+        } catch (_) {}
+      }
+    };
+
     window.addEventListener('beaurex_merchant_features_updated', handleFeaturesUpdate);
+    window.addEventListener('beaurex_coin_config_updated', handleCoinUpdate);
     window.addEventListener('storage', handleFeaturesUpdate);
+    window.addEventListener('storage', handleCoinUpdate);
 
     fetch('/api/admin/merchant-features')
       .then(r => r.json())
@@ -818,9 +844,21 @@ export default function MerchantDashboard() {
       })
       .catch(() => {});
 
+    fetch('/api/admin/coin-config')
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.success && d.coinConfig?.targetCoins) {
+          setOfferStampsRequired(Number(d.coinConfig.targetCoins));
+          localStorage.setItem('beaurex_coin_config', JSON.stringify(d.coinConfig));
+        }
+      })
+      .catch(() => {});
+
     return () => {
       window.removeEventListener('beaurex_merchant_features_updated', handleFeaturesUpdate);
+      window.removeEventListener('beaurex_coin_config_updated', handleCoinUpdate);
       window.removeEventListener('storage', handleFeaturesUpdate);
+      window.removeEventListener('storage', handleCoinUpdate);
     };
   }, []);
 
@@ -2505,51 +2543,57 @@ export default function MerchantDashboard() {
                 <span>Home</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('rewards')}
-                className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap relative ${
-                  activeTab === 'rewards'
-                    ? 'text-white font-black'
-                    : 'text-white/75 hover:text-white font-semibold'
-                }`}
-              >
-                <Gift className={`w-4 h-4 ${activeTab === 'rewards' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
-                <span>Rewards</span>
-                {pendingRedemptions.length > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-0.5" />
-                )}
-              </button>
+              {isFeatureVisible('rewards_tab') && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('rewards')}
+                  className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap relative ${
+                    activeTab === 'rewards'
+                      ? 'text-white font-black'
+                      : 'text-white/75 hover:text-white font-semibold'
+                  }`}
+                >
+                  <Gift className={`w-4 h-4 ${activeTab === 'rewards' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
+                  <span>Rewards</span>
+                  {pendingRedemptions.length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse ml-0.5" />
+                  )}
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setActiveTab('create_offer')}
-                className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
-                  activeTab === 'create_offer'
-                    ? 'text-white font-black'
-                    : 'text-white/75 hover:text-white font-semibold'
-                }`}
-              >
-                <PlusCircle className={`w-4 h-4 ${activeTab === 'create_offer' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
-                <span>Create Offer</span>
-              </button>
+              {isFeatureVisible('create_offer_tab') && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('create_offer')}
+                  className={`py-2 px-1 text-sm transition flex items-center space-x-2 cursor-pointer whitespace-nowrap ${
+                    activeTab === 'create_offer'
+                      ? 'text-white font-black'
+                      : 'text-white/75 hover:text-white font-semibold'
+                  }`}
+                >
+                  <PlusCircle className={`w-4 h-4 ${activeTab === 'create_offer' ? 'text-white stroke-[2.5]' : 'text-white/80'}`} />
+                  <span>Create Offer</span>
+                </button>
+              )}
             </div>
 
             {/* Right: Profile & High-Contrast Logout */}
             <div className="flex items-center space-x-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveTab('profile')}
-                className={`h-9 px-3.5 rounded-xl border flex items-center space-x-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap ${
-                  activeTab === 'profile'
-                    ? 'bg-white text-[#8B0000] border-white shadow-xs font-black'
-                    : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
-                }`}
-                title="Store Profile & Settings"
-              >
-                <User className="w-4 h-4" />
-                <span>Profile</span>
-              </button>
+              {isFeatureVisible('profile_tab') && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('profile')}
+                  className={`h-9 px-3.5 rounded-xl border flex items-center space-x-1.5 text-xs font-bold transition cursor-pointer whitespace-nowrap ${
+                    activeTab === 'profile'
+                      ? 'bg-white text-[#8B0000] border-white shadow-xs font-black'
+                      : 'border-white/20 bg-white/10 hover:bg-white/20 text-white'
+                  }`}
+                  title="Store Profile & Settings"
+                >
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -4604,46 +4648,67 @@ export default function MerchantDashboard() {
                   </div>
                 )}
 
-                {/* Row 4: Privacy Policy */}
-                <div 
-                  onClick={() => {
-                    setLegalPolicyModalTab('privacy');
-                    setLegalPolicyModalOpen(true);
-                  }}
-                  className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                      <ShieldCheck className="w-5 h-5" />
+                {/* Row 4: Privacy Policy & Terms */}
+                {isFeatureVisible('privacy_security') && (
+                  <>
+                    <div 
+                      onClick={() => {
+                        setLegalPolicyModalTab('privacy');
+                        setLegalPolicyModalOpen(true);
+                      }}
+                      className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                          <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy Policy</h4>
+                          <p className="text-[11px] text-slate-500 font-medium">Read data & privacy policies</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
                     </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Privacy Policy</h4>
-                      <p className="text-[11px] text-slate-500 font-medium">Read data & privacy policies</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </div>
 
-                {/* Row 5: Terms & Conditions */}
-                <div 
-                  onClick={() => {
-                    setLegalPolicyModalTab('terms');
-                    setLegalPolicyModalOpen(true);
-                  }}
-                  className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
-                      <FileText className="w-5 h-5" />
+                    <div 
+                      onClick={() => {
+                        setLegalPolicyModalTab('terms');
+                        setLegalPolicyModalOpen(true);
+                      }}
+                      className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-3.5">
+                        <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-black text-slate-900">Terms & Conditions</h4>
+                          <p className="text-[11px] text-slate-500 font-medium">Read user terms & conditions</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
                     </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Terms & Conditions</h4>
-                      <p className="text-[11px] text-slate-500 font-medium">Read user terms & conditions</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </div>
+                  </>
+                )}
 
+                {/* Row 6: Help & Support Assistance */}
+                {isFeatureVisible('help_support') && (
+                  <div 
+                    onClick={() => setMerchantSupportModalOpen ? setMerchantSupportModalOpen(true) : alert('BeAurex Support: support@beaurex.com')}
+                    className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition cursor-pointer border-t border-slate-100"
+                  >
+                    <div className="flex items-center space-x-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                        <HelpCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs sm:text-sm font-black text-slate-900">Help & Support Assistance</h4>
+                        <p className="text-[11px] text-slate-500 font-medium">FAQs, WhatsApp & priority merchant support</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </div>
+                )}
               </div>
 
               {/* 10. BOTTOM LOGOUT BUTTON */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ActionConfirmModal from '../components/ActionConfirmModal';
 import { 
   LayoutDashboard, Share2, Users, Layers, CreditCard, Copy, Check, CheckCircle2, 
@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 export default function TeamManagement() {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [agentProfileModalOpen, setAgentProfileModalOpen] = useState(false);
 
@@ -39,7 +40,22 @@ export default function TeamManagement() {
   };
 
   // 5 required tabs: 'dashboard', 'referral_details', 'customer_manager', 'marketing_kit', 'id_card'
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      if (tabParam) return tabParam;
+    } catch (_) {}
+    return 'dashboard';
+  });
+
+  useEffect(() => {
+    try {
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      if (tabParam && tabParam !== activeTab) {
+        setActiveTab(tabParam);
+      }
+    } catch (_) {}
+  }, []);
 
   // Dynamic Agent Profile (Loaded from logged-in session or Super Admin created profile)
   const getInitialAgentProfile = () => {
@@ -475,6 +491,28 @@ export default function TeamManagement() {
     } catch (_) {}
     return initialReferredUsers;
   });
+
+  // Real-time synchronization of referred users across tabs and windows
+  useEffect(() => {
+    const handleReferredUsersSync = () => {
+      try {
+        const savedUsers = JSON.parse(localStorage.getItem('beaurex_team_referred_users') || '[]');
+        if (Array.isArray(savedUsers) && savedUsers.length > 0) {
+          setReferredUsers(savedUsers);
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener('storage', handleReferredUsersSync);
+    window.addEventListener('beaurex_referred_users_updated', handleReferredUsersSync);
+    window.addEventListener('focus', handleReferredUsersSync);
+
+    return () => {
+      window.removeEventListener('storage', handleReferredUsersSync);
+      window.removeEventListener('beaurex_referred_users_updated', handleReferredUsersSync);
+      window.removeEventListener('focus', handleReferredUsersSync);
+    };
+  }, []);
 
   const [selectedMwPreviewModal, setSelectedMwPreviewModal] = useState({ isOpen: false, item: null });
 
@@ -1094,8 +1132,8 @@ export default function TeamManagement() {
     };
   }, [agentProfile.userId, agentProfile.email, agentProfile.name, agentProfile.referralCode]);
 
-  const referralLink = `${window.location.origin}/merchant/login?ref=${agentProfile.referralCode}`;
-  const shareMessage = `Hello! Get started with BeAurex QR Customer Loyalty for your store with a Free 2-Day Trial: ${referralLink}`;
+  const referralLink = `${window.location.origin}/customer/signup?ref=${agentProfile.referralCode}`;
+  const shareMessage = `Hello! Join BeAurex Loyalty and start earning rewards with code ${agentProfile.referralCode}: ${referralLink}`;
 
   const handleShareTo = (platform) => {
     const encodedUrl = encodeURIComponent(referralLink);
@@ -2108,8 +2146,12 @@ export default function TeamManagement() {
                             />
                           </div>
                           <button
-                            onClick={() => setShowAddStoreModal(true)}
-                            className="bg-[#8B0000] hover:bg-[#8B0000] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
+                            onClick={() => {
+                              const code = agentProfile.referralCode || 'BEAUREX-1704';
+                              navigate(`/customer/signup?ref=${encodeURIComponent(code)}&from=team`);
+                            }}
+                            className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer active:scale-95"
+                            title="Onboard Customer / User"
                           >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Onboard Store</span>

@@ -42,7 +42,7 @@ const paymentRouter = require('./routes/paymentRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = formatMongoUri(process.env.MONGO_URI);
+const MONGO_URI = formatMongoUri(process.env.MONGO_URI || process.env.MONGODB_URI);
 
 // Database connection caching for serverless environments (Vercel) & traditional servers
 let cachedDb = null;
@@ -206,8 +206,16 @@ if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(clientDistPath, 'index.html'));
+      return res.sendFile(path.join(clientDistPath, 'index.html'));
     }
+    res.status(404).json({ success: false, message: 'API endpoint not found' });
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.send('BeAurex Backend API is running!');
+  });
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({ success: false, message: 'API endpoint not found' });
   });
 }
 

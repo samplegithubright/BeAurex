@@ -479,16 +479,13 @@ export default function SuperAdminDashboard() {
   // =========================================================================
   const [permissionsSubTab, setPermissionsSubTab] = useState('merchant_features'); // 'merchant_features' | 'tier_matrix'
   const [merchantFeatures, setMerchantFeatures] = useState(() => {
-    try {
-      const saved = localStorage.getItem('beaurex_merchant_features');
-      if (saved) return JSON.parse(saved);
-    } catch (_) {}
-    return [
+    const defaultFeats = [
       { id: 'home_overview', name: 'Home Analytics & Overview Stats', category: 'Home Dashboard', description: 'Total scans, active customers, redemptions count, and repeat rate stats cards on the home screen.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'home_qr_code', name: 'Store Counter QR Code & Standee Download', category: 'Home Dashboard', description: 'Dynamic QR code display with Download PNG and Print Standee triggers.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'home_plan_banner', name: 'Pro Subscription Plan Status Banner', category: 'Home Dashboard', description: 'Active subscription status, validity date, and plan upgrade banner.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'rewards_tab', name: 'Requests & Redemption Approval (Tab)', category: 'Navigation & Tabs', description: 'Dedicated screen for reviewing customer Aurex Coins & reward redemptions, pending approvals, and approved rewards.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'create_offer_tab', name: 'Create Offer & Aurex Coin Programs (Tab)', category: 'Navigation & Tabs', description: 'Creation screen to launch Aurex Coin programs (image, title, Aurex Coins required, expiry validity).', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'loyalty_coins', name: 'Aurex Loyalty Coins & Stamp Targets', category: 'Rewards & Programs', description: 'Configure customer coin earning rules, target coins per card (5, 7, etc.), and first-visit bonus.', isVisible: true, minPlan: 'All Plans', isCustom: false, isCoinProgram: true },
       { id: 'customers_tab', name: 'Customers CRM & CSV Export (Tab)', category: 'Navigation & Tabs', description: 'Customer visits directory with search, date filters, and CSV export functionality.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'profile_tab', name: 'Profile & Settings (Tab)', category: 'Navigation & Tabs', description: 'Profile and store settings navigation item.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'auto_approve_scans', name: 'Auto Approve Scans Setting', category: 'Profile & Settings', description: 'Allows merchant to automatically approve customer visits without manual verification.', isVisible: true, minPlan: 'All Plans', isCustom: false },
@@ -504,7 +501,22 @@ export default function SuperAdminDashboard() {
       { id: 'privacy_security', name: 'Privacy & Security Controls', category: 'Education & Support', description: 'Store data privacy policies and security management.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'help_support', name: 'Help & Support Assistance', category: 'Education & Support', description: 'Merchant help desk, FAQs, and WhatsApp/Email support contacts.', isVisible: true, minPlan: 'All Plans', isCustom: false }
     ];
+    try {
+      const saved = localStorage.getItem('beaurex_merchant_features');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          if (!parsed.some(f => f.id === 'loyalty_coins')) {
+            parsed.splice(5, 0, defaultFeats[5]);
+          }
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    return defaultFeats;
   });
+
+  const [coinConfigModalOpen, setCoinConfigModalOpen] = useState(false);
 
   const [featureSearchQuery, setFeatureSearchQuery] = useState('');
   const [featureCategoryFilter, setFeatureCategoryFilter] = useState('ALL');
@@ -10801,24 +10813,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                 <button
                   type="button"
-                  onClick={() => setPermissionsSubTab('customer_coins')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
-                    permissionsSubTab === 'customer_coins'
-                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  <Coins className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Coin Rules & Targets</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    permissionsSubTab === 'customer_coins' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {coinConfig.targetCoins} Coins
-                  </span>
-                </button>
-
-                <button
-                  type="button"
                   onClick={() => setPermissionsSubTab('theme_customizer')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                     permissionsSubTab === 'theme_customizer'
@@ -11064,6 +11058,42 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           <p className="text-xs text-slate-500 font-medium leading-relaxed">
                             {feat.description}
                           </p>
+
+                          {feat.id === 'loyalty_coins' && (
+                            <div className="bg-amber-50/90 border border-amber-200/90 rounded-xl p-3 space-y-2 mt-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-1.5">
+                                  <Coins className="w-4 h-4 text-amber-600 shrink-0" />
+                                  <span className="text-xs font-black text-amber-900">Target: {coinConfig.targetCoins} Coins / Card</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setCoinConfigModalOpen(true)}
+                                  className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-2.5 py-1 rounded-lg text-[10px] flex items-center space-x-1 transition cursor-pointer shadow-xs"
+                                >
+                                  <Sliders className="w-3 h-3" />
+                                  <span>Rules</span>
+                                </button>
+                              </div>
+                              <div className="flex items-center space-x-1.5 pt-1">
+                                <span className="text-[10px] text-slate-500 font-medium">Quick target:</span>
+                                {[5, 7, 10].map(cnt => (
+                                  <button
+                                    key={cnt}
+                                    type="button"
+                                    onClick={() => handleUpdateCoinConfig({ ...coinConfig, targetCoins: cnt, minRedeemCoins: cnt })}
+                                    className={`px-2 py-0.5 rounded-md text-[10px] font-black cursor-pointer transition ${
+                                      Number(coinConfig.targetCoins) === cnt
+                                        ? 'bg-[#8B0000] text-white shadow-xs'
+                                        : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+                                    }`}
+                                  >
+                                    {cnt} Coins
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
@@ -11086,6 +11116,16 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                           {/* Action Buttons: Edit & Delete */}
                           <div className="flex items-center space-x-1">
+                            {feat.id === 'loyalty_coins' && (
+                              <button
+                                type="button"
+                                onClick={() => setCoinConfigModalOpen(true)}
+                                className="p-1.5 rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50 transition cursor-pointer"
+                                title="Configure Loyalty Coin Rules & Target"
+                              >
+                                <Coins className="w-4 h-4" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => setEditingFeatureModal({ ...feat })}
@@ -11235,43 +11275,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           {feat.description}
                         </p>
 
-                        {/* Quick Coin Target Selector directly on Customer Stamp Feature Card */}
-                        {(feat.id === 'cust_stamp_cards' || feat.featureType === 'coin_target') && (
-                          <div className="mt-3 p-3 bg-amber-50/90 border border-amber-200 rounded-xl space-y-2">
-                            <div className="flex items-center justify-between text-[11px] font-bold text-amber-900">
-                              <span className="flex items-center space-x-1">
-                                <Coins className="w-3.5 h-3.5 text-amber-600" />
-                                <span>Reward Stamp Target:</span>
-                              </span>
-                              <span className="font-black text-amber-800">{coinConfig.targetCoins} Coins Needed</span>
-                            </div>
-                            <div className="flex items-center space-x-1.5">
-                              {[5, 7, 10].map((cNum) => (
-                                <button
-                                  key={cNum}
-                                  type="button"
-                                  onClick={() => handleUpdateCoinConfig({ ...coinConfig, targetCoins: cNum })}
-                                  className={`flex-1 py-1 px-1.5 rounded-lg text-xs font-black transition cursor-pointer text-center ${
-                                    coinConfig.targetCoins === cNum
-                                      ? 'bg-[#8B0000] text-white shadow-xs'
-                                      : 'bg-white hover:bg-amber-100 text-slate-700 border border-amber-200'
-                                  }`}
-                                >
-                                  {cNum} Coins
-                                </button>
-                              ))}
-                              <button
-                                type="button"
-                                onClick={() => setPermissionsSubTab('customer_coins')}
-                                className="py-1 px-2 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer"
-                                title="Custom coin rules & settings"
-                              >
-                                Custom...
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                        </div>
 
                       <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                         <button
@@ -11310,307 +11314,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {/* ========================================================= */}
-            {/* SUB-VIEW: CUSTOMER COINS & LOYALTY RULES MANAGER           */}
-            {/* ========================================================= */}
-            {permissionsSubTab === 'customer_coins' && (
-              <div className="space-y-6 animate-in fade-in duration-150">
-                {/* Header Banner */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                  <div className="flex items-start sm:items-center space-x-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25 shrink-0">
-                      <Coins className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h2 className="text-lg font-black text-slate-900">
-                          Customer Loyalty Coins & Reward Threshold Manager
-                        </h2>
-                        <span className="text-[10px] uppercase font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full">
-                          Full Control
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 font-medium max-w-2xl mt-0.5">
-                        Decide exactly how many Aurex Coins customers need to collect per card to claim rewards (e.g. 5 Coins, 7 Coins, or custom), configure coins per scan, first visit bonuses, and rule parameters.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2 w-full lg:w-auto">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const def = {
-                          targetCoins: 5,
-                          coinsPerScan: 1,
-                          firstVisitBonus: 1,
-                          minRedeemCoins: 5,
-                          maxDailyScans: 2,
-                          coinExpiryDays: 365,
-                          autoApproveFirstCoin: true,
-                          programName: 'BeAurex Loyalty Stamp Card',
-                          rewardDescription: 'Collect coins on each visit to unlock free rewards'
-                        };
-                        handleUpdateCoinConfig(def);
-                      }}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer"
-                    >
-                      Reset Defaults
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateCoinConfig(coinConfig)}
-                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
-                    >
-                      <Save className="w-3.5 h-3.5" />
-                      <span>Save & Enforce Rules</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Big Target Selector Card */}
-                <div className="bg-gradient-to-br from-amber-50/80 via-white to-rose-50/30 border border-amber-200/90 rounded-2xl p-6 shadow-xs space-y-6">
-                  <div>
-                    <span className="text-[10px] uppercase font-mono font-bold text-amber-800 tracking-wider block mb-1">
-                      Primary Coin Target Requirement
-                    </span>
-                    <h3 className="text-base sm:text-lg font-black text-slate-900">
-                      How many coins are needed to complete a loyalty card / claim a reward?
-                    </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Choose a standard program preset or specify an exact custom coin requirement.
-                    </p>
-                  </div>
-
-                  {/* Preset Buttons Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                    {[
-                      { coins: 5, label: '5 Coins Target', sub: 'Standard Program (5 visits = 1 reward)', tag: 'Popular Cafe & Bakery' },
-                      { coins: 7, label: '7 Coins Target', sub: 'Weekly Program (7 visits = 1 reward)', tag: 'Weekly VIP Target' },
-                      { coins: 10, label: '10 Coins Target', sub: 'Milestone Program (10 visits = 1 reward)', tag: 'Retail & Fine Dining' },
-                      { coins: 'custom', label: 'Custom Coins', sub: 'Decide any custom coin threshold', tag: 'Custom Program' }
-                    ].map((item) => {
-                      const isSelected = item.coins === 'custom' 
-                        ? (coinConfig.targetCoins !== 5 && coinConfig.targetCoins !== 7 && coinConfig.targetCoins !== 10)
-                        : coinConfig.targetCoins === item.coins;
-                      return (
-                        <div
-                          key={item.label}
-                          onClick={() => {
-                            if (item.coins !== 'custom') {
-                              handleUpdateCoinConfig({ ...coinConfig, targetCoins: item.coins });
-                            }
-                          }}
-                          className={`p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between space-y-3 ${
-                            isSelected
-                              ? 'border-[#8B0000] bg-white shadow-md shadow-[#8B0000]/10 ring-2 ring-[#8B0000]/20'
-                              : 'border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                              {item.tag}
-                            </span>
-                            {isSelected && (
-                              <span className="w-5 h-5 rounded-full bg-[#8B0000] text-white flex items-center justify-center text-xs font-black">
-                                ✓
-                              </span>
-                            )}
-                          </div>
-
-                          <div>
-                            <div className="text-2xl font-black text-slate-900 flex items-center space-x-1.5">
-                              <Coins className="w-6 h-6 text-amber-500" />
-                              <span>{item.coins === 'custom' ? `${coinConfig.targetCoins} Coins` : `${item.coins} Coins`}</span>
-                            </div>
-                            <div className="text-xs font-bold text-slate-700 mt-1">{item.label}</div>
-                            <div className="text-[11px] text-slate-500 mt-0.5">{item.sub}</div>
-                          </div>
-
-                          {item.coins === 'custom' && (
-                            <div className="pt-2 border-t border-slate-100 flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
-                              <span className="text-[11px] font-bold text-slate-600">Enter:</span>
-                              <input
-                                type="number"
-                                min={1}
-                                max={100}
-                                value={coinConfig.targetCoins}
-                                onChange={(e) => {
-                                  const val = Math.max(1, parseInt(e.target.value) || 1);
-                                  handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
-                                }}
-                                className="w-20 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
-                              />
-                              <span className="text-[11px] font-bold text-slate-500">Coins</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Rule Parameters & Live Preview Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Parameters Form (2 cols) */}
-                  <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
-                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
-                      <Sliders className="w-4 h-4 text-slate-500" />
-                      <span>Detailed Coin Allocation & Redemption Rules</span>
-                    </h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          Coins Earned Per Store Counter Scan
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min={1}
-                            max={50}
-                            value={coinConfig.coinsPerScan || 1}
-                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, coinsPerScan: Math.max(1, parseInt(e.target.value) || 1) })}
-                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
-                          />
-                          <span className="text-xs text-slate-500 font-medium">Aurex Coin(s) credited each visit</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          First Visit / Welcome Bonus Coins
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min={0}
-                            max={50}
-                            value={coinConfig.firstVisitBonus || 1}
-                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, firstVisitBonus: Math.max(0, parseInt(e.target.value) || 0) })}
-                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
-                          />
-                          <span className="text-xs text-slate-500 font-medium">Extra coin on 1st scan</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          Max Daily Scans Allowed Per Customer
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min={1}
-                            max={10}
-                            value={coinConfig.maxDailyScans || 2}
-                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, maxDailyScans: Math.max(1, parseInt(e.target.value) || 1) })}
-                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
-                          />
-                          <span className="text-xs text-slate-500 font-medium">Scans / day / store</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-bold text-slate-700">
-                          Coin Expiry Validity Period (Days)
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min={30}
-                            max={730}
-                            value={coinConfig.coinExpiryDays || 365}
-                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, coinExpiryDays: Math.max(30, parseInt(e.target.value) || 365) })}
-                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
-                          />
-                          <span className="text-xs text-slate-500 font-medium">Days before balance expires</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-black text-slate-900 block">Auto-Credit First Visit Coin</span>
-                        <span className="text-[11px] text-slate-500 font-medium">New customer receives first coin immediately upon scanning without cashier confirmation</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateCoinConfig({ ...coinConfig, autoApproveFirstCoin: !coinConfig.autoApproveFirstCoin })}
-                        className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
-                          coinConfig.autoApproveFirstCoin ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
-                        }`}
-                      >
-                        <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Live Preview of Customer Loyalty Card */}
-                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-                    <div>
-                      <span className="text-[10px] uppercase font-mono font-bold text-slate-400 block mb-1">
-                        Real-time Customer View
-                      </span>
-                      <h4 className="text-sm font-black text-slate-900">
-                        How Customer Sees Their Card ({coinConfig.targetCoins} Coins)
-                      </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Card dynamically adjusts slots and badges to your active target.
-                      </p>
-                    </div>
-
-                    {/* Live Mock Loyalty Card */}
-                    <div className="bg-gradient-to-br from-white to-rose-50/30 border border-slate-200 rounded-2xl p-4.5 shadow-sm space-y-3.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black">
-                            <Store className="w-5 h-5 text-amber-300" />
-                          </div>
-                          <div>
-                            <h5 className="text-xs font-black text-slate-900">Sample Store Card</h5>
-                            <p className="text-[10px] text-slate-500">Cafe & Bakery</p>
-                          </div>
-                        </div>
-                        <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                          {Math.max(0, coinConfig.targetCoins - 3)} more Aurex Coins
-                        </span>
-                      </div>
-
-                      <div>
-                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                          {Array.from({ length: Math.min(3, coinConfig.targetCoins) }).map((_, idx) => (
-                            <div
-                              key={`prev-stamped-${idx}`}
-                              className="w-8 h-8 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
-                            >
-                              <Coins className="w-3.5 h-3.5 text-amber-300" />
-                            </div>
-                          ))}
-                          {Array.from({ length: Math.max(0, coinConfig.targetCoins - 3) }).map((_, idx) => (
-                            <div
-                              key={`prev-empty-${idx}`}
-                              className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center text-slate-400"
-                            >
-                              <Coins className="w-3.5 h-3.5 text-slate-300" />
-                            </div>
-                          ))}
-                        </div>
-                        <span className="text-[10px] font-bold text-slate-500">
-                          3 of {coinConfig.targetCoins} Aurex Coins Collected
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-medium flex items-center space-x-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Active target {coinConfig.targetCoins} Coins is in sync with Customer Experience and Merchant approvals!</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
@@ -11947,17 +11650,17 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     <Coins className="w-4 h-4 text-amber-300" />
                                   </div>
                                 ))}
-                                {Array.from({ length: Math.max(0, coinConfig.targetCoins - 3) }).map((_, idx) => (
+                                {Array.from({ length: 2 }).map((_, idx) => (
                                   <div
                                     key={`prev-card-empty-${idx}`}
                                     className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center"
                                   >
-                                    <Coins className="w-4 h-4 text-slate-300" />
+                                    <Sparkles className="w-4 h-4 text-slate-300" />
                                   </div>
                                 ))}
                               </div>
                               <span className="text-[10px] font-bold text-slate-500">
-                                3 of {coinConfig.targetCoins} Aurex Coins Collected
+                                3 of 5 Loyalty Stamps Collected
                               </span>
                             </div>
                           </div>
@@ -12224,53 +11927,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
                         >
                           <option value="toggle">Toggle Switch (On/Off)</option>
-                          <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
                           <option value="numeric">Numerical Parameter</option>
                           <option value="select">Dropdown Option</option>
                           <option value="text">Custom Text / Rule</option>
                         </select>
                       </div>
                     </div>
-
-                    {/* Target Coins / Parameter Value if applicable */}
-                    {(editingCustomerFeatureModal.featureType === 'coin_target' || editingCustomerFeatureModal.id === 'cust_stamp_cards') && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                        <label className="block text-amber-900 font-black text-[11px]">
-                          Target Coins Needed (e.g. 5 or 7 coins)
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          {[5, 7, 10].map(cNum => (
-                            <button
-                              key={cNum}
-                              type="button"
-                              onClick={() => {
-                                setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, targetCoins: cNum });
-                                handleUpdateCoinConfig({ ...coinConfig, targetCoins: cNum });
-                              }}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
-                                (editingCustomerFeatureModal.targetCoins || coinConfig.targetCoins) === cNum
-                                  ? 'bg-[#8B0000] text-white shadow-xs'
-                                  : 'bg-white text-slate-700 border border-amber-200'
-                              }`}
-                            >
-                              {cNum} Coins
-                            </button>
-                          ))}
-                          <input
-                            type="number"
-                            min={1}
-                            max={100}
-                            value={editingCustomerFeatureModal.targetCoins || coinConfig.targetCoins}
-                            onChange={(e) => {
-                              const val = Math.max(1, parseInt(e.target.value) || 1);
-                              setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, targetCoins: val });
-                              handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
-                            }}
-                            className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
-                          />
-                        </div>
-                      </div>
-                    )}
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -12890,6 +12552,166 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           )}
 
           {/* ========================================================= */}
+          {/* MODAL: COIN RULES & STAMP TARGET CONFIGURATION */}
+          {/* ========================================================= */}
+          {coinConfigModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-5 animate-in zoom-in-95 duration-150">
+                <button 
+                  type="button"
+                  onClick={() => setCoinConfigModalOpen(false)}
+                  className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-black">
+                    <Coins className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-slate-900">Aurex Coin & Stamp Card Rules</h3>
+                    <p className="text-xs text-slate-500 font-medium">Configure customer loyalty coin requirements and merchant targets</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 text-xs font-bold pt-1">
+                  {/* Target Coins per Card */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                        Target Coins Required Per Card
+                      </label>
+                      <span className="text-xs font-black text-[#8B0000] bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-lg">
+                        Current: {coinConfig.targetCoins} Coins
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-normal">
+                      Number of Aurex Coins a customer must collect to complete their stamp card and unlock free rewards.
+                    </p>
+                    <div className="grid grid-cols-4 gap-2 pt-1">
+                      {[5, 7, 10, 12].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setCoinConfig(prev => ({ ...prev, targetCoins: num, minRedeemCoins: num }))}
+                          className={`py-2 rounded-xl font-black text-xs cursor-pointer transition ${
+                            Number(coinConfig.targetCoins) === num
+                              ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/25'
+                              : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+                          }`}
+                        >
+                          {num} Coins
+                        </button>
+                      ))}
+                    </div>
+                    <div className="pt-2 flex items-center space-x-2">
+                      <span className="text-[11px] text-slate-500">Custom target:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={coinConfig.targetCoins}
+                        onChange={(e) => {
+                          const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                          setCoinConfig(prev => ({ ...prev, targetCoins: val, minRedeemCoins: val }));
+                        }}
+                        className="w-24 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                      />
+                      <span className="text-[11px] text-slate-400">coins per completed card</span>
+                    </div>
+                  </div>
+
+                  {/* Earning Rules */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5">
+                      <label className="text-[11px] font-black text-slate-800">Coins Awarded Per Scan</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={coinConfig.coinsPerScan || 1}
+                        onChange={(e) => setCoinConfig(prev => ({ ...prev, coinsPerScan: Math.max(1, parseInt(e.target.value, 10) || 1) }))}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                      />
+                      <span className="text-[10px] text-slate-400 block">Default 1 coin per visit scan</span>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5">
+                      <label className="text-[11px] font-black text-slate-800">First-Visit Welcome Bonus</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="5"
+                        value={coinConfig.firstVisitBonus !== undefined ? coinConfig.firstVisitBonus : 1}
+                        onChange={(e) => setCoinConfig(prev => ({ ...prev, firstVisitBonus: Math.max(0, parseInt(e.target.value, 10) || 0) }))}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                      />
+                      <span className="text-[10px] text-slate-400 block">Bonus coins awarded on 1st visit</span>
+                    </div>
+                  </div>
+
+                  {/* Daily Scan Limit & Auto-Approve */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5">
+                      <label className="text-[11px] font-black text-slate-800">Max Daily Scans Per Customer</label>
+                      <select
+                        value={coinConfig.maxDailyScans || 2}
+                        onChange={(e) => setCoinConfig(prev => ({ ...prev, maxDailyScans: parseInt(e.target.value, 10) }))}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                      >
+                        <option value="1">1 scan / day</option>
+                        <option value="2">2 scans / day</option>
+                        <option value="3">3 scans / day</option>
+                        <option value="5">5 scans / day</option>
+                        <option value="999">Unlimited scans</option>
+                      </select>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-1.5">
+                      <label className="text-[11px] font-black text-slate-800">Auto-Approve First Coin</label>
+                      <button
+                        type="button"
+                        onClick={() => setCoinConfig(prev => ({ ...prev, autoApproveFirstCoin: !prev.autoApproveFirstCoin }))}
+                        className={`w-full py-2 px-3 rounded-xl font-black text-xs flex items-center justify-between border cursor-pointer transition ${
+                          coinConfig.autoApproveFirstCoin
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
+                        }`}
+                      >
+                        <span>{coinConfig.autoApproveFirstCoin ? 'Auto-Approved' : 'Cashier Approval Required'}</span>
+                        <span className={`w-2.5 h-2.5 rounded-full ${coinConfig.autoApproveFirstCoin ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="pt-2 flex items-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setCoinConfigModalOpen(false)}
+                      className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition cursor-pointer text-center"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateCoinConfig(coinConfig);
+                        setCoinConfigModalOpen(false);
+                      }}
+                      className="flex-1 bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Apply to Portals</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
           {/* MODAL: EDIT MERCHANT FEATURE */}
           {/* ========================================================= */}
           {editingFeatureModal && (
@@ -12969,53 +12791,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                       >
                         <option value="toggle">Toggle Switch (On / Off)</option>
-                        <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
                         <option value="numeric">Numerical Parameter</option>
                         <option value="select">Dropdown Choice</option>
                         <option value="text">Text Configuration</option>
                       </select>
                     </div>
                   </div>
-
-                  {/* Target Coins if applicable */}
-                  {(editingFeatureModal.featureType === 'coin_target' || editingFeatureModal.id === 'cust_stamp_cards') && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                      <label className="block text-amber-900 font-black text-[11px]">
-                        Target Coins (e.g. 5 or 7 coins)
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        {[5, 7, 10].map(cNum => (
-                          <button
-                            key={cNum}
-                            type="button"
-                            onClick={() => {
-                              setEditingFeatureModal({ ...editingFeatureModal, targetCoins: cNum });
-                              handleUpdateCoinConfig({ ...coinConfig, targetCoins: cNum });
-                            }}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
-                              (editingFeatureModal.targetCoins || coinConfig.targetCoins) === cNum
-                                ? 'bg-[#8B0000] text-white shadow-xs'
-                                : 'bg-white text-slate-700 border border-amber-200'
-                            }`}
-                          >
-                            {cNum} Coins
-                          </button>
-                        ))}
-                        <input
-                          type="number"
-                          min={1}
-                          max={100}
-                          value={editingFeatureModal.targetCoins || coinConfig.targetCoins}
-                          onChange={(e) => {
-                            const val = Math.max(1, parseInt(e.target.value) || 1);
-                            setEditingFeatureModal({ ...editingFeatureModal, targetCoins: val });
-                            handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
-                          }}
-                          className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -13189,46 +12970,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                       >
                         <option value="toggle">Toggle Switch (On / Off)</option>
-                        <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
                         <option value="numeric">Numerical Parameter</option>
                         <option value="select">Dropdown Choice</option>
                         <option value="text">Text Configuration</option>
                       </select>
                     </div>
                   </div>
-
-                  {/* Target Coins if applicable */}
-                  {newFeatureForm.featureType === 'coin_target' && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                      <label className="block text-amber-900 font-black text-[11px]">
-                        Target Coins Needed (e.g. 5 or 7 coins)
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        {[5, 7, 10].map(cNum => (
-                          <button
-                            key={cNum}
-                            type="button"
-                            onClick={() => setNewFeatureForm({ ...newFeatureForm, targetCoins: cNum })}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
-                              (newFeatureForm.targetCoins || 5) === cNum
-                                ? 'bg-[#8B0000] text-white shadow-xs'
-                                : 'bg-white text-slate-700 border border-amber-200'
-                            }`}
-                          >
-                            {cNum} Coins
-                          </button>
-                        ))}
-                        <input
-                          type="number"
-                          min={1}
-                          max={100}
-                          value={newFeatureForm.targetCoins || 5}
-                          onChange={(e) => setNewFeatureForm({ ...newFeatureForm, targetCoins: Math.max(1, parseInt(e.target.value) || 1) })}
-                          className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -13899,80 +13646,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             {/* TAB: CUSTOMER CRM & LIVE TELEMETRY */}
             {activeTab === 'customers' && (
               <div className="space-y-6 animate-in fade-in duration-150">
-                {/* Aurex Coin Rules & Target Control Banner (User Requested: Direct Coin Control e.g. 5 vs 7 coins) */}
-                <div className="bg-gradient-to-r from-amber-50 via-rose-50/50 to-amber-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                  <div className="flex items-start sm:items-center space-x-3.5">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25 shrink-0">
-                      <Coins className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-sm sm:text-base font-black text-slate-900">
-                          Loyalty Coin Rules & Reward Target Control
-                        </h3>
-                        <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full">
-                          Live Enforced
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 font-medium mt-0.5">
-                        Target coins needed to complete a loyalty card: <span className="font-black text-amber-900">{coinConfig.targetCoins} Coins</span> • {coinConfig.coinsPerScan || 1} coin per scan • +{coinConfig.firstVisitBonus || 1} first visit bonus
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
-                      Set Target:
-                    </span>
-                    {[5, 7, 10].map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => handleUpdateCoinConfig({ ...coinConfig, targetCoins: num })}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-2xs ${
-                          coinConfig.targetCoins === num
-                            ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/25 ring-2 ring-[#8B0000]/20'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
-                      >
-                        <Coins className="w-3.5 h-3.5" />
-                        <span>{num} Coins</span>
-                        {num === 5 && <span className="text-[9px] opacity-75 hidden sm:inline">(Standard)</span>}
-                        {num === 7 && <span className="text-[9px] opacity-75 hidden sm:inline">(Weekly VIP)</span>}
-                      </button>
-                    ))}
-
-                    {/* Custom Coins Input */}
-                    <div className="flex items-center space-x-1 bg-white border border-slate-200 rounded-xl px-2 py-1 shadow-2xs">
-                      <span className="text-[11px] font-bold text-slate-500">Custom:</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={100}
-                        value={coinConfig.targetCoins}
-                        onChange={(e) => {
-                          const val = Math.max(1, parseInt(e.target.value) || 1);
-                          handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
-                        }}
-                        className="w-12 text-center text-xs font-black text-slate-900 bg-slate-50 rounded-lg py-0.5 border border-slate-200 focus:outline-none focus:border-[#8B0000]"
-                      />
-                      <span className="text-[11px] font-bold text-slate-500">Coins</span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPermissionsSubTab('customer_coins');
-                        setActiveTab('permissions');
-                      }}
-                      className="bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center space-x-1.5 shadow-2xs ml-auto lg:ml-0"
-                    >
-                      <Sliders className="w-3.5 h-3.5 text-slate-500" />
-                      <span>All Rules</span>
-                    </button>
-                  </div>
-                </div>
-
                 {/* 4 Stat Cards (Matching Landing Page Gradient Style & Left Icon Squircle) */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5 lg:gap-4">
                   {/* Card 1: Total Customers */}

@@ -1453,8 +1453,93 @@ let merchantDashboardFeatures = [
     isVisible: true,
     minPlan: 'All Plans',
     isCustom: false
+  },
+  {
+    id: 'loyalty_coins',
+    name: 'Aurex Loyalty Coins & Stamp Targets',
+    category: 'Rewards & Programs',
+    description: 'Configure customer coin earning rules, target coins per card (5, 7, etc.), and first-visit bonus.',
+    isVisible: true,
+    minPlan: 'All Plans',
+    isCustom: false
   }
 ];
+
+let globalThemeConfig = {
+  primaryColor: '#8B0000',
+  secondaryColor: '#590104',
+  accentColor: '#D97706',
+  cardRadius: '24px',
+  cardRadiusClass: 'rounded-3xl',
+  cardDensity: 'comfortable',
+  cardElevation: 'soft',
+  fontSize: 'standard',
+  lastUpdated: new Date().toISOString()
+};
+
+let globalCoinConfig = {
+  targetCoins: 5,
+  coinsPerScan: 1,
+  firstVisitBonus: 1,
+  minRedeemCoins: 5,
+  maxDailyScans: 2,
+  coinExpiryDays: 365,
+  autoApproveFirstCoin: true,
+  programName: 'BeAurex Loyalty Stamp Card',
+  rewardDescription: 'Collect coins on each visit to unlock free rewards'
+};
+
+let globalCustomerFeatures = [
+  { id: 'cust_google_login', name: 'Google One-Tap & OAuth Authentication', category: 'Onboarding & Auth', description: 'Instant 1-tap sign-in for customers without tedious passwords or OTPs.', isVisible: true, isCustom: false },
+  { id: 'cust_lens_scan', name: 'Google Lens & Camera QR Claim Flow', category: 'Scans & Claim', description: 'Universal counter QR scan support directly from default Android/iPhone camera or Google Lens.', isVisible: true, isCustom: false },
+  { id: 'cust_first_coin_instant', name: 'Instant Auto-Claim First Coin', category: 'Scans & Claim', description: 'Credit first visit coin automatically upon QR scan without cashier manual confirmation.', isVisible: true, isCustom: false },
+  { id: 'cust_stamp_cards', name: 'Dynamic Aurex Coin Cards & Progress Bar', category: 'Loyalty Rewards', description: 'Visual interactive Aurex Coin cards displaying loyalty progress towards free reward unlock.', isVisible: true, isCustom: false },
+  { id: 'cust_wallet_coins', name: 'Loyalty Points Wallet & Coin Balance', category: 'Loyalty Rewards', description: 'Live digital coin balance, earning history, and transaction ledger.', isVisible: true, isCustom: false },
+  { id: 'cust_mystery_scratch', name: 'Mystery Scratch Cards & Gamification', category: 'Gamification', description: 'Gamified scratch cards unlocked after every successful counter scan.', isVisible: true, isCustom: false },
+  { id: 'cust_spin_wheel', name: 'Spin & Win Daily Luck Wheel', category: 'Gamification', description: 'Daily lucky spin wheel giving bonus reward multipliers and discount coupons.', isVisible: true, isCustom: false },
+  { id: 'cust_referral_rewards', name: 'Friend Referral & Invite Code Program', category: 'Referrals', description: 'Personal referral link allowing customers to earn extra coins for inviting friends.', isVisible: true, isCustom: false },
+  { id: 'cust_pass_apple_wallet', name: 'Digital Pass & Home Screen Shortcut (PWA)', category: 'User Experience', description: 'Add BeAurex Pass to mobile home screen or Apple/Google Wallet.', isVisible: true, isCustom: false },
+  { id: 'cust_profile_edit', name: 'Customer Profile, Name & Preferences', category: 'Account & Security', description: 'Editable profile with avatar, food/retail preferences, and notifications.', isVisible: true, isCustom: false }
+];
+
+// Theme Config Endpoints
+router.get('/theme-config', async (req, res) => {
+  res.json({ success: true, themeConfig: globalThemeConfig });
+});
+
+router.post('/theme-config', async (req, res) => {
+  if (req.body && typeof req.body === 'object') {
+    globalThemeConfig = { ...globalThemeConfig, ...req.body, lastUpdated: new Date().toISOString() };
+    return res.json({ success: true, themeConfig: globalThemeConfig });
+  }
+  res.status(400).json({ success: false, message: 'Invalid theme config payload' });
+});
+
+// Coin Config Endpoints
+router.get('/coin-config', async (req, res) => {
+  res.json({ success: true, coinConfig: globalCoinConfig });
+});
+
+router.post('/coin-config', async (req, res) => {
+  if (req.body && typeof req.body === 'object') {
+    globalCoinConfig = { ...globalCoinConfig, ...req.body };
+    return res.json({ success: true, coinConfig: globalCoinConfig });
+  }
+  res.status(400).json({ success: false, message: 'Invalid coin config payload' });
+});
+
+// Customer Features Endpoints
+router.get('/customer-features', async (req, res) => {
+  res.json({ success: true, features: globalCustomerFeatures });
+});
+
+router.post('/customer-features', async (req, res) => {
+  if (Array.isArray(req.body?.features)) {
+    globalCustomerFeatures = req.body.features;
+    return res.json({ success: true, features: globalCustomerFeatures });
+  }
+  res.status(400).json({ success: false, message: 'Invalid customer features payload' });
+});
 
 // GET all merchant dashboard features
 router.get('/merchant-features', async (req, res) => {

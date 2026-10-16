@@ -365,7 +365,7 @@ router.post('/auth/register', async (req, res) => {
       password: hashedPassword,
       customerId,
       referralCode: refCode,
-      referredBy: referrer ? referrer.customerId : '',
+      referredBy: referrer ? referrer.customerId : (referralCode ? String(referralCode).trim().toUpperCase() : ''),
       points: referrer ? 150 : 100, // 150 points if referred, else 100
       tier: 'Bronze Member',
       stamps: referrer ? 1 : 0, // bonus 1 free stamp if referred!

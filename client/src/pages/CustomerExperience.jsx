@@ -245,6 +245,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
   const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
 
+  // Customer Features Synchronization with Super Admin
+  const [customerFeatures, setCustomerFeatures] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_customer_features');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [];
+  });
+
+  const isCustFeatureVisible = (featId) => {
+    if (!customerFeatures || customerFeatures.length === 0) return true;
+    const found = customerFeatures.find(f => f.id === featId);
+    return found ? Boolean(found.isVisible) : true;
+  };
+
   const handleSaveCustomerProfile = async (e) => {
     e.preventDefault();
     const updated = {
@@ -285,6 +300,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     if (authStored === 'false') return false;
     return true;
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path.includes('/customer/login') || path.includes('/customer/signup')) {
+        setIsAuthenticated(false);
+      }
+    }
+  }, [window.location.pathname]);
 
   // Copy toast state
   const [copiedId, setCopiedId] = useState(false);
@@ -348,6 +372,86 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   }, [initialAuthMode]);
 
+  // Read referral code & source parameters from URL
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const refCode = searchParams.get('ref') || searchParams.get('referral') || searchParams.get('code') || searchParams.get('invite');
+      if (refCode) {
+        setReferralInput(refCode.toUpperCase());
+      }
+    } catch (_) {}
+  }, []);
+
+  // Record onboarded/registered customer to Team Management's Referred Users registry
+  const recordToReferredUsersList = (userData) => {
+    try {
+      const defaultReferredUsers = [
+        { id: '1728', mwFrId: 'MW - 737', isMwLink: true, email: 'rohit.verma@gmail.com', userType: 'MW', name: 'Rohit Verma', number: '9876543210', joinedOn: '03-07-2026', dateCreated: '03-07-2026', validityDate: '03-07-2027', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+        { id: '1727', mwFrId: 'FR - 1727', isMwLink: true, email: 'ananya.deshmukh@gmail.com', userType: 'Franchise', name: 'Ananya Deshmukh', number: '9822012345', joinedOn: '03-07-2026', dateCreated: '03-07-2026', validityDate: '03-07-2027', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+        { id: '1590', mwFrId: '605', isMwLink: true, email: 'siddharth.mehta@outlook.com', userType: 'MW', name: 'Siddharth Mehta', number: '9819054321', joinedOn: '26-12-2025', dateCreated: '27-12-2025', validityDate: '27-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+        { id: '1589', mwFrId: 'MW - 732', isMwLink: true, email: 'kavita.reddy@gmail.com', userType: 'MW', name: 'Kavita Reddy', number: '9849011223', joinedOn: '26-12-2025', dateCreated: '26-12-2025', validityDate: '26-12-2026', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+        { id: '1587', mwFrId: '601', isMwLink: true, email: 'vikram.singh@gmail.com', userType: 'MW', name: 'Vikram Singh', number: '9810123456', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+        { id: '1586', mwFrId: '597', isMwLink: true, email: 'priya.nair@gmail.com', userType: 'MW', name: 'Priya Nair', number: '9848033221', joinedOn: '25-12-2025', dateCreated: '25-12-2025', validityDate: '25-12-2026', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+        { id: '1075', mwFrId: '587', isMwLink: true, email: 'arjun.sharma@yahoo.com', userType: 'MW', name: 'Arjun Sharma', number: '9833045678', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '30-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+        { id: '1074', mwFrId: '586', isMwLink: true, email: 'ajay.kapoor@gmail.com', userType: 'MW', name: 'Ajay Kapoor', number: '9800321450', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' },
+        { id: '1072', mwFrId: '584', isMwLink: true, email: 'manish.joshi@gmail.com', userType: 'MW', name: 'Manish Joshi', number: '9658732140', joinedOn: '23-12-2025', dateCreated: '23-12-2025', validityDate: '23-12-2026', mwStatus: 'Active Pro', paymentStatus: 'Paid' },
+        { id: '1068', mwFrId: '581', isMwLink: true, email: 'deepak.verma@gmail.com', userType: 'MW', name: 'Deepak Verma', number: '9654823170', joinedOn: '22-12-2025', dateCreated: '22-12-2025', validityDate: '22-12-2026', mwStatus: 'Active Standard', paymentStatus: 'Paid' }
+      ];
+
+      const raw = localStorage.getItem('beaurex_team_referred_users');
+      let currentUsers = [];
+      try {
+        currentUsers = JSON.parse(raw || '[]');
+      } catch (_) {}
+      if (!Array.isArray(currentUsers) || currentUsers.length === 0) {
+        currentUsers = defaultReferredUsers;
+      }
+
+      const cleanEmail = String(userData.email || '').toLowerCase().trim();
+      const existingIdx = currentUsers.findIndex(u => u.email && u.email.toLowerCase() === cleanEmail);
+
+      const now = new Date();
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+      const joinedOnDate = `${d}-${m}-${y}`;
+      const validityDate = `${d}-${m}-${y + 1}`;
+
+      const maxId = currentUsers.reduce((acc, u) => {
+        const val = parseInt(u.id, 10);
+        return !isNaN(val) && val > acc ? val : acc;
+      }, 1728);
+      const newId = String(maxId + 1);
+
+      const newRecord = {
+        id: existingIdx >= 0 ? currentUsers[existingIdx].id : newId,
+        mwFrId: `MW - ${Math.floor(700 + Math.random() * 100)}`,
+        isMwLink: true,
+        email: cleanEmail || 'customer@beaurex.com',
+        userType: 'Customer',
+        name: (userData.name || cleanEmail.split('@')[0] || 'BeAurex Customer').trim(),
+        number: userData.phone || userData.mobile || '9876543210',
+        joinedOn: existingIdx >= 0 ? currentUsers[existingIdx].joinedOn : joinedOnDate,
+        dateCreated: existingIdx >= 0 ? currentUsers[existingIdx].dateCreated : joinedOnDate,
+        validityDate: existingIdx >= 0 ? currentUsers[existingIdx].validityDate : validityDate,
+        mwStatus: 'Active Pro',
+        paymentStatus: 'Paid'
+      };
+
+      if (existingIdx >= 0) {
+        currentUsers[existingIdx] = { ...currentUsers[existingIdx], ...newRecord };
+      } else {
+        currentUsers.unshift(newRecord);
+      }
+
+      localStorage.setItem('beaurex_team_referred_users', JSON.stringify(currentUsers));
+      window.dispatchEvent(new Event('beaurex_referred_users_updated'));
+    } catch (e) {
+      console.warn('Failed recording to referred users list:', e);
+    }
+  };
+
   // Customer OTP Verification states
   const [otpSent, setOtpSent] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
@@ -406,11 +510,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const handleThemeUpdate = (e) => applyThemeConfig(e.detail);
     window.addEventListener('beaurex_theme_config_updated', handleThemeUpdate);
 
+    const handleCustomerFeaturesUpdate = (e) => {
+      if (e?.detail) setCustomerFeatures(e.detail);
+      else {
+        try {
+          const s = localStorage.getItem('beaurex_customer_features');
+          if (s) setCustomerFeatures(JSON.parse(s));
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('beaurex_customer_features_updated', handleCustomerFeaturesUpdate);
+
+    fetch('/api/admin/customer-features')
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.success && Array.isArray(d.features)) {
+          setCustomerFeatures(d.features);
+          localStorage.setItem('beaurex_customer_features', JSON.stringify(d.features));
+        }
+      })
+      .catch(() => {});
+
     const handleStorage = (e) => {
       if (e.key === 'beaurex_coin_config') {
         try { applyCoinConfig(JSON.parse(e.newValue)); } catch (_) {}
       } else if (e.key === 'beaurex_theme_config') {
         try { applyThemeConfig(JSON.parse(e.newValue)); } catch (_) {}
+      } else if (e.key === 'beaurex_customer_features') {
+        try { setCustomerFeatures(JSON.parse(e.newValue)); } catch (_) {}
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -418,6 +545,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     return () => {
       window.removeEventListener('beaurex_coin_config_updated', handleCoinUpdate);
       window.removeEventListener('beaurex_theme_config_updated', handleThemeUpdate);
+      window.removeEventListener('beaurex_customer_features_updated', handleCustomerFeaturesUpdate);
       window.removeEventListener('storage', handleStorage);
     };
   }, []);
@@ -616,6 +744,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (data && data.success && data.customer) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        recordToReferredUsersList({
+          name: data.customer.name || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          phone: data.customer.mobile || data.customer.phone || '9876543210'
+        });
+        const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+        if (fromTeam) {
+          setLoginSuccessMsg('Customer signed in! Updating Referral registry...');
+          setTimeout(() => {
+            navigate('/team?tab=referral_details');
+          }, 1200);
+          return;
+        }
         completeCustomerAuthRedirect();
       } else if (data && data.notRegistered) {
         setLoginError('Account not found with this email. Please create an account.');
@@ -623,7 +764,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           setAuthMode('signup');
           const redirectParam = new URLSearchParams(window.location.search).get('redirect');
           const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
-          navigate(`/customer/signup${redirectQuery}`);
+          const fromParam = new URLSearchParams(window.location.search).get('from');
+          const teamParam = fromParam ? `${redirectQuery ? '&' : '?'}from=${fromParam}` : '';
+          navigate(`/customer/signup${redirectQuery}${teamParam}`);
           setLoginError('');
         }, 1500);
       } else {
@@ -651,6 +794,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      recordToReferredUsersList({
+        name: cust.name,
+        email: cleanEmail,
+        phone: cust.phone
+      });
+      const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+      if (fromTeam) {
+        setLoginSuccessMsg('Customer signed in! Updating Referral registry...');
+        setTimeout(() => {
+          navigate('/team?tab=referral_details');
+        }, 1200);
+        return;
+      }
       completeCustomerAuthRedirect();
     }
   };
@@ -705,6 +861,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (data && data.success && data.customer) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        recordToReferredUsersList({
+          name: data.customer.name || loginName.trim(),
+          email: data.customer.email || cleanEmail,
+          phone: cleanedDigits || data.customer.mobile || data.customer.phone || loginPhone
+        });
+        const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+        if (fromTeam) {
+          setLoginSuccessMsg('Customer registered successfully! Updating Referral registry...');
+          setTimeout(() => {
+            navigate('/team?tab=referral_details');
+          }, 1200);
+          return;
+        }
         completeCustomerAuthRedirect();
       } else if (data && data.alreadyExists) {
         setLoginError(data.message || 'An account already exists with this email. Please sign in.');
@@ -712,7 +881,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           setAuthMode('signin');
           const redirectParam = new URLSearchParams(window.location.search).get('redirect');
           const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
-          navigate(`/customer/login${redirectQuery}`);
+          const fromParam = new URLSearchParams(window.location.search).get('from');
+          const teamParam = fromParam ? `${redirectQuery ? '&' : '?'}from=${fromParam}` : '';
+          navigate(`/customer/login${redirectQuery}${teamParam}`);
         }, 1800);
       } else {
         setLoginError(data?.message || 'Could not create account. Please check your details.');
@@ -724,7 +895,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       const cust = {
         name: loginName.trim(),
         customerId: custId,
-        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '+91 98765 43210',
+        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : (cleanedDigits ? `+91 ${cleanedDigits}` : '+91 98765 43210'),
         email: cleanEmail,
         tier: 'Bronze Member',
         memberSince: 'Today',
@@ -739,6 +910,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      recordToReferredUsersList({
+        name: loginName.trim(),
+        email: cleanEmail,
+        phone: cleanedDigits || loginPhone || '9876543210'
+      });
+      const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+      if (fromTeam) {
+        setLoginSuccessMsg('Customer registered successfully! Updating Referral registry...');
+        setTimeout(() => {
+          navigate('/team?tab=referral_details');
+        }, 1200);
+        return;
+      }
       completeCustomerAuthRedirect();
     }
   };
@@ -789,6 +973,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
       }
 
+      recordToReferredUsersList({
+        name: targetName,
+        email: targetEmail,
+        phone: loginPhone || '9876543210'
+      });
+
+      const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+      if (fromTeam) {
+        setLoginSuccessMsg('Google Account verified! Updating Referral registry...');
+        setTimeout(() => {
+          navigate('/team?tab=referral_details');
+        }, 1200);
+        return;
+      }
+
       completeCustomerAuthRedirect();
     } catch (_) {
       setGoogleLoading(false);
@@ -812,13 +1011,26 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(newCust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
+      recordToReferredUsersList({
+        name: targetName,
+        email: targetEmail,
+        phone: loginPhone || '9876543210'
+      });
+      const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+      if (fromTeam) {
+        setLoginSuccessMsg('Google Account verified! Updating Referral registry...');
+        setTimeout(() => {
+          navigate('/team?tab=referral_details');
+        }, 1200);
+        return;
+      }
       completeCustomerAuthRedirect();
     }
   };
 
   // Reusable Google Account Selector Modal
   const renderGoogleModal = () => {
-    if (!googleSignInModalOpen) return null;
+    if (!googleSignInModalOpen || !isCustFeatureVisible('cust_google_login')) return null;
 
     return (
       <div 
@@ -1069,13 +1281,26 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (data && data.success && data.customer) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        recordToReferredUsersList({
+          name: data.customer.name || targetEmail.split('@')[0],
+          email: targetEmail,
+          phone: data.customer.mobile || data.customer.phone || otpIdentifier || '9876543210'
+        });
+        const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+        if (fromTeam) {
+          setLoginSuccessMsg('OTP verified! Updating Referral registry...');
+          setTimeout(() => {
+            navigate('/team?tab=referral_details');
+          }, 1200);
+          return;
+        }
         completeCustomerAuthRedirect();
       } else if (otpCode === '123456' || otpCode === devOtpHint) {
         const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         const cust = {
           name: targetEmail.split('@')[0].toUpperCase() || 'BeAurex Member',
           customerId: custId,
-          phone: '+91 98765 43210',
+          phone: otpIdentifier ? `+91 ${otpIdentifier.slice(-10)}` : '+91 98765 43210',
           email: targetEmail,
           tier: 'Bronze Member',
           memberSince: 'Today',
@@ -1090,6 +1315,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         };
         setCustomerUser(cust);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+        recordToReferredUsersList({
+          name: cust.name,
+          email: targetEmail,
+          phone: cust.phone
+        });
+        const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+        if (fromTeam) {
+          setLoginSuccessMsg('OTP verified! Updating Referral registry...');
+          setTimeout(() => {
+            navigate('/team?tab=referral_details');
+          }, 1200);
+          return;
+        }
         completeCustomerAuthRedirect();
       } else {
         setLoginError(data?.message || 'Invalid or expired OTP. Please try again.');
@@ -1100,7 +1338,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       const cust = {
         name: targetEmail.split('@')[0].toUpperCase() || 'BeAurex Member',
         customerId: custId,
-        phone: '+91 98765 43210',
+        phone: otpIdentifier ? `+91 ${otpIdentifier.slice(-10)}` : '+91 98765 43210',
         email: targetEmail,
         tier: 'Bronze Member',
         memberSince: 'Today',
@@ -1115,6 +1353,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
+      recordToReferredUsersList({
+        name: cust.name,
+        email: targetEmail,
+        phone: cust.phone
+      });
+      const fromTeam = new URLSearchParams(window.location.search).get('from') === 'team';
+      if (fromTeam) {
+        setLoginSuccessMsg('OTP verified! Updating Referral registry...');
+        setTimeout(() => {
+          navigate('/team?tab=referral_details');
+        }, 1200);
+        return;
+      }
       completeCustomerAuthRedirect();
     }
   };
@@ -1679,18 +1930,20 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             {/* Sign in CTAs */}
             <div className="space-y-3 pt-2">
-              <button
-                onClick={() => setGoogleSignInModalOpen(true)}
-                className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Continue with Google Account</span>
-              </button>
+              {isCustFeatureVisible('cust_google_login') && (
+                <button
+                  onClick={() => setGoogleSignInModalOpen(true)}
+                  className="w-full bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-2xl text-xs transition flex items-center justify-center space-x-3 shadow-xs cursor-pointer"
+                >
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>Continue with Google Account</span>
+                </button>
+              )}
 
               <button
                 onClick={() => {
@@ -1738,12 +1991,32 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // VIEW: CUSTOMER LOGIN & SIGN-UP PORTAL (WHEN UN-AUTHENTICATED)
   // =========================================================================
   if (!isAuthenticated) {
+    const isFromTeam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('from') === 'team';
     return (
       <div 
         className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 font-sans customer-root auth-root selection:bg-[#8B0000] selection:text-white"
         style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
       >
-        
+        {/* Onboarding from Team banner */}
+        {isFromTeam && (
+          <div className="w-full max-w-[420px] mb-3 bg-gradient-to-r from-red-950 via-[#8B0000] to-slate-900 border border-red-400/40 rounded-2xl p-3 text-white flex items-center justify-between shadow-xl animate-in slide-in-from-top-2">
+            <div className="flex items-center space-x-2 text-xs">
+              <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
+              <div>
+                <span className="font-bold text-white block">Team Onboarding Active</span>
+                <span className="text-[11px] text-amber-200">Referral Code: <span className="font-mono font-black">{referralInput || 'BEAUREX-1704'}</span></span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/team?tab=referral_details')}
+              className="text-[11px] font-bold text-white bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded-xl border border-white/20 transition cursor-pointer shrink-0 ml-2"
+            >
+              ← Back to Team
+            </button>
+          </div>
+        )}
+
         {/* OTP VERIFICATION VIEW (Matches Reference Image 2) */}
         {otpSent ? (
           <div className="w-full max-w-[420px] bg-white rounded-3xl shadow-xl border border-slate-200/90 p-6 sm:p-8 relative animate-in fade-in zoom-in-95 duration-200">
@@ -1904,32 +2177,36 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               )}
 
               {/* Google Sign Up Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginError('');
-                  setLoginSuccessMsg('');
-                  setGoogleSignInModalOpen(true);
-                }}
-                className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Sign up with Google</span>
-              </button>
+              {isCustFeatureVisible('cust_google_login') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginError('');
+                      setLoginSuccessMsg('');
+                      setGoogleSignInModalOpen(true);
+                    }}
+                    className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
+                  >
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>Sign up with Google</span>
+                  </button>
 
-              {/* Divider */}
-              <div className="relative flex items-center justify-center my-3">
-                <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
-                  or sign up with email
-                </span>
-                <div className="border-t border-slate-200 w-full" />
-              </div>
+                  {/* Divider */}
+                  <div className="relative flex items-center justify-center my-3">
+                    <div className="border-t border-slate-200 w-full" />
+                    <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                      or sign up with email
+                    </span>
+                    <div className="border-t border-slate-200 w-full" />
+                  </div>
+                </>
+              )}
 
               <form onSubmit={handleCustomerSignup} className="space-y-3.5">
                 <div className="relative">
@@ -2035,9 +2312,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     type="button"
                     onClick={() => {
                       setAuthMode('signin');
-                      const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-                      const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
-                      navigate(`/customer/login${redirectQuery}`);
+                      const params = new URLSearchParams(window.location.search);
+                      const q = params.toString() ? `?${params.toString()}` : '';
+                      navigate(`/customer/login${q}`);
                       setLoginError('');
                       setLoginSuccessMsg('');
                     }}
@@ -2084,32 +2361,36 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               )}
 
               {/* Google Sign In Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginError('');
-                  setLoginSuccessMsg('');
-                  setGoogleSignInModalOpen(true);
-                }}
-                className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
+              {isCustFeatureVisible('cust_google_login') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoginError('');
+                      setLoginSuccessMsg('');
+                      setGoogleSignInModalOpen(true);
+                    }}
+                    className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
+                  >
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>Continue with Google</span>
+                  </button>
 
-              {/* Divider */}
-              <div className="relative flex items-center justify-center my-3">
-                <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
-                  or login with email
-                </span>
-                <div className="border-t border-slate-200 w-full" />
-              </div>
+                  {/* Divider */}
+                  <div className="relative flex items-center justify-center my-3">
+                    <div className="border-t border-slate-200 w-full" />
+                    <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                      or login with email
+                    </span>
+                    <div className="border-t border-slate-200 w-full" />
+                  </div>
+                </>
+              )}
 
               <form onSubmit={handleCustomerLogin} className="space-y-4">
                 {/* Email input */}
@@ -2187,9 +2468,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     type="button"
                     onClick={() => {
                       setAuthMode('signup');
-                      const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-                      const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
-                      navigate(`/customer/signup${redirectQuery}`);
+                      const params = new URLSearchParams(window.location.search);
+                      const q = params.toString() ? `?${params.toString()}` : '';
+                      navigate(`/customer/signup${q}`);
                       setLoginError('');
                       setLoginSuccessMsg('');
                     }}
@@ -2361,17 +2642,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <span>Home</span>
             </button>
 
-            <button
-              onClick={openScanScreen}
-              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
-                currentScreen === 'scan'
-                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
-                  : 'text-white/80 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <QrCode className="w-4 h-4" />
-              <span>Scan</span>
-            </button>
+            {isCustFeatureVisible('cust_lens_scan') && (
+              <button
+                onClick={openScanScreen}
+                className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+                  currentScreen === 'scan'
+                    ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <QrCode className="w-4 h-4" />
+                <span>Scan</span>
+              </button>
+            )}
 
             <button
               onClick={() => {
@@ -2455,7 +2738,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
           {/* Top Metric Cards: Exact match to Merchant Dashboard Type Card */}
-          {!emptyStateDemo && loyaltyCardsList.length > 0 && (
+          {!emptyStateDemo && loyaltyCardsList.length > 0 && isCustFeatureVisible('cust_wallet_coins') && (
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:gap-4">
               {/* Card 1: Active Loyalty Cards */}
               <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
@@ -2496,6 +2779,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           )}
 
           {/* Main Layout: Active Loyalty Programs */}
+          {isCustFeatureVisible('cust_stamp_cards') && (
           <div className="space-y-4">
               
               {/* Empty State */}
@@ -2574,6 +2858,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               )}
 
           </div>
+          )}
 
         </div>
       )}
@@ -3398,32 +3683,36 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
+              {isCustFeatureVisible('cust_profile_edit') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditProfileForm({ 
+                      name: customerUser.name || '', 
+                      phone: customerUser.phone || '', 
+                      email: customerUser.email || '' 
+                    });
+                    setEditProfileModalOpen(true);
+                  }}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Edit</span>
+                </button>
+              )}
+            </div>
+
+            {/* 2. Phone & Email Card (matching image) */}
+            <div 
+              onClick={() => {
+                if (isCustFeatureVisible('cust_profile_edit')) {
                   setEditProfileForm({ 
                     name: customerUser.name || '', 
                     phone: customerUser.phone || '', 
                     email: customerUser.email || '' 
                   });
                   setEditProfileModalOpen(true);
-                }}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
-              >
-                <Edit3 className="w-3.5 h-3.5 text-slate-500" />
-                <span>Edit</span>
-              </button>
-            </div>
-
-            {/* 2. Phone & Email Card (matching image) */}
-            <div 
-              onClick={() => {
-                setEditProfileForm({ 
-                  name: customerUser.name || '', 
-                  phone: customerUser.phone || '', 
-                  email: customerUser.email || '' 
-                });
-                setEditProfileModalOpen(true);
+                }
               }}
               className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
             >
@@ -3438,42 +3727,46 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </p>
                 </div>
               </div>
-              <Edit3 className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
+              {isCustFeatureVisible('cust_profile_edit') && (
+                <Edit3 className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
+              )}
             </div>
 
             {/* 3. Invite & Refer Button Below Email Address */}
-            <div>
-              <button
-                type="button"
-                onClick={handleShareReferral}
-                className="w-full bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] hover:from-[#590104] hover:to-[#400002] text-white font-black p-4 rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-[#8B0000]/25 flex items-center justify-between cursor-pointer group transform hover:-translate-y-0.5 active:translate-y-0"
-              >
-                <div className="flex items-center space-x-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
-                    <Share2 className="w-5 h-5 text-amber-300 stroke-[2.5]" />
+            {isCustFeatureVisible('cust_referral_rewards') && (
+              <div>
+                <button
+                  type="button"
+                  onClick={handleShareReferral}
+                  className="w-full bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] hover:from-[#590104] hover:to-[#400002] text-white font-black p-4 rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-[#8B0000]/25 flex items-center justify-between cursor-pointer group transform hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
+                      <Share2 className="w-5 h-5 text-amber-300 stroke-[2.5]" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block text-xs sm:text-sm font-black text-white leading-tight">
+                        Invite &amp; Refer Friends
+                      </span>
+                      <span className="block text-[11px] font-semibold text-rose-200/90 mt-0.5">
+                        Share your referral link to earn bonus rewards
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <span className="block text-xs sm:text-sm font-black text-white leading-tight">
-                      Invite &amp; Refer Friends
-                    </span>
-                    <span className="block text-[11px] font-semibold text-rose-200/90 mt-0.5">
-                      Share your referral link to earn bonus rewards
-                    </span>
-                  </div>
-                </div>
 
-                <div className="flex items-center space-x-1.5 bg-white/15 px-3 py-1.5 rounded-xl border border-white/20 text-amber-300 font-bold text-xs group-hover:bg-white/25 transition shrink-0 ml-2">
-                  <Gift className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Refer</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-0.5 transition" />
-                </div>
-              </button>
-              {copiedReferral && (
-                <p className="text-center text-xs text-emerald-600 font-bold mt-2">
-                  ✓ Referral link copied to clipboard!
-                </p>
-              )}
-            </div>
+                  <div className="flex items-center space-x-1.5 bg-white/15 px-3 py-1.5 rounded-xl border border-white/20 text-amber-300 font-bold text-xs group-hover:bg-white/25 transition shrink-0 ml-2">
+                    <Gift className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Refer</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-0.5 transition" />
+                  </div>
+                </button>
+                {copiedReferral && (
+                  <p className="text-center text-xs text-emerald-600 font-bold mt-2">
+                    ✓ Referral link copied to clipboard!
+                  </p>
+                )}
+              </div>
+            )}
 
 
             {/* 5. Privacy Policy Card */}
@@ -3549,15 +3842,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           </button>
 
           {/* Center Floating Red Scan Button */}
-          <div className="flex-1 flex justify-center">
-            <button
-              onClick={openScanScreen}
-              className="-mt-5 w-14 h-14 rounded-full bg-[#8B0000] hover:bg-[#690005] text-white flex items-center justify-center shadow-lg shadow-[#8B0000]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
-              aria-label="Scan QR Code"
-            >
-              <QrCode className="w-6 h-6 stroke-[2.5]" />
-            </button>
-          </div>
+          {isCustFeatureVisible('cust_lens_scan') && (
+            <div className="flex-1 flex justify-center">
+              <button
+                onClick={openScanScreen}
+                className="-mt-5 w-14 h-14 rounded-full bg-[#8B0000] hover:bg-[#690005] text-white flex items-center justify-center shadow-lg shadow-[#8B0000]/40 border-4 border-white transition transform active:scale-95 cursor-pointer"
+                aria-label="Scan QR Code"
+              >
+                <QrCode className="w-6 h-6 stroke-[2.5]" />
+              </button>
+            </div>
+          )}
 
           {/* Rewards Tab */}
           <button
