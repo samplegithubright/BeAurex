@@ -6,9 +6,16 @@ const merchantSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  ownerName: {
+    type: String,
+    default: ''
+  },
+  logo: {
+    type: String,
+    default: ''
+  },
   category: {
     type: String,
-    enum: ['RETAIL', 'CAFE_RESTAURANT', 'SALON_SPA', 'GROCERY', 'HEALTHCARE', 'OTHER'],
     default: 'RETAIL'
   },
   email: {
@@ -28,9 +35,33 @@ const merchantSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  addressLine1: {
+    type: String,
+    default: ''
+  },
+  addressLine2: {
+    type: String,
+    default: ''
+  },
+  address: {
+    type: String,
+    default: ''
+  },
   city: {
     type: String,
     default: 'Delhi NCR'
+  },
+  state: {
+    type: String,
+    default: ''
+  },
+  pinCode: {
+    type: String,
+    default: ''
+  },
+  pincode: {
+    type: String,
+    default: ''
   },
   tagline: {
     type: String,
@@ -63,6 +94,20 @@ const merchantSchema = new mongoose.Schema({
     type: String,
     unique: true,
     required: true
+  },
+  cashierPin: {
+    type: String,
+    default: '4829'
+  },
+  referralCode: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  referredBy: {
+    type: String,
+    default: '',
+    trim: true
   },
   subscriptionTier: {
     type: String,
@@ -136,6 +181,26 @@ const merchantSchema = new mongoose.Schema({
   planValidTill: {
     type: String,
     default: '-'
+  },
+  plan: {
+    type: String,
+    default: 'Standard Plan'
+  },
+  planName: {
+    type: String,
+    default: 'Standard Plan'
+  },
+  planId: {
+    type: String,
+    default: 'plan_standard'
+  },
+  planPrice: {
+    type: String,
+    default: '₹24,000'
+  },
+  planPeriod: {
+    type: String,
+    default: '/ Year'
   }
 }, { timestamps: true });
 
@@ -160,6 +225,10 @@ function checkMerchantSubscription(merchant) {
       status: 'COMPLIMENTARY',
       tier: merchant.subscriptionTier || 'PROFESSIONAL',
       daysRemaining: 365,
+      planName: merchant.dealDetails?.dealTitle || 'Complimentary VIP Partner',
+      planPrice: 'Free',
+      planPeriod: 'Complimentary',
+      planValidTill: merchant.planValidTill && merchant.planValidTill !== '-' ? merchant.planValidTill : 'Lifetime VIP',
       message: 'Complimentary full access granted by owner.'
     };
   }
@@ -187,6 +256,10 @@ function checkMerchantSubscription(merchant) {
       status: 'LIFETIME',
       tier: 'LEGACY',
       daysRemaining: 9999,
+      planName: 'Legacy Lifetime Plan',
+      planPrice: merchant.paymentAmount && merchant.paymentAmount !== '-' ? merchant.paymentAmount : '₹9,999',
+      planPeriod: '/ lifetime',
+      planValidTill: 'Lifetime Access',
       message: 'Lifetime Legacy Plan active.'
     };
   }
@@ -195,14 +268,15 @@ function checkMerchantSubscription(merchant) {
 
   // Paid Plan Detection (STANDARD, PROFESSIONAL, or ANY account that made payment)
   if (isPaidTier) {
-    let resolvedTier = 'PROFESSIONAL';
-    if (rawTier.includes('STANDARD') || rawTier.includes('BASIC')) resolvedTier = 'STANDARD';
-    else if (rawTier.includes('LEGACY') || rawTier.includes('LIFETIME')) resolvedTier = 'LEGACY';
-    else if (hasPayment) {
+    let resolvedTier = merchant.planName || merchant.plan || merchant.subscriptionTier || 'Standard Plan';
+    if (rawTier.includes('STANDARD') && !merchant.planName && !merchant.plan) resolvedTier = 'Standard Plan';
+    else if (rawTier.includes('PROFESSIONAL') && !merchant.planName && !merchant.plan) resolvedTier = 'Professional Plan';
+    else if ((rawTier.includes('LEGACY') || rawTier.includes('LIFETIME')) && !merchant.planName && !merchant.plan) resolvedTier = 'Legacy Lifetime Plan';
+    else if (hasPayment && !merchant.planName && !merchant.plan) {
       const num = Number(String(merchant.paymentAmount).replace(/[^0-9]/g, '')) || 0;
-      if (num > 0 && num <= 24000) resolvedTier = 'STANDARD';
-      else if (num >= 75000) resolvedTier = 'LEGACY';
-      else resolvedTier = 'PROFESSIONAL';
+      if (num > 0 && num <= 24000) resolvedTier = 'Standard Plan';
+      else if (num >= 75000) resolvedTier = 'Legacy Lifetime Plan';
+      else resolvedTier = 'Professional Plan';
     }
 
     let expires = null;
@@ -214,10 +288,20 @@ function checkMerchantSubscription(merchant) {
       const d = new Date(merchant.planValidTill);
       if (!isNaN(d.getTime())) expires = d;
     }
-    // If no valid expiration date is found on a paid merchant, grant standard 3-year validity
+    // If no valid expiration date is found on a paid merchant, grant standard 1-year validity
     if (!expires) {
-      expires = new Date(Date.now() + 3 * 365 * 24 * 60 * 60 * 1000);
+      expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
     }
+
+    const finalPlanName = merchant.dealDetails?.dealTitle || merchant.planName || merchant.plan || resolvedTier;
+    const finalPlanPrice = merchant.paymentAmount && merchant.paymentAmount !== '-' 
+      ? (merchant.paymentAmount.startsWith('₹') ? merchant.paymentAmount : `₹${merchant.paymentAmount}`)
+      : (merchant.planPrice || '₹24,000');
+    const finalPlanPeriod = merchant.planPeriod || '/ year';
+
+    const formattedTill = merchant.planValidTill && merchant.planValidTill !== '-' 
+      ? merchant.planValidTill 
+      : expires.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
     if (expires > now) {
       const daysRemaining = Math.max(0, Math.ceil((expires - now) / (1000 * 60 * 60 * 24)));
@@ -225,13 +309,15 @@ function checkMerchantSubscription(merchant) {
         isOnline: true,
         isExpired: false,
         status: 'PAID',
-        tier: resolvedTier,
+        tier: merchant.subscriptionTier || resolvedTier,
         daysRemaining,
         expiresAt: expires,
-        planValidTill: merchant.planValidTill && merchant.planValidTill !== '-' 
-          ? merchant.planValidTill 
-          : expires.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-        message: `${resolvedTier} Plan active (${daysRemaining} days remaining).`
+        planName: finalPlanName,
+        planId: merchant.planId || '',
+        planPrice: finalPlanPrice,
+        planPeriod: finalPlanPeriod,
+        planValidTill: formattedTill,
+        message: `${finalPlanName} active (${daysRemaining} days remaining).`
       };
     }
 
@@ -239,13 +325,19 @@ function checkMerchantSubscription(merchant) {
       isOnline: false,
       isExpired: true,
       reason: 'SUBSCRIPTION_EXPIRED',
-      tier: resolvedTier,
-      message: `Your ${resolvedTier} subscription has expired. Please buy a subscription plan to continue.`
+      tier: merchant.subscriptionTier || resolvedTier,
+      planName: `${finalPlanName} (Expired)`,
+      planId: merchant.planId || '',
+      planPrice: 'Renew',
+      planPeriod: finalPlanPeriod,
+      planValidTill: formattedTill,
+      message: `Your ${finalPlanName} subscription has expired. Please buy a subscription plan to continue.`
     };
   }
 
   // Free Trial Plan
   const trialExpiry = merchant.trialExpiresAt ? new Date(merchant.trialExpiresAt) : new Date(merchant.createdAt ? merchant.createdAt.getTime() + (merchant.trialDays || 3) * 24 * 60 * 60 * 1000 : Date.now());
+  const formattedTrialTill = trialExpiry.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   if (trialExpiry > now) {
     const daysRemaining = Math.max(0, Math.ceil((trialExpiry - now) / (1000 * 60 * 60 * 24)));
     const hoursRemaining = Math.max(0, Math.ceil((trialExpiry - now) / (1000 * 60 * 60)));
@@ -257,6 +349,10 @@ function checkMerchantSubscription(merchant) {
       daysRemaining,
       hoursRemaining,
       trialExpiresAt: trialExpiry,
+      planName: 'Free Trial Plan',
+      planPrice: 'Free',
+      planPeriod: '/ 3 days',
+      planValidTill: formattedTrialTill,
       message: `Free Trial active (${daysRemaining > 0 ? daysRemaining + ' day(s)' : hoursRemaining + ' hour(s)'} left).`
     };
   }
@@ -270,6 +366,10 @@ function checkMerchantSubscription(merchant) {
     tier: 'TRIAL',
     daysRemaining: 0,
     trialExpiresAt: trialExpiry,
+    planName: 'Free Trial (Expired)',
+    planPrice: 'Upgrade',
+    planPeriod: '',
+    planValidTill: formattedTrialTill,
     message: 'Your Free Trial has expired. Please purchase a subscription plan to access your dashboard and bring your store online.'
   };
 }

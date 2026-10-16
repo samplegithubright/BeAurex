@@ -9,27 +9,28 @@ import {
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
   RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft,
-  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3
+  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3, ChevronDown, Coins
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
+import { validatePassword } from '../utils/passwordValidator';
 
-// Official BeAurex Stamp Indicator (Crisp star in BeAurex maroon when stamped, dashed circle when uncollected)
+// Official BeAurex Coin Indicator (Crisp Aurex Coin in BeAurex maroon when stamped, dashed circle when uncollected)
 function BeAurexStamp({ stamped = true, size = 'md' }) {
   const sizeClasses = size === 'lg' ? 'w-10 h-10' : size === 'md' ? 'w-8 h-8' : 'w-7 h-7';
   if (!stamped) {
     return (
       <div 
         className={`${sizeClasses} rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center transition shrink-0`}
-        title="Uncollected Stamp"
+        title="Uncollected Aurex Coin"
       />
     );
   }
   return (
     <div 
       className={`${sizeClasses} rounded-full bg-[#8B0000] flex items-center justify-center shadow-xs transition transform hover:scale-105 shrink-0 text-white`}
-      title="Collected Stamp"
+      title="Collected Aurex Coin"
     >
-      <Star className="w-4 h-4 text-white fill-white" />
+      <Coins className="w-4 h-4 text-amber-300" />
     </div>
   );
 }
@@ -46,10 +47,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     return 'home';
   });
 
-  // Rewards sub-tab: 'to_claim' (Screen 8) or 'history' (Screen 14)
-  const [rewardsSubTab, setRewardsSubTab] = useState('to_claim');
+  // Rewards sub-tab: 'all' | 'to_claim' | 'history'
+  const [rewardsSubTab, setRewardsSubTab] = useState('all');
   const [historyFilter, setHistoryFilter] = useState('All'); // 'All' | 'Active' | 'Used' | 'Expired'
-  const [selectedHistoryVoucher, setSelectedHistoryVoucher] = useState(null);
 
   // Dynamic Reward History items for All / Active / Used / Expired
   const [rewardHistory, setRewardHistory] = useState([
@@ -107,20 +107,122 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   ]);
 
+  // Unlocked / Claimable Rewards ready to claim (When empty, shows Image 3 empty state)
+  const [claimableRewards, setClaimableRewards] = useState(() => {
+    const saved = localStorage.getItem('beaurex_claimable_rewards');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return [
+      {
+        id: 'cr-1',
+        title: 'Buy 1 Get 1 Free',
+        subtitle: 'on fresh brewed items',
+        storeName: 'Brew House Bakery & Bistro',
+        requiresStamps: 5,
+        stampsCollected: 5,
+        validTill: '15 Aug 2026',
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+        approvedAt: 'Ready Now',
+        description: '5 of 5 Aurex Coins collected! Ready to claim at checkout.'
+      }
+    ];
+  });
+
   // Utility modals/screens
   const [cameraPermissionModalOpen, setCameraPermissionModalOpen] = useState(false);
   const [noInternetModalOpen, setNoInternetModalOpen] = useState(false);
   const [googleSignInModalOpen, setGoogleSignInModalOpen] = useState(false);
   const [emptyStateDemo, setEmptyStateDemo] = useState(false); // Screen 17 demo toggle
+  const [showAllCards, setShowAllCards] = useState(false);
+  const getInitialTargetCoins = () => {
+    try {
+      const raw = localStorage.getItem('beaurex_coin_config');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Number(parsed.targetCoins) > 0) return Number(parsed.targetCoins);
+      }
+    } catch (_) {}
+    return 5;
+  };
+
+  const [loyaltyCardsList, setLoyaltyCardsList] = useState(() => {
+    const target = getInitialTargetCoins();
+    return [
+      {
+        id: 'lc-1',
+        name: 'Ka-feen',
+        category: 'Coffee Shop',
+        slug: 'ka-feen',
+        iconBg: 'bg-black text-white',
+        Icon: Coffee,
+        iconColor: 'text-white',
+        stamps: Math.min(target, 3),
+        totalStamps: target,
+        badgeText: 3 >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - 3)} more Aurex Coin${target - 3 === 1 ? '' : 's'}`,
+        badgeClass: 3 >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+        statusText: `${Math.min(target, 3)} of ${target} Aurex Coins`
+      },
+      {
+        id: 'lc-2',
+        name: 'Brew House',
+        category: 'Bakery & Bistro • Cyber Hub',
+        slug: 'brew-house',
+        iconBg: 'bg-amber-950 text-white',
+        Icon: Utensils,
+        iconColor: 'text-amber-200',
+        stamps: target,
+        totalStamps: target,
+        badgeText: 'Reward Ready 🎉',
+        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+        statusText: `${target} of ${target} Aurex Coins Collected!`
+      },
+      {
+        id: 'lc-3',
+        name: 'The Daily Roastery',
+        category: 'Artisanal Coffee & Bakes',
+        slug: 'the-daily-roastery',
+        iconBg: 'bg-amber-800 text-white',
+        Icon: Coffee,
+        iconColor: 'text-white',
+        stamps: Math.min(target, 2),
+        totalStamps: target,
+        badgeText: 2 >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - 2)} more Aurex Coins`,
+        badgeClass: 2 >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-800 border-amber-200',
+        statusText: `${Math.min(target, 2)} of ${target} Aurex Coins Collected`
+      },
+      {
+        id: 'lc-4',
+        name: 'Royal Sweets & Treats',
+        category: 'Confectionery & Desserts',
+        slug: 'royal-sweets-delhi',
+        iconBg: 'bg-rose-700 text-white',
+        Icon: ShoppingBag,
+        iconColor: 'text-white',
+        stamps: Math.min(target, 4),
+        totalStamps: target,
+        badgeText: 4 >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - 4)} more Aurex Coin${Math.max(0, target - 4) === 1 ? '' : 's'}`,
+        badgeClass: 4 >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+        statusText: `${Math.min(target, 4)} of ${target} Aurex Coins Collected`
+      }
+    ];
+  });
   const [splashLoading, setSplashLoading] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalModalTab, setLegalModalTab] = useState('privacy'); // 'privacy' | 'terms'
 
   // Customer Profile State
   const [customerUser, setCustomerUser] = useState(() => {
+    const target = getInitialTargetCoins();
     const saved = localStorage.getItem('beaurex_customer_user');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          totalStamps: target
+        };
+      } catch (e) {}
     }
     return {
       name: 'Rohan Sharma',
@@ -132,8 +234,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       activeCardsCount: 4,
       rewardsRedeemedCount: 3,
       points: 250,
-      stamps: 3,
-      totalStamps: 5,
+      stamps: Math.min(target, 3),
+      totalStamps: target,
       referralCode: 'BEAUREX-8F4A',
       referralCount: 3,
       referralEarnings: 150
@@ -141,19 +243,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   });
 
   const [editProfileModalOpen, setEditProfileModalOpen] = useState(false);
-  const [editProfileForm, setEditProfileForm] = useState({ name: '', email: '' });
+  const [editProfileForm, setEditProfileForm] = useState({ name: '', phone: '', email: '' });
 
-  const handleSaveCustomerProfile = (e) => {
+  const handleSaveCustomerProfile = async (e) => {
     e.preventDefault();
     const updated = {
       ...customerUser,
       name: editProfileForm.name.trim() || customerUser.name,
+      phone: editProfileForm.phone.trim() || customerUser.phone,
       email: editProfileForm.email.trim() || customerUser.email,
     };
     setCustomerUser(updated);
     try {
       localStorage.setItem('beaurex_customer_user', JSON.stringify(updated));
     } catch (err) {}
+
+    try {
+      fetch('/api/customer/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerId: customerUser.id || customerUser.customerId,
+          name: updated.name,
+          phone: updated.phone,
+          email: updated.email
+        })
+      }).catch(() => {});
+    } catch (_) {}
+
     setEditProfileModalOpen(false);
   };
 
@@ -195,6 +312,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     approvedTime: '11:45 AM'
   });
 
+  const [pendingClaimId, setPendingClaimId] = useState(null);
+  const [waitingApprovalActive, setWaitingApprovalActive] = useState(false);
+  const [approvalType, setApprovalType] = useState('offer'); // 'offer' or 'coin'
+  const [coinApprovedMsg, setCoinApprovedMsg] = useState('');
+
   // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
   const canvasRef = useRef(document.createElement('canvas'));
@@ -217,6 +339,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleCustomEmail, setGoogleCustomEmail] = useState('');
   const [googleCustomName, setGoogleCustomName] = useState('');
+  const [showCustomGoogleInput, setShowCustomGoogleInput] = useState(false);
+
+  // Sync authMode when initialAuthMode changes via route navigation
+  useEffect(() => {
+    if (initialAuthMode) {
+      setAuthMode(initialAuthMode);
+    }
+  }, [initialAuthMode]);
 
   // Customer OTP Verification states
   const [otpSent, setOtpSent] = useState(false);
@@ -236,15 +366,173 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     return () => clearInterval(timer);
   }, [otpSent, otpCountdown]);
 
-  // If slug is in URL on first mount, identify store
+  // Live Sync with Super Admin Coin Config & Theme Config
   useEffect(() => {
-    if (slug) {
-      const cleanSlug = String(slug).toLowerCase();
-      const prettyName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const applyCoinConfig = (cfg) => {
+      const target = (cfg && Number(cfg.targetCoins) > 0) ? Number(cfg.targetCoins) : getInitialTargetCoins();
+      setCustomerUser(prev => ({
+        ...prev,
+        totalStamps: target
+      }));
+      setLoyaltyCardsList(prev => prev.map(c => {
+        const remaining = Math.max(0, target - c.stamps);
+        const isReady = c.stamps >= target;
+        return {
+          ...c,
+          totalStamps: target,
+          badgeText: isReady ? 'Reward Ready 🎉' : `${remaining} more Aurex Coin${remaining === 1 ? '' : 's'}`,
+          badgeClass: isReady ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+          statusText: `${c.stamps} of ${target} Aurex Coins ${isReady ? 'Collected!' : 'Collected'}`
+        };
+      }));
+    };
+
+    const handleCoinUpdate = (e) => applyCoinConfig(e.detail);
+    window.addEventListener('beaurex_coin_config_updated', handleCoinUpdate);
+
+    const applyThemeConfig = (t) => {
+      if (!t) return;
+      const root = document.documentElement;
+      if (t.primaryColor) root.style.setProperty('--brand-primary', t.primaryColor);
+      if (t.secondaryColor) root.style.setProperty('--brand-secondary', t.secondaryColor);
+      if (t.cardRadius) root.style.setProperty('--card-radius', t.cardRadius);
+    };
+
+    try {
+      const savedTheme = localStorage.getItem('beaurex_theme_config');
+      if (savedTheme) applyThemeConfig(JSON.parse(savedTheme));
+    } catch (_) {}
+
+    const handleThemeUpdate = (e) => applyThemeConfig(e.detail);
+    window.addEventListener('beaurex_theme_config_updated', handleThemeUpdate);
+
+    const handleStorage = (e) => {
+      if (e.key === 'beaurex_coin_config') {
+        try { applyCoinConfig(JSON.parse(e.newValue)); } catch (_) {}
+      } else if (e.key === 'beaurex_theme_config') {
+        try { applyThemeConfig(JSON.parse(e.newValue)); } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      window.removeEventListener('beaurex_coin_config_updated', handleCoinUpdate);
+      window.removeEventListener('beaurex_theme_config_updated', handleThemeUpdate);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  // Helper to open specific store loyalty card
+  const handleOpenStoreCard = (card) => {
+    const cardSlug = card.slug || card.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    setStoreInfo({
+      storeName: card.name,
+      categoryName: card.category,
+      qrSlug: cardSlug,
+      stampsCollected: card.stamps || 3,
+      totalStamps: card.totalStamps || getInitialTargetCoins(),
+      expiresIn: '30 Jul 2026'
+    });
+    setCurrentScreen('after_scan');
+    navigate(`/scan/${cardSlug}`);
+  };
+
+  // Reusable customer auth completion & redirect handler
+  const completeCustomerAuthRedirect = () => {
+    setIsAuthenticated(true);
+    localStorage.setItem('beaurex_customer_auth', 'true');
+    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
+
+    const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+    const targetSlug = slug || (redirectParam && redirectParam.startsWith('/scan/') ? redirectParam.replace('/scan/', '') : null);
+
+    if (targetSlug) {
+      const cleanSlug = String(targetSlug).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      let category = 'Retail & Store';
+
+      try {
+        const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
+        if (savedMerchant) {
+          const m = JSON.parse(savedMerchant);
+          if (m?.qrSlug === cleanSlug || !slug) {
+            if (m.businessName) merchantName = m.businessName;
+            if (m.category) category = m.category;
+          }
+        }
+      } catch (_) {}
+
+      try {
+        const savedStore = localStorage.getItem('beaurex_store_profile');
+        if (savedStore) {
+          const p = JSON.parse(savedStore);
+          if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug)) {
+            merchantName = p.storeName;
+            if (p.category) category = p.category;
+          }
+        }
+      } catch (_) {}
+
+      const matchedCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+      if (matchedCard) {
+        merchantName = matchedCard.name;
+        category = matchedCard.category;
+      }
+
       setStoreInfo(prev => ({
         ...prev,
-        storeName: prettyName || 'Ka-feen',
-        qrSlug: cleanSlug
+        storeName: merchantName,
+        qrSlug: cleanSlug,
+        categoryName: category
+      }));
+      setCurrentScreen('after_scan');
+      navigate(`/scan/${cleanSlug}`, { replace: true });
+    } else {
+      setCurrentScreen('home');
+      navigate('/customer', { replace: true });
+    }
+  };
+
+  // If slug is in URL on mount or change, identify store
+  useEffect(() => {
+    if (slug) {
+      const cleanSlug = String(slug).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      let prettyName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      let category = 'Retail & Loyalty';
+
+      try {
+        const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
+        if (savedMerchant) {
+          const m = JSON.parse(savedMerchant);
+          if (m?.qrSlug === cleanSlug || !slug) {
+            if (m.businessName) prettyName = m.businessName;
+            if (m.category) category = m.category;
+          }
+        }
+      } catch (_) {}
+
+      try {
+        const savedStore = localStorage.getItem('beaurex_store_profile');
+        if (savedStore) {
+          const p = JSON.parse(savedStore);
+          if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug || !p.slug)) {
+            prettyName = p.storeName;
+            if (p.category) category = p.category;
+          }
+        }
+      } catch (_) {}
+
+      const matchedCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+      if (matchedCard) {
+        prettyName = matchedCard.name;
+        category = matchedCard.category;
+      }
+
+      setStoreInfo(prev => ({
+        ...prev,
+        storeName: prettyName || 'Store',
+        qrSlug: cleanSlug,
+        categoryName: category
       }));
       setCurrentScreen('after_scan');
     }
@@ -270,7 +558,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const handleShareReferral = async () => {
     const code = customerUser.referralCode || 'BEAUREX-8F4A';
     const shareUrl = `${window.location.origin}/customer/signup?ref=${code}`;
-    const shareText = `Hey! Join me on BeAurex to get digital stamps and free rewards. Use my referral code ${code} to get a 10% welcome discount on your first visit! Sign up here: ${shareUrl}`;
+    const shareText = `Hey! Join me on BeAurex to get Aurex Coins and free rewards. Use my referral code ${code} to get a 10% welcome discount on your first visit! Sign up here: ${shareUrl}`;
 
     if (navigator.share) {
       try {
@@ -291,7 +579,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const code = customerUser.referralCode || 'BEAUREX-8F4A';
     const shareUrl = `${window.location.origin}/customer/signup?ref=${code}`;
     const message = encodeURIComponent(
-      `Hey! Use my referral code *${code}* on BeAurex to get a flat *10% Welcome Discount* on your first store visit! Collect stamps & earn free rewards: ${shareUrl}`
+      `Hey! Use my referral code *${code}* on BeAurex to get a flat *10% Welcome Discount* on your first store visit! Collect Aurex Coins & earn free rewards: ${shareUrl}`
     );
     window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
   };
@@ -328,15 +616,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (data && data.success && data.customer) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
-        localStorage.setItem('beaurex_customer_auth', 'true');
-        setIsAuthenticated(true);
-        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-        if (slug) setCurrentScreen('after_scan');
-        else setCurrentScreen('home');
+        completeCustomerAuthRedirect();
       } else if (data && data.notRegistered) {
         setLoginError('Account not found with this email. Please create an account.');
         setTimeout(() => {
           setAuthMode('signup');
+          const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+          const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
+          navigate(`/customer/signup${redirectQuery}`);
           setLoginError('');
         }, 1500);
       } else {
@@ -364,11 +651,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
-      localStorage.setItem('beaurex_customer_auth', 'true');
-      setIsAuthenticated(true);
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      completeCustomerAuthRedirect();
     }
   };
 
@@ -387,8 +670,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setLoginError('Please enter a valid email address.');
       return;
     }
-    if (!loginPassword || loginPassword.length < 4) {
-      setLoginError('Password must be at least 4 characters.');
+    if (!loginPassword) {
+      setLoginError('Please enter a password.');
+      return;
+    }
+    const pwdCheck = validatePassword(loginPassword);
+    if (!pwdCheck.isValid) {
+      setLoginError(`Weak Password: ${pwdCheck.errorMessage}`);
       return;
     }
 
@@ -417,14 +705,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (data && data.success && data.customer) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
-        localStorage.setItem('beaurex_customer_auth', 'true');
-        setIsAuthenticated(true);
-        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-        if (slug) setCurrentScreen('after_scan');
-        else setCurrentScreen('home');
+        completeCustomerAuthRedirect();
       } else if (data && data.alreadyExists) {
         setLoginError(data.message || 'An account already exists with this email. Please sign in.');
-        setTimeout(() => setAuthMode('signin'), 1800);
+        setTimeout(() => {
+          setAuthMode('signin');
+          const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+          const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
+          navigate(`/customer/login${redirectQuery}`);
+        }, 1800);
       } else {
         setLoginError(data?.message || 'Could not create account. Please check your details.');
       }
@@ -450,19 +739,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
-      localStorage.setItem('beaurex_customer_auth', 'true');
-      setIsAuthenticated(true);
-      confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      completeCustomerAuthRedirect();
     }
   };
 
   // Google Sign-In Handler
   const handleGoogleSignInSelect = async (accountEmail, accountName) => {
     setGoogleLoading(true);
-    const targetEmail = accountEmail || loginEmail || 'customer@gmail.com';
-    const targetName = accountName || (targetEmail.split('@')[0]) || 'BeAurex Customer';
+    const targetEmail = (accountEmail || loginEmail || 'customer.rewards@gmail.com').trim().toLowerCase();
+    const targetName = (accountName || (loginName ? loginName.trim() : targetEmail.split('@')[0]) || 'BeAurex Customer').trim();
 
     try {
       const res = await fetch('/api/customer/auth/google', {
@@ -471,7 +756,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         body: JSON.stringify({
           email: targetEmail,
           name: targetName,
-          googleId: 'g_' + Math.random().toString(36).substring(2, 10)
+          googleId: 'g_' + Math.random().toString(36).substring(2, 10),
+          referralCode: referralInput?.trim() || undefined
         })
       });
       const data = await res.json();
@@ -487,9 +773,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           name: targetName,
           email: targetEmail,
           customerId: custId,
-          phone: '',
+          phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '',
           tier: 'Bronze Member',
-          points: 100,
+          points: referralInput?.trim() ? 150 : 100,
           stamps: 3,
           totalStamps: 5,
           activeCardsCount: 1,
@@ -503,15 +789,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
       }
 
-      setIsAuthenticated(true);
-      localStorage.setItem('beaurex_customer_auth', 'true');
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-
-      if (slug) {
-        setCurrentScreen('after_scan');
-      } else {
-        setCurrentScreen('home');
-      }
+      completeCustomerAuthRedirect();
     } catch (_) {
       setGoogleLoading(false);
       setGoogleSignInModalOpen(false);
@@ -520,9 +798,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         name: targetName,
         email: targetEmail,
         customerId: custId,
-        phone: '',
+        phone: loginPhone ? `+91 ${loginPhone.slice(-10)}` : '',
         tier: 'Bronze Member',
-        points: 100,
+        points: referralInput?.trim() ? 150 : 100,
         stamps: 3,
         totalStamps: 5,
         activeCardsCount: 1,
@@ -534,11 +812,161 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(newCust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(newCust));
-      setIsAuthenticated(true);
-      localStorage.setItem('beaurex_customer_auth', 'true');
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      completeCustomerAuthRedirect();
     }
+  };
+
+  // Reusable Google Account Selector Modal
+  const renderGoogleModal = () => {
+    if (!googleSignInModalOpen) return null;
+
+    return (
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+        onClick={() => !googleLoading && setGoogleSignInModalOpen(false)}
+      >
+        <div 
+          className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center space-x-2.5">
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 leading-tight">Sign in with Google</h3>
+                <p className="text-[11px] text-slate-500">to continue to BeAurex Loyalty</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              disabled={googleLoading}
+              onClick={() => setGoogleSignInModalOpen(false)} 
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {googleLoading ? (
+            <div className="py-8 flex flex-col items-center justify-center space-y-3">
+              <RefreshCw className="w-8 h-8 text-[#8B0000] animate-spin" />
+              <div className="text-xs font-bold text-slate-800">Signing in with Google...</div>
+              <div className="text-[11px] text-slate-500 text-center">Connecting your account safely to BeAurex</div>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <p className="text-[11px] text-slate-500">Choose an account to continue:</p>
+
+              {/* Account 1: Rohan Sharma */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSignInSelect('rohan.sharma@gmail.com', 'Rohan Sharma')}
+                className="w-full p-2.5 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  R
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#8B0000] transition">Rohan Sharma</div>
+                  <div className="text-[11px] text-slate-500 truncate">rohan.sharma@gmail.com</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#8B0000] transition shrink-0" />
+              </button>
+
+              {/* Account 2: BeAurex Customer */}
+              <button
+                type="button"
+                onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
+                className="w-full p-2.5 rounded-2xl border border-slate-200 hover:border-[#8B0000] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer group"
+              >
+                <div className="w-9 h-9 rounded-full bg-rose-100 text-[#8B0000] font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                  G
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#8B0000] transition">Google Customer Account</div>
+                  <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#8B0000] transition shrink-0" />
+              </button>
+
+              {/* Optional: If user entered an email in the input form */}
+              {loginEmail && !['rohan.sharma@gmail.com', 'customer.rewards@gmail.com'].includes(loginEmail.toLowerCase()) && (
+                <button
+                  type="button"
+                  onClick={() => handleGoogleSignInSelect(loginEmail, loginName || loginEmail.split('@')[0])}
+                  className="w-full p-2.5 rounded-2xl border border-rose-200 bg-rose-50/30 hover:bg-rose-50/70 hover:border-[#8B0000] text-left flex items-center space-x-3 transition cursor-pointer group"
+                >
+                  <div className="w-9 h-9 rounded-full bg-[#8B0000] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    {(loginName?.charAt(0) || loginEmail.charAt(0)).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-900 group-hover:text-[#8B0000] transition flex items-center space-x-1.5">
+                      <span>{loginName || 'Entered Account'}</span>
+                      <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1 rounded font-semibold">Active</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 truncate">{loginEmail}</div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#8B0000] transition shrink-0" />
+                </button>
+              )}
+
+              {/* Use another account toggle */}
+              <button
+                type="button"
+                onClick={() => setShowCustomGoogleInput(!showCustomGoogleInput)}
+                className="w-full p-2.5 rounded-2xl border border-dashed border-slate-300 hover:border-slate-400 hover:bg-slate-50/50 text-left flex items-center space-x-3 transition cursor-pointer text-slate-600 hover:text-slate-900"
+              >
+                <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="text-xs font-bold flex-1">Use another account</div>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showCustomGoogleInput ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Custom account inputs accordion */}
+              {showCustomGoogleInput && (
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 animate-in fade-in duration-150">
+                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Enter Google Account:</span>
+                  <input
+                    type="text"
+                    value={googleCustomName}
+                    onChange={(e) => setGoogleCustomName(e.target.value)}
+                    placeholder="Full Name"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
+                  />
+                  <input
+                    type="email"
+                    value={googleCustomEmail}
+                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
+                    placeholder="yourname@gmail.com"
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#8B0000]"
+                  />
+                  <button
+                    type="button"
+                    disabled={!googleCustomEmail || !googleCustomEmail.includes('@')}
+                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
+                    className="w-full py-2.5 bg-[#8B0000] hover:bg-[#720000] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+                  >
+                    <span>Continue with this account</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Disclaimer */}
+              <p className="text-[10px] text-slate-400 pt-1 text-center leading-normal">
+                To continue, Google will share your name and email address with BeAurex Loyalty.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // OTP Handlers for Customer Login & Verification
@@ -641,11 +1069,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (data && data.success && data.customer) {
         setCustomerUser(data.customer);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
-        localStorage.setItem('beaurex_customer_auth', 'true');
-        setIsAuthenticated(true);
-        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-        if (slug) setCurrentScreen('after_scan');
-        else setCurrentScreen('home');
+        completeCustomerAuthRedirect();
       } else if (otpCode === '123456' || otpCode === devOtpHint) {
         const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         const cust = {
@@ -666,11 +1090,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         };
         setCustomerUser(cust);
         localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
-        localStorage.setItem('beaurex_customer_auth', 'true');
-        setIsAuthenticated(true);
-        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-        if (slug) setCurrentScreen('after_scan');
-        else setCurrentScreen('home');
+        completeCustomerAuthRedirect();
       } else {
         setLoginError(data?.message || 'Invalid or expired OTP. Please try again.');
       }
@@ -695,11 +1115,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
       setCustomerUser(cust);
       localStorage.setItem('beaurex_customer_user', JSON.stringify(cust));
-      localStorage.setItem('beaurex_customer_auth', 'true');
-      setIsAuthenticated(true);
-      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-      if (slug) setCurrentScreen('after_scan');
-      else setCurrentScreen('home');
+      completeCustomerAuthRedirect();
     }
   };
 
@@ -757,18 +1173,63 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const code = jsQR(imageData.data, imageData.width, imageData.height);
     if (code && code.data) {
       stopCamera();
-      confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-      setSelectedReward({
-        title: '30% OFF',
-        subtitle: 'on next purchase',
-        storeName: 'Ka-feen',
-        requiresStamps: 2,
-        validTill: '30 Jul 2026',
-        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-        approvedDate: '20 May 2026',
-        approvedTime: '11:45 AM'
-      });
-      setCurrentScreen('reward_details');
+      let scannedSlug = '';
+      try {
+        const parsedUrl = new URL(code.data, window.location.origin);
+        const match = parsedUrl.pathname.match(/\/scan\/([a-zA-Z0-9_-]+)/);
+        if (match) scannedSlug = match[1];
+        else {
+          const parts = parsedUrl.pathname.split('/').filter(Boolean);
+          if (parts.length > 0) scannedSlug = parts[parts.length - 1];
+        }
+      } catch (_) {
+        const match = code.data.match(/\/scan\/([a-zA-Z0-9_-]+)/);
+        if (match) scannedSlug = match[1];
+        else scannedSlug = code.data.trim().replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
+      }
+
+      const cleanSlug = String(scannedSlug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      let category = 'Retail & Store';
+      
+      try {
+        const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
+        if (savedMerchant) {
+          const m = JSON.parse(savedMerchant);
+          if (m?.qrSlug === cleanSlug || !slug) {
+            if (m.businessName) merchantName = m.businessName;
+            if (m.category) category = m.category;
+          }
+        }
+      } catch (_) {}
+
+      try {
+        const savedStore = localStorage.getItem('beaurex_store_profile');
+        if (savedStore) {
+          const p = JSON.parse(savedStore);
+          if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug || !p.slug)) {
+            merchantName = p.storeName;
+            if (p.category) category = p.category;
+          }
+        }
+      } catch (_) {}
+
+      const matchedCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+      if (matchedCard) {
+        merchantName = matchedCard.name;
+        category = matchedCard.category;
+      }
+
+      setStoreInfo(prev => ({
+        ...prev,
+        storeName: merchantName || 'Store',
+        qrSlug: cleanSlug,
+        categoryName: category
+      }));
+
+      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      setCurrentScreen('after_scan');
+      navigate(`/scan/${cleanSlug}`, { replace: true });
       return;
     }
     animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
@@ -782,35 +1243,360 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }, 200);
   };
 
-  // Simulate scanning counter QR
+  // Simulate scanning counter QR (navigates dynamically to current merchant instead of hardcoded Ka-feen)
   const simulateScanSuccess = () => {
     stopCamera();
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    setSelectedReward({
-      title: '30% OFF',
-      subtitle: 'on next purchase',
-      storeName: 'Ka-feen',
-      requiresStamps: 2,
-      validTill: '30 Jul 2026',
-      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      approvedDate: '20 May 2026',
-      approvedTime: '11:45 AM'
-    });
-    setCurrentScreen('reward_details');
+    confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+
+    let activeSlug = slug || storeInfo?.qrSlug;
+    let activeName = storeInfo?.storeName;
+    let activeCategory = storeInfo?.categoryName || 'Retail & Store';
+
+    if (!activeSlug || activeSlug === 'ka-feen' || activeSlug === 'kafeen-coffee') {
+      try {
+        const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
+        if (savedMerchant) {
+          const m = JSON.parse(savedMerchant);
+          if (m?.qrSlug) activeSlug = m.qrSlug;
+          else if (m?.businessName) activeSlug = m.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          if (m?.businessName) activeName = m.businessName;
+          if (m?.category) activeCategory = m.category;
+        }
+      } catch (_) {}
+    }
+
+    const cleanSlug = String(activeSlug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const displayName = activeName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+    setStoreInfo(prev => ({
+      ...prev,
+      storeName: displayName,
+      qrSlug: cleanSlug,
+      categoryName: activeCategory
+    }));
+
+    setCurrentScreen('after_scan');
+    navigate(`/scan/${cleanSlug}`, { replace: true });
   };
 
-  // Fast Claim Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting) -> Screen 13 (Claimed)
-  const handleInitiateClaim = () => {
+  // Request Aurex Coin Approval Flow: Customer wants to collect 1 Aurex Coin
+  const handleRequestAurexCoin = () => {
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const claimId = `coin_${Date.now()}`;
+    const coinObj = {
+      id: claimId,
+      requestType: 'coin',
+      voucherType: 'coin',
+      coins: 1,
+      customerName: customerUser.name || 'Rohan Sharma',
+      customerId: `ID: ${cleanCustomerId}`,
+      rewardTitle: 'Collect 1 Aurex Coin',
+      stamps: '1 Aurex Coin Requested',
+      timeAgo: 'Just now',
+      expiresIn: 'Session',
+      avatarBg: 'bg-amber-500',
+      status: 'PENDING',
+      storeSlug: storeInfo?.qrSlug || slug || 'store'
+    };
+
+    setPendingClaimId(claimId);
+    setWaitingApprovalActive(true);
+    setApprovalType('coin');
     setCurrentScreen('waiting_approval');
-    // Auto simulate cashier approving in 2.5s for seamless demo
-    setTimeout(() => {
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+    // 1. Sync locally in localStorage for cross-tab merchant dashboard
+    try {
+      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+    } catch (_) {}
+
+    // 2. Broadcast to Merchant via BroadcastChannel
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage({ type: 'COIN_REQUEST', claim: coinObj });
+      channel.close();
+    } catch (_) {}
+
+    // 3. Submit to server endpoint
+    fetch('/api/customer/coin/request-approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: cleanCustomerId,
+        customerName: customerUser.name || 'Rohan Sharma',
+        coins: 1,
+        storeSlug: coinObj.storeSlug
+      })
+    }).catch(() => {});
+  };
+
+  // Reward Claim Approval Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting for Merchant Approval) -> Screen 13 (Merchant Approved & Claimed)
+  const handleInitiateClaim = () => {
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const claimId = `rem_${Date.now()}`;
+    const claimObj = {
+      id: claimId,
+      requestType: 'offer',
+      customerName: customerUser.name || 'Sumit',
+      customerId: `ID: ${cleanCustomerId}`,
+      rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
+      stamps: '5/5 Aurex Coins completed',
+      timeAgo: 'Just now',
+      expiresIn: `Expires: ${selectedReward.validTill || '30 Jul 2026'}`,
+      voucherType: selectedReward.title?.includes('30') ? '30' : (selectedReward.title?.includes('Coffee') ? 'coffee' : '20'),
+      avatarBg: 'bg-emerald-500',
+      status: 'PENDING',
+      storeSlug: storeInfo?.qrSlug || slug || 'store'
+    };
+
+    setPendingClaimId(claimId);
+    setWaitingApprovalActive(true);
+    setApprovalType('offer');
+    setCurrentScreen('waiting_approval');
+
+    // 1. Sync locally in localStorage for cross-tab merchant dashboard
+    try {
+      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+    } catch (_) {}
+
+    // 2. Broadcast to Merchant via BroadcastChannel
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage({ type: 'CLAIM_REQUEST', claim: claimObj });
+      channel.close();
+    } catch (_) {}
+
+    // 3. Submit to server endpoint
+    fetch('/api/customer/reward/request-approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerId: cleanCustomerId,
+        customerName: customerUser.name || 'Sumit',
+        rewardTitle: claimObj.rewardTitle,
+        storeSlug: claimObj.storeSlug,
+        stamps: claimObj.stamps,
+        voucherType: claimObj.voucherType
+      })
+    }).catch(() => {});
+  };
+
+  // Listen for Merchant Approval or Decline while waiting on Screen 12
+  useEffect(() => {
+    if (currentScreen !== 'waiting_approval') return;
+
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+
+    const handleApproved = (payload) => {
+      confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+      const isCoin = payload?.type === 'COIN_COLLECT_APPROVED' || payload?.requestType === 'coin' || approvalType === 'coin';
+      
+      if (isCoin) {
+        const addedCoins = Number(payload?.coins) || 1;
+        setCustomerUser(prev => {
+          const updated = {
+            ...prev,
+            stamps: Math.min(prev.totalStamps || 5, (Number(prev.stamps) || 0) + addedCoins)
+          };
+          try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
+          return updated;
+        });
+        setWaitingApprovalActive(false);
+        setCoinApprovedMsg(`Merchant approved! You received ${addedCoins} Aurex Coin! 🎉`);
+        setTimeout(() => {
+          setCurrentScreen('after_scan');
+        }, 1200);
+        return;
+      }
+
+      setSelectedReward(prev => ({
+        ...prev,
+        approvedDate: payload?.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }));
+      setWaitingApprovalActive(false);
       setCurrentScreen('reward_congrats');
-    }, 2500);
+    };
+
+    const handleDeclined = (payload) => {
+      setWaitingApprovalActive(false);
+      const isCoin = payload?.type === 'COIN_COLLECT_DECLINED' || payload?.requestType === 'coin' || approvalType === 'coin';
+      if (isCoin) {
+        alert('Merchant declined the Aurex Coin collection request.');
+        setCurrentScreen('after_scan');
+      } else {
+        alert('Merchant declined the reward claim request.');
+        setCurrentScreen('reward_details');
+      }
+    };
+
+    // 1. Listen via BroadcastChannel
+    let channel;
+    try {
+      channel = new BroadcastChannel('beaurex_redemptions');
+      channel.onmessage = (event) => {
+        const d = event.data;
+        if (!d) return;
+        const pCust = String(d.customerId || '').replace(/^ID:\s*/, '').trim();
+        const matchesCust = !pCust || pCust === cleanCustomerId || (pendingClaimId && d.claimId === pendingClaimId);
+
+        if (matchesCust) {
+          if (d.type === 'REWARD_APPROVED' || d.type === 'COIN_COLLECT_APPROVED') {
+            handleApproved(d);
+          } else if (d.type === 'REWARD_DECLINED' || d.type === 'COIN_COLLECT_DECLINED') {
+            handleDeclined(d);
+          }
+        }
+      };
+    } catch (_) {}
+
+    // 2. Listen via storage event
+    const handleStorage = (e) => {
+      if (e.key === 'beaurex_latest_approval' && e.newValue) {
+        try {
+          const payload = JSON.parse(e.newValue);
+          const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+          const matchesCust = !pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId);
+
+          if (matchesCust) {
+            if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
+              handleApproved(payload);
+            } else if (payload.type === 'REWARD_DECLINED' || payload.type === 'COIN_COLLECT_DECLINED') {
+              handleDeclined(payload);
+            }
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // 3. Polling check (every 1.2s) from server & localStorage
+    const pollInterval = setInterval(async () => {
+      // Check localStorage
+      try {
+        const raw = localStorage.getItem('beaurex_latest_approval');
+        if (raw) {
+          const payload = JSON.parse(raw);
+          const pCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+          const matchesCust = !pCust || pCust === cleanCustomerId || (pendingClaimId && payload.claimId === pendingClaimId);
+
+          if (matchesCust) {
+            if (Date.now() - (payload.timestamp || 0) < 120000) {
+              if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
+                clearInterval(pollInterval);
+                handleApproved(payload);
+                return;
+              } else if (payload.type === 'REWARD_DECLINED' || payload.type === 'COIN_COLLECT_DECLINED') {
+                clearInterval(pollInterval);
+                handleDeclined(payload);
+                return;
+              }
+            }
+          }
+        }
+      } catch (_) {}
+
+      // Check server endpoint
+      try {
+        const res = await fetch(`/api/customer/reward/check-approval?customerId=${cleanCustomerId}&claimId=${pendingClaimId || ''}`);
+        const data = await res.json();
+        if (data.status === 'APPROVED' && data.claim) {
+          clearInterval(pollInterval);
+          handleApproved(data.claim);
+        } else if (data.status === 'DECLINED') {
+          clearInterval(pollInterval);
+          handleDeclined(data.claim || {});
+        }
+      } catch (_) {}
+    }, 1200);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('storage', handleStorage);
+      if (channel) channel.close();
+    };
+  }, [currentScreen, pendingClaimId, customerUser.customerId, approvalType]);
+
+  // Method to trigger approval simulation directly if testing locally
+  const handleSimulateMerchantApproval = () => {
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const now = new Date();
+    const approvedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const approvedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    const isCoin = approvalType === 'coin';
+    const payload = isCoin ? {
+      type: 'COIN_COLLECT_APPROVED',
+      requestType: 'coin',
+      coins: 1,
+      claimId: pendingClaimId || 'coin_1',
+      customerId: cleanCustomerId,
+      customerName: customerUser.name || 'Rohan Sharma',
+      rewardTitle: 'Collect 1 Aurex Coin',
+      approvedAt: approvedTime,
+      approvedDate: approvedDate,
+      timestamp: Date.now()
+    } : {
+      type: 'REWARD_APPROVED',
+      requestType: 'offer',
+      claimId: pendingClaimId || 'rem_1',
+      customerId: cleanCustomerId,
+      rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
+      approvedAt: approvedTime,
+      approvedDate: approvedDate,
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage(payload);
+      channel.close();
+    } catch (_) {}
+
+    confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+
+    if (isCoin) {
+      setCustomerUser(prev => {
+        const updated = {
+          ...prev,
+          stamps: Math.min(prev.totalStamps || 5, (Number(prev.stamps) || 0) + 1)
+        };
+        try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
+        return updated;
+      });
+      setWaitingApprovalActive(false);
+      setCoinApprovedMsg('Merchant approved! You received 1 Aurex Coin! 🎉');
+      setTimeout(() => {
+        setCurrentScreen('after_scan');
+      }, 1200);
+      return;
+    }
+
+    setSelectedReward(prev => ({
+      ...prev,
+      approvedDate: approvedDate,
+      approvedTime: approvedTime
+    }));
+    setWaitingApprovalActive(false);
+    setCurrentScreen('reward_congrats');
   };
 
   // Complete Claim and record in Reward History
   const handleClaimDone = () => {
+    if (selectedReward) {
+      setClaimableRewards((prev) => {
+        const next = prev.filter(r => r.id !== selectedReward.id && r.title !== selectedReward.title);
+        try { localStorage.setItem('beaurex_claimable_rewards', JSON.stringify(next)); } catch (e) {}
+        return next;
+      });
+    }
     setRewardHistory((prev) => [
       {
         id: `rh-${Date.now()}`,
@@ -818,12 +1604,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         storeName: selectedReward.storeName || 'Ka-feen',
         category: 'Coffee Shop',
         status: 'Active',
-        claimedDate: selectedReward.approvedDate || '20 May 2026',
+        claimedDate: selectedReward.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
         dateLabel: 'Valid till',
         dateValue: selectedReward.validTill || '30 Jul 2026',
         image: selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
         voucherCode: 'BX-KAF-30OFF',
-        discount: '30% Discount'
+        discount: selectedReward.title || 'Reward Voucher'
       },
       ...prev
     ]);
@@ -837,7 +1623,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // =========================================================================
   if (slug && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-[#74111d] selection:text-white">
+      <div 
+        className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans customer-root auth-root selection:bg-[#8B0000] selection:text-white"
+        style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+      >
         <header className="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-3 group">
@@ -847,10 +1636,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 className="w-10 h-10 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
               />
               <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight leading-none text-[#74111d]">
+                <span className="text-xl font-black tracking-tight leading-none text-[#8B0000]">
                   BeAurex
                 </span>
-                <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+                <span className="text-[10px] font-bold text-[#8B0000] uppercase tracking-widest mt-0.5">
                   Rewarding Loyalty
                 </span>
               </div>
@@ -870,21 +1659,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </div>
 
             <div>
-              <span className="bg-rose-50 text-[#74111d] border border-rose-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5">
+              <span className="bg-rose-50 text-[#8B0000] border border-rose-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full inline-block mb-1.5">
                 ● Store Counter Online
               </span>
               <h2 className="text-xl font-black text-slate-900">{storeInfo.storeName}</h2>
-              <p className="text-xs text-slate-500 mt-0.5">{storeInfo.categoryName} • Collect stamps &amp; rewards</p>
+              <p className="text-xs text-slate-500 mt-0.5">{storeInfo.categoryName} • Collect Aurex Coins &amp; rewards</p>
             </div>
 
             {/* Offer highlight card */}
             <div className="bg-rose-50/60 border border-rose-200/80 rounded-2xl p-4 text-left flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-xl bg-[#74111d] text-white flex items-center justify-center font-black text-sm shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#8B0000] text-white flex items-center justify-center font-black text-sm shrink-0">
                 <Gift className="w-5 h-5 text-amber-200" />
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-black text-slate-900 leading-snug">30% OFF on next purchase</div>
-                <div className="text-[11px] text-[#74111d] font-bold mt-0.5">Collect 5 stamps to unlock</div>
+                <div className="text-[11px] text-[#8B0000] font-bold mt-0.5">Collect 5 Aurex Coins to unlock</div>
               </div>
             </div>
 
@@ -906,17 +1695,31 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <button
                 onClick={() => {
                   setIsAuthenticated(false);
-                  navigate('/customer/login');
+                  navigate(`/customer/login?redirect=/scan/${slug}`);
                 }}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3.5 px-4 rounded-2xl text-xs transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center justify-center space-x-2"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 px-4 rounded-2xl text-xs transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center justify-center space-x-2"
               >
                 <LogIn className="w-4 h-4 text-white" />
                 <span>Sign In with Email &amp; Password</span>
               </button>
+
+              <div className="pt-1 text-center">
+                <span className="text-xs text-slate-500">New customer? </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAuthenticated(false);
+                    navigate(`/customer/signup?redirect=/scan/${slug}`);
+                  }}
+                  className="text-xs font-black text-[#8B0000] hover:underline cursor-pointer"
+                >
+                  Create an Account
+                </button>
+              </div>
             </div>
 
             <p className="text-[11px] text-slate-400">
-              Sign in once to save your stamps &amp; rewards safely across all participating stores.
+              Sign in once to save your Aurex Coins &amp; rewards safely across all participating stores.
             </p>
           </div>
         </main>
@@ -926,69 +1729,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         </footer>
 
         {/* Google Account Selector Modal */}
-        {googleSignInModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <h3 className="font-bold text-sm text-slate-900">Sign in with Google</h3>
-                </div>
-                <button onClick={() => setGoogleSignInModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <p className="text-xs text-slate-500">Choose or enter your Google account to continue to BeAurex</p>
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
-                    G
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Google Customer Account</div>
-                    <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
-                  </div>
-                </button>
-
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Or enter your Google account:</span>
-                  <input
-                    type="text"
-                    value={googleCustomName}
-                    onChange={(e) => setGoogleCustomName(e.target.value)}
-                    placeholder="Your Name"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
-                  />
-                  <input
-                    type="email"
-                    value={googleCustomEmail}
-                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
-                    placeholder="yourname@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
-                  />
-                  <button
-                    type="button"
-                    disabled={!googleCustomEmail}
-                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
-                    className="w-full py-2 bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <span>Sign in with this account</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {renderGoogleModal()}
       </div>
     );
   }
@@ -998,7 +1739,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 font-sans selection:bg-[#74111d] selection:text-white">
+      <div 
+        className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 font-sans customer-root auth-root selection:bg-[#8B0000] selection:text-white"
+        style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+      >
         
         {/* OTP VERIFICATION VIEW (Matches Reference Image 2) */}
         {otpSent ? (
@@ -1141,7 +1885,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Create Account
               </h2>
               <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto relative z-10">
-                Join BeAurex to collect stamps and unlock rewards.
+                Join BeAurex to collect Aurex Coins and unlock rewards.
               </p>
             </div>
 
@@ -1158,6 +1902,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <span>{loginSuccessMsg}</span>
                 </div>
               )}
+
+              {/* Google Sign Up Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginError('');
+                  setLoginSuccessMsg('');
+                  setGoogleSignInModalOpen(true);
+                }}
+                className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Sign up with Google</span>
+              </button>
+
+              {/* Divider */}
+              <div className="relative flex items-center justify-center my-3">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                  or sign up with email
+                </span>
+                <div className="border-t border-slate-200 w-full" />
+              </div>
 
               <form onSubmit={handleCustomerSignup} className="space-y-3.5">
                 <div className="relative">
@@ -1195,23 +1967,40 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   />
                 </div>
 
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Create a password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                <div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      autoComplete="new-password"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="Min. 8 characters (e.g. Aurex#2026)"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-3 text-xs focus:outline-none focus:border-[#8B0000] focus:bg-white text-slate-900 transition font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    >
+                      {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {loginPassword && (
+                    <div className="mt-1 text-[10px] px-1">
+                      {validatePassword(loginPassword).isValid ? (
+                        <span className="text-emerald-600 font-bold flex items-center space-x-1">
+                          <Check className="w-3 h-3 text-emerald-600 inline" />
+                          <span>Strong password</span>
+                        </span>
+                      ) : (
+                        <span className="text-amber-600 font-medium">
+                          Requires 8+ chars with uppercase, lowercase, number & symbol
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative">
@@ -1246,6 +2035,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     type="button"
                     onClick={() => {
                       setAuthMode('signin');
+                      const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+                      const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
+                      navigate(`/customer/login${redirectQuery}`);
                       setLoginError('');
                       setLoginSuccessMsg('');
                     }}
@@ -1272,7 +2064,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Welcome Back!
               </h2>
               <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto relative z-10">
-                Login to continue collecting stamps and earning rewards.
+                Login to continue collecting Aurex Coins and earning rewards.
               </p>
             </div>
 
@@ -1290,6 +2082,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <span>{loginSuccessMsg}</span>
                 </div>
               )}
+
+              {/* Google Sign In Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginError('');
+                  setLoginSuccessMsg('');
+                  setGoogleSignInModalOpen(true);
+                }}
+                className="w-full bg-white hover:bg-slate-50/90 active:bg-slate-100 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold py-3.5 px-4 rounded-xl text-xs transition flex items-center justify-center space-x-3 shadow-xs hover:shadow-sm cursor-pointer"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span>Continue with Google</span>
+              </button>
+
+              {/* Divider */}
+              <div className="relative flex items-center justify-center my-3">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                  or login with email
+                </span>
+                <div className="border-t border-slate-200 w-full" />
+              </div>
 
               <form onSubmit={handleCustomerLogin} className="space-y-4">
                 {/* Email input */}
@@ -1322,7 +2142,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                     </button>
                   </div>
 
@@ -1360,35 +2180,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   )}
                 </button>
 
-                {/* Or Divider */}
-                <div className="relative flex items-center justify-center py-1">
-                  <div className="border-t border-slate-200 w-full"></div>
-                  <span className="bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider relative">or</span>
-                </div>
-
-                {/* Continue with Google */}
-                <button
-                  type="button"
-                  disabled={googleLoading}
-                  onClick={() => setGoogleSignInModalOpen(true)}
-                  className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold py-3 rounded-xl transition text-xs flex items-center justify-center space-x-2.5 cursor-pointer shadow-xs"
-                >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
-
                 {/* Don't have an account? Create Account */}
-                <div className="text-center pt-2 text-xs text-slate-500">
+                <div className="text-center pt-3 text-xs text-slate-500">
                   Don&apos;t have an account?{' '}
                   <button
                     type="button"
                     onClick={() => {
                       setAuthMode('signup');
+                      const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+                      const redirectQuery = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
+                      navigate(`/customer/signup${redirectQuery}`);
                       setLoginError('');
                       setLoginSuccessMsg('');
                     }}
@@ -1424,69 +2225,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         </div>
 
         {/* Google Account Selector Modal */}
-        {googleSignInModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-200 animate-in zoom-in-95">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <h3 className="font-bold text-sm text-slate-900">Sign in with Google</h3>
-                </div>
-                <button onClick={() => setGoogleSignInModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <p className="text-xs text-slate-500">Choose or enter your Google account to continue to BeAurex</p>
-
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleGoogleSignInSelect('customer.rewards@gmail.com', 'BeAurex Customer')}
-                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#74111d] hover:bg-rose-50/40 text-left flex items-center space-x-3 transition cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-full bg-rose-100 text-[#74111d] font-bold text-xs flex items-center justify-center shrink-0">
-                    G
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-900">Google Customer Account</div>
-                    <div className="text-[11px] text-slate-500 truncate">customer.rewards@gmail.com</div>
-                  </div>
-                </button>
-
-                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                  <span className="text-[10px] font-bold uppercase text-slate-500 block">Or enter your Google account:</span>
-                  <input
-                    type="text"
-                    value={googleCustomName}
-                    onChange={(e) => setGoogleCustomName(e.target.value)}
-                    placeholder="Your Name"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
-                  />
-                  <input
-                    type="email"
-                    value={googleCustomEmail}
-                    onChange={(e) => setGoogleCustomEmail(e.target.value)}
-                    placeholder="yourname@gmail.com"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 font-medium focus:outline-none focus:border-[#74111d]"
-                  />
-                  <button
-                    type="button"
-                    disabled={!googleCustomEmail}
-                    onClick={() => handleGoogleSignInSelect(googleCustomEmail, googleCustomName)}
-                    className="w-full py-2 bg-[#74111d] hover:bg-[#5e0c15] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                  >
-                    <span>Sign in with this account</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {renderGoogleModal()}
       </div>
     );
   }
@@ -1495,24 +2234,27 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // MAIN APP CONTAINER (Screens 5, 6, 7, 8, 9, 10, 12, 13, 14, 16, 17, 18)
   // =========================================================================
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-[#74111d] selection:text-white pb-24 md:pb-8">
+    <div 
+      className="min-h-screen bg-slate-50 flex flex-col font-sans customer-root customer-portal selection:bg-[#8B0000] selection:text-white pb-24 md:pb-8"
+      style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+    >
       
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 16: SPLASH SCREEN (Batch 5) */}
       {/* ------------------------------------------------------------------- */}
       {splashLoading && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-          <div className="w-20 h-20 rounded-3xl bg-[#74111d] text-white flex items-center justify-center shadow-xl shadow-[#74111d]/30 mb-5">
+          <div className="w-20 h-20 rounded-3xl bg-[#8B0000] text-white flex items-center justify-center shadow-xl shadow-[#8B0000]/30 mb-5">
             <QrCode className="w-10 h-10" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Loyal<span className="text-[#74111d]">QR</span>
+            Loyal<span className="text-[#8B0000]">QR</span>
           </h1>
           <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-wider">
             Collect. Scan. Earn.
           </p>
           <div className="mt-8 flex flex-col items-center space-y-2">
-            <RefreshCw className="w-5 h-5 text-[#74111d] animate-spin" />
+            <RefreshCw className="w-5 h-5 text-[#8B0000] animate-spin" />
             <span className="text-xs text-slate-400 font-medium">Loading...</span>
           </div>
         </div>
@@ -1534,7 +2276,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <p className="text-xs text-slate-500">Please check your connection and try again.</p>
             <button
               onClick={() => setNoInternetModalOpen(false)}
-              className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+              className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Retry</span>
@@ -1561,7 +2303,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   setCameraPermissionModalOpen(false);
                   startCamera();
                 }}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-2 cursor-pointer shadow-md"
               >
                 <Camera className="w-4 h-4" />
                 <span>Allow Camera</span>
@@ -1569,11 +2311,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <button
                 onClick={() => {
                   setCameraPermissionModalOpen(false);
-                  simulateScanSuccess();
+                  stopCamera();
+                  setCurrentScreen('home');
                 }}
                 className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs transition cursor-pointer"
               >
-                Not Now (Simulate Scan)
+                Not Now
               </button>
             </div>
           </div>
@@ -1584,7 +2327,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {/* DESKTOP & TABLET TOP NAVIGATION BAR (Visible on md/lg screens) */}
       {/* ------------------------------------------------------------------- */}
-      <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 hidden md:block shadow-xs">
+      <header className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] border-b border-[#720000] text-white sticky top-0 z-40 hidden md:block shadow-md">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-[84px] flex items-center justify-between">
           
           {/* Brand Logo */}
@@ -1592,13 +2335,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-red-950/20 group-hover:scale-105 transition-all duration-300"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-md shadow-black/30 ring-1 ring-white/20 group-hover:scale-105 transition-all duration-300"
             />
             <div className="flex flex-col">
-              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-[#74111d]">
+              <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
                 BeAurex
               </span>
-              <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-rose-200 uppercase tracking-widest mt-0.5">
                 Rewarding Loyalty
               </span>
             </div>
@@ -1610,8 +2353,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               onClick={() => setCurrentScreen('home')}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'home'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <Home className="w-4 h-4" />
@@ -1622,28 +2365,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               onClick={openScanScreen}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'scan'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-[#74111d] hover:bg-rose-50 active:bg-rose-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <QrCode className="w-4 h-4" />
-              <span>Scan QR Standee</span>
+              <span>Scan</span>
             </button>
 
             <button
               onClick={() => {
-                setRewardsSubTab('to_claim');
+                setRewardsSubTab('all');
                 setCurrentScreen('rewards');
               }}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'rewards'
-                  ? 'bg-rose-50 text-[#74111d] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
               <Gift className="w-4 h-4" />
               <span>My Rewards</span>
-              <span className="bg-[#74111d] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-white text-[#8B0000] text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                 {rewardHistory.length}
               </span>
             </button>
@@ -1655,21 +2398,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               onClick={() => setCurrentScreen('profile')}
               className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 currentScreen === 'profile'
-                  ? 'bg-rose-50 text-[#8B0000] shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  ? 'bg-white/20 text-white shadow-xs backdrop-blur-xs'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
               title="Profile"
             >
-              <User className="w-4 h-4 text-[#8B0000]" />
+              <User className="w-4 h-4" />
               <span>Profile</span>
-            </button>
-
-            <button
-              onClick={handleLogout}
-              className="p-2.5 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -1678,19 +2413,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {/* MOBILE TOP NAVIGATION BAR (Visible on mobile screens < md) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen !== 'scan' && currentScreen !== 'rewards' && currentScreen !== 'after_scan' && currentScreen !== 'reward_details' && currentScreen !== 'waiting_approval' && currentScreen !== 'reward_congrats' && (
-        <header className="bg-white/95 backdrop-blur-md border-b border-slate-200/90 sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-xs">
+      {currentScreen !== 'scan' && currentScreen !== 'after_scan' && currentScreen !== 'reward_details' && currentScreen !== 'waiting_approval' && currentScreen !== 'reward_congrats' && (
+        <header className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] border-b border-[#720000] text-white sticky top-0 z-40 md:hidden px-4 py-3 flex items-center justify-between shadow-md">
           <Link to="/customer" onClick={() => setCurrentScreen('home')} className="flex items-center space-x-2.5">
             <img 
               src="/beaurex-icon.jpg" 
               alt="BeAurex Logo" 
-              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-red-950/20"
+              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-black/30 ring-1 ring-white/20"
             />
             <div className="flex flex-col">
-              <span className="text-base font-black tracking-tight leading-none text-[#74111d] block">
+              <span className="text-base font-black tracking-tight leading-none text-white block">
                 BeAurex
               </span>
-              <span className="text-[9px] font-bold text-[#74111d] uppercase tracking-widest mt-0.5 block">
+              <span className="text-[9px] font-bold text-rose-200 uppercase tracking-widest mt-0.5 block">
                 Rewarding Loyalty
               </span>
             </div>
@@ -1699,17 +2434,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentScreen('profile')}
-              className="w-8 h-8 rounded-xl bg-rose-100 text-[#8B0000] font-black text-xs flex items-center justify-center shadow-xs cursor-pointer ring-1 ring-[#8B0000]/20"
-              title="Profile & Refer"
+              className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-xs cursor-pointer transition border ${
+                currentScreen === 'profile'
+                  ? 'bg-white text-[#8B0000] border-white'
+                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+              }`}
+              title="Profile"
+              aria-label="Profile"
             >
-              {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-xl transition cursor-pointer"
-              title="Logout"
-            >
-              <LogOut className="w-4 h-4" />
+              <User className="w-4 h-4" />
             </button>
           </div>
         </header>
@@ -1721,59 +2454,60 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {currentScreen === 'home' && (
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
-          {/* Two Stat Cards (Active Loyalty Cards & Rewards Redeemed) matching Image 2 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100/80 shrink-0">
-                <CreditCard className="w-6 h-6 text-emerald-600" />
+          {/* Top Metric Cards: Exact match to Merchant Dashboard Type Card */}
+          {!emptyStateDemo && loyaltyCardsList.length > 0 && (
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 lg:gap-4">
+              {/* Card 1: Active Loyalty Cards */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <CreditCard className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-rose-700" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">
+                    Active Loyalty Cards
+                  </div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                    {loyaltyCardsList.length}
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">
+                    Across {loyaltyCardsList.length} stores
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-xs font-semibold text-slate-500 block leading-tight">Active Loyalty Cards</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 block mt-0.5">
-                  {customerUser.activeCardsCount || 4}
-                </span>
-              </div>
-            </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100/80 shrink-0">
-                <Gift className="w-6 h-6 text-sky-600" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-slate-500 block leading-tight">Rewards Redeemed</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 block mt-0.5">
-                  {customerUser.rewardsRedeemedCount || 3}
-                </span>
+              {/* Card 2: Rewards Redeemed */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl py-4.5 px-3.5 sm:py-5 sm:px-4.5 min-h-[98px] sm:min-h-[108px] shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3 sm:space-x-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Gift className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">
+                    Rewards Redeemed
+                  </div>
+                  <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-1 sm:my-1.5 whitespace-nowrap">
+                    {customerUser.rewardsRedeemedCount ?? 3}
+                  </div>
+                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">
+                    {(customerUser.rewardsRedeemedCount ?? 3) > 0 ? `${customerUser.rewardsRedeemedCount ?? 3} claimed to date` : 'Ready to unlock'}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Main Layout: Active Loyalty Programs */}
           <div className="space-y-4">
               
-              {/* Empty State Toggle Demo */}
-              {emptyStateDemo ? (
+              {/* Empty State */}
+              {(emptyStateDemo || loyaltyCardsList.length === 0) ? (
                 <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-xs">
                   <div className="w-24 h-24 rounded-full bg-rose-50 flex items-center justify-center mx-auto">
                     <ShoppingBag className="w-12 h-12 text-rose-300 stroke-[1.5]" />
                   </div>
                   <h3 className="text-lg font-black text-slate-900">No Loyalty Cards Yet</h3>
                   <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-                    You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting stamps and earn exciting rewards!
+                    You haven't joined any loyalty programs yet. Scan a QR code at any business to start collecting Aurex Coins and earn exciting rewards!
                   </p>
-                  <button
-                    onClick={openScanScreen}
-                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold py-3.5 px-8 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 mx-auto cursor-pointer shadow-md"
-                  >
-                    <QrCode className="w-4 h-4" />
-                    <span>Scan QR Code Standee</span>
-                  </button>
-                  <button
-                    onClick={() => setEmptyStateDemo(false)}
-                    className="text-xs text-slate-400 hover:text-slate-600 underline block mx-auto cursor-pointer"
-                  >
-                    Show Active Loyalty Cards
-                  </button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1781,223 +2515,60 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     <div>
                       <h3 className="text-base sm:text-lg font-black text-slate-900">Continue Collecting</h3>
                     </div>
-                    <button
-                      onClick={() => setEmptyStateDemo(prev => !prev)}
-                      className="text-xs font-bold text-[#8B0000] hover:underline cursor-pointer"
-                    >
-                      View All
-                    </button>
+                    {loyaltyCardsList.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setRewardsSubTab('all');
+                          setCurrentScreen('rewards');
+                        }}
+                        className="text-xs font-bold text-[#8B0000] hover:underline cursor-pointer"
+                      >
+                        View All
+                      </button>
+                    )}
                   </div>
 
-                  {/* Loyalty Cards Grid (Responsive: 1 col on mobile, 2 cols on tablet/laptop) */}
+                  {/* Loyalty Cards Grid (4 Cards on Home - Display only, non-navigating) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* Card 1: Ka-feen Coffee Shop */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs">
-                              <Coffee className="w-5 h-5 text-white" />
+                    {loyaltyCardsList.slice(0, 4).map((card) => {
+                      const CardIcon = card.Icon;
+                      return (
+                        <div 
+                          key={card.id}
+                          className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-sm transition"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-11 h-11 rounded-2xl ${card.iconBg} flex items-center justify-center shadow-xs`}>
+                                <CardIcon className={`w-5 h-5 ${card.iconColor || 'text-white'}`} />
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-black text-slate-900 leading-tight">{card.name}</h4>
+                                <p className="text-[11px] text-slate-500 font-medium">{card.category}</p>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">Ka-feen</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Coffee Shop</p>
-                            </div>
+                            <span className={`${card.badgeClass} text-xs font-bold px-3 py-1 rounded-full border`}>
+                              {card.badgeText}
+                            </span>
                           </div>
-                          <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                            2 more stamps
-                          </span>
-                        </div>
 
-                        {/* Stamp Indicators */}
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2, 3].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                            {[4, 5].map((n) => (
-                              <BeAurexStamp key={n} stamped={false} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-slate-400 font-bold">3 of 5 Stamps</span>
-                        </div>
-                      </div>
-
-                      {/* Next Unlock Banner */}
-                      <div 
-                        onClick={() => {
-                          setSelectedReward({
-                            title: '30% OFF on next purchase',
-                            storeName: 'Ka-feen',
-                            requiresStamps: 2,
-                            validTill: '30 Jul 2026',
-                            image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-                            approvedAt: 'Today, 2:30 PM'
-                          });
-                          setCurrentScreen('reward_details');
-                        }}
-                        className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-rose-100/60 transition"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-8 h-8 rounded-full bg-[#8B0000] text-white flex items-center justify-center shrink-0">
-                            <Crown className="w-4 h-4 text-white" />
-                          </div>
+                          {/* Stamp Indicators */}
                           <div>
-                            <div className="text-xs font-black text-slate-900 leading-tight">30% off on next purchase</div>
-                            <div className="text-[10px] text-slate-500 font-medium">Collect 2 more stamps to unlock</div>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-[#8B0000]" />
-                      </div>
-                    </div>
-
-                    {/* Card 2: Brew House */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-amber-950 text-white flex items-center justify-center shadow-xs">
-                              <Utensils className="w-5 h-5 text-amber-200" />
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
+                              {Array.from({ length: card.stamps }).map((_, idx) => (
+                                <BeAurexStamp key={`stamped-${card.id}-${idx}`} stamped={true} size="md" />
+                              ))}
+                              {Array.from({ length: Math.max(0, card.totalStamps - card.stamps) }).map((_, idx) => (
+                                <BeAurexStamp key={`unstamped-${card.id}-${idx}`} stamped={false} size="md" />
+                              ))}
                             </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">Brew House</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Bakery &amp; Bistro • Cyber Hub</p>
-                            </div>
-                          </div>
-                          <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-100">
-                            Reward Ready 🎉
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-emerald-700 font-bold">5 of 5 Stamps Collected!</span>
-                        </div>
-                      </div>
-
-                      {/* Ready banner */}
-                      <div 
-                        onClick={() => {
-                          setSelectedReward({
-                            title: 'Buy 1 Get 1 Free',
-                            storeName: 'Brew House',
-                            requiresStamps: 5,
-                            validTill: '15 Aug 2026',
-                            image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-                            approvedAt: 'Ready Now'
-                          });
-                          setCurrentScreen('reward_details');
-                        }}
-                        className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between cursor-pointer hover:bg-emerald-100/60 transition"
-                      >
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-                            <Award className="w-3.5 h-3.5 text-white" />
-                          </div>
-                          <div>
-                            <div className="text-xs font-black text-emerald-950 leading-tight">Buy 1 Get 1 Free</div>
-                            <div className="text-[10px] text-emerald-700 font-medium">Ready to claim at counter!</div>
+                            <span className={`text-[11px] font-bold ${card.stamps >= card.totalStamps ? 'text-emerald-700' : 'text-slate-400'}`}>
+                              {card.statusText}
+                            </span>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-emerald-700" />
-                      </div>
-                    </div>
-
-                    {/* Card 3: The Daily Roastery */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-amber-800 text-white flex items-center justify-center shadow-xs">
-                              <Coffee className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">The Daily Roastery</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Artisanal Coffee &amp; Bakes</p>
-                            </div>
-                          </div>
-                          <span className="bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
-                            3 more stamps
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                            {[3, 4, 5].map((n) => (
-                              <BeAurexStamp key={n} stamped={false} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-slate-400 font-bold">2 of 5 Stamps Collected</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between">
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shrink-0">
-                            <Gift className="w-3.5 h-3.5 text-amber-300" />
-                          </div>
-                          <div>
-                            <div className="text-xs font-black text-slate-900 leading-tight">Flat ₹100 Off on Meals</div>
-                            <div className="text-[10px] text-slate-500 font-medium">Collect 3 more stamps</div>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                      </div>
-                    </div>
-
-                    {/* Card 4: Royal Sweets & Treats */}
-                    <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-11 h-11 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-xs">
-                              <ShoppingBag className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">Royal Sweets &amp; Treats</h4>
-                              <p className="text-[11px] text-slate-500 font-medium">Confectionery &amp; Desserts</p>
-                            </div>
-                          </div>
-                          <span className="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-100">
-                            1 more stamp
-                          </span>
-                        </div>
-
-                        <div>
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            {[1, 2, 3, 4].map((n) => (
-                              <BeAurexStamp key={n} stamped={true} size="md" />
-                            ))}
-                            {[5].map((n) => (
-                              <BeAurexStamp key={n} stamped={false} size="md" />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-slate-400 font-bold">4 of 5 Stamps Collected</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-3 flex items-center justify-between">
-                        <div className="flex items-center space-x-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#74111d] text-white flex items-center justify-center shrink-0">
-                            <Gift className="w-3.5 h-3.5 text-amber-200" />
-                          </div>
-                          <div>
-                            <div className="text-xs font-black text-slate-900 leading-tight">Complimentary Dessert Box</div>
-                            <div className="text-[10px] text-slate-500 font-medium">Only 1 stamp to unlock!</div>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-[#74111d]" />
-                      </div>
-                    </div>
-
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -2037,7 +2608,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           {/* Subtitle */}
           <div className="text-center px-6">
             <p className="text-xs text-white/80 font-medium">
-              Position the QR code within the frame to collect stamp
+              Position the QR code within the frame to collect Aurex Coin
             </p>
           </div>
 
@@ -2091,32 +2662,48 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <Coffee className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900 leading-tight">Ka-feen</h2>
-              <p className="text-xs text-slate-500 font-medium">Coffee Shop</p>
+              <h2 className="text-base font-black text-slate-900 leading-tight">{storeInfo.storeName || 'Store'}</h2>
+              <p className="text-xs text-slate-500 font-medium">{storeInfo.categoryName || 'Retail & Loyalty'}</p>
             </div>
           </div>
 
-          {/* Stamp Earned Card */}
-          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-2.5 shadow-xs">
-            <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 stamp!</h3>
-            <p className="text-xs text-slate-600 font-medium">3 of 5 stamps collected</p>
+          {/* Aurex Coin Earned Card */}
+          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-3 shadow-xs">
+            {coinApprovedMsg ? (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold py-2.5 px-3 rounded-2xl flex items-center justify-center space-x-1.5 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{coinApprovedMsg}</span>
+              </div>
+            ) : (
+              <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 Aurex Coin!</h3>
+            )}
+            <p className="text-xs text-slate-600 font-medium">{customerUser.stamps || 3} of {customerUser.totalStamps || 5} Aurex Coins collected</p>
             
-            <div className="flex items-center justify-center space-x-2.5 pt-1.5 pb-1">
-              {[1, 2, 3].map((n) => (
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 pt-1 pb-1">
+              {Array.from({ length: Math.min(customerUser.totalStamps || 5, customerUser.stamps || 3) }).map((_, idx) => (
                 <div
-                  key={n}
+                  key={`coin-${idx}`}
                   className="w-9 h-9 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
                 >
-                  <Crown className="w-4 h-4 text-white fill-white" />
+                  <Coins className="w-4 h-4 text-amber-300" />
                 </div>
               ))}
-              {[4, 5, 6].map((n) => (
+              {Array.from({ length: Math.max(0, (customerUser.totalStamps || 5) - (customerUser.stamps || 3)) }).map((_, idx) => (
                 <div
-                  key={n}
+                  key={`empty-coin-${idx}`}
                   className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 bg-white/70"
                 />
               ))}
             </div>
+
+            <button
+              type="button"
+              onClick={handleRequestAurexCoin}
+              className="w-full bg-[#8B0000] hover:bg-[#720000] text-white text-xs sm:text-sm font-black py-3 px-4 rounded-2xl shadow-md shadow-[#8B0000]/20 transition flex items-center justify-center space-x-2 cursor-pointer active:scale-[0.99]"
+            >
+              <Coins className="w-4 h-4 text-amber-300" />
+              <span>Collect 1 More Aurex Coin (Ask Cashier)</span>
+            </button>
           </div>
 
           {/* Available Rewards Section */}
@@ -2129,7 +2716,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 onClick={() => {
                   setSelectedReward({
                     title: '30% off on next purchase',
-                    storeName: 'Ka-feen',
+                    storeName: storeInfo.storeName || 'Store',
                     requiresStamps: 2,
                     validTill: '7/30/2026',
                     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
@@ -2153,7 +2740,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </div>
                   <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
                     <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                      2 STAMPS
+                      2 AUREX COINS
                     </span>
                     <span className="text-[11px] text-slate-600 font-medium">Ready to claim! 🎉</span>
                   </div>
@@ -2170,7 +2757,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 onClick={() => {
                   setSelectedReward({
                     title: '50% discount',
-                    storeName: 'Ka-feen',
+                    storeName: storeInfo.storeName || 'Store',
                     requiresStamps: 5,
                     validTill: '7/30/2026',
                     image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
@@ -2189,7 +2776,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">50% discount</h4>
                   <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
                     <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                      5 STAMPS
+                      5 AUREX COINS
                     </span>
                     <span className="text-[11px] text-slate-500 font-medium">• Collect 2 more</span>
                   </div>
@@ -2205,8 +2792,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <div 
                 onClick={() => {
                   setSelectedReward({
-                    title: 'Free Coffee',
-                    storeName: 'Ka-feen',
+                    title: 'Free Coffee or Item',
+                    storeName: storeInfo.storeName || 'Store',
                     requiresStamps: 3,
                     validTill: '7/30/2026',
                     image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
@@ -2225,7 +2812,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Free Coffee</h4>
                   <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
                     <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                      3 STAMPS
+                      3 AUREX COINS
                     </span>
                     <span className="text-[11px] text-slate-500 font-medium">• Collect 1 more</span>
                   </div>
@@ -2242,452 +2829,230 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Batch 2 & 3) */}
+      {/* SCREEN 8: MY REWARDS & SCREEN 14: REWARD HISTORY (Matching Image 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'rewards' && (
-        <>
-          {/* MOBILE VIEW (Screens < md) matching media_1791477164813.png */}
-          <div className="md:hidden w-full max-w-lg mx-auto px-4 py-3 space-y-4 pb-28">
-            {/* Top Bar with Back Arrow & Store info */}
-            <div className="flex items-center space-x-3 pb-3 border-b border-slate-100">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-5 space-y-5 pb-28">
+          {/* Top Tab Bar: All vs To Claim vs History (matching Image 2) */}
+          <div className="border-b border-slate-200">
+            <div className="flex items-center justify-center space-x-8 sm:space-x-12 max-w-md mx-auto">
               <button
-                onClick={() => setCurrentScreen('home')}
-                className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
-                title="Back to Home"
+                type="button"
+                onClick={() => setRewardsSubTab('all')}
+                className={`pb-3 px-3 text-sm sm:text-base font-black transition cursor-pointer relative ${
+                  rewardsSubTab === 'all'
+                    ? 'text-slate-900 border-b-2 border-[#8B0000]'
+                    : 'text-slate-400 hover:text-slate-700'
+                }`}
               >
-                <ArrowLeft className="w-6 h-6 stroke-[2]" />
+                <span>All</span>
               </button>
-              <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
-                <Coffee className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-base font-black text-slate-900 leading-tight">Ka-feen</h2>
-                <p className="text-xs text-slate-500 font-medium">Coffee Shop</p>
-              </div>
-            </div>
 
-            {/* Mobile Sub-tabs: Store Rewards vs Reward History */}
-            <div className="bg-slate-100 p-1 rounded-2xl flex max-w-sm mx-auto shadow-xs">
               <button
+                type="button"
                 onClick={() => setRewardsSubTab('to_claim')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                className={`pb-3 px-3 text-sm sm:text-base font-black transition cursor-pointer flex items-center space-x-1.5 relative ${
                   rewardsSubTab === 'to_claim'
-                    ? 'bg-white text-[#8B0000] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-slate-900 border-b-2 border-[#8B0000]'
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
-                Store Rewards
+                <span>To Claim</span>
+                {claimableRewards.length > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                    {claimableRewards.length}
+                  </span>
+                )}
               </button>
+
               <button
+                type="button"
                 onClick={() => setRewardsSubTab('history')}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black transition cursor-pointer text-center flex items-center justify-center space-x-1.5 ${
+                className={`pb-3 px-3 text-sm sm:text-base font-black transition cursor-pointer flex items-center space-x-2 relative ${
                   rewardsSubTab === 'history'
-                    ? 'bg-white text-[#8B0000] shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
+                    ? 'text-slate-900 border-b-2 border-[#8B0000]'
+                    : 'text-slate-400 hover:text-slate-700'
                 }`}
               >
-                <span>Reward History</span>
-                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                  rewardsSubTab === 'history' ? 'bg-[#8B0000] text-white' : 'bg-slate-200 text-slate-700'
-                }`}>
+                <span>History</span>
+                <span className="w-5 h-5 rounded-full bg-[#8B0000] text-white text-[10px] font-black flex items-center justify-center shadow-xs">
                   {rewardHistory.length}
                 </span>
               </button>
             </div>
+          </div>
 
-            {rewardsSubTab === 'to_claim' ? (
-              <>
-                {/* Stamp Progress Box (matching image) */}
-                <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-5 text-center space-y-2.5 shadow-xs">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">You earned 1 stamp!</h3>
-                  <p className="text-xs text-slate-600 font-medium">3 of 5 stamps collected</p>
-                  
-                  <div className="flex items-center justify-center space-x-2.5 pt-1.5 pb-1">
-                    {[1, 2, 3].map((n) => (
-                      <div
-                        key={n}
-                        className="w-9 h-9 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
-                      >
-                        <Crown className="w-4 h-4 text-white fill-white" />
-                      </div>
-                    ))}
-                    {[4, 5, 6].map((n) => (
-                      <div
-                        key={n}
-                        className="w-9 h-9 rounded-full border-2 border-dashed border-slate-300 bg-white/70"
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Available Rewards Header */}
-                <div className="pt-1">
-                  <h3 className="text-base font-black text-slate-900 mb-3">Available Rewards</h3>
-
-                  <div className="space-y-3">
-                    {/* Reward 1: 30% OFF (Achieved) */}
-                    <div 
-                      onClick={() => {
-                        setSelectedReward({
-                          title: '30% off on next purchase',
-                          storeName: 'Ka-feen',
-                          requiresStamps: 2,
-                          validTill: '7/30/2026',
-                          image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Today, 2:30 PM'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
-                        alt="30% OFF"
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-1">
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">30% off on next purchase</h4>
-                          <span className="bg-[#10b981] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
-                            ACHIEVED
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                            2 STAMPS
-                          </span>
-                          <span className="text-[11px] text-slate-600 font-medium">Ready to claim! 🎉</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                            EXPIRES 7/30/2026
-                          </span>
-                        </div>
-                      </div>
+          {/* TAB 1: ALL (Section where customer can see all their loyalty cards) */}
+          {rewardsSubTab === 'all' && (
+            <div className="space-y-6 pt-1 animate-in fade-in duration-200">
+              {/* Ready to Claim notification banner if rewards are unlocked */}
+              {claimableRewards.length > 0 && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+                  <div className="flex items-center space-x-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                      <Gift className="w-5 h-5 text-amber-200" />
                     </div>
-
-                    {/* Reward 2: 50% discount */}
-                    <div 
-                      onClick={() => {
-                        setSelectedReward({
-                          title: '50% discount',
-                          storeName: 'Ka-feen',
-                          requiresStamps: 5,
-                          validTill: '7/30/2026',
-                          image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Locked'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80"
-                        alt="50% discount"
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">50% discount</h4>
-                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                            5 STAMPS
-                          </span>
-                          <span className="text-[11px] text-slate-500 font-medium">• Collect 2 more</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                            EXPIRES 7/30/2026
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Reward 3: Free Coffee */}
-                    <div 
-                      onClick={() => {
-                        setSelectedReward({
-                          title: 'Free Coffee',
-                          storeName: 'Ka-feen',
-                          requiresStamps: 3,
-                          validTill: '7/30/2026',
-                          image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Locked'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex items-center space-x-3.5 cursor-pointer hover:border-slate-300 transition"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80"
-                        alt="Free Coffee"
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">Free Coffee</h4>
-                        <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100">
-                            3 STAMPS
-                          </span>
-                          <span className="text-[11px] text-slate-500 font-medium">• Collect 1 more</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider inline-block">
-                            EXPIRES 7/30/2026
-                          </span>
-                        </div>
-                      </div>
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 leading-tight">
+                        You have {claimableRewards.length} reward{claimableRewards.length > 1 ? 's' : ''} ready to claim! 🎉
+                      </h4>
+                      <p className="text-xs text-emerald-800 font-medium mt-0.5">
+                        Claim at the counter during your checkout visit.
+                      </p>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setRewardsSubTab('to_claim')}
+                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shrink-0 cursor-pointer shadow-xs"
+                  >
+                    View Rewards
+                  </button>
                 </div>
-              </>
-            ) : (
-              /* Reward History view matching media_1791478192379.png */
-              <div className="space-y-4 pt-1">
-                {/* Filter pills: All, Active, Used, Expired */}
-                <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
-                  {['All', 'Active', 'Used', 'Expired'].map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      onClick={() => setHistoryFilter(f)}
-                      className={`py-1.5 px-5 rounded-full text-xs sm:text-sm font-bold transition cursor-pointer shrink-0 ${
-                        historyFilter === f
-                          ? 'bg-[#8B0000] text-white shadow-xs'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {f}
-                    </button>
-                  ))}
+              )}
+
+              {/* All Active Loyalty Cards */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900">All My Loyalty Cards</h3>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {loyaltyCardsList.length} cards active
+                  </span>
                 </div>
 
-                {/* History cards */}
-                <div className="space-y-3.5">
-                  {rewardHistory
-                    .filter((item) => historyFilter === 'All' || item.status.toLowerCase() === historyFilter.toLowerCase())
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        onClick={() => setSelectedHistoryVoucher(item)}
-                        className="bg-white border border-slate-200/90 rounded-3xl p-4 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-md transition cursor-pointer"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {loyaltyCardsList.map((card) => {
+                    const CardIcon = card.Icon;
+                    return (
+                      <div 
+                        key={`all-tab-${card.id}`}
+                        className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs space-y-4 hover:border-slate-300 hover:shadow-sm transition"
                       >
-                        {/* Top Section */}
-                        <div className="flex items-start space-x-3.5">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-16 h-16 rounded-2xl object-cover shrink-0 shadow-xs"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-sm font-extrabold text-slate-900 leading-snug">
-                                {item.title}
-                              </h4>
-                              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg shrink-0 ${
-                                item.status === 'Used'
-                                  ? 'bg-emerald-50 text-emerald-600'
-                                  : item.status === 'Active'
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-500'
-                              }`}>
-                                {item.status}
-                              </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className={`w-11 h-11 rounded-2xl ${card.iconBg} flex items-center justify-center shadow-xs`}>
+                              <CardIcon className={`w-5 h-5 ${card.iconColor || 'text-white'}`} />
                             </div>
-                            <p className="text-xs font-semibold text-slate-800 mt-1">
-                              {item.storeName}
-                            </p>
+                            <div>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">{card.name}</h4>
+                              <p className="text-[11px] text-slate-500 font-medium">{card.category}</p>
+                            </div>
                           </div>
+                          <span className={`${card.badgeClass} text-xs font-bold px-3 py-1 rounded-full border`}>
+                            {card.badgeText}
+                          </span>
                         </div>
 
-                        {/* Bottom Section */}
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                          <div className="flex-1">
-                            <span className="text-[11px] text-slate-400 font-medium block">Claimed on</span>
-                            <span className="text-xs font-bold text-slate-900 mt-0.5 block">{item.claimedDate}</span>
+                        {/* Stamp Indicators */}
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
+                            {Array.from({ length: card.stamps }).map((_, idx) => (
+                              <BeAurexStamp key={`all-stamped-${card.id}-${idx}`} stamped={true} size="md" />
+                            ))}
+                            {Array.from({ length: Math.max(0, card.totalStamps - card.stamps) }).map((_, idx) => (
+                              <BeAurexStamp key={`all-unstamped-${card.id}-${idx}`} stamped={false} size="md" />
+                            ))}
                           </div>
-
-                          <div className="h-7 w-px bg-slate-200/80 mx-3"></div>
-
-                          <div className="flex-1">
-                            <span className="text-[11px] text-slate-400 font-medium block">{item.dateLabel || 'Used on'}</span>
-                            <span className="text-xs font-bold text-slate-900 mt-0.5 block">{item.dateValue}</span>
-                          </div>
-
-                          <div className="pl-2">
-                            <ChevronRight className="w-5 h-5 text-slate-800 shrink-0" />
-                          </div>
+                          <span className={`text-[11px] font-bold ${card.stamps >= card.totalStamps ? 'text-emerald-700' : 'text-slate-400'}`}>
+                            {card.statusText}
+                          </span>
                         </div>
                       </div>
-                    ))}
+                    );
+                  })}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* DESKTOP VIEW (Visible on screens >= md) */}
-          <div className="hidden md:block w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-          
-          {/* Header Card (Responsive on Mobile and Laptop) */}
-          <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-11 h-11 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center shrink-0 shadow-xs">
-                <Gift className="w-5 h-5 text-[#74111d]" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                  My Rewards &amp; Vouchers
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                  Track unlocked vouchers, redeem in-store, and review past rewards
-                </p>
-              </div>
-            </div>
-
-            {/* Quick stats pills */}
-            <div className="flex items-center space-x-2.5 sm:space-x-3 shrink-0">
-              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
-                <span className="text-[10px] font-bold text-emerald-700 uppercase block">Active</span>
-                <span className="text-base font-black text-emerald-800">
-                  {rewardHistory.filter(r => r.status === 'Active').length}
-                </span>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-center min-w-[75px]">
-                <span className="text-[10px] font-bold text-slate-500 uppercase block">Total</span>
-                <span className="text-base font-black text-slate-800">{rewardHistory.length}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Segmented Tab Control: To Claim vs History */}
-          <div className="bg-slate-100 p-1.5 rounded-2xl flex max-w-md shadow-xs">
-            <button
-              onClick={() => setRewardsSubTab('to_claim')}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition cursor-pointer text-center ${
-                rewardsSubTab === 'to_claim'
-                  ? 'bg-white text-[#74111d] shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              Ready to Claim
-            </button>
-
-            <button
-              onClick={() => setRewardsSubTab('history')}
-              className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black transition cursor-pointer text-center flex items-center justify-center space-x-1.5 ${
-                rewardsSubTab === 'history'
-                  ? 'bg-white text-[#74111d] shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <span>Reward History</span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                rewardsSubTab === 'history' ? 'bg-[#74111d] text-white' : 'bg-slate-200 text-slate-700'
-              }`}>
-                {rewardHistory.length}
-              </span>
-            </button>
-          </div>
-
-          {/* TAB 1: TO CLAIM (Screen 8) */}
-          {rewardsSubTab === 'to_claim' && (
-            <div className="space-y-6">
-              {/* Ready Rewards Section */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-black text-slate-900">Available at Participating Stores</h3>
-                  <span className="text-xs text-slate-500 font-medium">1 reward unlocked</span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Ready to Claim Card: Brew House */}
-                  <div className="bg-white border-2 border-emerald-500/30 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
-                            alt="Brew House"
-                            className="w-12 h-12 rounded-2xl object-cover shadow-xs"
-                          />
-                          <div>
-                            <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                              Ready Now 🎉
-                            </span>
-                            <h4 className="text-sm font-black text-slate-900 mt-1">Buy 1 Get 1 Free</h4>
-                            <p className="text-xs text-slate-500 font-medium">Brew House Bakery &amp; Bistro</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-xs text-emerald-800 font-medium flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>5 of 5 stamps collected! Ready to claim at checkout.</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setSelectedReward({
-                          title: 'Buy 1 Get 1 Free',
-                          storeName: 'Brew House',
-                          requiresStamps: 5,
-                          validTill: '15 Aug 2026',
-                          image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-                          approvedAt: 'Ready Now'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md"
-                    >
-                      <Gift className="w-4 h-4 text-amber-300" />
-                      <span>Claim This Reward</span>
-                    </button>
-                  </div>
-
-                  {/* Progress Card: Ka-feen */}
-                  <div className="bg-white border border-slate-200/90 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
-                            alt="Ka-feen"
-                            className="w-12 h-12 rounded-2xl object-cover shadow-xs"
-                          />
-                          <div>
-                            <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase border border-rose-100">
-                              2 More Stamps
-                            </span>
-                            <h4 className="text-sm font-black text-slate-900 mt-1">30% off on next purchase</h4>
-                            <p className="text-xs text-slate-500 font-medium">Ka-feen Coffee Shop</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 text-xs text-slate-600 font-medium flex items-center justify-between">
-                        <span>Progress: 3/5 Stamps</span>
-                        <div className="flex items-center space-x-1">
-                          {[1, 2, 3].map(n => <BeAurexStamp key={n} stamped={true} size="xs" />)}
-                          {[4, 5].map(n => <BeAurexStamp key={n} stamped={false} size="xs" />)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={openScanScreen}
-                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer"
-                    >
-                      <QrCode className="w-4 h-4 text-[#74111d]" />
-                      <span>Scan to Collect Stamps</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
             </div>
           )}
 
-          {/* TAB 2: REWARD HISTORY (Screen 14) */}
+          {/* TAB 2: TO CLAIM */}
+          {rewardsSubTab === 'to_claim' && (
+            <div className="space-y-6 pt-1 animate-in fade-in duration-200">
+              {claimableRewards.length === 0 ? (
+                <div className="bg-white border border-slate-200/90 rounded-3xl p-10 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center mx-auto text-[#8B0000]">
+                    <Gift className="w-7 h-7 text-[#8B0000]" />
+                  </div>
+                  <h4 className="text-sm font-black text-slate-800">No Rewards Ready to Claim</h4>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    Collect more Aurex Coins on your loyalty cards to unlock exclusive discounts and rewards!
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setRewardsSubTab('all')}
+                    className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#8B0000] text-white text-xs font-bold hover:bg-[#720000] transition cursor-pointer"
+                  >
+                    <span>View All My Cards</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-sm sm:text-base font-black text-slate-900">Ready to Claim</h3>
+                    <span className="text-xs text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      {claimableRewards.length} unlocked 🎉
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {claimableRewards.map((reward) => (
+                      <div 
+                        key={reward.id}
+                        className="bg-white border-2 border-emerald-500/30 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4 hover:shadow-md transition"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-3">
+                              <img
+                                src={reward.image}
+                                alt={reward.storeName}
+                                className="w-12 h-12 rounded-2xl object-cover shadow-xs"
+                              />
+                              <div>
+                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
+                                  Ready Now 🎉
+                                </span>
+                                <h4 className="text-sm font-black text-slate-900 mt-1">{reward.title}</h4>
+                                <p className="text-xs text-slate-500 font-medium">{reward.storeName}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-xs text-emerald-800 font-medium flex items-center space-x-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{reward.description || `${reward.requiresStamps || 5} of ${reward.requiresStamps || 5} Aurex Coins collected! Ready to claim at checkout.`}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedReward({
+                              id: reward.id,
+                              title: reward.title,
+                              subtitle: reward.subtitle || '',
+                              storeName: reward.storeName,
+                              requiresStamps: reward.requiresStamps || 5,
+                              validTill: reward.validTill || '15 Aug 2026',
+                              image: reward.image,
+                              approvedAt: reward.approvedAt || 'Ready Now'
+                            });
+                            setCurrentScreen('reward_details');
+                          }}
+                          className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 rounded-2xl text-xs transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-md shadow-[#8B0000]/20 active:scale-98"
+                        >
+                          <Gift className="w-4 h-4 text-amber-300" />
+                          <span>Claim This Reward</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: REWARD HISTORY */}
           {rewardsSubTab === 'history' && (() => {
             const filteredHistory = rewardHistory.filter((item) => {
               if (historyFilter === 'All') return true;
@@ -2695,8 +3060,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             });
 
             return (
-              <div className="space-y-4">
-                {/* Filter pills: All, Active, Used, Expired (matching Image) */}
+              <div className="space-y-4 pt-1 animate-in fade-in duration-200">
+                {/* Filter pills: All, Active, Used, Expired */}
                 <div className="flex items-center space-x-2.5 overflow-x-auto pb-1">
                   {['All', 'Active', 'Used', 'Expired'].map((f) => (
                     <button
@@ -2726,12 +3091,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredHistory.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedHistoryVoucher(item)}
-                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-md transition cursor-pointer"
+                        className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 transition"
                       >
                         {/* Top Section: Thumbnail + Title + Status + Store */}
                         <div className="flex items-start space-x-3.5">
@@ -2761,7 +3125,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </div>
                         </div>
 
-                        {/* Bottom Section: Claimed on | Used on / Valid till > */}
+                        {/* Bottom Section: Claimed on | Used on / Valid till */}
                         <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                           <div className="flex-1">
                             <span className="text-[11px] text-slate-400 font-medium block">Claimed on</span>
@@ -2774,10 +3138,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <span className="text-[11px] text-slate-400 font-medium block">{item.dateLabel || 'Used on'}</span>
                             <span className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5 block">{item.dateValue}</span>
                           </div>
-
-                          <div className="pl-2">
-                            <ChevronRight className="w-5 h-5 text-slate-800 shrink-0" />
-                          </div>
                         </div>
                       </div>
                     ))}
@@ -2786,8 +3146,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
             );
           })()}
-          </div>
-        </>
+        </div>
       )}
 
       {/* ------------------------------------------------------------------- */}
@@ -2812,7 +3171,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </p>
               <div className="mt-3">
                 <span className="inline-block px-3.5 py-1.5 rounded-full bg-rose-50 text-[#8B0000] text-xs font-black tracking-tight">
-                  Requires {selectedReward.requiresStamps || 2} Stamps
+                  Requires {selectedReward.requiresStamps || 2} Aurex Coins
                 </span>
               </div>
             </div>
@@ -2822,7 +3181,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-black text-slate-900">Your Progress</span>
-              <span className="text-sm font-black text-slate-900">3 / 5 Stamps</span>
+              <span className="text-sm font-black text-slate-900">{customerUser.stamps || 3} / {customerUser.totalStamps || 5} Aurex Coins</span>
             </div>
             
             <div className="flex items-center space-x-3 pt-1 pb-0.5">
@@ -2831,7 +3190,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   key={n}
                   className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
                 >
-                  <Coffee className="w-5 h-5 text-white" />
+                  <Coins className="w-5 h-5 text-amber-300" />
                 </div>
               ))}
               {[4, 5].map((n) => (
@@ -2876,16 +3235,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
             {/* Spinning gradient ring border */}
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#8B0000] border-r-rose-400 border-b-rose-100 animate-spin" />
-            {/* Hourglass icon */}
-            <Hourglass className="w-10 h-10 text-[#8B0000]" />
+            {/* Hourglass or Coin icon */}
+            {approvalType === 'coin' ? (
+              <Coins className="w-10 h-10 text-amber-500 animate-bounce" />
+            ) : (
+              <Hourglass className="w-10 h-10 text-[#8B0000]" />
+            )}
           </div>
 
           <div className="space-y-1.5 pt-1">
             <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Waiting for Approval
+              {approvalType === 'coin' ? 'Waiting for Coin Approval' : 'Waiting for Approval'}
             </h2>
             <p className="text-xs sm:text-sm font-semibold text-slate-600 max-w-xs mx-auto">
-              Your request is being reviewed by the merchant.
+              {approvalType === 'coin' 
+                ? 'Your request to collect 1 Aurex Coin is being reviewed by the merchant.'
+                : 'Your reward claim request is being reviewed by the merchant.'}
             </p>
           </div>
 
@@ -2906,27 +3271,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 Customer ID
               </span>
               <span className="text-xl sm:text-2xl font-black text-[#8B0000] font-mono tracking-wider block mt-0.5">
-                LQR-8F4A29
+                {customerUser.customerId || 'LQR-8F4A29'}
               </span>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto">
-            Please share your Customer ID with the cashier.
-          </p>
-
-          {/* Discreet shortcut to immediately approve */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-                setCurrentScreen('reward_congrats');
-              }}
-              className="text-[11px] font-bold text-slate-400 hover:text-[#8B0000] transition cursor-pointer"
-            >
-              [Instant Approval Demo]
-            </button>
+          <div className="space-y-2">
+            <span className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>{approvalType === 'coin' ? 'Awaiting Cashier Approval for Aurex Coin' : 'Awaiting Cashier Approval'}</span>
+            </span>
+            <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed">
+              {approvalType === 'coin' 
+                ? <>Show your Customer ID to the cashier. Once they click <strong>Accept</strong> on their BeAurex Terminal, 1 Aurex Coin will be added to your card.</>
+                : <>Show your Customer ID to the merchant. Once they click <strong>Accept</strong> on their BeAurex Terminal, your reward will unlock here automatically.</>}
+            </p>
           </div>
         </div>
       )}
@@ -3011,48 +3370,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 9: PROFILE (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'profile' && (
-        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6">
+        <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4">
           
-          {/* Top Header Card */}
-          {/* Top Crimson Header Banner (Matching Landing Page theme) */}
-          <div className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] text-white p-6 sm:p-7 rounded-3xl shadow-lg relative overflow-hidden">
-            {/* Ambient background glow matching landing page */}
-            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute -left-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
-
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center space-x-3.5">
-                <button
-                  onClick={() => setCurrentScreen('home')}
-                  className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/10 cursor-pointer sm:hidden transition"
-                  title="Back"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-white flex items-center justify-center shrink-0 shadow-md">
-                  <User className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="inline-flex items-center space-x-1.5 bg-white/15 backdrop-blur-md border border-white/20 text-amber-300 font-bold text-[10px] uppercase px-2.5 py-0.5 rounded-full mb-1 shadow-xs">
-                    <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
-                    <span>BeAurex Account</span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-                    Customer Profile
-                  </h2>
-                  <p className="text-xs sm:text-sm text-rose-100/90 font-medium mt-0.5">
-                    Manage your account details, referral code &amp; settings
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="space-y-3.5">
             {/* 1. User Profile Card */}
             <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
               <div className="flex items-center space-x-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#981b2a] text-white font-black text-lg flex items-center justify-center shrink-0 shadow-md shadow-[#74111d]/25 ring-2 ring-rose-200">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B0000] to-[#981b2a] text-white font-black text-lg flex items-center justify-center shrink-0 shadow-md shadow-[#8B0000]/25 ring-2 ring-rose-200">
                   {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -3077,7 +3401,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <button
                 type="button"
                 onClick={() => {
-                  setEditProfileForm({ name: customerUser.name, email: customerUser.email });
+                  setEditProfileForm({ 
+                    name: customerUser.name || '', 
+                    phone: customerUser.phone || '', 
+                    email: customerUser.email || '' 
+                  });
                   setEditProfileModalOpen(true);
                 }}
                 className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition shadow-2xs cursor-pointer"
@@ -3090,7 +3418,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             {/* 2. Phone & Email Card (matching image) */}
             <div 
               onClick={() => {
-                setEditProfileForm({ name: customerUser.name, email: customerUser.email });
+                setEditProfileForm({ 
+                  name: customerUser.name || '', 
+                  phone: customerUser.phone || '', 
+                  email: customerUser.email || '' 
+                });
                 setEditProfileModalOpen(true);
               }}
               className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
@@ -3101,7 +3433,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
                 <div>
                   <h4 className="text-xs sm:text-sm font-black text-slate-900">Phone &amp; Email</h4>
-                  <p className="text-[11px] text-slate-500 font-medium">{customerUser.email}</p>
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {customerUser.phone ? `${customerUser.phone} • ` : ''}{customerUser.email}
+                  </p>
                 </div>
               </div>
               <Edit3 className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
@@ -3141,19 +3475,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               )}
             </div>
 
-            {/* 4. Member Status Card */}
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
-              <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-slate-900">Member Status</h4>
-                  <p className="text-[11px] text-slate-500 font-medium">Joined {customerUser.memberSince}</p>
-                </div>
-              </div>
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200/80">Active</span>
-            </div>
 
             {/* 5. Privacy Policy Card */}
             <div 
@@ -3184,7 +3505,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer"
             >
               <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#74111d] flex items-center justify-center shrink-0 border border-rose-100">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -3195,21 +3516,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <ChevronRight className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
             </div>
 
-            {/* 7. Logout Card */}
-            <div 
-              onClick={handleLogout}
-              className="bg-white border border-rose-100 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-rose-200 hover:bg-rose-50/20 transition cursor-pointer"
-            >
-              <div className="flex items-center space-x-3.5">
-                <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-                  <LogOut className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-black text-rose-600">Logout</h4>
-                  <p className="text-[11px] text-rose-400 font-medium">Sign out of your customer account</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-rose-400 hover:text-rose-600 shrink-0" />
+            {/* 7. Bottom Logout Button (Matching Brand Theme & Only Logout Text) */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3.5 rounded-2xl shadow-md shadow-[#8B0000]/25 transition flex items-center justify-center space-x-2 text-sm cursor-pointer active:scale-[0.99]"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
 
@@ -3246,7 +3562,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           {/* Rewards Tab */}
           <button
             onClick={() => {
-              setRewardsSubTab('to_claim');
+              setRewardsSubTab('all');
               setCurrentScreen('rewards');
             }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 relative ${
@@ -3272,90 +3588,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         onClose={() => setLegalModalOpen(false)}
         initialTab={legalModalTab}
       />
-
-      {/* Voucher Detail Modal for Reward History */}
-      {selectedHistoryVoucher && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-sm w-full overflow-hidden shadow-2xl space-y-0 border border-slate-100">
-            {/* Header Image */}
-            <div className="relative h-36 bg-slate-100">
-              <img
-                src={selectedHistoryVoucher.image}
-                alt={selectedHistoryVoucher.title}
-                className="w-full h-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => setSelectedHistoryVoucher(null)}
-                className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 text-slate-700 flex items-center justify-center hover:bg-white cursor-pointer shadow-md"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <div className="absolute bottom-3 left-3">
-                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border shadow-xs ${
-                  selectedHistoryVoucher.status === 'Active'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                    : selectedHistoryVoucher.status === 'Used'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-slate-100 text-slate-600 border-slate-200'
-                }`}>
-                  {selectedHistoryVoucher.status}
-                </span>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-5 space-y-4">
-              <div>
-                <h3 className="text-sm font-black text-slate-900 leading-tight">
-                  {selectedHistoryVoucher.title}
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {selectedHistoryVoucher.storeName}
-                </p>
-              </div>
-
-              {/* Voucher Code Box */}
-              <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-3.5 text-center space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  Voucher Code
-                </span>
-                <div className="text-base font-black font-mono text-[#74111d] tracking-wider">
-                  {selectedHistoryVoucher.voucherCode}
-                </div>
-                <p className="text-[10px] text-slate-500">
-                  {selectedHistoryVoucher.status === 'Active'
-                    ? 'Show this voucher code or QR to the cashier to redeem'
-                    : selectedHistoryVoucher.status === 'Used'
-                    ? `Redeemed on ${selectedHistoryVoucher.dateValue}`
-                    : `Expired on ${selectedHistoryVoucher.dateValue}`}
-                </p>
-              </div>
-
-              {/* Date info */}
-              <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">Claimed</span>
-                  <span className="font-bold text-slate-700">{selectedHistoryVoucher.claimedDate}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">{selectedHistoryVoucher.dateLabel}</span>
-                  <span className="font-bold text-slate-700">{selectedHistoryVoucher.dateValue}</span>
-                </div>
-              </div>
-
-              {/* Action button */}
-              <button
-                type="button"
-                onClick={() => setSelectedHistoryVoucher(null)}
-                className="w-full bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold py-3 rounded-xl text-xs transition cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Edit Customer Profile Modal */}
       {editProfileModalOpen && (
@@ -3384,6 +3616,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 />
               </div>
               <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editProfileForm.phone}
+                  onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]"
+                  placeholder="+91 98765 43210"
+                />
+              </div>
+              <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Email Address</label>
                 <input
                   type="email"
@@ -3404,7 +3646,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] to-[#590104] text-white text-xs font-black shadow-md hover:from-[#74111d] hover:to-[#400002] transition cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] to-[#590104] text-white text-xs font-black shadow-md hover:from-[#8B0000] hover:to-[#400002] transition cursor-pointer"
                 >
                   Save Changes
                 </button>

@@ -21,12 +21,12 @@ At BeAurex, we value your privacy and are committed to protecting your personal 
 We collect necessary information to provide and operate digital loyalty programs:
 • Merchant Business Information (Store name, business category, counter address, contact details)
 • Customer Profile Data (Name, email address, customer ID, phone number if provided)
-• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)
+• QR & Aurex Coin Activity (Counter scan timestamps, Aurex Coins earned, rewards unlocked and redeemed)
 • Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)
 
 2. How We Use Your Information
 We use information strictly for:
-• Operating customer rewards and digital stamp issuance
+• Operating customer rewards and digital Aurex Coin issuance
 • Validating customer reward claims at merchant physical counters
 • Preventing fraudulent or duplicate scans
 • Facilitating peer-to-peer customer referral rewards
@@ -56,13 +56,13 @@ Welcome to BeAurex. These Terms and Conditions govern your access to and usage o
 By accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.
 
 2. Merchant Obligations & Counter Conduct
-• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.
+• Participating merchants agree to honor validly earned digital Aurex Coins and approved reward claims presented by registered customers.
 • Merchants must not manipulate scan telemetry or create counterfeit QR displays.
 • Counter staff must verify the 6-character Customer ID before confirming reward redemptions.
 
 3. Customer Rewards & Points Policy
-• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
-• Stamps and points carry no direct legal tender cash value outside designated partner stores.
+• Loyalty Aurex Coins and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
+• Aurex Coins and points carry no direct legal tender cash value outside designated partner stores.
 • Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.
 
 4. Platform Availability & Fair Use
@@ -160,7 +160,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
       if (/^\d+\.\s+/.test(trimmed)) {
         return (
           <h4 key={idx} className="text-sm font-black text-slate-900 mt-4 mb-1.5 flex items-center space-x-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#74111d] inline-block mr-1"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8B0000] inline-block mr-1"></span>
             <span>{trimmed}</span>
           </h4>
         );
@@ -170,7 +170,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
       if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
         return (
           <div key={idx} className="flex items-start space-x-2 text-xs text-slate-600 leading-relaxed pl-2 my-1">
-            <span className="text-[#74111d] font-bold text-sm leading-none">•</span>
+            <span className="text-[#8B0000] font-bold text-sm leading-none">•</span>
             <span>{trimmed.replace(/^[•\-]\s*/, '')}</span>
           </div>
         );
@@ -179,7 +179,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
       // Check if header line like "BeAurex Platform..."
       if (idx === 0 || trimmed.includes('(v1.0)')) {
         return (
-          <div key={idx} className="font-bold text-slate-800 text-xs sm:text-sm mb-2 text-[#74111d]">
+          <div key={idx} className="font-bold text-slate-800 text-xs sm:text-sm mb-2 text-[#8B0000]">
             {trimmed}
           </div>
         );
@@ -201,7 +201,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
-        <div className="bg-gradient-to-r from-[#74111d] to-[#550c14] text-white p-5 sm:p-6 shrink-0 relative">
+        <div className="bg-gradient-to-r from-[#8B0000] to-[#550c14] text-white p-5 sm:p-6 shrink-0 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition cursor-pointer"
@@ -239,7 +239,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
               onClick={() => setActiveTab('privacy')}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer ${
                 activeTab === 'privacy'
-                  ? 'bg-white text-[#74111d] shadow-md font-black'
+                  ? 'bg-white text-[#8B0000] shadow-md font-black'
                   : 'bg-white/10 text-white hover:bg-white/15'
               }`}
             >
@@ -250,7 +250,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
               onClick={() => setActiveTab('terms')}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-2 cursor-pointer ${
                 activeTab === 'terms'
-                  ? 'bg-white text-[#74111d] shadow-md font-black'
+                  ? 'bg-white text-[#8B0000] shadow-md font-black'
                   : 'bg-white/10 text-white hover:bg-white/15'
               }`}
             >
@@ -264,7 +264,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
         <div className="p-6 sm:p-7 overflow-y-auto flex-1 font-sans space-y-2 selection:bg-rose-100">
           {loading ? (
             <div className="py-12 text-center text-slate-400 text-xs flex items-center justify-center space-x-2">
-              <div className="w-4 h-4 border-2 border-[#74111d] border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-[#8B0000] border-t-transparent rounded-full animate-spin"></div>
               <span>Loading latest verified platform policy...</span>
             </div>
           ) : (
@@ -277,7 +277,7 @@ export default function LegalPolicyModal({ isOpen, onClose, initialTab = 'privac
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 bg-[#74111d] hover:bg-[#550c14] text-white font-bold rounded-xl text-xs transition cursor-pointer shadow-xs"
+            className="px-6 py-2.5 bg-[#8B0000] hover:bg-[#550c14] text-white font-bold rounded-xl text-xs transition cursor-pointer shadow-xs"
           >
             Close
           </button>

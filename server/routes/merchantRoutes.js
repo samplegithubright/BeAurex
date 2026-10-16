@@ -165,31 +165,52 @@ router.get('/scans', async (req, res) => {
     if (!merchant && slug) {
       merchant = await Merchant.findOne({ qrSlug: slug });
     }
-    if (!merchant) {
-      merchant = await Merchant.findOne();
-    }
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
 
     let scansList = [];
     let totalCount = 0;
+    let scansToday = 0;
+
     if (merchant) {
       totalCount = await Scan.countDocuments({ merchantId: merchant._id });
+      scansToday = await Scan.countDocuments({ merchantId: merchant._id, createdAt: { $gte: startOfToday } });
       scansList = await Scan.find({ merchantId: merchant._id })
         .populate('customerId', 'name mobile')
         .sort({ createdAt: -1 })
         .limit(Number(limit));
+
+      const formattedScans = scansList.map(s => ({
+        id: s._id.toString(),
+        customerName: s.customerId?.name || 'Loyal Customer',
+        phone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
+        time: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+        ipAddress: s.ipAddress || '127.0.0.1',
+        device: s.userAgent?.includes('iPhone') ? 'iOS (Safari)' : 'Android (Chrome)',
+        branch: merchant?.branches?.[0]?.branchName || 'Main Counter',
+        status: 'VERIFIED'
+      }));
+
+      return res.json({
+        success: true,
+        totalScans: totalCount,
+        scansToday,
+        scansGrowth: totalCount > 0 ? '+15% this week' : '0% this week',
+        scans: formattedScans
+      });
     }
 
-    if (scansList.length === 0) {
-      scansList = await Scan.find()
-        .populate('customerId', 'name mobile')
-        .sort({ createdAt: -1 })
-        .limit(Number(limit));
-      if (scansList.length > 0) {
-        totalCount = await Scan.countDocuments();
-      }
-    }
+    // Fallback only if no merchant is selected (global default demo)
+    totalCount = await Scan.countDocuments();
+    scansToday = await Scan.countDocuments({ createdAt: { $gte: startOfToday } });
+    scansList = await Scan.find()
+      .populate('customerId', 'name mobile')
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
 
-    const formattedScans = scansList.length > 0 ? scansList.map(s => ({
+    const formattedScans = scansList.map(s => ({
       id: s._id.toString(),
       customerName: s.customerId?.name || 'Loyal Customer',
       phone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
@@ -197,21 +218,15 @@ router.get('/scans', async (req, res) => {
       date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
       ipAddress: s.ipAddress || '127.0.0.1',
       device: s.userAgent?.includes('iPhone') ? 'iOS (Safari)' : 'Android (Chrome)',
-      branch: merchant?.branches?.[0]?.branchName || 'Main Counter',
+      branch: 'Main Counter',
       status: 'VERIFIED'
-    })) : [
-      { id: 'sc_1', customerName: 'Rohan Sharma', phone: '+91 9876543210', time: '10 mins ago', date: 'Today', ipAddress: '49.37.12.9', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_2', customerName: 'Priya Verma', phone: '+91 9812345678', time: '34 mins ago', date: 'Today', ipAddress: '157.42.8.11', device: 'iOS (Safari)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_3', customerName: 'Amit Saxena', phone: '+91 9765432109', time: '1 hour ago', date: 'Today', ipAddress: '103.21.5.88', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_4', customerName: 'Simran Kaur', phone: '+91 9988776655', time: '2 hours ago', date: 'Today', ipAddress: '27.56.91.4', device: 'iOS (Safari)', branch: 'Main Counter', status: 'VERIFIED' },
-      { id: 'sc_5', customerName: 'Deepak Patel', phone: '+91 9123456780', time: 'Yesterday, 06:15 PM', date: 'Yesterday', ipAddress: '182.73.4.15', device: 'Android (Chrome)', branch: 'Main Counter', status: 'VERIFIED' }
-    ];
+    }));
 
     res.json({
       success: true,
-      totalScans: totalCount > 0 ? totalCount : 1482,
-      scansToday: 24,
-      scansGrowth: '+28% this week',
+      totalScans: totalCount,
+      scansToday,
+      scansGrowth: '+20% this week',
       scans: formattedScans
     });
   } catch (err) {
@@ -337,13 +352,131 @@ let customersList = [
   { id: 'c7', name: 'Vikas Malhotra', phone: '9711223344', totalVisits: 5, stamps: 5, status: 'ACTIVE', lastVisit: '30 Sep 2026' }
 ];
 
+// GET Merchant Profile (Used for loading merchant dashboard by merchantId or slug)
+router.get('/profile', async (req, res) => {
+  try {
+    const { merchantId, slug, email } = req.query;
+    let merchant = null;
+    if (merchantId) {
+      try { merchant = await Merchant.findById(merchantId); } catch (_) {}
+    }
+    if (!merchant && slug) {
+      merchant = await Merchant.findOne({ qrSlug: slug });
+    }
+    if (!merchant && email) {
+      merchant = await Merchant.findOne({ email: email.toLowerCase() });
+    }
+    if (!merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant not found' });
+    }
+
+    const subStatus = Merchant.checkMerchantSubscription(merchant);
+
+    res.json({
+      success: true,
+      merchant: {
+        id: merchant._id.toString(),
+        businessName: merchant.businessName,
+        ownerName: merchant.ownerName || '',
+        logo: merchant.logo || '',
+        category: merchant.category,
+        email: merchant.email,
+        mobile: merchant.mobile,
+        addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        addressLine2: merchant.addressLine2 || '',
+        address: merchant.address || merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+        city: merchant.city || 'Delhi NCR',
+        state: merchant.state || '',
+        pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+        pincode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+        qrSlug: merchant.qrSlug,
+        brandColor: merchant.brandColor || '#74111d',
+        branches: merchant.branches || [],
+        cashierPin: merchant.cashierPin || '4829',
+        subscriptionTier: merchant.subscriptionTier,
+        planValidTill: merchant.planValidTill,
+        paymentAmount: merchant.paymentAmount,
+        paymentDate: merchant.paymentDate,
+        dealDetails: merchant.dealDetails,
+        isComplimentary: merchant.isComplimentary,
+        complimentaryDays: merchant.complimentaryDays,
+        complimentaryReason: merchant.complimentaryReason,
+        subscription: subStatus
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PUT /profile - Update Merchant Profile & Location
+router.put('/profile', async (req, res) => {
+  try {
+    const { merchantId, id, businessName, ownerName, category, addressLine1, addressLine2, city, state, pinCode, pincode, logo } = req.body;
+    const targetId = merchantId || id;
+    let merchant = null;
+    if (targetId) {
+      try { merchant = await Merchant.findById(targetId); } catch (_) {}
+    }
+    if (!merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant not found' });
+    }
+
+    if (businessName !== undefined) merchant.businessName = businessName.trim();
+    if (ownerName !== undefined) merchant.ownerName = ownerName.trim();
+    if (category !== undefined) merchant.category = category;
+    if (logo !== undefined) merchant.logo = logo;
+    if (addressLine1 !== undefined) merchant.addressLine1 = addressLine1.trim();
+    if (addressLine2 !== undefined) merchant.addressLine2 = addressLine2.trim();
+    if (city !== undefined) merchant.city = city.trim();
+    if (state !== undefined) merchant.state = state.trim();
+    if (pinCode !== undefined || pincode !== undefined) {
+      const pin = (pinCode || pincode || '').trim();
+      merchant.pinCode = pin;
+      merchant.pincode = pin;
+    }
+    const fullAddr = merchant.addressLine1 
+      ? (merchant.addressLine2 ? `${merchant.addressLine1}, ${merchant.addressLine2}` : merchant.addressLine1)
+      : merchant.city;
+    merchant.address = fullAddr;
+
+    if (merchant.branches && merchant.branches.length > 0) {
+      merchant.branches[0].address = fullAddr;
+      if (merchant.city) merchant.branches[0].city = merchant.city;
+      if (merchant.pinCode) merchant.branches[0].pincode = merchant.pinCode;
+    }
+
+    await merchant.save();
+
+    res.json({
+      success: true,
+      message: 'Profile and address updated successfully!',
+      merchant: {
+        id: merchant._id.toString(),
+        businessName: merchant.businessName,
+        ownerName: merchant.ownerName,
+        logo: merchant.logo,
+        category: merchant.category,
+        email: merchant.email,
+        mobile: merchant.mobile,
+        addressLine1: merchant.addressLine1,
+        addressLine2: merchant.addressLine2,
+        address: merchant.address,
+        city: merchant.city,
+        state: merchant.state,
+        pinCode: merchant.pinCode,
+        pincode: merchant.pincode,
+        branches: merchant.branches
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // GET Home Dashboard Data
 router.get('/home', async (req, res) => {
   try {
-    const totalScans = await Scan.countDocuments();
-    const totalUsers = await Customer.countDocuments();
-    const totalVouchers = await Voucher.countDocuments();
-
     let merchant = null;
     const { merchantId, slug } = req.query;
     if (merchantId) {
@@ -352,25 +485,245 @@ router.get('/home', async (req, res) => {
     if (!merchant && slug) {
       merchant = await Merchant.findOne({ qrSlug: slug });
     }
-    if (!merchant) {
-      merchant = await Merchant.findOne();
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    if (merchant) {
+      const mId = merchant._id;
+      const totalScans = await Scan.countDocuments({ merchantId: mId });
+      const scansToday = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfToday } });
+      const customerIds = await Scan.distinct('customerId', { merchantId: mId });
+      const totalUsers = customerIds.length;
+      const totalVouchers = await Voucher.countDocuments({ merchantId: mId });
+      const completedToday = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfToday } });
+
+      let repeatRate = '0%';
+      if (totalUsers > 0) {
+        try {
+          const repeatScansAgg = await Scan.aggregate([
+            { $match: { merchantId: mId } },
+            { $group: { _id: '$customerId', count: { $sum: 1 } } },
+            { $match: { count: { $gt: 1 } } }
+          ]);
+          const rateNum = Math.min(100, Math.round((repeatScansAgg.length / totalUsers) * 100));
+          repeatRate = `${rateNum}%`;
+        } catch (_) {
+          repeatRate = '0%';
+        }
+      }
+
+      const calcPctChange = (curr, prev) => {
+        if (!prev || prev === 0) return curr > 0 ? '+100%' : '0%';
+        const diff = curr - prev;
+        const pct = Math.round((diff / prev) * 1000) / 10;
+        return `${pct >= 0 ? '+' : ''}${pct}%`;
+      };
+
+      const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+      const startOfWeek = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const startOfPrevWeek = new Date(startOfToday.getTime() - 14 * 24 * 60 * 60 * 1000);
+      const startOfMonth = new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const startOfPrevMonth = new Date(startOfToday.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+      const scansYesterday = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfYesterday, $lt: startOfToday } });
+      const scansThisWeek = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfWeek } });
+      const scansPrevWeek = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfPrevWeek, $lt: startOfWeek } });
+      const scansThisMonth = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfMonth } });
+      const scansPrevMonth = await Scan.countDocuments({ merchantId: mId, createdAt: { $gte: startOfPrevMonth, $lt: startOfMonth } });
+
+      const customersTodayIds = await Scan.distinct('customerId', { merchantId: mId, createdAt: { $gte: startOfToday } });
+      const customersYesterdayIds = await Scan.distinct('customerId', { merchantId: mId, createdAt: { $gte: startOfYesterday, $lt: startOfToday } });
+      const customersWeekIds = await Scan.distinct('customerId', { merchantId: mId, createdAt: { $gte: startOfWeek } });
+      const customersPrevWeekIds = await Scan.distinct('customerId', { merchantId: mId, createdAt: { $gte: startOfPrevWeek, $lt: startOfWeek } });
+      const customersMonthIds = await Scan.distinct('customerId', { merchantId: mId, createdAt: { $gte: startOfMonth } });
+      const customersPrevMonthIds = await Scan.distinct('customerId', { merchantId: mId, createdAt: { $gte: startOfPrevMonth, $lt: startOfMonth } });
+
+      const completedYesterday = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfYesterday, $lt: startOfToday } });
+      const completedThisWeek = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfWeek } });
+      const completedPrevWeek = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfPrevWeek, $lt: startOfWeek } });
+      const completedThisMonth = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfMonth } });
+      const completedPrevMonth = await Voucher.countDocuments({ merchantId: mId, status: 'REDEEMED', updatedAt: { $gte: startOfPrevMonth, $lt: startOfMonth } });
+
+      const periodStats = {
+        'Today': {
+          scans: scansToday,
+          customers: customersTodayIds.length,
+          rewards: completedToday,
+          repeatRate: customersTodayIds.length > 0 ? `${Math.min(100, Math.round(((scansToday - customersTodayIds.length) / Math.max(1, scansToday)) * 100))}%` : '0%',
+          scansChange: calcPctChange(scansToday, scansYesterday),
+          customersChange: calcPctChange(customersTodayIds.length, customersYesterdayIds.length),
+          rewardsChange: calcPctChange(completedToday, completedYesterday),
+          repeatRateChange: '+12.5%'
+        },
+        'This Week': {
+          scans: scansThisWeek,
+          customers: customersWeekIds.length,
+          rewards: completedThisWeek,
+          repeatRate: customersWeekIds.length > 0 ? `${Math.min(100, Math.round(((scansThisWeek - customersWeekIds.length) / Math.max(1, scansThisWeek)) * 100))}%` : '0%',
+          scansChange: calcPctChange(scansThisWeek, scansPrevWeek),
+          customersChange: calcPctChange(customersWeekIds.length, customersPrevWeekIds.length),
+          rewardsChange: calcPctChange(completedThisWeek, completedPrevWeek),
+          repeatRateChange: '+14.2%'
+        },
+        'This Month': {
+          scans: scansThisMonth || totalScans,
+          customers: customersMonthIds.length || totalUsers,
+          rewards: completedThisMonth || totalVouchers,
+          repeatRate,
+          scansChange: calcPctChange(scansThisMonth || totalScans, scansPrevMonth),
+          customersChange: calcPctChange(customersMonthIds.length || totalUsers, customersPrevMonthIds.length),
+          rewardsChange: calcPctChange(completedThisMonth || totalVouchers, completedPrevMonth),
+          repeatRateChange: '+18.5%'
+        },
+        'All Time': {
+          scans: totalScans,
+          customers: totalUsers,
+          rewards: totalVouchers,
+          repeatRate,
+          scansChange: '+24.8%',
+          customersChange: '+19.3%',
+          rewardsChange: '+16.5%',
+          repeatRateChange: '+8.2%'
+        }
+      };
+
+      // Weekly scans for this merchant
+      const weekly = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        d.setHours(0, 0, 0, 0);
+        const nextD = new Date(d);
+        nextD.setDate(nextD.getDate() + 1);
+        const dayScans = await Scan.countDocuments({
+          merchantId: mId,
+          createdAt: { $gte: d, $lt: nextD }
+        });
+        weekly.push({ day: days[d.getDay()], scans: dayScans });
+      }
+
+      // Merchant's real reward
+      let activeReward = null;
+      try {
+        activeReward = await Reward.findOne({ merchantId: mId, isActive: true });
+      } catch (_) {}
+
+      const subStatus = Merchant.checkMerchantSubscription(merchant);
+
+      try {
+        const allPlans = await systemStore.getAllPlans();
+        const matched = allPlans.find(p => 
+          p.id === merchant.planId || 
+          p.name?.toLowerCase() === merchant.planName?.toLowerCase() || 
+          p.name?.toLowerCase() === merchant.plan?.toLowerCase() || 
+          p.name?.toLowerCase() === merchant.subscriptionTier?.toLowerCase()
+        );
+        if (matched) {
+          subStatus.planName = merchant.planName || matched.name;
+          subStatus.planPeriod = matched.period || subStatus.planPeriod;
+          if (!subStatus.planPrice || subStatus.planPrice === '₹999') {
+            subStatus.planPrice = '₹' + Number(matched.price || 0).toLocaleString('en-IN');
+          }
+        }
+      } catch (_) {}
+
+      return res.json({
+        success: true,
+        merchant: {
+          id: merchant._id,
+          businessName: merchant.businessName,
+          qrSlug: merchant.qrSlug,
+          brandColor: merchant.brandColor,
+          logo: merchant.logo,
+          tagline: merchant.tagline,
+          city: merchant.city
+        },
+        metrics: {
+          scans: totalScans,
+          users: totalUsers,
+          rewards: totalVouchers,
+          repeatRate
+        },
+        periodStats,
+        today: {
+          scansToday,
+          completedToday
+        },
+        weekly,
+        activeRewardProgram: activeReward ? {
+          title: activeReward.title,
+          stampsRequired: 5,
+          validityDays: activeReward.validityDays || 30,
+          minBill: activeReward.minBillAmount || 200,
+          type: activeReward.discountType || 'DISCOUNT_PERCENT'
+        } : activeStampProgram,
+        subscription: subStatus
+      });
     }
 
-    const subStatus = merchant 
-      ? Merchant.checkMerchantSubscription(merchant) 
-      : { isOnline: true, isExpired: false, status: 'TRIAL', tier: 'TRIAL', daysRemaining: 2 };
+    // Fallback if no specific merchant is requested (demo fallback)
+    const totalScans = await Scan.countDocuments();
+    const totalUsers = await Customer.countDocuments();
+    const totalVouchers = await Voucher.countDocuments();
+    const scansToday = await Scan.countDocuments({ createdAt: { $gte: startOfToday } });
+    const completedToday = await Voucher.countDocuments({ status: 'REDEEMED', updatedAt: { $gte: startOfToday } });
 
     res.json({
       success: true,
       metrics: {
-        scans: totalScans > 0 ? totalScans : 1482,
-        users: totalUsers > 0 ? totalUsers : 894,
-        rewards: totalVouchers > 0 ? totalVouchers : 319,
-        repeatRate: '42%'
+        scans: totalScans || 2453,
+        users: totalUsers || 586,
+        rewards: totalVouchers || 128,
+        repeatRate: totalScans > 0 ? '42%' : '42%'
+      },
+      periodStats: {
+        'Today': {
+          scans: scansToday || 18,
+          customers: completedToday ? completedToday * 2 : 12,
+          rewards: completedToday || 6,
+          repeatRate: '38%',
+          scansChange: '+14.2%',
+          customersChange: '+11.5%',
+          rewardsChange: '+10.0%',
+          repeatRateChange: '+6.5%'
+        },
+        'This Week': {
+          scans: 642,
+          customers: 168,
+          rewards: 45,
+          repeatRate: '40%',
+          scansChange: '+16.8%',
+          customersChange: '+13.4%',
+          rewardsChange: '+12.1%',
+          repeatRateChange: '+7.4%'
+        },
+        'This Month': {
+          scans: totalScans || 2453,
+          customers: totalUsers || 586,
+          rewards: totalVouchers || 128,
+          repeatRate: '42%',
+          scansChange: '+18.5%',
+          customersChange: '+12.3%',
+          rewardsChange: '+15.7%',
+          repeatRateChange: '+8.2%'
+        },
+        'All Time': {
+          scans: 5890,
+          customers: 1420,
+          rewards: 340,
+          repeatRate: '45%',
+          scansChange: '+26.4%',
+          customersChange: '+21.8%',
+          rewardsChange: '+19.2%',
+          repeatRateChange: '+9.5%'
+        }
       },
       today: {
-        scansToday: 18,
-        completedToday: 6
+        scansToday,
+        completedToday
       },
       weekly: [
         { day: 'Mon', scans: 184 },
@@ -382,7 +735,35 @@ router.get('/home', async (req, res) => {
         { day: 'Sun', scans: 168 }
       ],
       activeRewardProgram: activeStampProgram,
-      subscription: subStatus
+      subscription: await (async () => {
+        let defaultPlanName = 'Standard Plan';
+        let defaultPlanPrice = '₹24,000';
+        let defaultPlanPeriod = '/ Year';
+        try {
+          const allPlans = await systemStore.getAllPlans();
+          const firstPaid = allPlans.find(p => p.isActive !== false && p.price > 0) || allPlans[0];
+          if (firstPaid) {
+            defaultPlanName = firstPaid.name;
+            defaultPlanPrice = '₹' + Number(firstPaid.price).toLocaleString('en-IN');
+            defaultPlanPeriod = firstPaid.period || '/ Year';
+          }
+        } catch (_) {}
+
+        const fallbackExpiryDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+        const fallbackFormattedTill = fallbackExpiryDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        return {
+          isOnline: true,
+          isExpired: false,
+          status: 'PAID',
+          tier: defaultPlanName,
+          planName: defaultPlanName,
+          planPrice: defaultPlanPrice,
+          planPeriod: defaultPlanPeriod,
+          planValidTill: fallbackFormattedTill,
+          daysRemaining: 365
+        };
+      })()
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -402,7 +783,18 @@ router.get('/customers', async (req, res) => {
       merchant = await Merchant.findOne({ qrSlug: slug });
     }
 
-    const dbCustomers = await Customer.find().sort({ updatedAt: -1, lastVisitAt: -1 });
+    let customerFilter = {};
+    if (merchant) {
+      const customerIds = await Scan.distinct('customerId', { merchantId: merchant._id });
+      customerFilter = {
+        $or: [
+          { _id: { $in: customerIds } },
+          { 'storeProgress.storeSlug': merchant.qrSlug }
+        ]
+      };
+    }
+
+    const dbCustomers = await Customer.find(customerFilter).sort({ updatedAt: -1, lastVisitAt: -1 });
     let mapped = dbCustomers.map(c => {
       const storeProg = merchant ? c.storeProgress?.find(p => p.storeSlug === merchant.qrSlug) : null;
       const visits = storeProg ? (storeProg.stampsCollected || c.totalVisits || 1) : (c.totalVisits || 1);
@@ -429,9 +821,12 @@ router.get('/customers', async (req, res) => {
       };
     });
 
-    let combined = mapped.length > 0 ? mapped : customersList;
+    let combined = mapped;
+    if (!merchant && mapped.length === 0) {
+      combined = customersList;
+    }
 
-    if (search.trim()) {
+    if (search && search.trim()) {
       const q = search.trim().toLowerCase();
       combined = combined.filter(c => 
         (c.name && c.name.toLowerCase().includes(q)) || 
@@ -494,11 +889,6 @@ router.get('/winners', async (req, res) => {
     }
 
     let dbVouchers = await Voucher.find(query).populate('customerId').sort({ createdAt: -1 });
-    
-    // If no vouchers found for specific merchant ID, load all recent vouchers so nothing is hidden
-    if (dbVouchers.length === 0 && merchant) {
-      dbVouchers = await Voucher.find().populate('customerId').sort({ createdAt: -1 });
-    }
 
     let mapped = dbVouchers.map(v => {
       const cName = (v.customerId && v.customerId.name && v.customerId.name !== 'Customer')
@@ -526,7 +916,10 @@ router.get('/winners', async (req, res) => {
       };
     });
 
-    let combined = mapped.length > 0 ? mapped : winnersList;
+    let combined = mapped;
+    if (!merchant && mapped.length === 0) {
+      combined = winnersList;
+    }
     let list = (type && type !== 'ALL') ? combined.filter(w => w.type === type) : combined;
 
     if (search.trim()) {
@@ -625,7 +1018,7 @@ router.post('/give-stamp', async (req, res) => {
 
     res.json({
       success: true,
-      message: `1 Stamp authorized for ${customer.name} (+91 ${customer.mobile})! Customer can now claim it on their screen.`,
+      message: `1 Aurex Coin authorized for ${customer.name} (+91 ${customer.mobile})! Customer can now claim it on their screen.`,
       customer: {
         id: customer._id,
         name: customer.name,
@@ -648,7 +1041,7 @@ router.post('/offers/stamp', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Stamp Card Loyalty Program activated successfully!',
+      message: 'Aurex Coin Loyalty Program activated successfully!',
       program: activeStampProgram
     });
   } catch (err) {
@@ -981,27 +1374,36 @@ router.post('/subscribe', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Merchant not found.' });
     }
 
-    let tier = 'PROFESSIONAL';
-    let durationDays = 3 * 365;
-    let price = 49000;
+    const allPlans = await systemStore.getAllPlans();
+    const foundPlan = allPlans.find(p => p.id === planId || p._id?.toString() === planId || p.name?.toLowerCase() === planId?.toLowerCase()) || {
+      id: planId,
+      name: 'Standard Plan',
+      price: 24000,
+      period: '/ Year'
+    };
 
-    if (planId === 'plan_standard') {
-      tier = 'STANDARD';
-      durationDays = 365;
-      price = 24000;
-    } else if (planId === 'plan_legacy') {
-      tier = 'LEGACY';
-      durationDays = 100 * 365; // Lifetime
-      price = 75000;
-    }
+    let durationDays = 365;
+    const pStr = String(foundPlan.period || '').toLowerCase();
+    if (pStr.includes('lifetime')) durationDays = 100 * 365;
+    else if (pStr.includes('3 year')) durationDays = 3 * 365;
+    else if (pStr.includes('2 year')) durationDays = 2 * 365;
+    else if (pStr.includes('month')) durationDays = 30;
+    else if (foundPlan.trialDays) durationDays = foundPlan.trialDays;
 
     const expiryDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    const price = foundPlan.price || 24000;
+    const tier = foundPlan.name;
 
     merchant.subscriptionTier = tier;
+    merchant.plan = tier;
+    merchant.planName = tier;
+    merchant.planId = foundPlan.id || planId;
+    merchant.planPrice = '₹' + Number(price).toLocaleString('en-IN');
+    merchant.planPeriod = foundPlan.period || '/ Year';
     merchant.subscriptionExpiresAt = expiryDate;
     merchant.planValidTill = expiryDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     merchant.paymentDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    merchant.paymentAmount = '₹' + price.toLocaleString('en-IN');
+    merchant.paymentAmount = '₹' + Number(price).toLocaleString('en-IN');
     merchant.isActive = true;
     merchant.isComplimentary = false;
     merchant.trialExpiresAt = null;
@@ -1024,6 +1426,76 @@ router.post('/subscribe', async (req, res) => {
         planValidTill: merchant.planValidTill
       },
       subscription: updatedStatus
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// =========================================================================
+// REWARD REDEMPTION APPROVAL WORKFLOW (Merchant Review & Approve)
+// =========================================================================
+const redemptionStore = require('../services/redemptionStore');
+
+// GET Pending Redemptions for Merchant Review
+router.get('/redemptions/pending', (req, res) => {
+  try {
+    const pending = redemptionStore.getPending();
+    res.json({
+      success: true,
+      count: pending.length,
+      pending
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET All Redemptions (Pending, Approved, Declined)
+router.get('/redemptions/all', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      pending: redemptionStore.getPending(),
+      approved: redemptionStore.getApproved(),
+      declined: redemptionStore.getDeclined()
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST Merchant Approves Reward Claim
+router.post('/redemptions/approve', (req, res) => {
+  try {
+    const { claimId, customerId } = req.body;
+    const approved = redemptionStore.approveClaim(claimId, customerId);
+    if (!approved) {
+      return res.status(404).json({ success: false, message: 'Redemption claim not found or already processed.' });
+    }
+    console.log(`✅ Merchant APPROVED reward claim for ${approved.customerName} (${approved.customerId}) - ${approved.rewardTitle}`);
+    res.json({
+      success: true,
+      message: `Reward approved! Customer can now enjoy ${approved.rewardTitle}.`,
+      claim: approved
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// POST Merchant Declines Reward Claim
+router.post('/redemptions/decline', (req, res) => {
+  try {
+    const { claimId, customerId, reason } = req.body;
+    const declined = redemptionStore.declineClaim(claimId, customerId, reason);
+    if (!declined) {
+      return res.status(404).json({ success: false, message: 'Redemption claim not found.' });
+    }
+    res.json({
+      success: true,
+      message: 'Reward claim declined.',
+      claim: declined
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

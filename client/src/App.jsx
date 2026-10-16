@@ -12,6 +12,8 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import TeamManagement from './pages/TeamManagement';
 import TeamAuthGate from './components/TeamAuthGate';
 
+import StandeePage from './pages/StandeePage';
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -52,6 +54,11 @@ export default function App() {
           <Route path="/customer/login" element={<CustomerExperience initialAuthMode="signin" />} />
           <Route path="/customer/signup" element={<CustomerExperience initialAuthMode="signup" />} />
           <Route path="/scan/:slug" element={<CustomerExperience />} />
+
+          {/* Standee / Counter Display Page with QR Template */}
+          <Route path="/standee/:slug" element={<StandeePage />} />
+          <Route path="/standee" element={<StandeePage />} />
+          <Route path="/qr/:slug" element={<StandeePage />} />
 
           {/* Catch-all redirect to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -34,9 +34,13 @@ const planSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  tags: {
+    type: [String],
+    default: []
+  },
   trialDays: {
     type: Number,
-    default: 3
+    default: 2
   },
   scansLimit: {
     type: String,
@@ -48,7 +52,7 @@ const planSchema = new mongoose.Schema({
   },
   ctaText: {
     type: String,
-    default: 'Start 3-Day Free Trial'
+    default: 'Start 2-Day Trial'
   },
   isPopular: {
     type: Boolean,
@@ -65,9 +69,34 @@ const planSchema = new mongoose.Schema({
   displayOrder: {
     type: Number,
     default: 0
+  },
+  cardBg: {
+    type: String,
+    default: ''
+  },
+  borderColor: {
+    type: String,
+    default: ''
+  },
+  btnBg: {
+    type: String,
+    default: ''
+  },
+  btnHoverBg: {
+    type: String,
+    default: ''
+  },
+  priceColor: {
+    type: String,
+    default: ''
+  },
+  iconGradient: {
+    type: String,
+    default: ''
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  strict: false
 });
 
 module.exports = mongoose.model('Plan', planSchema);

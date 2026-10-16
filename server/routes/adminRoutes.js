@@ -127,31 +127,7 @@ let platformPlans = [
     isActive: true,
     displayOrder: 2
   },
-  {
-    id: 'plan_legacy',
-    name: 'Legacy Plan',
-    price: 75000,
-    originalPrice: 120000,
-    period: 'Lifetime',
-    subtext: 'Ultimate lifetime system configuration',
-    tagText: 'One-Time Payment • No Renewals',
-    highlightBadge: 'Best Value',
-    isPopular: false,
-    trialDays: 2,
-    scansLimit: 'Unlimited customer QR scans',
-    features: [
-      'Customer retention system',
-      'Free account setup & acrylic config',
-      'Unlimited customer QR scans',
-      'Priority VIP Support',
-      'Dedicated Relationship Manager',
-      'All Future Enterprise Upgrades'
-    ],
-    ctaText: 'Start 2-Day Trial',
-    showOnLandingPage: true,
-    isActive: true,
-    displayOrder: 3
-  },
+
   {
     id: 'plan_trial',
     name: '2-Day Free Trial',
@@ -355,7 +331,7 @@ let mockMerchants = [
     planValidTill: '11 Oct 2026', 
     paymentDate: '-', 
     paymentAmount: '₹ 999', 
-    status: 'Trial', 
+    status: 'Pending', 
     isComplimentary: false, 
     dealDetails: { 
       dealType: 'FIXED_PRICE', 
@@ -544,6 +520,17 @@ router.get('/merchants', async (req, res) => {
       dbMerchants = await Merchant.find().sort({ createdAt: -1 });
     } catch (e) {}
 
+    // Aggregate real scan counts per merchant from MongoDB
+    let scanCountMap = {};
+    try {
+      const scanAgg = await Scan.aggregate([
+        { $group: { _id: '$merchantId', count: { $sum: 1 } } }
+      ]);
+      scanAgg.forEach(s => {
+        if (s._id) scanCountMap[s._id.toString()] = s.count;
+      });
+    } catch (_) {}
+
     // Merge DB merchants into list
     if (dbMerchants && dbMerchants.length > 0) {
       const merged = dbMerchants.map((m) => {
@@ -572,15 +559,28 @@ router.get('/merchants', async (req, res) => {
 
         const resolvedStatus = !m.isActive 
           ? 'Suspended' 
-          : (isPaid ? 'Paid' : (sub.isExpired ? 'Expired' : 'Trial'));
+          : (m.status === 'Pending' || m.status === 'Pending Payment')
+          ? 'Pending'
+          : (isPaid ? 'Paid' : (sub.isExpired ? 'Expired' : (m.status || 'Trial')));
+
+        const mId = m._id.toString();
+        const realTotalScans = scanCountMap[mId] !== undefined ? scanCountMap[mId] : (found?.totalScans || 0);
 
         return {
-          id: m._id.toString(),
+          id: mId,
           businessName: m.businessName,
+          ownerName: m.ownerName || '',
+          logo: m.logo || '',
           category: m.category,
           email: m.email,
           mobile: m.mobile,
           city: m.city || 'Delhi NCR',
+          state: m.state || '',
+          addressLine1: m.addressLine1 || (m.branches?.[0]?.address || ''),
+          addressLine2: m.addressLine2 || '',
+          address: m.address || m.addressLine1 || (m.branches?.[0]?.address || ''),
+          pinCode: m.pinCode || m.pincode || (m.branches?.[0]?.pincode || ''),
+          pincode: m.pinCode || m.pincode || (m.branches?.[0]?.pincode || ''),
           subscriptionTier: isPaid ? (m.subscriptionTier || 'PROFESSIONAL') : (m.subscriptionTier || 'TRIAL'),
           plan: displayPlan,
           planValidTill: m.planValidTill || (found ? found.planValidTill : (isPaid ? '04 Oct 2029' : '14 Oct 2026')),
@@ -596,15 +596,186 @@ router.get('/merchants', async (req, res) => {
           complimentaryReason: m.complimentaryReason || (found ? found.complimentaryReason : ''),
           complimentaryDays: m.complimentaryDays || (found ? found.complimentaryDays : 0),
           qrSlug: m.qrSlug || (found ? found.qrSlug : m.businessName?.toLowerCase().replace(/[^a-z0-9]/g, '-')),
+          cashierPin: m.cashierPin || '4829',
           dealDetails: m.dealDetails || (found ? found.dealDetails : { dealTitle: '', dealAmount: 0 }),
-          totalScans: found?.totalScans || 120,
-          repeatRate: found?.repeatRate || '41.5%'
+          totalScans: realTotalScans,
+          repeatRate: realTotalScans > 0 ? (found?.repeatRate || '38%') : '0%'
         };
       });
       return res.json({ success: true, merchants: merged });
     }
 
     res.json({ success: true, merchants: mockMerchants });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// GET Specific Merchant Live Dashboard For Super Admin View
+router.get('/merchants/:id/dashboard', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let merchant = null;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      merchant = await Merchant.findById(id);
+    }
+    if (!merchant) {
+      merchant = await Merchant.findOne({ qrSlug: id });
+    }
+    if (!merchant) {
+      const found = mockMerchants.find(m => m.id === id);
+      if (found) merchant = found;
+    }
+    if (!merchant) {
+      return res.status(404).json({ success: false, message: 'Merchant not found' });
+    }
+
+    const merchantId = merchant._id || merchant.id;
+    const isMongo = mongoose.Types.ObjectId.isValid(merchantId);
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    let totalScans = 0;
+    let scansToday = 0;
+    let enrolledShoppers = 0;
+    let redeemedVouchers = 0;
+    let activeVouchers = 0;
+    let repeatRate = '0%';
+    let recentScans = [];
+    let recentVouchers = [];
+    let activeReward = null;
+
+    if (isMongo) {
+      totalScans = await Scan.countDocuments({ merchantId });
+      scansToday = await Scan.countDocuments({ merchantId, createdAt: { $gte: startOfToday } });
+      const customerIds = await Scan.distinct('customerId', { merchantId });
+      enrolledShoppers = customerIds.length;
+      redeemedVouchers = await Voucher.countDocuments({ merchantId, status: 'REDEEMED' });
+      activeVouchers = await Voucher.countDocuments({ merchantId, status: 'ACTIVE' });
+
+      if (enrolledShoppers > 0) {
+        try {
+          const repeatScans = await Scan.aggregate([
+            { $match: { merchantId: new mongoose.Types.ObjectId(merchantId) } },
+            { $group: { _id: '$customerId', count: { $sum: 1 } } },
+            { $match: { count: { $gt: 1 } } }
+          ]);
+          const rate = Math.round((repeatScans.length / enrolledShoppers) * 100);
+          repeatRate = `${rate}%`;
+        } catch (_) {
+          repeatRate = '0%';
+        }
+      }
+
+      // Fetch active reward for this merchant
+      try {
+        activeReward = await Reward.findOne({ merchantId, isActive: true });
+      } catch (_) {}
+
+      // Fetch live in-store recent scans
+      try {
+        const dbScans = await Scan.find({ merchantId })
+          .populate('customerId', 'name mobile')
+          .sort({ createdAt: -1 })
+          .limit(10);
+
+        recentScans = dbScans.map(s => ({
+          id: s._id.toString(),
+          customerPhone: s.customerId?.mobile ? `+91 ${s.customerId.mobile}` : '+91 98******10',
+          customerName: s.customerId?.name || 'Shopper',
+          time: new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          date: new Date(s.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          status: 'VERIFIED'
+        }));
+      } catch (_) {}
+
+      // Fetch live in-store recent claimed vouchers
+      try {
+        const dbVouchers = await Voucher.find({ merchantId })
+          .populate('customerId', 'name mobile')
+          .sort({ createdAt: -1 })
+          .limit(10);
+
+        recentVouchers = dbVouchers.map(v => ({
+          id: v._id.toString(),
+          customerPhone: v.customerId?.mobile ? `+91 ${v.customerId.mobile}` : (v.customerMobile ? `+91 ${v.customerMobile}` : '+91 98******10'),
+          customerName: v.customerId?.name || v.customerName || 'Shopper',
+          rewardWon: v.rewardTitle || 'Loyalty Reward',
+          time: new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + new Date(v.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' }),
+          status: v.status === 'ACTIVE' ? 'ACTION_REQUIRED' : (v.status || 'REDEEMED')
+        }));
+      } catch (_) {}
+    } else {
+      totalScans = merchant.totalScans || 0;
+      repeatRate = merchant.repeatRate || '0%';
+      enrolledShoppers = Math.round(totalScans * 0.45);
+      redeemedVouchers = Math.round(totalScans * 0.32);
+    }
+
+    const sub = Merchant.checkMerchantSubscription(merchant);
+
+    const activityFeed = recentVouchers.length > 0 
+      ? recentVouchers 
+      : recentScans.map(s => ({
+          id: s.id,
+          customerPhone: s.customerPhone,
+          customerName: s.customerName,
+          rewardWon: 'Counter QR Scan Verified',
+          time: `${s.date} ${s.time}`,
+          status: 'VERIFIED'
+        }));
+
+    res.json({
+      success: true,
+      dashboard: {
+        merchant: {
+          id: merchantId.toString(),
+          businessName: merchant.businessName,
+          ownerName: merchant.ownerName || '',
+          logo: merchant.logo || '',
+          category: merchant.category,
+          email: merchant.email,
+          mobile: merchant.mobile,
+          city: merchant.city || 'Delhi NCR',
+          state: merchant.state || '',
+          addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+          addressLine2: merchant.addressLine2 || '',
+          address: merchant.address || merchant.addressLine1 || (merchant.branches?.[0]?.address || ''),
+          pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+          pincode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || ''),
+          qrSlug: merchant.qrSlug,
+          cashierPin: merchant.cashierPin || '4829',
+          brandColor: merchant.brandColor || '#74111d',
+          subscriptionTier: merchant.subscriptionTier,
+          plan: merchant.plan || (sub.status === 'PAID' ? 'Standard Plan' : 'Trial Plan'),
+          planValidTill: merchant.planValidTill || '14 Oct 2026',
+          paymentAmount: merchant.paymentAmount || '-',
+          status: merchant.status || (sub.isExpired ? 'Expired' : 'Paid'),
+          dealDetails: merchant.dealDetails || null,
+          isComplimentary: merchant.isComplimentary || false,
+          complimentaryDays: merchant.complimentaryDays || 0,
+          complimentaryReason: merchant.complimentaryReason || ''
+        },
+        metrics: {
+          totalScans,
+          scansToday,
+          enrolledShoppers,
+          redeemedVouchers,
+          activeVouchers,
+          repeatRate
+        },
+        gamification: {
+          activeRewardTitle: activeReward ? `${activeReward.title} (Min ₹${activeReward.minBillAmount || 0})` : '15% OFF On Total Bill (Min ₹400)',
+          cashierPin: merchant.cashierPin || '4829',
+          throttle: '12h Device Lock (Anti-abuse)',
+          tableStandeeUrl: `/scan/${merchant.qrSlug}`
+        },
+        recentScans,
+        recentVouchers,
+        recentActivity: activityFeed
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -625,7 +796,20 @@ router.patch('/merchants/:id', async (req, res) => {
       complimentaryDays,
       dealDetails,
       trialDays,
-      trialExpiresAt
+      trialExpiresAt,
+      businessName,
+      ownerName,
+      category,
+      email,
+      mobile,
+      city,
+      state,
+      addressLine1,
+      addressLine2,
+      address,
+      pinCode,
+      pincode,
+      logo
     } = req.body;
     
     // Normalize incoming plan and tier
@@ -655,6 +839,21 @@ router.patch('/merchants/:id', async (req, res) => {
     // Update local mock
     const idx = mockMerchants.findIndex(m => m.id === req.params.id);
     if (idx !== -1) {
+      if (businessName !== undefined) mockMerchants[idx].businessName = businessName;
+      if (ownerName !== undefined) mockMerchants[idx].ownerName = ownerName;
+      if (category !== undefined) mockMerchants[idx].category = category;
+      if (email !== undefined) mockMerchants[idx].email = email;
+      if (mobile !== undefined) mockMerchants[idx].mobile = mobile;
+      if (city !== undefined) mockMerchants[idx].city = city;
+      if (state !== undefined) mockMerchants[idx].state = state;
+      if (addressLine1 !== undefined) mockMerchants[idx].addressLine1 = addressLine1;
+      if (addressLine2 !== undefined) mockMerchants[idx].addressLine2 = addressLine2;
+      if (address !== undefined) mockMerchants[idx].address = address;
+      if (pinCode !== undefined || pincode !== undefined) {
+        mockMerchants[idx].pinCode = pinCode || pincode;
+        mockMerchants[idx].pincode = pinCode || pincode;
+      }
+      if (logo !== undefined) mockMerchants[idx].logo = logo;
       if (status !== undefined) mockMerchants[idx].status = status;
       if (normalizedTier !== undefined) mockMerchants[idx].subscriptionTier = normalizedTier;
       if (normalizedPlan !== undefined) mockMerchants[idx].plan = normalizedPlan;
@@ -678,6 +877,33 @@ router.patch('/merchants/:id', async (req, res) => {
     try {
       const dbM = await Merchant.findById(req.params.id);
       if (dbM) {
+        if (businessName !== undefined) dbM.businessName = businessName.trim();
+        if (ownerName !== undefined) dbM.ownerName = ownerName.trim();
+        if (category !== undefined) dbM.category = category;
+        if (email !== undefined) dbM.email = email.toLowerCase().trim();
+        if (mobile !== undefined) dbM.mobile = mobile;
+        if (logo !== undefined) dbM.logo = logo;
+        if (addressLine1 !== undefined) dbM.addressLine1 = addressLine1.trim();
+        if (addressLine2 !== undefined) dbM.addressLine2 = addressLine2.trim();
+        if (city !== undefined) dbM.city = city.trim();
+        if (state !== undefined) dbM.state = state.trim();
+        if (pinCode !== undefined || pincode !== undefined) {
+          const pin = (pinCode || pincode || '').trim();
+          dbM.pinCode = pin;
+          dbM.pincode = pin;
+        }
+        if (address !== undefined) {
+          dbM.address = address.trim();
+        } else if (addressLine1 !== undefined || addressLine2 !== undefined) {
+          dbM.address = dbM.addressLine1 ? (dbM.addressLine2 ? `${dbM.addressLine1}, ${dbM.addressLine2}` : dbM.addressLine1) : dbM.city;
+        }
+
+        if (dbM.branches && dbM.branches.length > 0) {
+          if (dbM.address) dbM.branches[0].address = dbM.address;
+          if (dbM.city) dbM.branches[0].city = dbM.city;
+          if (dbM.pinCode) dbM.branches[0].pincode = dbM.pinCode;
+        }
+
         if (status !== undefined) {
           dbM.isActive = (status !== 'Suspended');
           if (status === 'Paid') {
@@ -754,6 +980,12 @@ router.patch('/merchants/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
+});
+
+router.put('/merchants/:id', async (req, res) => {
+  // Delegate to PATCH handler logic
+  req.method = 'PATCH';
+  router.handle(req, res);
 });
 
 // Delete Merchant (MongoDB & associated scans/rewards/vouchers)
@@ -1564,57 +1796,31 @@ router.get('/customers', async (req, res) => {
       dbC = await Customer.find().sort({ updatedAt: -1, lastVisitAt: -1 });
     } catch (e) {}
 
-    const fallbackCustomers = [
-      { id: 'c1', customerId: 'LQR-ROHIT1', mobile: '9876543210', name: 'Rohit Verma', email: 'rohit@gmail.com', totalVisits: 8, points: 280, stamps: 4, tier: 'Silver Member', favoriteStore: 'Royal Sweets & Cafe', activeVouchers: 1, lastVisit: 'Today, 14:22', lastLoginAt: 'Today, 14:22', createdAt: '01 Oct 2026', isActive: true, status: 'Active' },
-      { id: 'c2', customerId: 'LQR-ANANYA2', mobile: '9812345678', name: 'Ananya Deshmukh', email: 'ananya@outlook.com', totalVisits: 14, points: 420, stamps: 6, tier: 'Gold Member', favoriteStore: 'Gourmet Organic Supermarket', activeVouchers: 2, lastVisit: 'Yesterday, 19:10', lastLoginAt: 'Yesterday, 19:10', createdAt: '28 Sep 2026', isActive: true, status: 'Active' },
-      { id: 'c3', customerId: 'LQR-KUNAL3', mobile: '9789012345', name: 'Kunal Malhotra', email: 'kunal@yahoo.com', totalVisits: 5, points: 150, stamps: 2, tier: 'Bronze Member', favoriteStore: 'Spice Junction Biryani', activeVouchers: 1, lastVisit: '2 days ago', lastLoginAt: '2 days ago', createdAt: '25 Sep 2026', isActive: true, status: 'Active' },
-      { id: 'c4', customerId: 'LQR-MEERA4', mobile: '9823456789', name: 'Meera Iyer', email: 'meera@gmail.com', totalVisits: 19, points: 610, stamps: 8, tier: 'Platinum Member', favoriteStore: 'Glamour Salon & Spa', activeVouchers: 1, lastVisit: '3 days ago', lastLoginAt: '3 days ago', createdAt: '20 Sep 2026', isActive: true, status: 'Active' },
-      { id: 'c5', customerId: 'LQR-SIDD5', mobile: '9911223344', name: 'Siddharth Rao', email: 'siddharth@gmail.com', totalVisits: 3, points: 100, stamps: 1, tier: 'Bronze Member', favoriteStore: 'Urban Fitness Studio', activeVouchers: 0, lastVisit: '1 week ago', lastLoginAt: '1 week ago', createdAt: '15 Sep 2026', isActive: true, status: 'Active' }
-    ];
+    const formatted = (dbC || []).map(c => ({
+      id: c._id.toString(),
+      customerId: c.customerId || ('LQR-' + c._id.toString().slice(-6).toUpperCase()),
+      mobile: c.mobile || '—',
+      name: c.name || 'Valued Customer',
+      email: c.email || '',
+      totalVisits: c.totalVisits || 1,
+      points: c.points || 100,
+      stamps: c.stamps || 0,
+      tier: c.tier || 'Bronze Member',
+      favoriteStore: (c.storeProgress && c.storeProgress[0]?.storeName) || 'Store Visit',
+      activeVouchers: c.activeCardsCount || 1,
+      lastVisit: c.lastVisitAt ? new Date(c.lastVisitAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Today',
+      lastLoginAt: c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'Recent'),
+      createdAt: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent',
+      isActive: c.isActive !== false,
+      status: c.isActive === false ? 'Suspended' : 'Active'
+    }));
 
-    if (dbC && dbC.length > 0) {
-      const formatted = dbC.map(c => ({
-        id: c._id.toString(),
-        customerId: c.customerId || ('LQR-' + c._id.toString().slice(-6).toUpperCase()),
-        mobile: c.mobile,
-        name: c.name || 'Valued Customer',
-        email: c.email || '-',
-        totalVisits: c.totalVisits || 1,
-        points: c.points || 100,
-        stamps: c.stamps || 0,
-        tier: c.tier || 'Bronze Member',
-        favoriteStore: (c.storeProgress && c.storeProgress[0]?.storeName) || 'Royal Sweets & Cafe',
-        activeVouchers: c.activeCardsCount || 1,
-        lastVisit: c.lastVisitAt ? new Date(c.lastVisitAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Today',
-        lastLoginAt: c.lastLoginAt ? new Date(c.lastLoginAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : (c.updatedAt ? new Date(c.updatedAt).toLocaleDateString() : 'Recent'),
-        createdAt: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recent',
-        isActive: c.isActive !== false,
-        status: c.isActive === false ? 'Suspended' : 'Active'
-      }));
-
-      // Merge mock fallbacks if DB has few entries
-      const mergedList = [...formatted];
-      fallbackCustomers.forEach(fc => {
-        if (!mergedList.some(m => m.mobile === fc.mobile)) {
-          mergedList.push(fc);
-        }
-      });
-
-      return res.json({ 
-        success: true, 
-        total: mergedList.length,
-        activeCount: mergedList.filter(c => c.isActive).length,
-        suspendedCount: mergedList.filter(c => !c.isActive).length,
-        customers: mergedList 
-      });
-    }
-
-    res.json({ 
+    return res.json({ 
       success: true, 
-      total: fallbackCustomers.length,
-      activeCount: fallbackCustomers.length,
-      suspendedCount: 0,
-      customers: fallbackCustomers 
+      total: formatted.length,
+      activeCount: formatted.filter(c => c.isActive).length,
+      suspendedCount: formatted.filter(c => !c.isActive).length,
+      customers: formatted 
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -1627,7 +1833,17 @@ router.patch('/customers/:id/status', async (req, res) => {
     const { isActive } = req.body;
     let customer = null;
     try {
-      customer = await Customer.findById(req.params.id);
+      if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+        customer = await Customer.findById(req.params.id);
+      }
+      if (!customer) {
+        customer = await Customer.findOne({
+          $or: [
+            { customerId: req.params.id },
+            { mobile: req.params.id }
+          ]
+        });
+      }
     } catch (_) {}
 
     if (customer) {
@@ -1663,16 +1879,44 @@ router.delete('/customers/:id', async (req, res) => {
     let deleted = null;
     if (mongoose.Types.ObjectId.isValid(id)) {
       deleted = await Customer.findByIdAndDelete(id);
-      if (deleted) {
-        await Scan.deleteMany({ customerId: id });
-        await Voucher.deleteMany({ customerId: id });
-      }
+    }
+    if (!deleted) {
+      deleted = await Customer.findOneAndDelete({
+        $or: [
+          { customerId: id },
+          { mobile: id },
+          { email: id }
+        ]
+      });
+    }
+
+    if (deleted) {
+      await Scan.deleteMany({ customerId: deleted._id }).catch(() => {});
+      await Voucher.deleteMany({ customerId: deleted._id }).catch(() => {});
     }
 
     res.json({
       success: true,
       message: 'Customer record deleted successfully from CRM and database.'
     });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Delete Customer Lead from CRM
+router.delete('/crm/customers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    mockCrmCustomers = mockCrmCustomers.filter(c => c.id !== id);
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      await Customer.findByIdAndDelete(id).catch(() => {});
+    } else {
+      await Customer.findOneAndDelete({
+        $or: [{ customerId: id }, { mobile: id }]
+      }).catch(() => {});
+    }
+    res.json({ success: true, message: 'CRM customer lead deleted successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -2012,6 +2256,54 @@ router.post('/policies', async (req, res) => {
   }
 });
 
+// Platform FAQs Management (Super Admin FAQ Editor & Settings Modals)
+router.get('/faqs', async (req, res) => {
+  try {
+    const faqs = await systemStore.getAllFaqs();
+    res.json({ success: true, faqs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/faqs', async (req, res) => {
+  try {
+    let updated;
+    if (Array.isArray(req.body.faqs)) {
+      updated = await systemStore.saveFaqs(req.body.faqs);
+    } else if (Array.isArray(req.body)) {
+      updated = await systemStore.saveFaqs(req.body);
+    } else {
+      updated = await systemStore.addFaq(req.body);
+    }
+    res.json({
+      success: true,
+      message: 'FAQ saved and synchronized across all portals successfully!',
+      faqs: updated
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.put('/faqs/:id', async (req, res) => {
+  try {
+    const updated = await systemStore.updateFaq(req.params.id, req.body);
+    res.json({ success: true, message: 'FAQ updated successfully!', faqs: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.delete('/faqs/:id', async (req, res) => {
+  try {
+    const updated = await systemStore.deleteFaq(req.params.id);
+    res.json({ success: true, message: 'FAQ deleted successfully!', faqs: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // =========================================================================
 // 7. TEAM ACCOUNTS & STAFF MANAGEMENT
 // =========================================================================
@@ -2230,6 +2522,50 @@ router.delete('/team/:id', async (req, res) => {
     await Team.findByIdAndDelete(req.params.id);
   } catch (e) {}
   res.json({ success: true, message: 'Team account removed from database.' });
+});
+
+// Team Member Referrals (Fetches referred merchants for a specific team member)
+router.get('/team/referrals/:identifier', async (req, res) => {
+  try {
+    const rawId = req.params.identifier;
+    const cleanId = rawId ? String(rawId).trim() : '';
+    const codeVariant = cleanId.startsWith('BEAUREX-') ? cleanId : `BEAUREX-${cleanId}`;
+    const numVariant = cleanId.replace(/^BEAUREX-?/i, '');
+
+    const Merchant = require('../models/Merchant');
+    let dbMerchants = [];
+    if (mongoose.connection.readyState === 1) {
+      try {
+        dbMerchants = await Merchant.find({
+          $or: [
+            { referralCode: codeVariant },
+            { referralCode: numVariant },
+            { referralCode: cleanId },
+            { referredBy: codeVariant },
+            { referredBy: numVariant },
+            { referredBy: cleanId }
+          ]
+        }).sort({ createdAt: -1 });
+      } catch (e) {}
+    }
+
+    const formatted = dbMerchants.map(m => ({
+      id: m._id.toString(),
+      storeName: m.businessName,
+      category: m.category || 'Retail',
+      owner: m.ownerName || m.businessName,
+      phone: m.mobile || '—',
+      city: m.city || '—',
+      date: m.createdAt ? new Date(m.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently',
+      plan: m.subscriptionTier === 'TRIAL' ? '3-Day Free Trial' : (m.subscriptionTier || 'Standard Plan'),
+      commission: '₹1,500',
+      status: m.isActive ? 'PAID' : 'PENDING'
+    }));
+
+    res.json({ success: true, count: formatted.length, referrals: formatted });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // =========================================================================

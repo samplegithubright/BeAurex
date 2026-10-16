@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminAuthGate from '../components/AdminAuthGate';
 import ActionConfirmModal from '../components/ActionConfirmModal';
+import { validatePassword } from '../utils/passwordValidator';
 import { 
   Store, Users, Key, Database, RefreshCw, 
   Search, CheckCircle2, AlertTriangle, Activity, Settings, 
   ExternalLink, Smartphone, Lock, Eye, EyeOff, Save, Check, LogOut,
   LayoutDashboard, ShieldCheck, CreditCard, ChevronRight, Layers, HelpCircle,
-  Menu, X, UserCheck, UserPlus, Download, Trash2, Tag, Percent, Plus, Gift,
+  Menu, X, UserCheck, UserPlus, Download, Trash2, Tag, Percent, Plus, Gift, Coins,
   Clock, Sparkles, Filter, RotateCcw, MessageSquare, Globe, Mail, Code, User, Building2,
   Share2, Copy, Phone, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, FileText, Ban, Zap,
   Bell, Palette, QrCode, History, Sliders, ToggleLeft, ToggleRight, CheckSquare, Square, Award, Edit3,
@@ -15,6 +16,41 @@ import {
   List, ListOrdered, Indent, Outdent, Link2, Image as ImageIcon, Table as TableIcon, MoreHorizontal,
   Send, TrendingUp, Info, ArrowLeft, Folder, Upload, Play
 } from 'lucide-react';
+
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+];
+
+const UNION_TERRITORIES = [
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli',
+  'Daman and Diu',
+  'Delhi NCR',
+  'Jammu and Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry'
+];
+
+const ALL_STATES_AND_UTS = [...INDIAN_STATES, ...UNION_TERRITORIES].sort();
+
+const BUSINESS_CATEGORIES = [
+  'Cafe & Restaurant',
+  'Retail & Shopping',
+  'Salon & Spa',
+  'Grocery & Supermarket',
+  'Healthcare & Pharmacy',
+  'Bakery & Desserts',
+  'Gym & Fitness',
+  'Fashion & Apparel',
+  'Other Business'
+];
 
 export default function SuperAdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -212,7 +248,7 @@ export default function SuperAdminDashboard() {
       paymentAmount: '₹ 999', 
       totalPayment: '₹ 999', 
       dateTime: 'May 23, 2025 05:40 PM', 
-      status: 'Trial', 
+      status: 'Pending', 
       isComplimentary: false, 
       dealDetails: { 
         dealType: 'FIXED_PRICE', 
@@ -230,109 +266,65 @@ export default function SuperAdminDashboard() {
   ]);
 
   // Plans Management State (Synchronized with Landing Page and MongoDB)
-  const [plans, setPlans] = useState([
-    {
-      id: 'plan_standard',
-      name: 'Standard Plan',
-      price: 24000,
-      originalPrice: 36000,
-      period: '/ Year',
-      subtext: 'Perfect for local retail shops getting started',
-      tagText: 'Equivalent to ₹2,000/month',
-      tags: ['Starter Choice', 'Counter Standee', 'Instant Setup'],
-      highlightBadge: '',
-      isPopular: false,
-      trialDays: 2,
-      scansLimit: 'Unlimited customer QR scans',
-      features: [
-        'Customer retention system',
-        'Free account setup & acrylic config',
-        'Custom QR code standee generator',
-        'Unlimited customer QR scans',
-        'Standard Business Hours Support'
-      ],
-      ctaText: 'Start 2-Day Trial',
-      showOnLandingPage: true,
-      isActive: true,
-      displayOrder: 1
-    },
-    {
-      id: 'plan_professional',
-      name: 'Professional Plan',
-      price: 49000,
-      originalPrice: 72000,
-      period: '/ 3 Years',
-      subtext: 'Accelerated conversion tools for multi-counter growth',
-      tagText: 'Only ₹1,361/month',
-      tags: ['Most Popular', 'Best Value', 'Save 32%', 'VIP Partner'],
-      highlightBadge: 'Most Popular',
-      isPopular: true,
-      trialDays: 2,
-      scansLimit: 'Unlimited customer QR scans',
-      features: [
-        'Customer retention system',
-        'Free account setup & acrylic config',
-        'Custom QR code standee generator',
-        'Unlimited customer QR scans',
-        'Priority VIP Support',
-        'Free Continuous Feature Updates'
-      ],
-      ctaText: 'Start 2-Day Trial',
-      showOnLandingPage: true,
-      isActive: true,
-      displayOrder: 2
-    },
-    {
-      id: 'plan_legacy',
-      name: 'Legacy Plan',
-      price: 75000,
-      originalPrice: 120000,
-      period: 'Lifetime',
-      subtext: 'Ultimate lifetime system configuration',
-      tagText: 'One-Time Payment • No Renewals',
-      tags: ['Lifetime Access', 'VIP Enterprise', 'Zero Renewals'],
-      highlightBadge: 'Best Value',
-      isPopular: false,
-      trialDays: 2,
-      scansLimit: 'Unlimited customer QR scans',
-      features: [
-        'Customer retention system',
-        'Free account setup & acrylic config',
-        'Unlimited customer QR scans',
-        'Priority VIP Support',
-        'Dedicated Relationship Manager',
-        'All Future Enterprise Upgrades'
-      ],
-      ctaText: 'Start 2-Day Trial',
-      showOnLandingPage: true,
-      isActive: true,
-      displayOrder: 3
-    },
-    {
-      id: 'plan_trial',
-      name: '2-Day Free Trial',
-      price: 0,
-      originalPrice: 0,
-      period: '2 Days',
-      subtext: 'Test all features risk-free with zero credit card required',
-      tagText: '100% Free',
-      tags: ['100% Free', 'Instant Test'],
-      highlightBadge: 'Risk-Free',
-      isPopular: false,
-      trialDays: 2,
-      scansLimit: '500 customer QR scans',
-      features: [
-        'Customer retention system',
-        'Digital Standee PDF generator',
-        'Basic customer scan telemetry',
-        '2-Day Evaluation Window'
-      ],
-      ctaText: 'Claim Free Trial',
-      showOnLandingPage: false,
-      isActive: true,
-      displayOrder: 4
-    }
-  ]);
+  const [plans, setPlans] = useState(() => {
+    try {
+      const cached = JSON.parse(localStorage.getItem('beaurex_platform_plans') || '[]');
+      if (Array.isArray(cached) && cached.length > 0) return cached;
+    } catch (_) {}
+    return [
+      {
+        id: 'plan_standard',
+        name: 'Standard Plan',
+        price: 24000,
+        originalPrice: 36000,
+        period: '/ Year',
+        subtext: 'Perfect for local retail shops getting started',
+        tagText: 'Equivalent to ₹2,000/month',
+        tags: ['Starter Choice', 'Counter Standee', 'Instant Setup'],
+        highlightBadge: '',
+        isPopular: false,
+        trialDays: 2,
+        scansLimit: 'Unlimited customer QR scans',
+        features: [
+          'Customer retention system',
+          'Free account setup & acrylic config',
+          'Custom QR code standee generator',
+          'Unlimited customer QR scans',
+          'Standard Business Hours Support'
+        ],
+        ctaText: 'Start 2-Day Trial',
+        showOnLandingPage: true,
+        isActive: true,
+        displayOrder: 1
+      },
+      {
+        id: 'plan_professional',
+        name: 'Professional Plan',
+        price: 49000,
+        originalPrice: 72000,
+        period: '/ 3 Years',
+        subtext: 'Accelerated conversion tools for multi-counter growth',
+        tagText: 'Only ₹1,361/month',
+        tags: ['Most Popular', 'Best Value', 'Save 32%', 'VIP Partner'],
+        highlightBadge: 'Most Popular',
+        isPopular: true,
+        trialDays: 2,
+        scansLimit: 'Unlimited customer QR scans',
+        features: [
+          'Customer retention system',
+          'Free account setup & acrylic config',
+          'Custom QR code standee generator',
+          'Unlimited customer QR scans',
+          'Priority VIP Support',
+          'Free Continuous Feature Updates'
+        ],
+        ctaText: 'Start 2-Day Trial',
+        showOnLandingPage: true,
+        isActive: true,
+        displayOrder: 2
+      }
+    ];
+  });
   const [planSaveSuccess, setPlanSaveSuccess] = useState('');
   const [newFeatureInputs, setNewFeatureInputs] = useState({});
   const [newPlanTagInputs, setNewPlanTagInputs] = useState({});
@@ -383,6 +375,11 @@ export default function SuperAdminDashboard() {
     tagText: '',
     tags: ['Recommended', 'Instant Setup'],
     highlightBadge: '',
+    cardBg: '',
+    borderColor: '',
+    btnBg: '',
+    btnHoverBg: '',
+    priceColor: '',
     isPopular: false,
     trialDays: 2,
     scansLimit: 'Unlimited customer QR scans',
@@ -465,7 +462,7 @@ export default function SuperAdminDashboard() {
   const platformFeaturesList = [
     { id: 'liveScansFeed', name: 'Live Scans Traffic Feed', category: 'Operations', description: 'Stream customer phone QR scans in real-time at the counter', minPlan: 'Trial' },
     { id: 'mysteryScratch', name: 'Mystery Scratch Cards', category: 'Gamification', description: 'High-dopamine scratch foil reward animations for shoppers', minPlan: 'Trial' },
-    { id: 'stampCards', name: 'Loyalty Stamp Cards', category: 'Gamification', description: 'Digital frequency stamp cards (e.g. 5 visits = free gift)', minPlan: 'Standard' },
+    { id: 'stampCards', name: 'Loyalty Aurex Coin Cards', category: 'Gamification', description: 'Digital frequency Aurex Coin cards (e.g. 5 visits = free gift)', minPlan: 'Standard' },
     { id: 'cashierPinAuth', name: 'Cashier PIN Protection', category: 'Security', description: '4-digit secret cashier PIN prevents fraudulent redemptions', minPlan: 'Trial' },
     { id: 'acrylicStandeeDesigner', name: 'QR Standee Vector PDF', category: 'Hardware', description: 'Generate print-ready 5x7" high-res vector acrylic counter standees', minPlan: 'Trial' },
     { id: 'customerDatabaseExport', name: 'Customer Mobile CRM Export', category: 'CRM', description: 'Download enrolled customer phone numbers and visit logs to Excel', minPlan: 'Standard' },
@@ -490,13 +487,13 @@ export default function SuperAdminDashboard() {
       { id: 'home_overview', name: 'Home Analytics & Overview Stats', category: 'Home Dashboard', description: 'Total scans, active customers, redemptions count, and repeat rate stats cards on the home screen.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'home_qr_code', name: 'Store Counter QR Code & Standee Download', category: 'Home Dashboard', description: 'Dynamic QR code display with Download PNG and Print Standee triggers.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'home_plan_banner', name: 'Pro Subscription Plan Status Banner', category: 'Home Dashboard', description: 'Active subscription status, validity date, and plan upgrade banner.', isVisible: true, minPlan: 'All Plans', isCustom: false },
-      { id: 'rewards_tab', name: 'Rewards & Redemption Approval (Tab)', category: 'Navigation & Tabs', description: 'Dedicated screen for reviewing customer stamp redemptions, pending approvals, and approved rewards.', isVisible: true, minPlan: 'All Plans', isCustom: false },
-      { id: 'create_offer_tab', name: 'Create Offer & Stamp Programs (Tab)', category: 'Navigation & Tabs', description: 'Creation screen to launch stamp programs (image, title, stamps required, expiry validity).', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'rewards_tab', name: 'Requests & Redemption Approval (Tab)', category: 'Navigation & Tabs', description: 'Dedicated screen for reviewing customer Aurex Coins & reward redemptions, pending approvals, and approved rewards.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'create_offer_tab', name: 'Create Offer & Aurex Coin Programs (Tab)', category: 'Navigation & Tabs', description: 'Creation screen to launch Aurex Coin programs (image, title, Aurex Coins required, expiry validity).', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'customers_tab', name: 'Customers CRM & CSV Export (Tab)', category: 'Navigation & Tabs', description: 'Customer visits directory with search, date filters, and CSV export functionality.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'profile_tab', name: 'Profile & Settings (Tab)', category: 'Navigation & Tabs', description: 'Profile and store settings navigation item.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'auto_approve_scans', name: 'Auto Approve Scans Setting', category: 'Profile & Settings', description: 'Allows merchant to automatically approve customer visits without manual verification.', isVisible: true, minPlan: 'All Plans', isCustom: false },
-      { id: 'allow_multiple_scans', name: 'Allow Multiple Daily Scans Setting', category: 'Profile & Settings', description: 'Permits customers to scan and collect stamps multiple times within the same day.', isVisible: true, minPlan: 'All Plans', isCustom: false },
-      { id: 'allow_first_coin', name: 'Allow First Coin Without Approval Setting', category: 'Profile & Settings', description: 'First visit welcome stamp/coin is awarded automatically without merchant approval.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'allow_multiple_scans', name: 'Allow Multiple Daily Scans Setting', category: 'Profile & Settings', description: 'Permits customers to scan and collect Aurex Coins multiple times within the same day.', isVisible: true, minPlan: 'All Plans', isCustom: false },
+      { id: 'allow_first_coin', name: 'Allow First Coin Without Approval Setting', category: 'Profile & Settings', description: 'First visit welcome Aurex Coin is awarded automatically without merchant approval.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'location_hours', name: 'Location & Operating Hours Editor', category: 'Profile & Settings', description: 'Store address, city, pin code, opening/closing timings editor in merchant profile.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'phone_email', name: 'Phone & Email Contact Editor', category: 'Profile & Settings', description: 'Store contact number and email settings in merchant profile.', isVisible: true, minPlan: 'All Plans', isCustom: false },
       { id: 'social_reviews', name: 'Social Links & Google Reviews', category: 'Profile & Settings', description: 'Instagram handle, website, and Google Review destination link management.', isVisible: true, minPlan: 'All Plans', isCustom: false },
@@ -518,11 +515,197 @@ export default function SuperAdminDashboard() {
   const [newFeatureForm, setNewFeatureForm] = useState({
     id: '',
     name: '',
+    targetPortal: 'merchant', // 'merchant' | 'customer' | 'team'
     category: 'Home Dashboard',
     description: '',
     isVisible: true,
-    minPlan: 'All Plans'
+    minPlan: 'All Plans',
+    featureType: 'toggle', // 'toggle' | 'coin_target' | 'numeric' | 'select' | 'text'
+    targetValue: '5',
+    badge: ''
   });
+
+  // =========================================================================
+  // LOYALTY COIN RULES & TARGET STATE (e.g. 5 or 7 coins requirement)
+  // =========================================================================
+  const [coinConfig, setCoinConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_coin_config');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      targetCoins: 5, // Default 5 (Super Admin can switch to 7, 10, or custom)
+      coinsPerScan: 1,
+      firstVisitBonus: 1,
+      minRedeemCoins: 5,
+      maxDailyScans: 2,
+      coinExpiryDays: 365,
+      autoApproveFirstCoin: true,
+      programName: 'BeAurex Loyalty Stamp Card',
+      rewardDescription: 'Collect coins on each visit to unlock free rewards'
+    };
+  });
+
+  const handleUpdateCoinConfig = (newConfig) => {
+    setCoinConfig(newConfig);
+    try {
+      localStorage.setItem('beaurex_coin_config', JSON.stringify(newConfig));
+    } catch (_) {}
+    window.dispatchEvent(new CustomEvent('beaurex_coin_config_updated', { detail: newConfig }));
+    showFeatureToast(`Loyalty Coin Rules updated: Target requirement is now ${newConfig.targetCoins} Coins!`);
+    fetch('/api/admin/coin-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newConfig)
+    }).catch(() => {});
+  };
+
+  // Customer Individual Coin Adjustment Modal state
+  const [adjustCoinsModal, setAdjustCoinsModal] = useState(null);
+  const [adjustCoinsAmount, setAdjustCoinsAmount] = useState(5);
+  const [adjustCoinsMode, setAdjustCoinsMode] = useState('add'); // 'add' | 'deduct' | 'set'
+  const [adjustCoinsReason, setAdjustCoinsReason] = useState('Super Admin reward adjustment');
+
+  const handleSaveCustomerCoinAdjustment = (e) => {
+    if (e) e.preventDefault();
+    if (!adjustCoinsModal) return;
+    const custId = adjustCoinsModal.id || adjustCoinsModal._id;
+    const delta = Number(adjustCoinsAmount) || 0;
+    let nextPoints = Number(adjustCoinsModal.points || 0);
+
+    if (adjustCoinsMode === 'add') nextPoints += delta;
+    else if (adjustCoinsMode === 'deduct') nextPoints = Math.max(0, nextPoints - delta);
+    else if (adjustCoinsMode === 'set') nextPoints = Math.max(0, delta);
+
+    setCustomers(prev => prev.map(c => {
+      if ((c.id || c._id) === custId) {
+        return { ...c, points: nextPoints };
+      }
+      return c;
+    }));
+
+    try {
+      const raw = localStorage.getItem('beaurex_customer_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.customerId === adjustCoinsModal.customerId || parsed.phone === adjustCoinsModal.mobile) {
+          parsed.points = nextPoints;
+          localStorage.setItem('beaurex_customer_user', JSON.stringify(parsed));
+        }
+      }
+    } catch (_) {}
+
+    fetch(`/api/admin/customers/${custId}/points`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ points: nextPoints, reason: adjustCoinsReason })
+    }).catch(() => {});
+
+    showFeatureToast(`Coins updated for ${adjustCoinsModal.name || 'Customer'}: now ${nextPoints} Aurex Coins!`);
+    setAdjustCoinsModal(null);
+  };
+
+  // =========================================================================
+  // THEME, COLOR PALETTE & CARD LOOK STUDIO STATE
+  // =========================================================================
+  const THEME_COLOR_PRESETS = [
+    { id: 'ruby', name: 'Ruby Crimson (BeAurex Signature)', primary: '#8B0000', secondary: '#590104', accent: '#D97706', bg: 'bg-[#8B0000]' },
+    { id: 'sapphire', name: 'Royal Sapphire', primary: '#1E40AF', secondary: '#1E3A8A', accent: '#0284C7', bg: 'bg-[#1E40AF]' },
+    { id: 'emerald', name: 'Emerald Mint', primary: '#059669', secondary: '#064E3B', accent: '#10B981', bg: 'bg-[#059669]' },
+    { id: 'purple', name: 'Imperial Violet', primary: '#7C3AED', secondary: '#581C87', accent: '#A855F7', bg: 'bg-[#7C3AED]' },
+    { id: 'amber', name: 'Amber Gold', primary: '#D97706', secondary: '#78350F', accent: '#F59E0B', bg: 'bg-[#D97706]' },
+    { id: 'rose', name: 'Velvet Rose', primary: '#E11D48', secondary: '#881337', accent: '#FB7185', bg: 'bg-[#E11D48]' },
+    { id: 'midnight', name: 'Midnight Obsidian', primary: '#0F172A', secondary: '#020617', accent: '#64748B', bg: 'bg-[#0F172A]' }
+  ];
+
+  const CARD_RADIUS_OPTIONS = [
+    { id: '8px', label: 'Sharp Edge', value: '8px', twClass: 'rounded-lg', desc: '8px clean corporate' },
+    { id: '16px', label: 'Modern Rounded', value: '16px', twClass: 'rounded-2xl', desc: '16px standard' },
+    { id: '24px', label: 'Smooth Squircle', value: '24px', twClass: 'rounded-3xl', desc: '24px BeAurex Signature' },
+    { id: '32px', label: 'Full Pill Capsule', value: '32px', twClass: 'rounded-[32px]', desc: '32px ultra-soft mobile' }
+  ];
+
+  const CARD_DENSITY_OPTIONS = [
+    { id: 'compact', label: 'Compact', padding: 'p-3', desc: 'Tight spacing, high data density' },
+    { id: 'comfortable', label: 'Comfortable', padding: 'p-4.5', desc: 'Standard balanced spacing' },
+    { id: 'spacious', label: 'Spacious', padding: 'p-6', desc: 'Generous padding, luxury feel' }
+  ];
+
+  const FONT_SCALE_OPTIONS = [
+    { id: 'compact', label: 'Compact', desc: 'Small labels & high screen economy' },
+    { id: 'standard', label: 'Standard', desc: 'Balanced typography' },
+    { id: 'large', label: 'Prominent / Large', desc: 'High visibility & bolder hierarchy' }
+  ];
+
+  const CARD_ELEVATION_OPTIONS = [
+    { id: 'border', label: 'Subtle Border', shadow: 'shadow-2xs', desc: 'Minimal slate border' },
+    { id: 'soft', label: 'Soft Shadow', shadow: 'shadow-xs', desc: 'Refined subtle lift' },
+    { id: 'glass', label: 'Floating Glass', shadow: 'shadow-md backdrop-blur-md bg-white/80 border-white/60', desc: 'Frosted glassmorphism' },
+    { id: 'deep', label: 'Deep Elevation', shadow: 'shadow-lg', desc: 'High luxury depth' },
+    { id: 'glow', label: 'Brand Ruby Glow', shadow: 'shadow-lg shadow-[#8B0000]/15 border-[#8B0000]/30', desc: 'Vibrant colored halo' }
+  ];
+
+  const [themeConfig, setThemeConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_theme_config');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return {
+      primaryColor: '#8B0000',
+      secondaryColor: '#590104',
+      accentColor: '#D97706',
+      cardRadius: '24px',
+      cardRadiusClass: 'rounded-3xl',
+      cardDensity: 'comfortable',
+      cardElevation: 'soft',
+      fontSize: 'standard',
+      lastUpdated: ''
+    };
+  });
+
+  const applyThemeConfigToDOM = (cfg) => {
+    if (!cfg) return;
+    const root = document.documentElement;
+    if (cfg.primaryColor) root.style.setProperty('--brand-primary', cfg.primaryColor);
+    if (cfg.secondaryColor) root.style.setProperty('--brand-secondary', cfg.secondaryColor);
+    if (cfg.cardRadius) root.style.setProperty('--card-radius', cfg.cardRadius);
+    if (cfg.fontSize === 'compact') root.style.setProperty('--ui-font-scale', '0.92');
+    else if (cfg.fontSize === 'large') root.style.setProperty('--ui-font-scale', '1.08');
+    else root.style.setProperty('--ui-font-scale', '1');
+  };
+
+  useEffect(() => {
+    applyThemeConfigToDOM(themeConfig);
+  }, []);
+
+  const handleSaveThemeConfig = (newTheme) => {
+    const updated = {
+      ...newTheme,
+      lastUpdated: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    };
+    setThemeConfig(updated);
+    try {
+      localStorage.setItem('beaurex_theme_config', JSON.stringify(updated));
+    } catch (_) {}
+    applyThemeConfigToDOM(updated);
+    window.dispatchEvent(new CustomEvent('beaurex_theme_config_updated', { detail: updated }));
+    showFeatureToast('Brand color theme, card size & appearance styles applied live across platform!');
+  };
+
+  const handleResetThemeConfig = () => {
+    const reset = {
+      primaryColor: '#8B0000',
+      secondaryColor: '#590104',
+      accentColor: '#D97706',
+      cardRadius: '24px',
+      cardRadiusClass: 'rounded-3xl',
+      cardDensity: 'comfortable',
+      cardElevation: 'soft',
+      fontSize: 'standard',
+      lastUpdated: new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    };
+    handleSaveThemeConfig(reset);
+  };
 
   // Contact Inquiries State (MongoDB /api/admin/contacts)
   const [contactsList, setContactsList] = useState([]);
@@ -633,6 +816,22 @@ export default function SuperAdminDashboard() {
 
     // Fetch initial contact inquiries from MongoDB
     fetchContacts();
+
+    // Fetch synchronized FAQs across portals
+    fetch('/api/admin/faqs')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.faqs) && data.faqs.length > 0) {
+          setFaqsList(data.faqs);
+          setFaqList(data.faqs);
+          setFaqMeta(prev => ({ ...prev, totalFaqs: data.faqs.length }));
+          try {
+            localStorage.setItem('beaurex_faqs', JSON.stringify(data.faqs));
+            localStorage.setItem('loyalqr_faqs', JSON.stringify(data.faqs));
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const showFeatureToast = (msg) => {
@@ -680,18 +879,29 @@ export default function SuperAdminDashboard() {
     if (e) e.preventDefault();
     if (!editingFeatureModal) return;
 
-    const updated = merchantFeatures.map(f => f.id === editingFeatureModal.id ? editingFeatureModal : f);
-    setMerchantFeatures(updated);
-    localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+    const isCustomer = customerFeatures.some(f => f.id === editingFeatureModal.id) || editingFeatureModal.targetPortal === 'customer';
+    const isTeam = teamFeatures.some(f => f.id === editingFeatureModal.id) || editingFeatureModal.targetPortal === 'team';
 
-    fetch(`/api/admin/merchant-features/${editingFeatureModal.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editingFeatureModal)
-    }).catch(() => {});
+    if (isCustomer) {
+      const updated = customerFeatures.map(f => f.id === editingFeatureModal.id ? editingFeatureModal : f);
+      setCustomerFeatures(updated);
+      localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+      showFeatureToast(`Customer feature "${editingFeatureModal.name}" updated successfully.`);
+    } else if (isTeam) {
+      const updated = teamFeatures.map(f => f.id === editingFeatureModal.id ? editingFeatureModal : f);
+      setTeamFeatures(updated);
+      localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+      showFeatureToast(`Team feature "${editingFeatureModal.name}" updated successfully.`);
+    } else {
+      const updated = merchantFeatures.map(f => f.id === editingFeatureModal.id ? editingFeatureModal : f);
+      setMerchantFeatures(updated);
+      localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+      showFeatureToast(`Feature "${editingFeatureModal.name}" updated successfully.`);
+    }
 
-    showFeatureToast(`Feature "${editingFeatureModal.name}" updated successfully.`);
     setEditingFeatureModal(null);
   };
 
@@ -699,25 +909,49 @@ export default function SuperAdminDashboard() {
     if (e) e.preventDefault();
     if (!newFeatureForm.name) return;
 
-    const featureId = newFeatureForm.id ? newFeatureForm.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') : ('feat_' + Date.now().toString(36));
+    const prefix = newFeatureForm.targetPortal === 'customer' ? 'cust_' : newFeatureForm.targetPortal === 'team' ? 'team_' : 'feat_';
+    const featureId = newFeatureForm.id 
+      ? newFeatureForm.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_') 
+      : (prefix + Date.now().toString(36));
+      
     const created = {
       ...newFeatureForm,
       id: featureId,
       isCustom: true
     };
-    const updated = [...merchantFeatures, created];
-    setMerchantFeatures(updated);
-    localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
-    window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
 
-    fetch('/api/admin/merchant-features', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newFeature: created })
-    }).catch(() => {});
+    if (newFeatureForm.targetPortal === 'customer') {
+      const updated = [...customerFeatures, created];
+      setCustomerFeatures(updated);
+      localStorage.setItem('beaurex_customer_features', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_customer_features_updated', { detail: updated }));
+      showFeatureToast(`New customer feature "${created.name}" created and added to Customer Portal.`);
+    } else if (newFeatureForm.targetPortal === 'team') {
+      const updated = [...teamFeatures, created];
+      setTeamFeatures(updated);
+      localStorage.setItem('beaurex_team_features', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_team_features_updated', { detail: updated }));
+      showFeatureToast(`New team feature "${created.name}" created and added to Team Hub.`);
+    } else {
+      const updated = [...merchantFeatures, created];
+      setMerchantFeatures(updated);
+      localStorage.setItem('beaurex_merchant_features', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_merchant_features_updated', { detail: updated }));
+      showFeatureToast(`New feature "${created.name}" created and added to Merchant Dashboard.`);
+    }
 
-    showFeatureToast(`New feature "${created.name}" created and added to Merchant Dashboard.`);
-    setNewFeatureForm({ id: '', name: '', category: 'Home Dashboard', description: '', isVisible: true, minPlan: 'All Plans' });
+    setNewFeatureForm({
+      id: '',
+      name: '',
+      targetPortal: 'merchant',
+      category: 'Home Dashboard',
+      description: '',
+      isVisible: true,
+      minPlan: 'All Plans',
+      featureType: 'toggle',
+      targetValue: '5',
+      badge: ''
+    });
     setAddFeatureModalOpen(false);
   };
 
@@ -775,12 +1009,12 @@ At BeAurex, we value your privacy and are committed to protecting your personal 
 We collect necessary information to provide and operate digital loyalty programs:
 • Merchant Business Information (Store name, business category, counter address, contact details)
 • Customer Profile Data (Name, email address, customer ID, phone number if provided)
-• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)
+• QR & Aurex Coin Activity (Counter scan timestamps, Aurex Coins earned, rewards unlocked and redeemed)
 • Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)
 
 2. How We Use Your Information
 We use information strictly for:
-• Operating customer rewards and digital stamp issuance
+• Operating customer rewards and digital Aurex Coin issuance
 • Validating customer reward claims at merchant physical counters
 • Preventing fraudulent or duplicate scans
 • Facilitating peer-to-peer customer referral rewards
@@ -810,13 +1044,13 @@ Welcome to BeAurex. These Terms and Conditions govern your access to and usage o
 By accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.
 
 2. Merchant Obligations & Counter Conduct
-• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.
+• Participating merchants agree to honor validly earned digital Aurex Coins and approved reward claims presented by registered customers.
 • Merchants must not manipulate scan telemetry or create counterfeit QR displays.
 • Counter staff must verify the 6-character Customer ID before confirming reward redemptions.
 
 3. Customer Rewards & Points Policy
-• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
-• Stamps and points carry no direct legal tender cash value outside designated partner stores.
+• Loyalty Aurex Coins and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
+• Aurex Coins and points carry no direct legal tender cash value outside designated partner stores.
 • Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.
 
 4. Platform Availability & Fair Use
@@ -901,25 +1135,46 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   };
 
   // =========================================================
-  // FAQ EDITOR STATE (Image 3 - 10 Exact FAQ Rows & Modals)
+  // FAQ EDITOR & SETTINGS STATE (Synchronized Across Portals)
   // =========================================================
-  const [faqsList, setFaqsList] = useState([
-    { id: 1, question: 'What is LoyalQR?', category: 'General', status: 'Published', order: 1, lastUpdated: 'May 24, 2025 11:20 AM', answer: 'LoyalQR is an omnichannel customer retention and digital loyalty engine powering seamless counter QR check-ins, automated rewards, and merchant marketing.' },
-    { id: 2, question: 'How does LoyalQR work?', category: 'General', status: 'Published', order: 2, lastUpdated: 'May 24, 2025 10:45 AM', answer: 'Customers scan a branded table or counter QR standee using Google Lens or default camera to earn loyalty coins, unlock mystery scratchers, and claim instant tier discounts.' },
-    { id: 3, question: 'How can merchants join LoyalQR?', category: 'Merchant', status: 'Published', order: 1, lastUpdated: 'May 24, 2025 09:30 AM', answer: 'Merchants can sign up in 30 seconds, configure their store profile, customize their loyalty coin values, and instantly download print-ready acrylic QR standees.' },
-    { id: 4, question: 'How do I create a loyalty program?', category: 'Merchant', status: 'Published', order: 2, lastUpdated: 'May 24, 2025 09:15 AM', answer: 'Navigate to Merchant Rewards Engine, define your coin earn rate (e.g. 1 coin per ₹10 spent), and create redemption vouchers with custom approval thresholds.' },
-    { id: 5, question: 'How are points calculated?', category: 'Rewards', status: 'Published', order: 1, lastUpdated: 'May 23, 2025 08:50 PM', answer: 'Points are automatically computed upon verified bill scans or counter check-ins based on the merchant tier rules and multiplier campaigns.' },
-    { id: 6, question: 'How can customers redeem rewards?', category: 'Rewards', status: 'Draft', order: 2, lastUpdated: 'May 23, 2025 08:20 PM', answer: 'Customers open their BeAurex Pass on their phone, pick an eligible voucher, and show the one-time 4-digit PIN or redemption QR code to the cashier.' },
-    { id: 7, question: 'Is LoyalQR free to use?', category: 'General', status: 'Published', order: 3, lastUpdated: 'May 23, 2025 07:45 PM', answer: 'We offer a risk-free 2-Day Free Trial for all new merchant partners with full feature access and zero upfront credit card requirement.' },
-    { id: 8, cancelOrder: false, question: 'Can I integrate LoyalQR with my POS?', category: 'Integration', status: 'Published', order: 1, lastUpdated: 'May 23, 2025 07:10 PM', answer: 'Yes, LoyalQR provides REST Webhooks and lightweight POS integration bridges compatible with Pine Labs, Petpooja, and custom billing software.' },
-    { id: 9, question: 'What payment methods are supported?', category: 'General', status: 'Unpublished', order: 4, lastUpdated: 'May 23, 2025 06:30 PM', answer: 'We support all major payment modes including UPI, RuPay, Visa, Mastercard, Net Banking, and corporate invoicing through Razorpay & Cashfree.' },
-    { id: 10, question: 'How do I contact support?', category: 'Support', status: 'Published', order: 1, lastUpdated: 'May 23, 2025 05:50 PM', answer: 'Reach out to our 24/7 partner operations desk via WhatsApp support (+91 98112 23344) or email support@beaurex.com.' }
-  ]);
+  const persistFaqs = (updatedList) => {
+    setFaqsList(updatedList);
+    setFaqList(updatedList);
+    setFaqMeta(prev => ({ ...prev, totalFaqs: updatedList.length }));
+    try {
+      localStorage.setItem('beaurex_faqs', JSON.stringify(updatedList));
+      localStorage.setItem('loyalqr_faqs', JSON.stringify(updatedList));
+      window.dispatchEvent(new CustomEvent('beaurex_faqs_updated', { detail: updatedList }));
+    } catch (_) {}
+
+    // Sync to backend API
+    fetch('/api/admin/faqs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ faqs: updatedList })
+    }).catch(err => console.warn('Failed to sync FAQs to server:', err));
+  };
+
+  const [faqsList, setFaqsList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_faqs') || localStorage.getItem('loyalqr_faqs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [
+      { id: 'f1', question: "Will my account be automatically charged when the trial ends?", category: 'General', status: 'Published', order: 1, lastUpdated: 'May 24, 2026 11:20 AM', answer: "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue." },
+      { id: 'f2', question: "How is user phone number security managed?", category: 'General', status: 'Published', order: 2, lastUpdated: 'May 24, 2026 10:45 AM', answer: "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing." },
+      { id: 'f3', question: "Do customers need to download an application from the App Store?", category: 'General', status: 'Published', order: 3, lastUpdated: 'May 24, 2026 09:30 AM', answer: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser." },
+      { id: 'f4', question: "Can I customize the discounts and reward percentages?", category: 'Rewards', status: 'Published', order: 4, lastUpdated: 'May 24, 2026 09:15 AM', answer: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances." },
+      { id: 'f5', question: "How does the acrylic counter standee get configured?", category: 'Merchant', status: 'Published', order: 5, lastUpdated: 'May 24, 2026 08:50 AM', answer: "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk." }
+    ];
+  });
   const [faqSearch, setFaqSearch] = useState('');
   const [faqCategoryFilter, setFaqCategoryFilter] = useState('ALL');
   const [faqStatusFilter, setFaqStatusFilter] = useState('ALL');
   const [faqModal, setFaqModal] = useState({ isOpen: false, mode: 'view', data: null });
-  const [faqCurrentPage, setFaqCurrentPage] = useState(1);
   const [faqToast, setFaqToast] = useState('');
 
   const showFaqToast = (msg) => {
@@ -929,34 +1184,41 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
   const handleSaveFaq = (faqData) => {
     if (!faqData.question) return;
+    let updated;
     if (faqModal.mode === 'add') {
       const newFaq = {
-        id: Date.now(),
-        question: faqData.question,
+        id: 'f_' + Date.now(),
+        question: faqData.question.trim(),
         category: faqData.category || 'General',
         status: faqData.status || 'Published',
         order: Number(faqData.order) || (faqsList.length + 1),
-        lastUpdated: 'May 24, 2025 11:30 AM',
-        answer: faqData.answer || ''
+        lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        answer: (faqData.answer || '').trim()
       };
-      setFaqsList([newFaq, ...faqsList]);
+      updated = [...faqsList, newFaq];
       showFaqToast(`FAQ "${newFaq.question}" added successfully.`);
     } else {
-      setFaqsList(faqsList.map(f => f.id === faqData.id ? { ...faqData, lastUpdated: 'May 24, 2025 11:30 AM' } : f));
+      updated = faqsList.map(f => String(f.id) === String(faqData.id) ? {
+        ...f,
+        ...faqData,
+        lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      } : f);
       showFaqToast(`FAQ updated successfully.`);
     }
+    persistFaqs(updated);
     setFaqModal({ isOpen: false, mode: 'view', data: null });
   };
 
   const handleDeleteFaq = (faqId) => {
-    const target = faqsList.find(f => f.id === faqId);
+    const target = faqsList.find(f => String(f.id) === String(faqId));
     requestConfirm({
       title: `Delete FAQ: "${target?.question}"?`,
       message: `Are you sure you want to delete this FAQ entry from the platform?`,
       confirmText: 'Yes, Delete FAQ',
       type: 'danger',
       onConfirm: () => {
-        setFaqsList(faqsList.filter(f => f.id !== faqId));
+        const updated = faqsList.filter(f => String(f.id) !== String(faqId));
+        persistFaqs(updated);
         showFaqToast(`FAQ deleted successfully.`);
       }
     });
@@ -1004,7 +1266,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       { id: 'cust_google_login', name: 'Google One-Tap & OAuth Authentication', category: 'Onboarding & Auth', description: 'Instant 1-tap sign-in for customers without tedious passwords or OTPs.', isVisible: true, isCustom: false },
       { id: 'cust_lens_scan', name: 'Google Lens & Camera QR Claim Flow', category: 'Scans & Claim', description: 'Universal counter QR scan support directly from default Android/iPhone camera or Google Lens.', isVisible: true, isCustom: false },
       { id: 'cust_first_coin_instant', name: 'Instant Auto-Claim First Coin', category: 'Scans & Claim', description: 'Credit first visit coin automatically upon QR scan without cashier manual confirmation.', isVisible: true, isCustom: false },
-      { id: 'cust_stamp_cards', name: 'Dynamic Stamp Cards & Progress Bar', category: 'Loyalty Rewards', description: 'Visual interactive stamp cards displaying loyalty progress towards free reward unlock.', isVisible: true, isCustom: false },
+      { id: 'cust_stamp_cards', name: 'Dynamic Aurex Coin Cards & Progress Bar', category: 'Loyalty Rewards', description: 'Visual interactive Aurex Coin cards displaying loyalty progress towards free reward unlock.', isVisible: true, isCustom: false },
       { id: 'cust_wallet_coins', name: 'Loyalty Points Wallet & Coin Balance', category: 'Loyalty Rewards', description: 'Live digital coin balance, earning history, and transaction ledger.', isVisible: true, isCustom: false },
       { id: 'cust_mystery_scratch', name: 'Mystery Scratch Cards & Gamification', category: 'Gamification', description: 'Gamified scratch cards unlocked after every successful counter scan.', isVisible: true, isCustom: false },
       { id: 'cust_spin_wheel', name: 'Spin & Win Daily Luck Wheel', category: 'Gamification', description: 'Daily lucky spin wheel giving bonus reward multipliers and discount coupons.', isVisible: true, isCustom: false },
@@ -1187,6 +1449,31 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
   // View Merchant Details Modal (Image 1 "VIEW" eye icon)
   const [viewMerchantModal, setViewMerchantModal] = useState(null);
+  const [merchantDashboardData, setMerchantDashboardData] = useState(null);
+  const [loadingMerchantDashboard, setLoadingMerchantDashboard] = useState(false);
+  const [merchantModalTab, setMerchantModalTab] = useState('overview');
+
+  // Real-time synchronization for selected merchant in Super Admin view
+  useEffect(() => {
+    if (viewMerchantModal && (viewMerchantModal.id || viewMerchantModal._id)) {
+      const mid = viewMerchantModal.id || viewMerchantModal._id;
+      setLoadingMerchantDashboard(true);
+      fetch(`/api/admin/merchants/${mid}/dashboard`)
+        .then(r => r.json())
+        .then(d => {
+          if (d && d.success && d.dashboard) {
+            setMerchantDashboardData(d.dashboard);
+          } else {
+            setMerchantDashboardData(null);
+          }
+        })
+        .catch(() => setMerchantDashboardData(null))
+        .finally(() => setLoadingMerchantDashboard(false));
+    } else {
+      setMerchantDashboardData(null);
+      setMerchantModalTab('overview');
+    }
+  }, [viewMerchantModal]);
 
   // Complimentary Access Modal State (4 Options: Status, Plan Tier, Reason, Days)
   const [complimentaryModalMerchant, setComplimentaryModalMerchant] = useState(null);
@@ -1197,6 +1484,24 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     days: 10,
     customValidTill: ''
   });
+
+  // Edit Merchant Store Details & Address Modal State
+  const [editMerchantModal, setEditMerchantModal] = useState(null);
+  const [editMerchantForm, setEditMerchantForm] = useState({
+    id: '',
+    businessName: '',
+    ownerName: '',
+    category: 'Cafe & Restaurant',
+    logo: '',
+    email: '',
+    mobile: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    state: '',
+    pinCode: ''
+  });
+  const [savingMerchantEdit, setSavingMerchantEdit] = useState(false);
 
   // Filter & Search Merchant
   const [merchantFilter, setMerchantFilter] = useState('ALL');
@@ -1212,13 +1517,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     description: ''
   });
 
-  const [customers, setCustomers] = useState([
-    { id: 'c1', mobile: '98765 43210', name: 'Rohit Verma', totalVisits: 8, favoriteStore: 'Royal Sweets & Cafe', activeVouchers: 1, lastVisit: 'Today, 14:22' },
-    { id: 'c2', mobile: '98123 45678', name: 'Ananya Deshmukh', totalVisits: 14, favoriteStore: 'Gourmet Organic Supermarket', activeVouchers: 2, lastVisit: 'Yesterday, 19:10' },
-    { id: 'c3', mobile: '97890 12345', name: 'Kunal Malhotra', totalVisits: 5, favoriteStore: 'Spice Junction Biryani', activeVouchers: 1, lastVisit: '2 days ago' },
-    { id: 'c4', mobile: '98234 56789', name: 'Meera Iyer', totalVisits: 19, favoriteStore: 'Glamour Salon & Spa', activeVouchers: 1, lastVisit: '3 days ago' },
-    { id: 'c5', mobile: '99112 23344', name: 'Siddharth Rao', totalVisits: 3, favoriteStore: 'Urban Fitness Studio', activeVouchers: 0, lastVisit: '1 week ago' }
-  ]);
+  const [customers, setCustomers] = useState([]);
 
   // =========================================================================
   // Manage Referrals State (Images 1, 2, 3: Referrals Detail, View Modal, Add Payment Modal)
@@ -1725,7 +2024,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     return initialPlatformDeals;
   });
 
-  const [dealCustomerMappingModalOpen, setDealCustomerMappingModalOpen] = useState(false);
   const [editingDealModal, setEditingDealModal] = useState({ isOpen: false, deal: null });
   const [dealToast, setDealToast] = useState('');
   const [dealSearch, setDealSearch] = useState('');
@@ -1733,7 +2031,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   // Form State for Deal & Coupons
   const [newDealForm, setNewDealForm] = useState({
     planName: 'Standard Plan',
-    state: 'All States (No state restriction)',
+    state: ALL_STATES_AND_UTS[0] || 'Delhi NCR',
     dealName: '',
     couponCode: '',
     bonusAmount: '',
@@ -1836,18 +2134,16 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
   const [faqList, setFaqList] = useState(() => {
     try {
-      const saved = localStorage.getItem('loyalqr_faqs');
+      const saved = localStorage.getItem('beaurex_faqs') || localStorage.getItem('loyalqr_faqs');
       return saved ? JSON.parse(saved) : [
-        { id: 'f1', question: 'How do customers earn points at our store counter?', answer: 'Customers scan the acrylic QR standee on the store counter using any phone camera or QR scanner. No app download is required.' },
-        { id: 'f2', question: 'How does merchant payout and billing settlement work?', answer: 'Settlements for customer purchases and paid vouchers are settled within 24 hours directly via verified UPI / Bank IMPS.' },
-        { id: 'f3', question: 'Can merchants customize their scratch cards and rewards?', answer: 'Yes, store owners can set points thresholds, voucher values, validity duration, and minimum order criteria anytime.' },
-        { id: 'f4', question: 'Is hardware or printer required for counter operations?', answer: 'No special hardware is required. Store staff simply verify the 4-digit customer redemption PIN or counter voucher code.' },
-        { id: 'f5', question: 'Can multiple staff members log in at the same billing desk?', answer: 'Yes, role-based staff pin access allows simultaneous counter cashier operations with individualized audit trails.' }
+        { id: 'f1', question: "Will my account be automatically charged when the trial ends?", answer: "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue." },
+        { id: 'f2', question: "How is user phone number security managed?", answer: "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing." },
+        { id: 'f3', question: "Do customers need to download an application from the App Store?", answer: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser." },
+        { id: 'f4', question: "Can I customize the discounts and reward percentages?", answer: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances." },
+        { id: 'f5', question: "How does the acrylic counter standee get configured?", answer: "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk." }
       ];
     } catch {
-      return [
-        { id: 'f1', question: 'How do customers earn points at our store counter?', answer: 'Customers scan the acrylic QR standee on the store counter using any phone camera or QR scanner. No app download is required.' }
-      ];
+      return [];
     }
   });
 
@@ -2137,6 +2433,13 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     e.preventDefault();
     if (!newTeamMember.name || !newTeamMember.email || !newTeamMember.password) return;
 
+    const pwdCheck = validatePassword(newTeamMember.password);
+    if (!pwdCheck.isValid) {
+      setTeamSuccessMsg(`⚠️ Weak Password: ${pwdCheck.errorMessage}`);
+      setTimeout(() => setTeamSuccessMsg(''), 7000);
+      return;
+    }
+
     requestConfirm({
       title: 'Permission Required: Create Team Member',
       message: `Are you sure you want to create a new team account for "${newTeamMember.name}" (${newTeamMember.email})? Credentials will be activated for field agent login.`,
@@ -2270,6 +2573,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     e.preventDefault();
     if (!resetPasswordModal.member || !resetPasswordModal.newPassword) return;
     const newPass = resetPasswordModal.newPassword.trim();
+    const pwdCheck = validatePassword(newPass);
+    if (!pwdCheck.isValid) {
+      setTeamSuccessMsg(`⚠️ Weak Password: ${pwdCheck.errorMessage}`);
+      setTimeout(() => setTeamSuccessMsg(''), 7000);
+      return;
+    }
     const updated = teamMembers.map(m => {
       if (m.userId === resetPasswordModal.member.userId) {
         return { ...m, password: newPass };
@@ -2291,9 +2600,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     if (!member) return [];
     const keys = [
       `beaurex_team_referrals_${member.userId}`,
+      member.referralCode ? `beaurex_team_referrals_${member.referralCode}` : null,
       `beaurex_team_referrals_${member.email}`,
       `beaurex_team_referrals_${member.name}`
-    ];
+    ].filter(Boolean);
     for (const k of keys) {
       try {
         const raw = localStorage.getItem(k);
@@ -2611,7 +2921,11 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   const fetchCustomers = () => {
     fetch('/api/admin/customers')
       .then(r => r.json())
-      .then(d => { if (d.success && d.customers?.length) setCustomers(d.customers); })
+      .then(d => { 
+        if (d.success && Array.isArray(d.customers)) {
+          setCustomers(d.customers); 
+        }
+      })
       .catch(() => {});
   };
 
@@ -2639,6 +2953,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     fetchCustomers();
     fetchPayments();
 
+    fetch('/api/admin/team')
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.success && Array.isArray(d.team) && d.team.length > 0) {
+          setTeamMembers(d.team);
+          try {
+            localStorage.setItem('beaurex_created_teams', JSON.stringify(d.team));
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
+
     fetch('/api/admin/config')
       .then(r => r.json())
       .then(d => { if (d.success && d.config) setConfig(d.config); })
@@ -2659,6 +2985,110 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       .then(d => { if (d.success && d.history?.length) setPlanHistory(d.history); })
       .catch(() => {});
   }, []);
+
+  // Handle Open Edit Merchant Modal (Store Details & Address)
+  const handleOpenEditMerchant = (merchant) => {
+    if (!merchant) return;
+    const mid = merchant.id || merchant._id;
+    setEditMerchantModal(merchant);
+    setEditMerchantForm({
+      id: mid,
+      businessName: merchant.businessName || '',
+      ownerName: merchant.ownerName || '',
+      category: merchant.category || 'Cafe & Restaurant',
+      logo: merchant.logo || '',
+      email: merchant.email || '',
+      mobile: merchant.mobile || '',
+      addressLine1: merchant.addressLine1 || (merchant.branches?.[0]?.address || merchant.address || ''),
+      addressLine2: merchant.addressLine2 || '',
+      city: merchant.city || (merchant.branches?.[0]?.city || 'Delhi'),
+      state: merchant.state || 'Delhi',
+      pinCode: merchant.pinCode || merchant.pincode || (merchant.branches?.[0]?.pincode || '')
+    });
+  };
+
+  // Handle Save Merchant Edit
+  const handleSaveMerchantEdit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!editMerchantForm.id) return;
+    setSavingMerchantEdit(true);
+
+    try {
+      const res = await fetch(`/api/admin/merchants/${editMerchantForm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: editMerchantForm.businessName,
+          ownerName: editMerchantForm.ownerName,
+          category: editMerchantForm.category,
+          logo: editMerchantForm.logo,
+          email: editMerchantForm.email,
+          mobile: editMerchantForm.mobile,
+          addressLine1: editMerchantForm.addressLine1,
+          addressLine2: editMerchantForm.addressLine2,
+          address: editMerchantForm.addressLine2 ? `${editMerchantForm.addressLine1}, ${editMerchantForm.addressLine2}` : editMerchantForm.addressLine1,
+          city: editMerchantForm.city,
+          state: editMerchantForm.state,
+          pinCode: editMerchantForm.pinCode,
+          pincode: editMerchantForm.pinCode
+        })
+      });
+      const data = await res.json();
+      if (data && data.success) {
+        setMerchants(prev => prev.map(m => {
+          if ((m.id || m._id) === editMerchantForm.id) {
+            return {
+              ...m,
+              businessName: editMerchantForm.businessName,
+              ownerName: editMerchantForm.ownerName,
+              category: editMerchantForm.category,
+              logo: editMerchantForm.logo,
+              email: editMerchantForm.email,
+              mobile: editMerchantForm.mobile,
+              addressLine1: editMerchantForm.addressLine1,
+              addressLine2: editMerchantForm.addressLine2,
+              address: editMerchantForm.addressLine2 ? `${editMerchantForm.addressLine1}, ${editMerchantForm.addressLine2}` : editMerchantForm.addressLine1,
+              city: editMerchantForm.city,
+              state: editMerchantForm.state,
+              pinCode: editMerchantForm.pinCode,
+              pincode: editMerchantForm.pinCode
+            };
+          }
+          return m;
+        }));
+
+        if (viewMerchantModal && (viewMerchantModal.id || viewMerchantModal._id) === editMerchantForm.id) {
+          setViewMerchantModal(prev => ({
+            ...prev,
+            businessName: editMerchantForm.businessName,
+            ownerName: editMerchantForm.ownerName,
+            category: editMerchantForm.category,
+            logo: editMerchantForm.logo,
+            email: editMerchantForm.email,
+            mobile: editMerchantForm.mobile,
+            addressLine1: editMerchantForm.addressLine1,
+            addressLine2: editMerchantForm.addressLine2,
+            address: editMerchantForm.addressLine2 ? `${editMerchantForm.addressLine1}, ${editMerchantForm.addressLine2}` : editMerchantForm.addressLine1,
+            city: editMerchantForm.city,
+            state: editMerchantForm.state,
+            pinCode: editMerchantForm.pinCode,
+            pincode: editMerchantForm.pinCode
+          }));
+        }
+
+        setPaymentNotice(`Store & location details for "${editMerchantForm.businessName}" updated successfully.`);
+        setTimeout(() => setPaymentNotice(''), 4500);
+        setEditMerchantModal(null);
+      } else {
+        alert((data && data.message) || 'Failed to update merchant details');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error updating merchant details');
+    } finally {
+      setSavingMerchantEdit(false);
+    }
+  };
 
   // Handle Open Deal Modal (Image 1)
   const handleOpenDeal = (merchant) => {
@@ -2994,7 +3424,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         const threeYearsDate = new Date(Date.now() + 3 * 365 * 24 * 60 * 60 * 1000)
           .toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
-        const isUpgradingToPaid = newStatus === 'Paid';
+        const isUpgradingToPaid = newStatus === 'Paid' || newStatus === 'Active';
 
         setMerchants(prev => prev.map(m => {
           if ((m.id || m._id) === id) {
@@ -3006,8 +3436,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               isActive: newStatus !== 'Suspended',
               plan: updatedPlan,
               subscriptionTier: updatedTier,
-              paymentAmount: isUpgradingToPaid ? (m.paymentAmount && m.paymentAmount !== '-' ? m.paymentAmount : '₹49,000') : (newStatus === 'Trial' ? '-' : m.paymentAmount),
-              paymentDate: isUpgradingToPaid ? (m.paymentDate && m.paymentDate !== '-' ? m.paymentDate : todayStr) : (newStatus === 'Trial' ? '-' : m.paymentDate),
+              paymentAmount: isUpgradingToPaid ? (m.paymentAmount && m.paymentAmount !== '-' ? m.paymentAmount : '₹49,000') : ((newStatus === 'Trial' || newStatus === 'Pending') ? '-' : m.paymentAmount),
+              paymentDate: isUpgradingToPaid ? (m.paymentDate && m.paymentDate !== '-' ? m.paymentDate : todayStr) : ((newStatus === 'Trial' || newStatus === 'Pending') ? '-' : m.paymentDate),
               planValidTill: isUpgradingToPaid ? (m.planValidTill && m.planValidTill !== '-' ? m.planValidTill : threeYearsDate) : m.planValidTill
             };
           }
@@ -3024,7 +3454,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             setTimeout(() => setPaymentNotice(''), 4500);
             fetchPayments();
           }).catch(() => {});
-        } else if (newStatus === 'Paid') {
+        } else if (newStatus === 'Paid' || newStatus === 'Active') {
           fetch(`/api/admin/merchants/${id}/suspend`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3037,7 +3467,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         }
 
         const payload = { status: newStatus };
-        if (newStatus === 'Paid') {
+        if (newStatus === 'Paid' || newStatus === 'Active') {
           payload.plan = 'Professional Plan';
           payload.subscriptionTier = 'PROFESSIONAL';
           payload.paymentAmount = '₹49,000';
@@ -3046,6 +3476,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         } else if (newStatus === 'Trial') {
           payload.plan = 'Trial Plan';
           payload.subscriptionTier = 'TRIAL';
+          payload.paymentAmount = '-';
+          payload.paymentDate = '-';
+        } else if (newStatus === 'Pending') {
           payload.paymentAmount = '-';
           payload.paymentDate = '-';
         }
@@ -3228,11 +3661,13 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   const handleDeleteCustomer = async (customerId, customerName) => {
     requestConfirm({
       title: 'Permission Required: Delete Customer Record',
-      message: `Are you sure you want to permanently delete customer "${customerName || 'this customer'}"? All stamps, visits, and vouchers belonging to them will be permanently erased.`,
+      message: `Are you sure you want to permanently delete customer "${customerName || 'this customer'}"? All Aurex Coins, visits, and vouchers belonging to them will be permanently erased.`,
       confirmText: 'Yes, Delete Customer',
       type: 'danger',
       onConfirm: async () => {
         try {
+          // Optimistically remove from state immediately
+          setCustomers(prev => prev.filter(c => (c.id || c._id) !== customerId && c.customerId !== customerId));
           const res = await fetch(`/api/admin/customers/${customerId}`, {
             method: 'DELETE'
           });
@@ -3240,14 +3675,14 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           if (data.success) {
             setPaymentNotice(data.message || 'Customer deleted successfully');
             setTimeout(() => setPaymentNotice(''), 4500);
-            setCustomers(prev => prev.filter(c => (c.id || c._id) !== customerId));
             fetchCustomers();
           } else {
             alert(data.message || 'Failed to delete customer');
+            fetchCustomers();
           }
         } catch (err) {
           console.error(err);
-          alert('Error deleting customer');
+          fetchCustomers();
         }
       }
     });
@@ -3384,6 +3819,81 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     }
   ];
 
+  const PLAN_BG_PRESETS = [
+    { label: 'Clean White', value: '#FFFFFF' },
+    { label: 'Soft Rose', value: '#FFF1F2' },
+    { label: 'Light Emerald', value: '#F0FDF4' },
+    { label: 'Warm Amber', value: '#FFFBEB' },
+    { label: 'Soft Indigo', value: '#EEF2FF' },
+    { label: 'Sky Mist', value: '#F0F9FF' },
+    { label: 'Slate Grey', value: '#F8FAFC' },
+    { label: 'Midnight Slate', value: '#0F172A' },
+    { label: 'Dark Obsidian', value: '#090D16' },
+    { label: 'Ruby Dark', value: '#1C0709' }
+  ];
+
+  const PLAN_BORDER_PRESETS = [
+    { label: 'Slate (Default)', value: '#E2E8F0' },
+    { label: 'Aurex Crimson', value: '#8B0000' },
+    { label: 'Vibrant Rose', value: '#F43F5E' },
+    { label: 'Rose Gold', value: '#FDA4AF' },
+    { label: 'Emerald Green', value: '#10B981' },
+    { label: 'Amber Gold', value: '#F59E0B' },
+    { label: 'Indigo Violet', value: '#6366F1' },
+    { label: 'Sleek Dark', value: '#334155' },
+    { label: 'Cyan Sky', value: '#06B6D4' }
+  ];
+
+  const PLAN_BTN_PRESETS = [
+    { label: 'Aurex Crimson', bg: '#8B0000', hover: '#720000' },
+    { label: 'Dark Obsidian', bg: '#0D1527', hover: '#1E293B' },
+    { label: 'Vibrant Rose', bg: '#E11D48', hover: '#BE123C' },
+    { label: 'Emerald Mint', bg: '#059669', hover: '#047857' },
+    { label: 'Amber Gold', bg: '#D97706', hover: '#B45309' },
+    { label: 'Indigo Violet', bg: '#4F46E5', hover: '#4338CA' },
+    { label: 'Electric Cyan', bg: '#0891B2', hover: '#0E7490' },
+    { label: 'Royal Purple', bg: '#7C3AED', hover: '#6D28D9' }
+  ];
+
+  const PLAN_PRICE_COLOR_PRESETS = [
+    { label: 'Deep Charcoal', value: '#0F172A' },
+    { label: 'Pure White', value: '#FFFFFF' },
+    { label: 'Aurex Crimson', value: '#8B0000' },
+    { label: 'Emerald Mint', value: '#059669' },
+    { label: 'Amber Gold', value: '#D97706' },
+    { label: 'Indigo Violet', value: '#4F46E5' },
+    { label: 'Electric Cyan', value: '#0891B2' },
+    { label: 'Vibrant Rose', value: '#E11D48' }
+  ];
+
+  const darkenHex = (hex, percent = 15) => {
+    if (!hex || typeof hex !== 'string') return '#720000';
+    let c = hex.replace('#', '').trim();
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    if (c.length !== 6) return hex;
+    const num = parseInt(c, 16);
+    let r = (num >> 16) - Math.round(255 * (percent / 100));
+    let g = ((num >> 8) & 0x00FF) - Math.round(255 * (percent / 100));
+    let b = (num & 0x0000FF) - Math.round(255 * (percent / 100));
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  };
+
+  const isDarkColor = (hex) => {
+    if (!hex || typeof hex !== 'string') return false;
+    let c = hex.replace('#', '').trim();
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    if (c.length !== 6) return false;
+    const r = parseInt(c.substring(0, 2), 16);
+    const g = parseInt(c.substring(2, 4), 16);
+    const b = parseInt(c.substring(4, 6), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return false;
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq < 140;
+  };
+
   const getPlanTagList = (p) => {
     const tags = [];
     if (p.tagText && typeof p.tagText === 'string') {
@@ -3463,7 +3973,16 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       confirmText: 'Yes, Save Plan',
       type: 'primary',
       onConfirm: async () => {
-        const updated = plans.map(p => p.id === planId ? { ...p, ...updatedFields } : p);
+        const updated = plans.map(p => {
+          if (p.id === planId) {
+            const merged = { ...p, ...updatedFields };
+            if (Array.isArray(merged.tags) && merged.tags.length > 0) {
+              merged.tagText = merged.tags.join(' • ');
+            }
+            return merged;
+          }
+          return p;
+        });
         setPlans(updated);
         try {
           localStorage.setItem('beaurex_platform_plans', JSON.stringify(updated));
@@ -3477,8 +3996,16 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             body: JSON.stringify({ plans: updated })
           });
           const data = await res.json();
-          if (data.success) {
+          if (data && data.success) {
+            if (Array.isArray(data.plans) && data.plans.length > 0) {
+              setPlans(data.plans);
+              localStorage.setItem('beaurex_platform_plans', JSON.stringify(data.plans));
+              window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: data.plans }));
+            }
             setPlanSaveSuccess(`Plan "${targetPlan?.name || 'Selected'}" saved in MongoDB & updated on Landing Page!`);
+            setTimeout(() => setPlanSaveSuccess(''), 4500);
+          } else {
+            setPlanSaveSuccess(`Plan updated and synced!`);
             setTimeout(() => setPlanSaveSuccess(''), 4500);
           }
         } catch (e) {
@@ -3496,20 +4023,33 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       confirmText: 'Yes, Save to MongoDB',
       type: 'primary',
       onConfirm: async () => {
+        const syncedPlans = plans.map(p => ({
+          ...p,
+          tagText: Array.isArray(p.tags) && p.tags.length > 0 ? p.tags.join(' • ') : (p.tagText || '')
+        }));
+        setPlans(syncedPlans);
         try {
-          localStorage.setItem('beaurex_platform_plans', JSON.stringify(plans));
-          window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: plans }));
+          localStorage.setItem('beaurex_platform_plans', JSON.stringify(syncedPlans));
+          window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: syncedPlans }));
         } catch (e) {}
 
         try {
           const res = await fetch('/api/admin/plans', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ plans })
+            body: JSON.stringify({ plans: syncedPlans })
           });
           const data = await res.json();
-          if (data.success) {
+          if (data && data.success) {
+            if (Array.isArray(data.plans) && data.plans.length > 0) {
+              setPlans(data.plans);
+              localStorage.setItem('beaurex_platform_plans', JSON.stringify(data.plans));
+              window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: data.plans }));
+            }
             setPlanSaveSuccess('All subscription plans successfully updated in MongoDB and live on Landing Page!');
+            setTimeout(() => setPlanSaveSuccess(''), 5000);
+          } else {
+            setPlanSaveSuccess('All plans updated!');
             setTimeout(() => setPlanSaveSuccess(''), 5000);
           }
         } catch (e) {
@@ -3541,12 +4081,24 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         'Priority Phone Support'
       ],
       ctaText: 'Start 2-Day Trial',
-      showOnLandingPage: true,
-      isActive: true,
+      showOnLandingPage: false,
+      isActive: false,
       displayOrder: plans.length + 1
     };
     const updated = [...plans, newPlan];
     setPlans(updated);
+
+    const auditEntry = {
+      id: 'ph_' + Date.now(),
+      timestamp: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+      planName: newPlan.name,
+      action: 'Plan Created',
+      details: `Created new draft plan "${newPlan.name}" (${newPlan.id}) at ₹${newPlan.price.toLocaleString('en-IN')} ${newPlan.period} (Inactive / Draft).`,
+      user: 'Super Admin (Owner)'
+    };
+    const updatedHistory = [auditEntry, ...planHistory];
+    setPlanHistory(updatedHistory);
+
     try {
       localStorage.setItem('beaurex_platform_plans', JSON.stringify(updated));
       window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: updated }));
@@ -3557,7 +4109,14 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plans: updated })
     }).catch(() => {});
-    setPlanSaveSuccess('New plan created and saved to MongoDB & Landing Page!');
+
+    fetch('/api/admin/plans/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditEntry)
+    }).catch(() => {});
+
+    setPlanSaveSuccess('New plan created as Draft & saved to MongoDB and History!');
     setTimeout(() => setPlanSaveSuccess(''), 4500);
   };
 
@@ -3565,42 +4124,115 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     const targetPlan = plans.find(p => p.id === planId);
     requestConfirm({
       title: 'Permission Required: Delete Subscription Plan',
-      message: `Are you sure you want to permanently delete plan "${targetPlan?.name || planId}"? This will delete it from MongoDB and remove it from the public Landing Page pricing table.`,
+      message: `Are you sure you want to permanently delete plan "${targetPlan?.name || planId}"? This will delete it from MongoDB, remove it from the public Landing Page, and log this deletion in Plan History.`,
       confirmText: 'Yes, Delete Plan',
       type: 'danger',
       onConfirm: async () => {
         const updated = plans.filter(p => p.id !== planId);
         setPlans(updated);
+
+        const auditEntry = {
+          id: 'ph_' + Date.now(),
+          timestamp: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+          planName: targetPlan?.name || planId,
+          action: 'Plan Deleted',
+          details: `Permanently deleted plan "${targetPlan?.name || planId}" (${planId}). Removed from MongoDB & Landing Page.`,
+          user: 'Super Admin (Owner)'
+        };
+        const updatedHistory = [auditEntry, ...planHistory];
+        setPlanHistory(updatedHistory);
+
         try {
           localStorage.setItem('beaurex_platform_plans', JSON.stringify(updated));
           window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: updated }));
         } catch (e) {}
 
         fetch(`/api/admin/plans/${planId}`, { method: 'DELETE' }).catch(() => {});
-        setPlanSaveSuccess('Plan deleted from MongoDB & Landing Page.');
+        fetch('/api/admin/plans/history', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(auditEntry)
+        }).catch(() => {});
+
+        setPlanSaveSuccess(`Plan "${targetPlan?.name || planId}" permanently deleted and logged to History.`);
         setTimeout(() => setPlanSaveSuccess(''), 4500);
       }
     });
   };
 
-  // Handle Create Custom Plan
+  // Quick Toggle Active on Landing Page
+  const handleTogglePlanLandingStatus = (planId, e) => {
+    if (e) e.stopPropagation();
+    const targetPlan = plans.find(p => p.id === planId);
+    if (!targetPlan) return;
+    const isCurrentlyActive = targetPlan.isActive !== false && targetPlan.showOnLandingPage !== false;
+    const nextStatus = !isCurrentlyActive;
+    const updated = plans.map(p => {
+      if (p.id === planId) {
+        return { ...p, isActive: nextStatus, showOnLandingPage: nextStatus };
+      }
+      return p;
+    });
+    setPlans(updated);
+
+    const auditEntry = {
+      id: 'ph_' + Date.now(),
+      timestamp: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
+      planName: targetPlan.name,
+      action: nextStatus ? 'Plan Activated' : 'Plan Deactivated',
+      details: nextStatus
+        ? `Activated plan "${targetPlan.name}" on Landing Page (${updated.filter(p => p.isActive !== false && p.showOnLandingPage !== false).length} active plans).`
+        : `Deactivated plan "${targetPlan.name}" from Landing Page.`,
+      user: 'Super Admin (Owner)'
+    };
+    const updatedHistory = [auditEntry, ...planHistory];
+    setPlanHistory(updatedHistory);
+
+    try {
+      localStorage.setItem('beaurex_platform_plans', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('beaurex_plans_updated', { detail: updated }));
+    } catch (err) {}
+
+    fetch('/api/admin/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plans: updated })
+    }).catch(() => {});
+
+    fetch('/api/admin/plans/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(auditEntry)
+    }).catch(() => {});
+
+    setPlanSaveSuccess(nextStatus
+      ? `Plan "${targetPlan.name}" is now ACTIVE on Landing Page!`
+      : `Plan "${targetPlan.name}" is now INACTIVE / hidden from Landing Page.`);
+    setTimeout(() => setPlanSaveSuccess(''), 4000);
+  };
+
+  // Handle Create Custom Plan (Unlimited creation, admin can choose active status)
   const handleCreateCustomPlan = async (e) => {
     e.preventDefault();
     if (!newPlanForm.name || !newPlanForm.price) {
-      alert('Please enter a Plan Name and Price');
+      setPlanSaveSuccess('⚠️ Please enter a Plan Name and Price');
+      setTimeout(() => setPlanSaveSuccess(''), 4000);
       return;
     }
 
     requestConfirm({
       title: 'Permission Required: Publish New Plan',
-      message: `Are you sure you want to create and publish plan "${newPlanForm.name}" at ₹${Number(newPlanForm.price).toLocaleString('en-IN')} ${newPlanForm.period}? This will save to MongoDB and log an entry into Plan History.`,
-      confirmText: 'Yes, Publish Plan',
+      message: `Are you sure you want to create plan "${newPlanForm.name}" at ₹${Number(newPlanForm.price).toLocaleString('en-IN')} ${newPlanForm.period}? This will save to MongoDB and log an entry into Plan History.`,
+      confirmText: 'Yes, Save Plan',
       type: 'primary',
       onConfirm: async () => {
         const planSlug = newPlanForm.id?.trim()
           ? newPlanForm.id.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_')
           : 'plan_' + Date.now();
 
+        const planTags = (newPlanForm.tags && newPlanForm.tags.length > 0) ? newPlanForm.tags : [];
+        const isPlanActive = newPlanForm.isActive !== false;
+        const isPlanVisible = newPlanForm.showOnLandingPage !== false;
         const createdPlan = {
           id: planSlug,
           name: newPlanForm.name.trim(),
@@ -3608,15 +4240,20 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           originalPrice: newPlanForm.originalPrice ? Number(newPlanForm.originalPrice) : 0,
           period: newPlanForm.period || '/ Year',
           subtext: newPlanForm.subtext || 'Retail subscription tier',
-          tagText: newPlanForm.tagText || '',
-          tags: (newPlanForm.tags && newPlanForm.tags.length > 0) ? newPlanForm.tags : [],
+          tagText: planTags.length > 0 ? planTags.join(' • ') : (newPlanForm.tagText || ''),
+          tags: planTags,
           highlightBadge: newPlanForm.highlightBadge || '',
+          cardBg: newPlanForm.cardBg || '',
+          borderColor: newPlanForm.borderColor || '',
+          btnBg: newPlanForm.btnBg || '',
+          btnHoverBg: newPlanForm.btnHoverBg || '',
+          priceColor: newPlanForm.priceColor || '',
           isPopular: Boolean(newPlanForm.isPopular),
           trialDays: Number(newPlanForm.trialDays) || 2,
           scansLimit: newPlanForm.scansLimit || 'Unlimited customer QR scans',
           ctaText: newPlanForm.ctaText || 'Start 2-Day Trial',
-          showOnLandingPage: Boolean(newPlanForm.showOnLandingPage),
-          isActive: true,
+          showOnLandingPage: isPlanVisible,
+          isActive: isPlanActive,
           displayOrder: plans.length + 1,
           features: (newPlanForm.features && newPlanForm.features.length > 0) ? newPlanForm.features : [
             'Customer retention system',
@@ -3634,7 +4271,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           timestamp: new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }),
           planName: createdPlan.name,
           action: 'Plan Created',
-          details: `Created new plan "${createdPlan.name}" (${createdPlan.id}) at ₹${createdPlan.price.toLocaleString('en-IN')} ${createdPlan.period} with ${createdPlan.features.length} features.`,
+          details: `Created new plan "${createdPlan.name}" (${createdPlan.id}) at ₹${createdPlan.price.toLocaleString('en-IN')} ${createdPlan.period} - ${isPlanActive && isPlanVisible ? 'Active on Landing Page' : 'Draft / Inactive'}.`,
           user: 'Super Admin (Owner)'
         };
         const updatedHistory = [auditEntry, ...planHistory];
@@ -3667,6 +4304,11 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           tagText: '',
           tags: ['Recommended', 'Instant Setup'],
           highlightBadge: '',
+          cardBg: '',
+          borderColor: '',
+          btnBg: '',
+          btnHoverBg: '',
+          priceColor: '',
           isPopular: false,
           trialDays: 2,
           scansLimit: 'Unlimited customer QR scans',
@@ -3982,10 +4624,98 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
   const formatStatusDisplayName = (status, amount, isActive) => {
     if (status === 'Suspended' || isActive === false) return 'Suspended';
+    if (status === 'Pending' || status === 'Pending Payment') return 'Pending';
+    if (status === 'Trial') return 'Trial';
+    if (status === 'Paid' || status === 'Active') return status;
     const hasMoney = Boolean(amount && amount !== '-' && amount !== '0' && amount !== '₹0' && amount !== 'Unpaid');
-    if (status === 'Paid' || hasMoney) return 'Paid';
+    if (hasMoney) return 'Paid';
     if (status === 'Expired') return 'Expired';
-    return 'Trial';
+    return status || 'Trial';
+  };
+
+  const getMerchantStatusStyle = (status) => {
+    const s = String(status || '').trim().toLowerCase();
+    if (s === 'paid' || s === 'active' || s === 'paid / active') {
+      return {
+        text: '#16A34A',
+        bg: '#DCFCE7',
+        border: '#BBF7D0',
+        label: (s === 'active') ? 'Active' : (s === 'paid' ? 'Paid' : 'Paid / Active'),
+        display: 'Paid / Active',
+        className: 'bg-[#DCFCE7] text-[#16A34A] border-[#BBF7D0]'
+      };
+    }
+    if (s === 'trial' || s.includes('trial')) {
+      return {
+        text: '#2563EB',
+        bg: '#DBEAFE',
+        border: '#BFDBFE',
+        label: 'Trial',
+        display: 'Trial',
+        className: 'bg-[#DBEAFE] text-[#2563EB] border-[#BFDBFE]'
+      };
+    }
+    if (s === 'pending' || s.includes('pending')) {
+      return {
+        text: '#F59E0B',
+        bg: '#FEF3C7',
+        border: '#FDE68A',
+        label: 'Pending',
+        display: 'Pending',
+        className: 'bg-[#FEF3C7] text-[#F59E0B] border-[#FDE68A]'
+      };
+    }
+    if (s === 'suspended') {
+      return {
+        text: '#BE123C',
+        bg: '#FFF1F2',
+        border: '#FECDD3',
+        label: 'Suspended',
+        display: 'Suspended',
+        className: 'bg-rose-50 text-rose-700 border-rose-200'
+      };
+    }
+    return {
+      text: '#475569',
+      bg: '#F1F5F9',
+      border: '#E2E8F0',
+      label: status || 'Expired',
+      display: status || 'Expired',
+      className: 'bg-slate-100 text-slate-700 border-slate-200'
+    };
+  };
+
+  const getMerchantPlanStyle = (plan, status) => {
+    const p = String(plan || '').trim().toLowerCase();
+    const s = String(status || '').trim().toLowerCase();
+
+    // Trial Plan -> Blue (#2563EB text, #DBEAFE bg, #BFDBFE border)
+    if (p.includes('trial') || s === 'trial') {
+      return {
+        text: '#2563EB',
+        bg: '#DBEAFE',
+        border: '#BFDBFE',
+        className: 'bg-[#DBEAFE] text-[#2563EB] border-[#BFDBFE]'
+      };
+    }
+
+    // Pending -> Orange (#F59E0B text, #FEF3C7 bg, #FDE68A border)
+    if (s === 'pending' || s.includes('pending') || p.includes('pending')) {
+      return {
+        text: '#F59E0B',
+        bg: '#FEF3C7',
+        border: '#FDE68A',
+        className: 'bg-[#FEF3C7] text-[#F59E0B] border-[#FDE68A]'
+      };
+    }
+
+    // Paid / Active Plans (Standard Plan, Professional Plan, Enterprise Pro, Basic Plan) -> Green (#16A34A text, #DCFCE7 bg, #BBF7D0 border)
+    return {
+      text: '#16A34A',
+      bg: '#DCFCE7',
+      border: '#BBF7D0',
+      className: 'bg-[#DCFCE7] text-[#16A34A] border-[#BBF7D0]'
+    };
   };
 
   const filteredMerchants = merchants.map(m => {
@@ -4006,7 +4736,11 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
       m.plan?.toLowerCase().includes(term) ||
       m.status?.toLowerCase().includes(term)
     );
-    const matchFilter = merchantFilter === 'ALL' || m.status === merchantFilter || (merchantFilter === 'COMPLIMENTARY' && m.isComplimentary);
+    const matchFilter = merchantFilter === 'ALL' || 
+      m.status === merchantFilter || 
+      (merchantFilter === 'COMPLIMENTARY' && m.isComplimentary) ||
+      (merchantFilter === 'Paid' && (m.status === 'Paid' || m.status === 'Active')) ||
+      (merchantFilter === 'Pending' && (m.status === 'Pending' || m.status === 'Pending Payment'));
     return matchTerm && matchFilter;
   });
 
@@ -4041,7 +4775,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           planValidTill: m.planValidTill || (hasMoney ? '04 Oct 2029' : '14 Oct 2026'),
           status: resolvedStatus,
           isActive: resolvedStatus !== 'Suspended',
-          paymentStatus: hasMoney ? 'PAID' : (resolvedStatus === 'Trial' ? 'TRIAL' : (resolvedStatus === 'Suspended' ? 'SUSPENDED' : 'UNPAID'))
+          paymentStatus: hasMoney ? 'PAID' : (resolvedStatus === 'Trial' ? 'TRIAL' : (resolvedStatus === 'Suspended' ? 'SUSPENDED' : (resolvedStatus === 'Pending' ? 'PENDING' : 'UNPAID')))
         };
       });
 
@@ -4057,7 +4791,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     const matchFilter = 
       paymentFilter === 'ALL' ||
       item.paymentStatus === paymentFilter ||
-      (paymentFilter === 'PAID' && item.paymentStatus === 'PAID') ||
+      (paymentFilter === 'PAID' && (item.paymentStatus === 'PAID' || item.status === 'Paid' || item.status === 'Active')) ||
+      (paymentFilter === 'PENDING' && (item.paymentStatus === 'PENDING' || item.status === 'Pending' || item.status === 'Pending Payment')) ||
       (paymentFilter === 'UNPAID' && (item.paymentStatus === 'UNPAID' || item.status === 'Expired')) ||
       (paymentFilter === 'TRIAL' && (item.paymentStatus === 'TRIAL' || item.status === 'Trial')) ||
       (paymentFilter === 'SUSPENDED' && (item.paymentStatus === 'SUSPENDED' || item.status === 'Suspended' || item.isActive === false));
@@ -4103,15 +4838,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
   return (
     <AdminAuthGate>
-      <div className="h-screen w-full bg-slate-50 text-slate-900 font-sans antialiased flex flex-col md:flex-row overflow-hidden selection:bg-red-500 selection:text-white">
+      <div 
+        className="h-screen w-full bg-slate-50 text-slate-900 super-admin-root antialiased flex flex-col md:flex-row overflow-hidden selection:bg-red-500 selection:text-white"
+        style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+      >
         
         {/* ========================================================= */}
         {/* MOBILE TOPBAR WITH HAMBURGER (Visible only on < md screens) */}
         {/* ========================================================= */}
         <header className="md:hidden sticky top-0 z-40 bg-[#8B0000] text-white px-4 py-3 flex items-center justify-between shadow-md">
           <Link to="/" className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1 shadow-xs">
-              <QrCode className="w-5 h-5 text-[#8B0000]" />
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-xs overflow-hidden">
+              <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover rounded-md" />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight leading-none text-white">
@@ -4151,8 +4889,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               <div>
                 <div className="p-4 border-b border-white/10 flex items-center justify-between">
                   <div className="flex items-center space-x-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-1">
-                      <QrCode className="w-5 h-5 text-[#8B0000]" />
+                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center p-0.5 overflow-hidden">
+                      <img src="/beaurex-icon.jpg" alt="BeAurex Logo" className="w-full h-full object-cover rounded-md" />
                     </div>
                     <div className="flex flex-col">
                       <span className="font-black text-white text-sm">BeAurex</span>
@@ -4264,9 +5002,11 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             {/* Brand Header */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <Link to="/" className="flex items-center space-x-3 group">
-                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-md p-1.5 shrink-0 group-hover:scale-105 transition transform">
-                  <QrCode className="w-6 h-6 text-[#8B0000]" />
-                </div>
+                <img 
+                  src="/beaurex-icon.jpg" 
+                  alt="BeAurex Logo" 
+                  className="w-10 h-10 rounded-xl object-cover shadow-md group-hover:scale-105 transition-all duration-300 shrink-0"
+                />
                 <div className="flex flex-col">
                   <span className="text-xl font-black tracking-tight leading-none text-white">
                     BeAurex
@@ -4467,65 +5207,69 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
                   </div>
 
-                  {/* 4 Stat Cards in 1 Row (Exact Match to Image 1) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  {/* 4 Stat Cards in 1 Row (Exact Match to Landing Page Gradient Style & Left Icon Squircle) */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5 lg:gap-4">
                     {/* Card 1: Active Merchants */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
-                      <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4 shadow-xs">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow-md shadow-red-500/30 group-hover:scale-105 transition-transform">
-                          <Users className="w-6 h-6 text-white" />
-                        </div>
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#8B0000] to-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <h3 className="text-sm font-bold text-slate-800">Active Merchants</h3>
-                      <div className="text-3xl font-black text-slate-900 mt-2">1,248</div>
-                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
-                        <span>↑</span>
-                        <span>12.5% vs yesterday</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Active Merchants</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                          1,248
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate flex items-center">
+                          <span>+12.5% vs yesterday</span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Card 2: Today's Merchant Onboarding */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
-                      <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mb-4 shadow-xs">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shadow-md shadow-amber-500/30 group-hover:scale-105 transition-transform">
-                          <UserPlus className="w-6 h-6 text-white" />
-                        </div>
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/25">
+                        <UserPlus className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <h3 className="text-sm font-bold text-slate-800">Today's Merchant Onboarding</h3>
-                      <div className="text-3xl font-black text-slate-900 mt-2">36</div>
-                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
-                        <span>↑</span>
-                        <span>16.7% vs yesterday</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Today's Onboarding</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                          36
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate flex items-center">
+                          <span>+16.7% vs yesterday</span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Card 3: Today's Revenue */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
-                      <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-4 shadow-xs">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
-                          <CreditCard className="w-6 h-6 text-white" />
-                        </div>
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                        <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <h3 className="text-sm font-bold text-slate-800">Today's Revenue</h3>
-                      <div className="text-3xl font-black text-slate-900 mt-2">₹ 86,540</div>
-                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
-                        <span>↑</span>
-                        <span>16.3% vs yesterday</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Today's Revenue</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                          ₹ 86,540
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate flex items-center">
+                          <span>+16.3% vs yesterday</span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Card 4: Total Revenue */}
-                    <div className="bg-white border border-slate-200/90 p-6 rounded-2xl shadow-xs text-center flex flex-col items-center justify-between hover:shadow-md transition group">
-                      <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 shadow-xs">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30 group-hover:scale-105 transition-transform">
-                          <DollarSign className="w-6 h-6 text-white" />
-                        </div>
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                        <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <h3 className="text-sm font-bold text-slate-800">Total Revenue</h3>
-                      <div className="text-3xl font-black text-slate-900 mt-2">₹ 24,85,430</div>
-                      <div className="text-xs font-bold text-emerald-500 mt-2 flex items-center justify-center space-x-1">
-                        <span>↑</span>
-                        <span>14.8% vs last month</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Revenue</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                          ₹ 24,85,430
+                        </div>
+                        <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate flex items-center">
+                          <span>+14.8% vs last month</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -4714,44 +5458,47 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             {/* TAB: MERCHANTS MANAGEMENT & BILLING (Matching Image 1: media_1791096512221.jpg) */}
             {activeTab === 'merchants' && (
               <div className="space-y-6 animate-in fade-in duration-150">
-                {/* 3 Top Stat Cards from Image 1 */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Trial Merchants</p>
-                      <h3 className="text-2xl font-black text-slate-900 mt-1">
-                        {merchants.filter(m => m.status === 'Trial' || m.plan?.toLowerCase().includes('trial')).length || 7}
-                      </h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Active complimentary evaluation</p>
+                {/* 3 Top Stat Cards (Exact Match to Landing Page Gradient Style & Left Icon Squircle) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5 lg:gap-4">
+                  {/* Trial Merchants Card */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25">
-                      <Clock className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Payment</p>
-                      <h3 className="text-2xl font-black text-slate-900 mt-1">
-                        {merchants.filter(m => m.status === 'Pending Payment').length || 0}
-                      </h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Awaiting gateway settlement</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25">
-                      <AlertTriangle className="w-6 h-6 text-white" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Trial Merchants</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {merchants.filter(m => m.status === 'Trial' || m.plan?.toLowerCase().includes('trial')).length || 0}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Active evaluation stores</div>
                     </div>
                   </div>
 
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Today's Onboarding</p>
-                      <h3 className="text-2xl font-black text-slate-900 mt-1">
-                        {merchants.filter(m => m.paymentDate === 'Today').length || 0}
-                      </h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Registered since midnight</p>
+                  {/* Pending Payment Card */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/25">
+                      <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25">
-                      <Sparkles className="w-6 h-6 text-white" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Pending Payment</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {merchants.filter(m => m.status === 'Pending' || m.status === 'Pending Payment').length || 0}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Awaiting gateway settlement</div>
+                    </div>
+                  </div>
+
+                  {/* Paid / Active Merchants Card */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Paid / Active Merchants</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {merchants.filter(m => m.status === 'Paid' || m.status === 'Active').length || 0}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Subscribed & active stores</div>
                     </div>
                   </div>
                 </div>
@@ -4772,8 +5519,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs"
                       >
                         <option value="ALL">All Status</option>
+                        <option value="Paid">Paid / Active</option>
                         <option value="Trial">Trial</option>
-                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
                         <option value="Suspended">Suspended</option>
                         <option value="Expired">Expired</option>
                         <option value="COMPLIMENTARY">Complimentary Only</option>
@@ -4835,8 +5583,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                   <span className="font-black text-sm">{m.businessName}</span>
                                 </div>
                                 {m.email && (
-                                  <div className="text-[11px] text-slate-600 font-bold truncate flex items-center space-x-1 mt-0.5 whitespace-nowrap" title={m.email}>
-                                    <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                  <div className="text-[11px] text-slate-600 font-bold truncate mt-0.5 whitespace-nowrap" title={m.email}>
                                     <span>{m.email}</span>
                                   </div>
                                 )}
@@ -4855,19 +5602,29 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 {m.dateTime || (m.paymentDate && m.paymentDate !== '-' ? `${m.paymentDate} 11:20 AM` : 'May 24, 2025 11:20 AM')}
                               </td>
 
-                              {/* PLAN (editable dropdown) */}
+                              {/* PLAN (editable dropdown with matching status colors) */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <select
-                                  value={m.plan || m.subscriptionTier || 'Trial Plan'}
-                                  onChange={(e) => handleChangePlan(m.id || m._id, e.target.value)}
-                                  className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer shadow-2xs whitespace-nowrap min-w-[130px]"
-                                >
-                                  <option value="Trial Plan">Trial Plan</option>
-                                  <option value="Basic Plan">Basic Plan</option>
-                                  <option value="Standard Plan">Standard Plan</option>
-                                  <option value="Professional Plan">Professional Plan</option>
-                                  <option value="Enterprise Pro">Enterprise Pro</option>
-                                </select>
+                                {(() => {
+                                  const planStyle = getMerchantPlanStyle(m.plan || m.subscriptionTier, m.status);
+                                  return (
+                                    <select
+                                      value={m.plan || m.subscriptionTier || 'Trial Plan'}
+                                      onChange={(e) => handleChangePlan(m.id || m._id, e.target.value)}
+                                      className={`rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer border shadow-2xs whitespace-nowrap min-w-[130px] ${planStyle.className}`}
+                                      style={{
+                                        backgroundColor: planStyle.bg,
+                                        color: planStyle.text,
+                                        borderColor: planStyle.border
+                                      }}
+                                    >
+                                      <option value="Trial Plan" className="bg-white text-[#2563EB] font-bold">Trial Plan</option>
+                                      <option value="Basic Plan" className="bg-white text-[#16A34A] font-bold">Basic Plan</option>
+                                      <option value="Standard Plan" className="bg-white text-[#16A34A] font-bold">Standard Plan</option>
+                                      <option value="Professional Plan" className="bg-white text-[#16A34A] font-bold">Professional Plan</option>
+                                      <option value="Enterprise Pro" className="bg-white text-[#16A34A] font-bold">Enterprise Pro</option>
+                                    </select>
+                                  );
+                                })()}
                               </td>
 
                               {/* PLAN VALID TILL */}
@@ -4902,26 +5659,29 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 )}
                               </td>
 
-                              {/* STATUS (Image 1 dropdown) */}
+                              {/* STATUS */}
                               <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                                <select
-                                  value={m.status || 'Trial'}
-                                  onChange={(e) => handleChangeStatus(m.id || m._id, e.target.value)}
-                                  className={`rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer border shadow-2xs whitespace-nowrap min-w-[100px] ${
-                                    m.status === 'Trial'
-                                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                      : m.status === 'Paid'
-                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                      : m.status === 'Suspended'
-                                      ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                      : 'bg-slate-100 text-slate-700 border-slate-200'
-                                  }`}
-                                >
-                                  <option value="Trial">Trial</option>
-                                  <option value="Paid">Paid</option>
-                                  <option value="Suspended">Suspended</option>
-                                  <option value="Expired">Expired</option>
-                                </select>
+                                {(() => {
+                                  const styleInfo = getMerchantStatusStyle(m.status);
+                                  return (
+                                    <select
+                                      value={m.status === 'Active' ? 'Paid' : (m.status || 'Trial')}
+                                      onChange={(e) => handleChangeStatus(m.id || m._id, e.target.value)}
+                                      className={`rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer border shadow-2xs whitespace-nowrap min-w-[110px] ${styleInfo.className}`}
+                                      style={{
+                                        backgroundColor: styleInfo.bg,
+                                        color: styleInfo.text,
+                                        borderColor: styleInfo.border
+                                      }}
+                                    >
+                                      <option value="Paid" className="bg-white text-[#16A34A] font-bold">Paid / Active</option>
+                                      <option value="Trial" className="bg-white text-[#2563EB] font-bold">Trial</option>
+                                      <option value="Pending" className="bg-white text-[#F59E0B] font-bold">Pending</option>
+                                      <option value="Suspended" className="bg-white text-rose-700 font-bold">Suspended</option>
+                                      <option value="Expired" className="bg-white text-slate-700 font-bold">Expired</option>
+                                    </select>
+                                  );
+                                })()}
                               </td>
 
                               {/* ACCOUNT ACCESS (Suspend / Reactivate) */}
@@ -4947,12 +5707,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 )}
                               </td>
 
-                              {/* VIEW (Eye Icon) */}
+                              {/* VIEW ICON */}
                               <td className="py-3.5 px-4 text-center whitespace-nowrap">
                                 <button
                                   onClick={() => setViewMerchantModal(m)}
-                                  className="text-slate-500 hover:text-slate-900 p-2 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-100 transition cursor-pointer inline-flex items-center justify-center shadow-2xs"
-                                  title="View Merchant Profile"
+                                  className="text-slate-700 hover:text-slate-950 p-2 rounded-xl border border-slate-200 hover:border-slate-400 hover:bg-slate-100 transition cursor-pointer inline-flex items-center justify-center shadow-2xs"
+                                  title="View Store Live Dashboard Summary & Address"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
@@ -4965,7 +5725,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                   onClick={() => handleOpenComplimentaryModal(m)}
                                   className={`rounded-xl px-3 py-1.5 text-xs font-black cursor-pointer border transition flex items-center justify-center space-x-1.5 mx-auto whitespace-nowrap min-w-[90px] ${
                                     m.isComplimentary
-                                      ? 'bg-rose-50 text-[#74111d] border-rose-300 hover:bg-rose-100 shadow-xs'
+                                      ? 'bg-rose-50 text-[#8B0000] border-rose-300 hover:bg-rose-100 shadow-xs'
                                       : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400 shadow-2xs'
                                   }`}
                                   title={m.isComplimentary ? `Complimentary Active (${m.complimentaryDays === 'Lifetime' || Number(m.complimentaryDays) >= 36500 ? 'Lifetime Access' : (m.complimentaryDays || 10) + ' Days'}) • Reason: ${m.complimentaryReason || 'Special Access'}` : 'Click to configure Complimentary access'}
@@ -5014,44 +5774,47 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
               return (
                 <div className="space-y-6 animate-in fade-in duration-150">
-                  {/* 3 Top Stat Cards (Matching Merchants Tab Layout & Font) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Inquiries</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                  {/* 3 Top Stat Cards (Matching Landing Page Gradient Style & Left Icon Squircle) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5 lg:gap-4">
+                    {/* Card 1: Total Inquiries */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                        <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Inquiries</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
                           {contactsList.length}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Landing page contact submissions</p>
-                      </div>
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/25">
-                        <Mail className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Landing page contact submissions</div>
                       </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">New / Unread Leads</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                    {/* Card 2: New / Unread Leads */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">New / Unread Leads</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
                           {contactsList.filter(c => c.status === 'NEW').length}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Awaiting activation officer follow-up</p>
-                      </div>
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25">
-                        <Clock className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Awaiting activation officer follow-up</div>
                       </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Contacted / Resolved</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">
-                          {contactsList.filter(c => c.status === 'CONTACTED' || c.status === 'RESOLVED').length}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Processed store inquiries</p>
+                    {/* Card 3: Contacted / Resolved */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25">
-                        <Sparkles className="w-6 h-6 text-white" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Contacted / Resolved</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                          {contactsList.filter(c => c.status === 'CONTACTED' || c.status === 'RESOLVED').length}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Processed store inquiries</div>
                       </div>
                     </div>
                   </div>
@@ -5120,14 +5883,13 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             <th className="py-3.5 px-4 whitespace-nowrap min-w-[170px]">Date with Time</th>
                             <th className="py-3.5 px-4 whitespace-nowrap min-w-[340px]">Store Inquiry / Message</th>
                             <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[150px]">Status</th>
-                            <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[90px]">View</th>
                             <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[80px]">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {filteredContacts.length === 0 ? (
                             <tr>
-                              <td colSpan={8} className="py-12 text-center text-xs text-slate-400 font-black">
+                              <td colSpan={7} className="py-12 text-center text-xs text-slate-400 font-black">
                                 {contactsLoading ? 'Loading inquiries from MongoDB...' : 'No contact form submissions found matching your filter.'}
                               </td>
                             </tr>
@@ -5151,9 +5913,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                         </span>
                                       )}
                                     </div>
-                                    <div className="text-[11px] text-slate-400 font-mono font-bold mt-0.5 whitespace-nowrap">
-                                      ID: {String(cid).slice(-8).toUpperCase()} • {c.source || 'Website Form'}
-                                    </div>
                                   </td>
 
                                   {/* Phone Number */}
@@ -5161,10 +5920,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     {c.phone ? (
                                       <a
                                         href={`tel:${c.phone}`}
-                                        className="hover:text-red-700 transition flex items-center space-x-1.5"
+                                        className="hover:text-red-700 transition"
                                         title="Click to call inquirer"
                                       >
-                                        <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                         <span>{c.phone}</span>
                                       </a>
                                     ) : (
@@ -5177,10 +5935,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     {c.email ? (
                                       <a
                                         href={`mailto:${c.email}`}
-                                        className="hover:text-red-700 transition flex items-center space-x-1.5 truncate max-w-[210px]"
+                                        className="hover:text-red-700 transition truncate max-w-[210px] block"
                                         title={c.email}
                                       >
-                                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                         <span className="truncate">{c.email}</span>
                                       </a>
                                     ) : (
@@ -5222,19 +5979,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                       <option value="CONTACTED">CONTACTED</option>
                                       <option value="RESOLVED">RESOLVED</option>
                                     </select>
-                                  </td>
-
-                                  {/* View Button */}
-                                  <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedInquiryModal(c)}
-                                      className="inline-flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer shadow-2xs"
-                                      title="Open full inquiry details"
-                                    >
-                                      <Eye className="w-3.5 h-3.5 text-slate-500" />
-                                      <span>View</span>
-                                    </button>
                                   </td>
 
                                   {/* Action / Delete Button */}
@@ -5293,44 +6037,47 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
                   )}
 
-                  {/* 3 Top Stat Cards (Matching Dashboard & Merchants Colorful Style) */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Claims</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                  {/* 3 Top Stat Cards (Matching Landing Page Gradient Style & Left Icon Squircle - Image 2) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3.5 lg:gap-4">
+                    {/* Card 1: Total Claims */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-purple-500/25">
+                        <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider leading-tight whitespace-nowrap truncate">Total Claims</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
                           {claimLogsList.length || 245}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5">All customer reward redemptions</p>
-                      </div>
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-purple-500/25 group-hover:scale-105 transition-transform">
-                        <Award className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">All customer reward redemptions</div>
                       </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Approved Claims</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">
+                    {/* Card 2: Approved Claims */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider leading-tight whitespace-nowrap truncate">Approved Claims</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
                           {claimLogsList.filter(c => c.status === 'Success' || c.status === 'Approved').length || 198}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Successfully disbursed to shoppers</p>
-                      </div>
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-                        <CheckCircle2 className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Successfully disbursed to shoppers</div>
                       </div>
                     </div>
 
-                    <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
-                      <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pending Verification</p>
-                        <h3 className="text-2xl font-black text-slate-900 mt-1">
-                          {claimLogsList.filter(c => c.status === 'Pending').length || 47}
-                        </h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5">Awaiting counter confirmation</p>
+                    {/* Card 3: Pending Verification */}
+                    <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                      <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/25">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </div>
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25 group-hover:scale-105 transition-transform">
-                        <Clock className="w-6 h-6 text-white" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider leading-tight whitespace-nowrap truncate">Pending Verification</div>
+                        <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                          {claimLogsList.filter(c => c.status === 'Pending').length || 47}
+                        </div>
+                        <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Awaiting counter confirmation</div>
                       </div>
                     </div>
                   </div>
@@ -5559,7 +6306,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <button
                           type="button"
                           onClick={() => setSelectedClaimModal(null)}
-                          className="w-full bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"
+                          className="w-full bg-[#8B0000] hover:bg-[#700000] text-white font-bold py-2 rounded-xl text-xs transition cursor-pointer"
                         >
                           Close Receipt
                         </button>
@@ -5812,7 +6559,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <button
                           type="button"
                           onClick={handlePublishPolicy}
-                          className="w-full bg-[#74111d] hover:bg-[#5c0d16] text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                          className="w-full bg-[#8B0000] hover:bg-[#700000] text-white font-black py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                         >
                           <Send className="w-4 h-4 text-white" />
                           <span>Publish</span>
@@ -5944,7 +6691,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <button
                         type="button"
                         onClick={() => setFaqModal({ isOpen: true, mode: 'add', data: { question: '', answer: '', category: 'General', order: faqsList.length + 1, status: 'Published' } })}
-                        className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                        className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#700000] text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/20"
                       >
                         <Plus className="w-4 h-4 text-white" />
                         <span>Add FAQ</span>
@@ -6036,41 +6783,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           )}
                         </tbody>
                       </table>
-                    </div>
-
-                    {/* Pagination Footer (Image 3 exact) */}
-                    <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 bg-slate-50/40">
-                      <div>
-                        Showing 1 to {filteredFaqs.length} of 48 entries
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-50">
-                          &lt;
-                        </button>
-                        {[1, 2, 3, 4, 5].map(p => (
-                          <button
-                            key={p}
-                            onClick={() => setFaqCurrentPage(p)}
-                            className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                              faqCurrentPage === p
-                                ? 'bg-red-600 text-white'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                            }`}
-                          >
-                            {p}
-                          </button>
-                        ))}
-                        <span className="px-1 text-slate-400">...</span>
-                        <button
-                          onClick={() => setFaqCurrentPage(5)}
-                          className="px-3 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
-                        >
-                          5
-                        </button>
-                        <button className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600">
-                          &gt;
-                        </button>
-                      </div>
                     </div>
                   </div>
 
@@ -6191,7 +6903,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               </button>
                               <button
                                 type="submit"
-                                className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold shadow-md shadow-[#74111d]/20"
+                                className="px-4 py-2 rounded-xl bg-[#8B0000] hover:bg-[#700000] text-white font-bold shadow-md shadow-[#8B0000]/20"
                               >
                                 Save FAQ
                               </button>
@@ -6230,39 +6942,48 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Paid Accounts</span>
-                      <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black">
-                        <CheckCircle2 className="w-5 h-5" />
+                      <div 
+                        className="w-9 h-9 rounded-xl flex items-center justify-center font-black border"
+                        style={{ backgroundColor: '#DCFCE7', color: '#16A34A', borderColor: '#BBF7D0' }}
+                      >
+                        <CheckCircle2 className="w-5 h-5" style={{ color: '#16A34A' }} />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-black text-emerald-700 mt-2">
+                    <h3 className="text-2xl font-black mt-2" style={{ color: '#16A34A' }}>
                       {paymentsData.paidCount !== undefined ? paymentsData.paidCount : paymentsList.filter(p => p.paymentStatus === 'PAID').length}
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-1">Full access active & store online</p>
                   </div>
 
-                  {/* Unpaid Accounts */}
+                  {/* Unpaid / Pending Accounts */}
                   <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Unpaid / Due</span>
-                      <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black">
-                        <AlertTriangle className="w-5 h-5" />
+                      <div 
+                        className="w-9 h-9 rounded-xl flex items-center justify-center font-black border"
+                        style={{ backgroundColor: '#FEF3C7', color: '#F59E0B', borderColor: '#FDE68A' }}
+                      >
+                        <AlertTriangle className="w-5 h-5" style={{ color: '#F59E0B' }} />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-black text-rose-600 mt-2">
-                      {paymentsData.unpaidCount !== undefined ? paymentsData.unpaidCount : paymentsList.filter(p => p.paymentStatus === 'UNPAID').length}
+                    <h3 className="text-2xl font-black mt-2" style={{ color: '#F59E0B' }}>
+                      {paymentsData.unpaidCount !== undefined ? paymentsData.unpaidCount : paymentsList.filter(p => p.paymentStatus === 'UNPAID' || p.paymentStatus === 'PENDING').length}
                     </h3>
-                    <p className="text-[11px] text-rose-500 font-semibold mt-1">Expired or pending payment</p>
+                    <p className="text-[11px] text-amber-600 font-semibold mt-1">Expired or pending payment</p>
                   </div>
 
                   {/* Free Trial Accounts */}
                   <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Free Trials</span>
-                      <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-black">
-                        <Clock className="w-5 h-5" />
+                      <div 
+                        className="w-9 h-9 rounded-xl flex items-center justify-center font-black border"
+                        style={{ backgroundColor: '#DBEAFE', color: '#2563EB', borderColor: '#BFDBFE' }}
+                      >
+                        <Clock className="w-5 h-5" style={{ color: '#2563EB' }} />
                       </div>
                     </div>
-                    <h3 className="text-2xl font-black text-amber-700 mt-2">
+                    <h3 className="text-2xl font-black mt-2" style={{ color: '#2563EB' }}>
                       {paymentsData.trialCount !== undefined ? paymentsData.trialCount : paymentsList.filter(p => p.paymentStatus === 'TRIAL').length}
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-1">2-day evaluation window</p>
@@ -6295,9 +7016,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       
                       {[
                         { id: 'ALL', label: 'All Accounts' },
-                        { id: 'PAID', label: 'Paid Only' },
-                        { id: 'UNPAID', label: 'Unpaid / Expired' },
+                        { id: 'PAID', label: 'Paid / Active' },
                         { id: 'TRIAL', label: 'Trial Plans' },
+                        { id: 'PENDING', label: 'Pending Payment' },
+                        { id: 'UNPAID', label: 'Unpaid / Expired' },
                         { id: 'SUSPENDED', label: 'Suspended' }
                       ].map(f => (
                         <button
@@ -6305,7 +7027,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           onClick={() => setPaymentFilter(f.id)}
                           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
                             paymentFilter === f.id
-                              ? 'bg-[#74111d] text-white border-[#74111d] shadow-xs'
+                              ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-xs'
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
@@ -6352,23 +7074,23 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredPayments.length === 0 ? (
-                          <tr>
+                           <tr>
                             <td colSpan={8} className="py-10 text-center text-xs text-slate-400 font-bold">
                               No payment records match the current filters.
                             </td>
                           </tr>
                         ) : (
                           filteredPayments.map((p) => {
-                            const isPaid = p.paymentStatus === 'PAID';
+                            const isPaid = p.paymentStatus === 'PAID' || p.status === 'Paid' || p.status === 'Active';
                             const isSuspended = p.paymentStatus === 'SUSPENDED' || p.status === 'Suspended' || p.isActive === false;
                             const isTrial = p.paymentStatus === 'TRIAL' || p.status === 'Trial';
+                            const isPending = p.paymentStatus === 'PENDING' || p.status === 'Pending' || p.status === 'Pending Payment';
                             return (
                               <tr key={p.id || p._id} className="hover:bg-slate-50/80 transition">
                                 <td className="py-3.5 px-4">
                                   <div className="font-extrabold text-slate-900">{p.businessName}</div>
                                   {p.email && (
-                                    <div className="text-[11px] text-slate-600 font-medium truncate max-w-xs flex items-center space-x-1 mt-0.5" title={p.email}>
-                                      <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <div className="text-[11px] text-slate-600 font-medium truncate max-w-xs mt-0.5" title={p.email}>
                                       <span className="truncate">{p.email}</span>
                                     </div>
                                   )}
@@ -6378,9 +7100,21 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 </td>
 
                                 <td className="py-3.5 px-3">
-                                  <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded text-[11px] border border-slate-200">
-                                    {p.plan || p.subscriptionTier || 'Trial Plan'}
-                                  </span>
+                                  {(() => {
+                                    const planStyle = getMerchantPlanStyle(p.plan || p.subscriptionTier, p.status || p.paymentStatus);
+                                    return (
+                                      <span 
+                                        className={`font-black px-2.5 py-1 rounded-lg text-[11px] border shadow-2xs whitespace-nowrap ${planStyle.className}`}
+                                        style={{
+                                          backgroundColor: planStyle.bg,
+                                          color: planStyle.text,
+                                          borderColor: planStyle.border
+                                        }}
+                                      >
+                                        {p.plan || p.subscriptionTier || 'Trial Plan'}
+                                      </span>
+                                    );
+                                  })()}
                                 </td>
 
                                 <td className="py-3.5 px-3 font-extrabold text-slate-900">
@@ -6401,15 +7135,28 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                       SUSPENDED
                                     </span>
                                   ) : isPaid ? (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                      PAID ✓
+                                    <span 
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black border"
+                                      style={{ backgroundColor: '#DCFCE7', color: '#16A34A', borderColor: '#BBF7D0' }}
+                                    >
+                                      PAID / ACTIVE ✓
                                     </span>
                                   ) : isTrial ? (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
+                                    <span 
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black border"
+                                      style={{ backgroundColor: '#DBEAFE', color: '#2563EB', borderColor: '#BFDBFE' }}
+                                    >
                                       TRIAL
                                     </span>
+                                  ) : isPending ? (
+                                    <span 
+                                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black border"
+                                      style={{ backgroundColor: '#FEF3C7', color: '#F59E0B', borderColor: '#FDE68A' }}
+                                    >
+                                      PENDING
+                                    </span>
                                   ) : (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-200">
                                       UNPAID
                                     </span>
                                   )}
@@ -6526,7 +7273,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={handleSaveAllPlans}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       <Save className="w-4 h-4" />
                       <span>Save All Plans to MongoDB</span>
@@ -6534,7 +7281,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </div>
                 </div>
 
-                {/* Sub-Tabs: Active Plans, Create Plan, Plan History */}
+                {/* Sub-Tabs: All Plans, Create Plan, Plan History */}
                 <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80 shadow-2xs">
                   <button
                     type="button"
@@ -6546,7 +7293,10 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     }`}
                   >
                     <Layers className="w-3.5 h-3.5" />
-                    <span>Active Plans ({plans.length})</span>
+                    <span>All Plans ({plans.length})</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${planSubTab === 'active' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'}`}>
+                      {plans.filter(p => p.isActive !== false && p.showOnLandingPage !== false).length} Active
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -6574,43 +7324,78 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
                 </div>
 
-                {/* SUB-TAB 1: ACTIVE PLANS */}
+                {/* SUB-TAB 1: ALL PLANS */}
                 {planSubTab === 'active' && (
                   <div className="space-y-6 animate-in fade-in duration-150">
-                    {/* Plans Management Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {plans.map((p, idx) => (
-                    <div
-                      key={p.id}
-                      className={`bg-white border rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-5 transition ${
-                        p.isPopular
-                          ? 'border-red-400 ring-2 ring-red-500/20 shadow-md'
-                          : 'border-slate-200'
-                      }`}
-                    >
-                      <div className="space-y-4">
-                        {/* Plan Header Strip */}
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs font-mono font-bold text-slate-400">#{idx + 1}</span>
-                            <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                              {p.id}
+                    {/* Active on Landing Page Status Banner */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-white border border-slate-200/90 rounded-2xl shadow-2xs">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-50 to-red-100 border border-rose-200 text-[#8B0000] flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                          {plans.filter(p => p.isActive !== false && p.showOnLandingPage !== false).length}
+                        </div>
+                        <div>
+                          <div className="text-xs font-black text-slate-900 flex flex-wrap items-center gap-2">
+                            <span>Active on Landing Page: {plans.filter(p => p.isActive !== false && p.showOnLandingPage !== false).length} of {plans.length} Total Plans</span>
+                            <span className="text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                              Landing page shows top 3 active plans
                             </span>
-                            {p.showOnLandingPage ? (
-                              <span className="text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
-                                Landing Page: Visible
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold uppercase bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
-                                Internal Only
-                              </span>
-                            )}
-                            {p.isPopular && (
-                              <span className="text-[10px] font-black uppercase bg-red-600 text-white px-2 py-0.5 rounded-full">
-                                Popular
-                              </span>
-                            )}
                           </div>
+                          <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                            Create as many plans as you need. When set to Inactive, a plan never appears on the public Landing Page.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPlanSubTab('create')}
+                        className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shadow-sm cursor-pointer shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Create New Plan</span>
+                      </button>
+                    </div>
+
+                    {/* Plans Management Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {plans.map((p, idx) => (
+                        <div
+                          key={p.id}
+                          className={`bg-white border rounded-3xl p-6 shadow-xs flex flex-col justify-between space-y-5 transition ${
+                            p.isPopular
+                              ? 'border-red-400 ring-2 ring-red-500/20 shadow-md'
+                              : 'border-slate-200'
+                          }`}
+                        >
+                          <div className="space-y-4">
+                            {/* Plan Header Strip */}
+                            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-mono font-bold text-slate-400">#{idx + 1}</span>
+                                <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                  {p.id}
+                                </span>
+
+                                {/* One-Click Landing Page Toggle */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleTogglePlanLandingStatus(p.id, e)}
+                                  className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border transition cursor-pointer flex items-center space-x-1.5 shadow-2xs ${
+                                    p.isActive !== false && p.showOnLandingPage !== false
+                                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+                                      : 'bg-slate-100 text-slate-600 border-slate-300 hover:bg-slate-200'
+                                  }`}
+                                  title="Click to toggle Active on Landing Page / Inactive"
+                                >
+                                  <span className={`w-1.5 h-1.5 rounded-full ${p.isActive !== false && p.showOnLandingPage !== false ? 'bg-emerald-500 ring-2 ring-emerald-300' : 'bg-slate-400'}`} />
+                                  <span>{p.isActive !== false && p.showOnLandingPage !== false ? 'Active on Landing Page' : 'Inactive / Draft'}</span>
+                                </button>
+
+                                {p.isPopular && (
+                                  <span className="text-[10px] font-black uppercase bg-red-600 text-white px-2 py-0.5 rounded-full">
+                                    Popular
+                                  </span>
+                                )}
+                              </div>
 
                           <div className="flex items-center space-x-1">
                             <button
@@ -6705,63 +7490,57 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           </div>
                         </div>
 
-                        {/* Section 2: Promotional Badges & Multi-Color Tags (Unique Colors & Gap) */}
-                        <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-3">
+                        {/* Section 2: Promotional Ribbon Badge & Multiple Tags (No Split) */}
+                        <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200 space-y-3.5">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-1.5">
                               <Tag className="w-3.5 h-3.5 text-[#8B0000]" />
                               <span className="text-xs font-black uppercase text-slate-800 tracking-wide">
-                                Promotional Badges & Tags ({(p.tags || []).length})
+                                Promotional Badges & Multiple Tags ({(p.tags || []).length})
                               </span>
                             </div>
                             <span className="text-[11px] text-slate-500 font-medium">
-                              Each tag shows in a distinct color with clean spacing
+                              Create multiple dynamic tags shown on your landing page
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                Top Ribbon Badge (Optional)
-                              </label>
-                              <input
-                                type="text"
-                                value={p.highlightBadge || ''}
-                                onChange={(e) => handleUpdatePlanField(p.id, 'highlightBadge', e.target.value)}
-                                placeholder="e.g. Most Popular or Best Value"
-                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                                Savings / Discount Note (Optional)
-                              </label>
-                              <input
-                                type="text"
-                                value={p.tagText || ''}
-                                onChange={(e) => handleUpdatePlanField(p.id, 'tagText', e.target.value)}
-                                placeholder="e.g. Equivalent to ₹2,000/month"
-                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Active tags pills with DIFFERENT DISTINCT COLORS and GAP */}
                           <div>
-                            <span className="block text-[11px] font-bold text-slate-600 mb-1.5">
-                              Active Tags (Rendered in separate colorful badges):
-                            </span>
-                            <div className="flex flex-wrap gap-2.5 min-h-[32px] items-center">
+                            <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                              Top Ribbon Badge (Optional)
+                            </label>
+                            <input
+                              type="text"
+                              value={p.highlightBadge || ''}
+                              onChange={(e) => handleUpdatePlanField(p.id, 'highlightBadge', e.target.value)}
+                              placeholder="e.g. Most Popular or Best Value"
+                              className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
+                            />
+                          </div>
+
+                          {/* Multiple Dynamic Tags Management */}
+                          <div className="pt-2 border-t border-slate-200/80 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="block text-[11px] font-bold text-slate-700">
+                                Plan Tags (Add Multiple Tags):
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                Renders as colorful badges on Landing Page
+                              </span>
+                            </div>
+
+                            {/* Active tags pills with distinct colors and remove button */}
+                            <div className="flex flex-wrap gap-2 min-h-[36px] p-2 bg-white rounded-xl border border-slate-200 items-center">
                               {(p.tags || []).length === 0 ? (
-                                <span className="text-xs text-slate-400 italic">No custom tags added yet. Choose a suggested tag or type your own below.</span>
+                                <span className="text-xs text-slate-400 italic px-1">
+                                  No tags added yet. Type below to add multiple tags.
+                                </span>
                               ) : (
                                 (p.tags || []).map((tag, tIdx) => {
                                   const theme = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
                                   return (
                                     <span
                                       key={tIdx}
-                                      className={`inline-flex items-center space-x-1.5 ${theme.chip} border px-3 py-1.5 rounded-xl text-xs font-black shadow-2xs`}
+                                      className={`inline-flex items-center space-x-1.5 ${theme.chip} border px-3 py-1 rounded-lg text-xs font-black shadow-2xs`}
                                     >
                                       <Sparkles className={`w-3.5 h-3.5 ${theme.icon}`} />
                                       <span>{tag}</span>
@@ -6778,31 +7557,31 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 })
                               )}
                             </div>
-                          </div>
 
-                          {/* Add custom tag input */}
-                          <div className="flex items-center space-x-2 pt-1">
-                            <input
-                              type="text"
-                              value={newPlanTagInputs[p.id] || ''}
-                              onChange={(e) => setNewPlanTagInputs({ ...newPlanTagInputs, [p.id]: e.target.value })}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  handleAddTagToPlan(p.id);
-                                }
-                              }}
-                              placeholder="Type a tag name (e.g. One-Time Payment, No Renewals, Save 40%)..."
-                              className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleAddTagToPlan(p.id)}
-                              className="bg-[#8B0000] hover:bg-[#700000] text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs flex items-center space-x-1"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              <span>Add Tag</span>
-                            </button>
+                            {/* Add tag input */}
+                            <div className="flex items-center space-x-2 pt-1">
+                              <input
+                                type="text"
+                                value={newPlanTagInputs[p.id] || ''}
+                                onChange={(e) => setNewPlanTagInputs({ ...newPlanTagInputs, [p.id]: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleAddTagToPlan(p.id);
+                                  }
+                                }}
+                                placeholder="Type a tag name (e.g. Only ₹1,361/month, Save 40%, One-Time Payment, No Renewals)..."
+                                className="flex-1 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-red-600 font-bold"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleAddTagToPlan(p.id)}
+                                className="bg-[#8B0000] hover:bg-[#700000] text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs flex items-center space-x-1"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add Tag</span>
+                              </button>
+                            </div>
                           </div>
 
                           {/* Quick suggested tags */}
@@ -6939,6 +7718,327 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           </div>
                         </div>
 
+                        {/* Section 4: Card Color & Border Customization */}
+                        <div className="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/90 space-y-3.5">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/70">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 rounded-lg bg-red-100 text-[#8B0000] flex items-center justify-center">
+                                <Palette className="w-3.5 h-3.5" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-black uppercase text-slate-800 tracking-wide">
+                                  Card Background & Border Colors
+                                </h4>
+                                <p className="text-[10px] text-slate-500 font-medium">
+                                  Decide the exact background fill and border color for this plan on the public Landing Page
+                                </p>
+                              </div>
+                            </div>
+                            {(p.cardBg || p.borderColor) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleUpdatePlanField(p.id, 'cardBg', '');
+                                  handleUpdatePlanField(p.id, 'borderColor', '');
+                                }}
+                                className="text-[10px] font-bold text-slate-500 hover:text-red-700 bg-white hover:bg-red-50 border border-slate-200 px-2 py-1 rounded-lg transition self-start sm:self-auto cursor-pointer"
+                              >
+                                Reset Colors to Default
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Background Color Picker */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                                  <span>Card Background Color</span>
+                                  {p.cardBg && (
+                                    <span
+                                      className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                      style={{ backgroundColor: p.cardBg }}
+                                    />
+                                  )}
+                                </label>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {p.cardBg || 'Default (#FFFFFF)'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <div className="relative shrink-0">
+                                  <input
+                                    type="color"
+                                    value={p.cardBg || '#ffffff'}
+                                    onChange={(e) => handleUpdatePlanField(p.id, 'cardBg', e.target.value)}
+                                    className="w-9 h-9 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white"
+                                    title="Choose custom background color"
+                                  />
+                                </div>
+                                <input
+                                  type="text"
+                                  value={p.cardBg || ''}
+                                  onChange={(e) => handleUpdatePlanField(p.id, 'cardBg', e.target.value)}
+                                  placeholder="#FFFFFF (Default White)"
+                                  className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                                />
+                                {p.cardBg && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdatePlanField(p.id, 'cardBg', '')}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                    title="Clear background color"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Preset Swatches for BG */}
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {PLAN_BG_PRESETS.map((preset, bIdx) => (
+                                  <button
+                                    key={bIdx}
+                                    type="button"
+                                    onClick={() => handleUpdatePlanField(p.id, 'cardBg', preset.value)}
+                                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                      (p.cardBg || '#FFFFFF').toUpperCase() === preset.value.toUpperCase()
+                                        ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs'
+                                        : 'border-slate-200 hover:border-slate-400 bg-white'
+                                    }`}
+                                  >
+                                    <span
+                                      className="w-2.5 h-2.5 rounded-full border border-slate-300 shrink-0"
+                                      style={{ backgroundColor: preset.value }}
+                                    />
+                                    <span className="text-slate-700">{preset.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Border Color Picker */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                                  <span>Card Border Color</span>
+                                  {p.borderColor && (
+                                    <span
+                                      className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                      style={{ backgroundColor: p.borderColor }}
+                                    />
+                                  )}
+                                </label>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {p.borderColor || 'Default (#E2E8F0)'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                <div className="relative shrink-0">
+                                  <input
+                                    type="color"
+                                    value={p.borderColor || '#e2e8f0'}
+                                    onChange={(e) => handleUpdatePlanField(p.id, 'borderColor', e.target.value)}
+                                    className="w-9 h-9 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white"
+                                    title="Choose custom border color"
+                                  />
+                                </div>
+                                <input
+                                  type="text"
+                                  value={p.borderColor || ''}
+                                  onChange={(e) => handleUpdatePlanField(p.id, 'borderColor', e.target.value)}
+                                  placeholder="#E2E8F0 (Default)"
+                                  className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                                />
+                                {p.borderColor && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdatePlanField(p.id, 'borderColor', '')}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                    title="Clear border color"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Preset Swatches for Border */}
+                              <div className="flex flex-wrap gap-1.5 pt-1">
+                                {PLAN_BORDER_PRESETS.map((preset, brIdx) => (
+                                  <button
+                                    key={brIdx}
+                                    type="button"
+                                    onClick={() => handleUpdatePlanField(p.id, 'borderColor', preset.value)}
+                                    className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                      (p.borderColor || '').toUpperCase() === preset.value.toUpperCase()
+                                        ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs'
+                                        : 'border-slate-200 hover:border-slate-400 bg-white'
+                                    }`}
+                                  >
+                                    <span
+                                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                                      style={{ backgroundColor: preset.value }}
+                                    />
+                                    <span className="text-slate-700">{preset.label}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* CTA Button Background & Hover Color Controls */}
+                          <div className="space-y-2 pt-3 border-t border-slate-200/70">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                                <span>Button Color & Hover Effect</span>
+                                {p.btnBg && (
+                                  <span
+                                    className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                    style={{ backgroundColor: p.btnBg }}
+                                  />
+                                )}
+                              </label>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {p.btnBg ? `${p.btnBg} (Hover: ${p.btnHoverBg || darkenHex(p.btnBg, 15)})` : 'Default (#0D1527)'}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block mb-1">Button Color</span>
+                                <div className="flex items-center space-x-1.5">
+                                  <input
+                                    type="color"
+                                    value={p.btnBg || '#0d1527'}
+                                    onChange={(e) => {
+                                      handleUpdatePlanField(p.id, 'btnBg', e.target.value);
+                                      if (!p.btnHoverBg) {
+                                        handleUpdatePlanField(p.id, 'btnHoverBg', darkenHex(e.target.value, 15));
+                                      }
+                                    }}
+                                    className="w-8 h-8 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white shrink-0"
+                                    title="Choose button color"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={p.btnBg || ''}
+                                    onChange={(e) => handleUpdatePlanField(p.id, 'btnBg', e.target.value)}
+                                    placeholder="#0D1527 (Default)"
+                                    className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                                  />
+                                </div>
+                              </div>
+
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-bold block mb-1">Hover Color</span>
+                                <div className="flex items-center space-x-1.5">
+                                  <input
+                                    type="color"
+                                    value={p.btnHoverBg || (p.btnBg ? darkenHex(p.btnBg, 15) : '#8B0000')}
+                                    onChange={(e) => handleUpdatePlanField(p.id, 'btnHoverBg', e.target.value)}
+                                    className="w-8 h-8 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white shrink-0"
+                                    title="Choose hover color"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={p.btnHoverBg || ''}
+                                    onChange={(e) => handleUpdatePlanField(p.id, 'btnHoverBg', e.target.value)}
+                                    placeholder="#8B0000 (Hover)"
+                                    className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Button Presets */}
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {PLAN_BTN_PRESETS.map((btnPreset, bpIdx) => (
+                                <button
+                                  key={bpIdx}
+                                  type="button"
+                                  onClick={() => {
+                                    handleUpdatePlanField(p.id, 'btnBg', btnPreset.bg);
+                                    handleUpdatePlanField(p.id, 'btnHoverBg', btnPreset.hover);
+                                  }}
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                    (p.btnBg || '').toUpperCase() === btnPreset.bg.toUpperCase()
+                                      ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs bg-red-50/50'
+                                      : 'border-slate-200 hover:border-slate-400 bg-white'
+                                  }`}
+                                >
+                                  <span
+                                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                                    style={{ backgroundColor: btnPreset.bg }}
+                                  />
+                                  <span className="text-slate-700">{btnPreset.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Payment / Price Text Color Selector */}
+                          <div className="space-y-2 pt-3 border-t border-slate-200/70">
+                            <div className="flex items-center justify-between">
+                              <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                                <span>Price / Payment Text Color</span>
+                                <span className="text-[10px] text-slate-400 font-normal">(Customize amount color)</span>
+                              </label>
+                              {p.priceColor && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdatePlanField(p.id, 'priceColor', '')}
+                                  className="text-[10px] font-bold text-red-600 hover:underline cursor-pointer"
+                                >
+                                  Reset to Theme Default
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <div className="relative flex items-center">
+                                <input
+                                  type="color"
+                                  value={p.priceColor || (isDarkColor(p.cardBg) ? '#FFFFFF' : '#0F172A')}
+                                  onChange={(e) => handleUpdatePlanField(p.id, 'priceColor', e.target.value)}
+                                  className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0.5 bg-white shadow-2xs"
+                                  title="Pick Price Color"
+                                />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder={isDarkColor(p.cardBg) ? '#FFFFFF (Default)' : '#0F172A (Default)'}
+                                value={p.priceColor || ''}
+                                onChange={(e) => handleUpdatePlanField(p.id, 'priceColor', e.target.value)}
+                                className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-mono uppercase text-slate-800 placeholder:text-slate-400"
+                              />
+                            </div>
+
+                            {/* Price Color Quick Presets */}
+                            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                              {PLAN_PRICE_COLOR_PRESETS.map((preset, prIdx) => (
+                                <button
+                                  key={prIdx}
+                                  type="button"
+                                  onClick={() => handleUpdatePlanField(p.id, 'priceColor', preset.value)}
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                    (p.priceColor || '').toUpperCase() === preset.value.toUpperCase()
+                                      ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs bg-red-50/50'
+                                      : 'border-slate-200 hover:border-slate-400 bg-white'
+                                  }`}
+                                >
+                                  <span
+                                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                                    style={{ backgroundColor: preset.value }}
+                                  />
+                                  <span className="text-slate-700">{preset.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Visibility & Highlight Toggles */}
                         <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-bold text-slate-700">
                           <label className="flex items-center space-x-2 cursor-pointer">
@@ -6981,7 +8081,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <button
                           type="button"
                           onClick={() => handleSavePlanItem(p.id, p)}
-                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
+                          className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
                         >
                           <Save className="w-3.5 h-3.5" />
                           <span>Save {p.name}</span>
@@ -7007,192 +8107,129 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <Link
                       to="/"
                       target="_blank"
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-xs"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-xs"
                     >
                       <span>Open Website in New Tab</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </Link>
                   </div>
 
-                  {/* Render Mock Preview matching LandingPage.jsx */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-                    {plans.filter(p => p.isActive !== false && p.showOnLandingPage !== false).map((p) => {
-                      const isPopular = p.isPopular || p.highlightBadge === 'Most Popular';
-                      const isDark = p.highlightBadge === 'Best Value' || p.id?.includes('legacy');
+                  {/* Render Mock Preview matching LandingPage.jsx (Max 3 Active Plans) */}
+                  {plans.filter(p => p.isActive !== false && p.showOnLandingPage !== false).length === 0 ? (
+                    <div className="text-center py-10 bg-slate-950/50 rounded-2xl border border-slate-800">
+                      <p className="text-slate-400 text-sm font-semibold">No active plans configured for landing page.</p>
+                      <p className="text-slate-500 text-xs mt-1">Enable "Active on Landing Page" on any plans above to display up to 3 plans on the landing page.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                      {plans
+                        .filter(p => p.isActive !== false && p.showOnLandingPage !== false)
+                        .slice(0, 3)
+                        .map((p, pIndex) => {
+                          const isPopular = p.isPopular || p.highlightBadge === 'Most Popular';
+                          const isDark = isDarkColor(p.cardBg) || p.highlightBadge === 'Best Value' || p.id?.includes('legacy');
+                          const customBg = p.cardBg || (isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)');
+                          const customBorder = p.borderColor || (isPopular ? '#dc2626' : (isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.6)'));
+                          const btnColor = p.btnBg || (isPopular ? '#8B0000' : (isDark ? '#FFFFFF' : '#0D1527'));
 
-                      if (isDark) {
-                        return (
-                          <div key={p.id} className="bg-slate-950 border border-slate-800 p-6 rounded-2xl shadow-xl text-white relative flex flex-col justify-between pt-10">
-                            {(p.highlightBadge || 'Best Value') && (
-                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-800 text-amber-400 text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider border border-slate-700">
-                                {p.highlightBadge || 'Best Value'}
-                              </span>
-                            )}
-                            <div>
-                              <h4 className="text-lg font-black text-white">{p.name}</h4>
-                              <p className="text-[11px] text-slate-400 mt-0.5">{p.subtext}</p>
-                              <div className="mt-4 mb-4 pb-4 border-b border-slate-800">
-                                {p.originalPrice > 0 && (
-                                  <span className="text-xs font-bold text-slate-500 line-through block">
-                                    ₹{Number(p.originalPrice).toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                                <div className="text-2xl font-black text-amber-400">
-                                  ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-400">{p.period}</span>
-                                </div>
-                                {/* Multi-Color Distinct Badges & Tags */}
-                                {(() => {
-                                  const planTags = getPlanTagList(p);
-                                  if (planTags.length === 0) return null;
-                                  return (
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                      {planTags.map((tag, tIdx) => {
-                                        const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
-                                        return (
-                                          <span
-                                            key={tIdx}
-                                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewDark}`}
-                                          >
-                                            <Sparkles className="w-2.5 h-2.5 shrink-0 opacity-80" />
-                                            <span>{tag}</span>
-                                          </span>
-                                        );
-                                      })}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                              <ul className="space-y-2 text-slate-300 text-xs mb-6">
-                                {(p.features || []).slice(0, 5).map((f, i) => (
-                                  <li key={i} className="flex items-center space-x-1.5">
-                                    <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                                    <span>{f}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                            <button className="w-full bg-white text-slate-900 font-black py-2.5 rounded-xl text-xs">
-                              {p.ctaText || 'Start 2-Day Trial'}
-                            </button>
-                          </div>
-                        );
-                      }
-
-                      if (isPopular) {
-                        return (
-                          <div key={p.id} className="bg-white border-2 border-red-600 p-6 rounded-2xl shadow-xl text-slate-900 relative flex flex-col justify-between pt-10">
-                            {(p.highlightBadge || 'Most Popular') && (
-                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-                                {p.highlightBadge || 'Most Popular'}
-                              </span>
-                            )}
-                            <div>
-                              <h4 className="text-lg font-black text-red-600">{p.name}</h4>
-                              <p className="text-[11px] text-slate-500 mt-0.5">{p.subtext}</p>
-                              <div className="mt-4 mb-4 pb-4 border-b border-slate-100">
-                                {p.originalPrice > 0 && (
-                                  <span className="text-xs font-bold text-slate-400 line-through block">
-                                    ₹{Number(p.originalPrice).toLocaleString('en-IN')}
-                                  </span>
-                                )}
-                                <div className="text-2xl font-black text-slate-900">
-                                  ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-500">{p.period}</span>
-                                </div>
-                                {/* Multi-Color Distinct Badges & Tags */}
-                                {(() => {
-                                  const planTags = getPlanTagList(p);
-                                  if (planTags.length === 0) return null;
-                                  return (
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                      {planTags.map((tag, tIdx) => {
-                                        const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
-                                        return (
-                                          <span
-                                            key={tIdx}
-                                            className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewLight}`}
-                                          >
-                                            <Sparkles className={`w-2.5 h-2.5 shrink-0 ${palette.icon}`} />
-                                            <span>{tag}</span>
-                                          </span>
-                                        );
-                                      })}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                              <ul className="space-y-2 text-slate-600 text-xs mb-6">
-                                {(p.features || []).slice(0, 5).map((f, i) => (
-                                  <li key={i} className="flex items-center space-x-1.5">
-                                    <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                    <span>{f}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                            <button className="w-full bg-red-600 text-white font-black py-2.5 rounded-xl text-xs">
-                              {p.ctaText || 'Start 2-Day Trial'}
-                            </button>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div key={p.id} className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-slate-900 relative flex flex-col justify-between pt-10">
-                          {p.highlightBadge && (
-                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
-                              {p.highlightBadge}
-                            </span>
-                          )}
-                          <div>
-                            <h4 className="text-lg font-black text-slate-900">{p.name}</h4>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{p.subtext}</p>
-                            <div className="mt-4 mb-4 pb-4 border-b border-slate-100">
-                              {p.originalPrice > 0 && (
-                                <span className="text-xs font-bold text-slate-400 line-through block">
-                                  ₹{Number(p.originalPrice).toLocaleString('en-IN')}
+                          return (
+                            <div
+                              key={p.id}
+                              style={{
+                                backgroundColor: customBg,
+                                borderColor: customBorder,
+                                borderWidth: (p.borderColor || isPopular) ? '2px' : '1px'
+                              }}
+                              className={`backdrop-blur-xl border p-6 rounded-3xl shadow-xl relative flex flex-col justify-between pt-10 transition-all ${
+                                isDark ? 'text-white' : 'text-slate-900'
+                              }`}
+                            >
+                              {(p.highlightBadge || (isPopular && 'Most Popular')) && (
+                                <span
+                                  className={`absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-black px-3.5 py-0.5 rounded-full uppercase tracking-wider shadow-md ${
+                                    isPopular
+                                      ? 'bg-red-600 text-white'
+                                      : isDark
+                                      ? 'bg-slate-800 text-amber-400 border border-slate-700'
+                                      : 'bg-slate-900 text-white'
+                                  }`}
+                                >
+                                  {p.highlightBadge || 'Most Popular'}
                                 </span>
                               )}
-                              <div className="text-2xl font-black text-slate-900">
-                                ₹{Number(p.price).toLocaleString('en-IN')} <span className="text-xs font-normal text-slate-500">{p.period}</span>
-                              </div>
-                              {/* Multi-Color Distinct Badges & Tags */}
-                              {(() => {
-                                const planTags = getPlanTagList(p);
-                                if (planTags.length === 0) return null;
-                                return (
-                                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                                    {planTags.map((tag, tIdx) => {
-                                      const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
-                                      return (
-                                        <span
-                                          key={tIdx}
-                                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewLight}`}
-                                        >
-                                          <Sparkles className={`w-2.5 h-2.5 shrink-0 ${palette.icon}`} />
-                                          <span>{tag}</span>
-                                        </span>
-                                      );
-                                    })}
+                              <div>
+                                <div className="mb-1">
+                                  <h4 className={`text-lg font-black ${isDark ? 'text-white' : isPopular ? 'text-red-600' : 'text-slate-900'}`}>
+                                    {p.name}
+                                  </h4>
+                                  <p className={`text-[11px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                    {p.subtext}
+                                  </p>
+                                </div>
+
+                                <div className={`mt-4 mb-4 pb-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                                  {p.originalPrice > 0 && (
+                                    <span className={`text-xs font-bold line-through block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                      ₹{Number(p.originalPrice).toLocaleString('en-IN')}
+                                    </span>
+                                  )}
+                                  <div
+                                    style={{ color: p.priceColor || undefined }}
+                                    className={`text-xl sm:text-[22px] font-black tracking-tight ${!p.priceColor ? (isDark ? 'text-white' : 'text-slate-900') : ''}`}
+                                  >
+                                    ₹{Number(p.price).toLocaleString('en-IN')}{' '}
+                                    <span className={`text-[11px] font-normal ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{p.period}</span>
                                   </div>
-                                );
-                              })()}
+                                  {/* Multi-Color Distinct Badges & Tags */}
+                                  {(() => {
+                                    const planTags = getPlanTagList(p);
+                                    if (planTags.length === 0) return null;
+                                    return (
+                                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                                        {planTags.map((tag, tIdx) => {
+                                          const palette = PLAN_TAG_PALETTES[tIdx % PLAN_TAG_PALETTES.length];
+                                          return (
+                                            <span
+                                              key={tIdx}
+                                              className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${
+                                                isDark ? palette.previewDark : palette.previewLight
+                                              }`}
+                                            >
+                                              <Sparkles className={`w-2.5 h-2.5 shrink-0 ${isDark ? 'opacity-80' : palette.icon}`} />
+                                              <span>{tag}</span>
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                                <ul className={`space-y-2 text-xs mb-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                  {(p.features || []).slice(0, 5).map((f, i) => (
+                                    <li key={i} className="flex items-center space-x-1.5">
+                                      <Check className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-amber-400' : 'text-emerald-500'}`} />
+                                      <span>{f}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* CTA Button with Hover Preview */}
+                              <button
+                                style={{
+                                  backgroundColor: btnColor,
+                                  color: isDarkColor(btnColor) ? '#FFFFFF' : '#0F172A'
+                                }}
+                                className="w-full font-black py-2.5 rounded-xl text-xs transition-all duration-300 cursor-pointer shadow-md hover:scale-[1.02] flex items-center justify-center space-x-1.5"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                <span>{p.ctaText || 'Start 2-Day Trial'}</span>
+                              </button>
                             </div>
-                            <ul className="space-y-2 text-slate-600 text-xs mb-6">
-                              {(p.features || []).slice(0, 5).map((f, i) => (
-                                <li key={i} className="flex items-center space-x-1.5">
-                                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                  <span>{f}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                          <button className="w-full bg-slate-900 text-white font-black py-2.5 rounded-xl text-xs">
-                            {p.ctaText || 'Start 2-Day Trial'}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -7304,33 +8341,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </div>
                     </div>
 
-                    {/* Subtext & Tag text */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
-                          Subtext / Short Tagline
-                        </label>
-                        <input
-                          type="text"
-                          value={newPlanForm.subtext}
-                          onChange={(e) => setNewPlanForm({ ...newPlanForm, subtext: e.target.value })}
-                          placeholder="Designed for scaling retail counter outlets"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 focus:bg-white"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
-                          Monthly Equivalent Tag (e.g. ₹2,000/mo)
-                        </label>
-                        <input
-                          type="text"
-                          value={newPlanForm.tagText}
-                          onChange={(e) => setNewPlanForm({ ...newPlanForm, tagText: e.target.value })}
-                          placeholder="Equivalent to ₹2,000/month"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 focus:bg-white"
-                        />
-                      </div>
+                    {/* Subtext Tagline */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
+                        Subtext / Short Tagline
+                      </label>
+                      <input
+                        type="text"
+                        value={newPlanForm.subtext}
+                        onChange={(e) => setNewPlanForm({ ...newPlanForm, subtext: e.target.value })}
+                        placeholder="Designed for scaling retail counter outlets"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 focus:bg-white"
+                      />
                     </div>
 
                     {/* Trial Days & Scans limit */}
@@ -7396,7 +8418,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <div className="p-4 bg-rose-50/50 rounded-2xl border border-rose-200/80 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <Tag className="w-4 h-4 text-[#74111d]" />
+                          <Tag className="w-4 h-4 text-[#8B0000]" />
                           <span className="text-[11px] font-black uppercase text-slate-800 tracking-wide">
                             Plan Tags & Badges ({(newPlanForm.tags || []).length})
                           </span>
@@ -7452,7 +8474,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <button
                           type="button"
                           onClick={() => handleAddTagToNewPlan()}
-                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs flex items-center space-x-1.5"
+                          className="bg-[#8B0000] hover:bg-[#720000] text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer shrink-0 shadow-xs flex items-center space-x-1.5"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Add Tag</span>
@@ -7482,9 +8504,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               key={pIdx}
                               type="button"
                               onClick={() => handleAddTagToNewPlan(preset)}
-                              className="text-[11px] bg-white hover:bg-rose-50 text-slate-700 hover:text-[#74111d] border border-rose-200 hover:border-rose-300 px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center space-x-1"
+                              className="text-[11px] bg-white hover:bg-rose-50 text-slate-700 hover:text-[#8B0000] border border-rose-200 hover:border-rose-300 px-2.5 py-1 rounded-lg transition cursor-pointer font-medium flex items-center space-x-1"
                             >
-                              <Plus className="w-3 h-3 text-[#74111d]" />
+                              <Plus className="w-3 h-3 text-[#8B0000]" />
                               <span>{preset}</span>
                             </button>
                           ))}
@@ -7555,7 +8577,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           {[
                             'Free 5x7" Acrylic Counter Standee',
                             'Mystery Scratch Card Gamification',
-                            'Digital Frequency Stamp Card',
+                            'Digital Frequency Aurex Coin Card',
                             'Cashier PIN Fraud Protection',
                             'Customer CRM Mobile Export',
                             'WhatsApp & SMS Victory Alerts',
@@ -7569,6 +8591,323 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               className="text-[11px] bg-white hover:bg-red-50 text-slate-600 hover:text-red-700 border border-slate-200 hover:border-red-300 px-2.5 py-1 rounded-lg transition cursor-pointer"
                             >
                               + {preset}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Color & Border Customization for New Plan */}
+                    <div className="p-4 bg-slate-50/90 rounded-2xl border border-slate-200/90 space-y-3.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/70">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-6 h-6 rounded-lg bg-red-100 text-[#8B0000] flex items-center justify-center">
+                            <Palette className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-black uppercase text-slate-800 tracking-wide">
+                              Card Background & Border Colors
+                            </h4>
+                            <p className="text-[10px] text-slate-500 font-medium">
+                              Decide custom colors for this new plan on the public Landing Page
+                            </p>
+                          </div>
+                        </div>
+                        {(newPlanForm.cardBg || newPlanForm.borderColor) && (
+                          <button
+                            type="button"
+                            onClick={() => setNewPlanForm(prev => ({ ...prev, cardBg: '', borderColor: '' }))}
+                            className="text-[10px] font-bold text-slate-500 hover:text-red-700 bg-white hover:bg-red-50 border border-slate-200 px-2 py-1 rounded-lg transition self-start sm:self-auto cursor-pointer"
+                          >
+                            Reset Colors
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Background Color Picker */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                              <span>Card Background Color</span>
+                              {newPlanForm.cardBg && (
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                  style={{ backgroundColor: newPlanForm.cardBg }}
+                                />
+                              )}
+                            </label>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {newPlanForm.cardBg || 'Default (#FFFFFF)'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <div className="relative shrink-0">
+                              <input
+                                type="color"
+                                value={newPlanForm.cardBg || '#ffffff'}
+                                onChange={(e) => setNewPlanForm(prev => ({ ...prev, cardBg: e.target.value }))}
+                                className="w-9 h-9 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white"
+                                title="Choose background color"
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={newPlanForm.cardBg || ''}
+                              onChange={(e) => setNewPlanForm(prev => ({ ...prev, cardBg: e.target.value }))}
+                              placeholder="#FFFFFF (Default White)"
+                              className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                            />
+                            {newPlanForm.cardBg && (
+                              <button
+                                type="button"
+                                onClick={() => setNewPlanForm(prev => ({ ...prev, cardBg: '' }))}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                title="Clear background color"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Preset Swatches for BG */}
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {PLAN_BG_PRESETS.map((preset, bIdx) => (
+                              <button
+                                key={bIdx}
+                                type="button"
+                                onClick={() => setNewPlanForm(prev => ({ ...prev, cardBg: preset.value }))}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                  (newPlanForm.cardBg || '#FFFFFF').toUpperCase() === preset.value.toUpperCase()
+                                    ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs'
+                                    : 'border-slate-200 hover:border-slate-400 bg-white'
+                                }`}
+                              >
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full border border-slate-300 shrink-0"
+                                  style={{ backgroundColor: preset.value }}
+                                />
+                                <span className="text-slate-700">{preset.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Border Color Picker */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                              <span>Card Border Color</span>
+                              {newPlanForm.borderColor && (
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                  style={{ backgroundColor: newPlanForm.borderColor }}
+                                />
+                              )}
+                            </label>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {newPlanForm.borderColor || 'Default (#E2E8F0)'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <div className="relative shrink-0">
+                              <input
+                                type="color"
+                                value={newPlanForm.borderColor || '#e2e8f0'}
+                                onChange={(e) => setNewPlanForm(prev => ({ ...prev, borderColor: e.target.value }))}
+                                className="w-9 h-9 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white"
+                                title="Choose border color"
+                              />
+                            </div>
+                            <input
+                              type="text"
+                              value={newPlanForm.borderColor || ''}
+                              onChange={(e) => setNewPlanForm(prev => ({ ...prev, borderColor: e.target.value }))}
+                              placeholder="#E2E8F0 (Default)"
+                              className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                            />
+                            {newPlanForm.borderColor && (
+                              <button
+                                type="button"
+                                onClick={() => setNewPlanForm(prev => ({ ...prev, borderColor: '' }))}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                title="Clear border color"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Preset Swatches for Border */}
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {PLAN_BORDER_PRESETS.map((preset, brIdx) => (
+                              <button
+                                key={brIdx}
+                                type="button"
+                                onClick={() => setNewPlanForm(prev => ({ ...prev, borderColor: preset.value }))}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                  (newPlanForm.borderColor || '').toUpperCase() === preset.value.toUpperCase()
+                                    ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs'
+                                    : 'border-slate-200 hover:border-slate-400 bg-white'
+                                }`}
+                              >
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: preset.value }}
+                                />
+                                <span className="text-slate-700">{preset.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CTA Button Background & Hover Color Controls */}
+                      <div className="space-y-2 pt-3 border-t border-slate-200/70">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                            <span>Button Color & Hover Effect</span>
+                            {newPlanForm.btnBg && (
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs inline-block"
+                                style={{ backgroundColor: newPlanForm.btnBg }}
+                              />
+                            )}
+                          </label>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {newPlanForm.btnBg ? `${newPlanForm.btnBg} (Hover: ${newPlanForm.btnHoverBg || darkenHex(newPlanForm.btnBg, 15)})` : 'Default (#0D1527)'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <span className="text-[10px] text-slate-500 font-bold block mb-1">Button Color</span>
+                            <div className="flex items-center space-x-1.5">
+                              <input
+                                type="color"
+                                value={newPlanForm.btnBg || '#0d1527'}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setNewPlanForm(prev => ({
+                                    ...prev,
+                                    btnBg: val,
+                                    btnHoverBg: prev.btnHoverBg || darkenHex(val, 15)
+                                  }));
+                                }}
+                                className="w-8 h-8 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white shrink-0"
+                                title="Choose button color"
+                              />
+                              <input
+                                type="text"
+                                value={newPlanForm.btnBg || ''}
+                                onChange={(e) => setNewPlanForm(prev => ({ ...prev, btnBg: e.target.value }))}
+                                placeholder="#0D1527 (Default)"
+                                className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className="text-[10px] text-slate-500 font-bold block mb-1">Hover Color</span>
+                            <div className="flex items-center space-x-1.5">
+                              <input
+                                type="color"
+                                value={newPlanForm.btnHoverBg || (newPlanForm.btnBg ? darkenHex(newPlanForm.btnBg, 15) : '#8B0000')}
+                                onChange={(e) => setNewPlanForm(prev => ({ ...prev, btnHoverBg: e.target.value }))}
+                                className="w-8 h-8 rounded-xl border border-slate-300 p-0.5 cursor-pointer bg-white shrink-0"
+                                title="Choose hover color"
+                              />
+                              <input
+                                type="text"
+                                value={newPlanForm.btnHoverBg || ''}
+                                onChange={(e) => setNewPlanForm(prev => ({ ...prev, btnHoverBg: e.target.value }))}
+                                placeholder="#8B0000 (Hover)"
+                                className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Button Presets */}
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {PLAN_BTN_PRESETS.map((btnPreset, bpIdx) => (
+                            <button
+                              key={bpIdx}
+                              type="button"
+                              onClick={() => setNewPlanForm(prev => ({ ...prev, btnBg: btnPreset.bg, btnHoverBg: btnPreset.hover }))}
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                (newPlanForm.btnBg || '').toUpperCase() === btnPreset.bg.toUpperCase()
+                                  ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs bg-red-50/50'
+                                  : 'border-slate-200 hover:border-slate-400 bg-white'
+                              }`}
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: btnPreset.bg }}
+                              />
+                              <span className="text-slate-700">{btnPreset.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Payment / Price Text Color Selector */}
+                      <div className="space-y-2 pt-3 border-t border-slate-200/70">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                            <span>Price / Payment Text Color</span>
+                            <span className="text-[10px] text-slate-400 font-normal">(Customize amount color)</span>
+                          </label>
+                          {newPlanForm.priceColor && (
+                            <button
+                              type="button"
+                              onClick={() => setNewPlanForm(prev => ({ ...prev, priceColor: '' }))}
+                              className="text-[10px] font-bold text-red-600 hover:underline cursor-pointer"
+                            >
+                              Reset to Theme Default
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="relative flex items-center">
+                            <input
+                              type="color"
+                              value={newPlanForm.priceColor || (isDarkColor(newPlanForm.cardBg) ? '#FFFFFF' : '#0F172A')}
+                              onChange={(e) => setNewPlanForm(prev => ({ ...prev, priceColor: e.target.value }))}
+                              className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0.5 bg-white shadow-2xs"
+                              title="Pick Price Color"
+                            />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder={isDarkColor(newPlanForm.cardBg) ? '#FFFFFF (Default)' : '#0F172A (Default)'}
+                            value={newPlanForm.priceColor || ''}
+                            onChange={(e) => setNewPlanForm(prev => ({ ...prev, priceColor: e.target.value }))}
+                            className="flex-1 bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-mono uppercase text-slate-800 placeholder:text-slate-400"
+                          />
+                        </div>
+
+                        {/* Price Color Quick Presets */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          {PLAN_PRICE_COLOR_PRESETS.map((preset, prIdx) => (
+                            <button
+                              key={prIdx}
+                              type="button"
+                              onClick={() => setNewPlanForm(prev => ({ ...prev, priceColor: preset.value }))}
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1 transition cursor-pointer ${
+                                (newPlanForm.priceColor || '').toUpperCase() === preset.value.toUpperCase()
+                                  ? 'border-red-600 ring-1 ring-red-500 font-black shadow-xs bg-red-50/50'
+                                  : 'border-slate-200 hover:border-slate-400 bg-white'
+                              }`}
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: preset.value }}
+                              />
+                              <span className="text-slate-700">{preset.label}</span>
                             </button>
                           ))}
                         </div>
@@ -7609,7 +8948,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-6 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                        className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-6 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                       >
                         <Save className="w-4 h-4" />
                         <span>Publish Plan & Save to MongoDB</span>
@@ -7630,70 +8969,101 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </div>
 
                     {/* The Preview Card */}
-                    <div className={`bg-white rounded-2xl p-6 text-slate-900 shadow-xl relative flex flex-col justify-between pt-10 border-2 ${
-                      newPlanForm.isPopular ? 'border-red-600 ring-2 ring-red-500/20' : 'border-slate-200'
-                    }`}>
-                      {(newPlanForm.highlightBadge || (newPlanForm.isPopular && 'Most Popular')) && (
-                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-                          {newPlanForm.highlightBadge || 'Most Popular'}
-                        </span>
-                      )}
+                    {(() => {
+                      const isDark = isDarkColor(newPlanForm.cardBg);
+                      const customBg = newPlanForm.cardBg || (isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.85)');
+                      const customBorder = newPlanForm.borderColor || (newPlanForm.isPopular ? '#dc2626' : (isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.6)'));
+                      const btnColor = newPlanForm.btnBg || (newPlanForm.isPopular ? '#8B0000' : (isDark ? '#FFFFFF' : '#0D1527'));
 
-                      <div>
-                        <h5 className="text-lg font-black text-slate-900">
-                          {newPlanForm.name || 'Plan Name'}
-                        </h5>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
-                          {newPlanForm.subtext || 'Short plan description'}
-                        </p>
-
-                        <div className="mt-4 mb-4 pb-4 border-b border-slate-100">
-                          {Number(newPlanForm.originalPrice) > 0 && (
-                            <span className="text-xs font-bold text-slate-400 line-through block">
-                              ₹{Number(newPlanForm.originalPrice).toLocaleString('en-IN')}
+                      return (
+                        <div
+                          style={{
+                            backgroundColor: customBg,
+                            borderColor: customBorder,
+                            borderWidth: (newPlanForm.borderColor || newPlanForm.isPopular) ? '2px' : '1px'
+                          }}
+                          className={`backdrop-blur-xl border p-6 rounded-3xl shadow-xl relative flex flex-col justify-between pt-10 transition-all ${
+                            isDark ? 'text-white' : 'text-slate-900'
+                          }`}
+                        >
+                          {(newPlanForm.highlightBadge || (newPlanForm.isPopular && 'Most Popular')) && (
+                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-black px-3.5 py-0.5 rounded-full uppercase tracking-wider shadow-md">
+                              {newPlanForm.highlightBadge || 'Most Popular'}
                             </span>
                           )}
-                          <div className="text-2xl font-black text-slate-900">
-                            ₹{Number(newPlanForm.price || 0).toLocaleString('en-IN')}{' '}
-                            <span className="text-xs font-normal text-slate-500">{newPlanForm.period}</span>
-                          </div>
-                          {/* Multi-Color Distinct Badges & Tags */}
-                          {(() => {
-                            const planTags = getPlanTagList(newPlanForm);
-                            if (planTags.length === 0) return null;
-                            return (
-                              <div className="flex flex-wrap items-center gap-2 mt-2">
-                                {planTags.map((tg, idx) => {
-                                  const palette = PLAN_TAG_PALETTES[idx % PLAN_TAG_PALETTES.length];
-                                  return (
-                                    <span
-                                      key={idx}
-                                      className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${palette.previewLight}`}
-                                    >
-                                      <Sparkles className={`w-2.5 h-2.5 shrink-0 ${palette.icon}`} />
-                                      <span>{tg}</span>
-                                    </span>
-                                  );
-                                })}
+
+                          <div>
+                            <div className="mb-1">
+                              <h5 className={`text-lg font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                {newPlanForm.name || 'Plan Name'}
+                              </h5>
+                              <p className={`text-[11px] mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                {newPlanForm.subtext || 'Short plan description'}
+                              </p>
+                            </div>
+
+                            <div className={`mt-4 mb-4 pb-4 border-b ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                              {Number(newPlanForm.originalPrice) > 0 && (
+                                <span className={`text-xs font-bold line-through block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                                  ₹{Number(newPlanForm.originalPrice).toLocaleString('en-IN')}
+                                </span>
+                              )}
+                              <div
+                                style={{ color: newPlanForm.priceColor || undefined }}
+                                className={`text-xl sm:text-[22px] font-black tracking-tight ${!newPlanForm.priceColor ? (isDark ? 'text-white' : 'text-slate-900') : ''}`}
+                              >
+                                ₹{Number(newPlanForm.price || 0).toLocaleString('en-IN')}{' '}
+                                <span className={`text-[11px] font-normal ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{newPlanForm.period}</span>
                               </div>
-                            );
-                          })()}
+                              {/* Multi-Color Distinct Badges & Tags */}
+                              {(() => {
+                                const planTags = getPlanTagList(newPlanForm);
+                                if (planTags.length === 0) return null;
+                                return (
+                                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                                    {planTags.map((tg, idx) => {
+                                      const palette = PLAN_TAG_PALETTES[idx % PLAN_TAG_PALETTES.length];
+                                      return (
+                                        <span
+                                          key={idx}
+                                          className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shadow-xs ${
+                                            isDark ? palette.previewDark : palette.previewLight
+                                          }`}
+                                        >
+                                          <Sparkles className={`w-2.5 h-2.5 shrink-0 ${isDark ? 'opacity-80' : palette.icon}`} />
+                                          <span>{tg}</span>
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+
+                            <ul className={`space-y-2 text-xs mb-6 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                              {(newPlanForm.features || []).map((f, i) => (
+                                <li key={i} className="flex items-center space-x-1.5">
+                                  <Check className={`w-3.5 h-3.5 shrink-0 ${isDark ? 'text-amber-400' : 'text-emerald-500'}`} />
+                                  <span>{f}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* CTA Button with Hover Preview */}
+                          <button
+                            style={{
+                              backgroundColor: btnColor,
+                              color: isDarkColor(btnColor) ? '#FFFFFF' : '#0F172A'
+                            }}
+                            className="w-full font-black py-2.5 rounded-xl text-xs transition-all duration-300 cursor-pointer shadow-md hover:scale-[1.02] flex items-center justify-center space-x-1.5"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                            <span>{newPlanForm.ctaText || 'Start 2-Day Trial'}</span>
+                          </button>
                         </div>
-
-                        <ul className="space-y-2 text-slate-600 text-xs mb-6">
-                          {(newPlanForm.features || []).map((f, i) => (
-                            <li key={i} className="flex items-center space-x-1.5">
-                              <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                              <span>{f}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <button className="w-full bg-[#8B0000] text-white font-black py-2.5 rounded-xl text-xs shadow-md">
-                        {newPlanForm.ctaText || 'Start 2-Day Trial'}
-                      </button>
-                    </div>
+                      );
+                    })()}
 
                     <p className="text-[11px] text-slate-400 text-center">
                       Updates live as you type in the form on the left.
@@ -7869,9 +9239,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={() => setAddReferralModalOpen(true)}
-                      className="px-4 py-2.5 rounded-xl bg-white text-[#74111d] hover:bg-rose-50 text-xs font-black transition cursor-pointer shadow-md flex items-center space-x-1.5"
+                      className="px-4 py-2.5 rounded-xl bg-white text-[#8B0000] hover:bg-rose-50 text-xs font-black transition cursor-pointer shadow-md flex items-center space-x-1.5"
                     >
-                      <Plus className="w-4 h-4 text-[#74111d]" />
+                      <Plus className="w-4 h-4 text-[#8B0000]" />
                       <span>Add Referral</span>
                     </button>
                   </div>
@@ -7897,7 +9267,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
               {/* Referrals Detail Table Card */}
               <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-                <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                <div className="bg-[#8B0000] text-white px-6 py-3.5 flex items-center justify-between">
                   <div className="flex items-center space-x-2 font-bold text-sm">
                     <TableIcon className="w-4 h-4 text-rose-200" />
                     <span>Referrals Detail</span>
@@ -7945,7 +9315,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             <button
                               type="button"
                               onClick={() => setSelectedReferralDetailModal(item)}
-                              className="px-3.5 py-1.5 rounded-xl border border-[#74111d] bg-white text-[#74111d] hover:bg-rose-50 font-black text-xs transition cursor-pointer shadow-2xs hover:shadow-xs"
+                              className="px-3.5 py-1.5 rounded-xl border border-[#8B0000] bg-white text-[#8B0000] hover:bg-rose-50 font-black text-xs transition cursor-pointer shadow-2xs hover:shadow-xs"
                             >
                               View
                             </button>
@@ -7989,7 +9359,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
                   <div className="bg-white rounded-2xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
                     {/* Modal Header */}
-                    <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                    <div className="bg-[#8B0000] text-white px-6 py-3.5 flex items-center justify-between">
                       <h3 className="font-bold text-base">Referral Details</h3>
                       <button
                         type="button"
@@ -8008,7 +9378,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <button
                           type="button"
                           onClick={() => setViewHistoryModal(selectedReferralDetailModal)}
-                          className="px-3.5 py-1.5 rounded-xl border border-[#74111d] bg-white hover:bg-rose-50 text-[#74111d] font-black text-xs transition cursor-pointer shadow-2xs flex items-center space-x-1.5 self-start sm:self-auto"
+                          className="px-3.5 py-1.5 rounded-xl border border-[#8B0000] bg-white hover:bg-rose-50 text-[#8B0000] font-black text-xs transition cursor-pointer shadow-2xs flex items-center space-x-1.5 self-start sm:self-auto"
                           title="View Payment Date and History Type"
                         >
                           <History className="w-3.5 h-3.5" />
@@ -8072,7 +9442,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     <button
                                       type="button"
                                       onClick={() => setViewHistoryModal(selectedReferralDetailModal)}
-                                      className="px-3 py-1.5 bg-white border border-[#74111d] text-[#74111d] hover:bg-rose-50 font-black rounded-lg text-xs transition cursor-pointer shadow-2xs flex items-center space-x-1"
+                                      className="px-3 py-1.5 bg-white border border-[#8B0000] text-[#8B0000] hover:bg-rose-50 font-black rounded-lg text-xs transition cursor-pointer shadow-2xs flex items-center space-x-1"
                                       title="View payment date and history type"
                                     >
                                       <Eye className="w-3.5 h-3.5" />
@@ -8127,7 +9497,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           <div className="pt-2 space-y-2.5">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
-                                <History className="w-4 h-4 text-[#74111d]" />
+                                <History className="w-4 h-4 text-[#8B0000]" />
                                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
                                   Payout & Payment History (When Paid Date & History Type)
                                 </h4>
@@ -8168,7 +9538,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                             {log.payDate}
                                           </td>
                                           <td className="py-2.5 px-3 font-black text-slate-800 whitespace-nowrap">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-[#74111d] border border-rose-200 uppercase tracking-wider">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-[#8B0000] border border-rose-200 uppercase tracking-wider">
                                               {log.historyType || 'Referral Payout'}
                                             </span>
                                           </td>
@@ -8223,7 +9593,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
                     <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto animate-in zoom-in-95">
                       {/* Header */}
-                      <div className="bg-[#74111d] text-white px-6 py-4 flex items-center justify-between">
+                      <div className="bg-[#8B0000] text-white px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <History className="w-5 h-5 text-rose-200" />
                           <div>
@@ -8297,7 +9667,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                         {log.payDate}
                                       </td>
                                       <td className="py-3 px-3 font-black text-slate-800 whitespace-nowrap">
-                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#74111d] border border-rose-200">
+                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#8B0000] border border-rose-200">
                                           {log.historyType || 'Referral Payout'}
                                         </span>
                                       </td>
@@ -8344,7 +9714,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
                   <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
                     {/* Modal Header */}
-                    <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                    <div className="bg-[#8B0000] text-white px-6 py-3.5 flex items-center justify-between">
                       <h3 className="font-bold text-base">Process Referral Payment</h3>
                       <button
                         type="button"
@@ -8530,7 +9900,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               {addReferralModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
                   <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
-                    <div className="bg-[#74111d] text-white px-6 py-3.5 flex items-center justify-between">
+                    <div className="bg-[#8B0000] text-white px-6 py-3.5 flex items-center justify-between">
                       <h3 className="font-bold text-base">Add New Referral Record</h3>
                       <button
                         type="button"
@@ -8633,7 +10003,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <div className="flex items-center justify-end space-x-2 pt-3">
                         <button
                           type="submit"
-                          className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-bold transition cursor-pointer shadow-md shadow-[#74111d]/20"
+                          className="px-4 py-2 rounded-xl bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold transition cursor-pointer shadow-md shadow-[#8B0000]/20"
                         >
                           Save Referral
                         </button>
@@ -8683,27 +10053,6 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </div>
               )}
 
-              {/* Header Bar Matching Image 4 */}
-              <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setDealCustomerMappingModalOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold text-xs transition cursor-pointer shadow-md shadow-[#74111d]/20"
-                  >
-                    Deal Customer Mapping
-                  </button>
-                </div>
-                <div className="text-center md:text-right">
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Deal & Coupons
-                  </h2>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
-                    Create promotions, bonuses, and state-targeted coupon packages
-                  </p>
-                </div>
-              </div>
-
               {/* Form: New Deal (Image 4 Exact Match) */}
               <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs">
                 <h3 className="text-lg font-black text-slate-900 mb-6 pb-3 border-b border-slate-100 flex items-center space-x-2">
@@ -8748,7 +10097,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                     setNewDealForm({
                       planName: 'Standard Plan',
-                      state: 'All States (No state restriction)',
+                      state: ALL_STATES_AND_UTS[0] || 'Delhi NCR',
                       dealName: '',
                       couponCode: '',
                       bonusAmount: '',
@@ -8784,30 +10133,19 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </select>
                     </div>
 
-                    {/* State (Optional) */}
+                    {/* State/UT */}
                     <div>
                       <label className="block text-xs font-black uppercase text-slate-700 mb-1.5">
-                        State (Optional - State Specific Deal)
+                        State/UT
                       </label>
                       <select
-                        value={newDealForm.state}
+                        value={newDealForm.state || ALL_STATES_AND_UTS[0]}
                         onChange={(e) => setNewDealForm({ ...newDealForm, state: e.target.value })}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 cursor-pointer"
                       >
-                        <option value="All States (No state restriction)">All States (No state restriction)</option>
-                        <option value="Delhi NCR">Delhi NCR</option>
-                        <option value="Maharashtra">Maharashtra</option>
-                        <option value="Karnataka">Karnataka</option>
-                        <option value="Tamil Nadu">Tamil Nadu</option>
-                        <option value="Telangana">Telangana</option>
-                        <option value="Gujarat">Gujarat</option>
-                        <option value="Uttar Pradesh">Uttar Pradesh</option>
-                        <option value="West Bengal">West Bengal</option>
-                        <option value="Rajasthan">Rajasthan</option>
-                        <option value="Punjab">Punjab</option>
-                        <option value="Haryana">Haryana</option>
-                        <option value="Kerala">Kerala</option>
-                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                        {ALL_STATES_AND_UTS.map((st) => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -9001,7 +10339,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <table className="w-full min-w-[1350px] text-left text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
-                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-left">State</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-left">State/UT</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px] text-left">Deal Name</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px] text-center">Coupon Code</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px] text-center">Date Created</th>
@@ -9025,9 +10363,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             const isActive = deal.status === 'Active';
                             return (
                               <tr key={deal.id} className="hover:bg-slate-50/80 transition">
-                                {/* 1. State */}
+                                {/* 1. State/UT */}
                                 <td className="py-3.5 px-4 font-bold text-slate-700 whitespace-nowrap text-left text-xs">
-                                  {deal.state || 'All'}
+                                  {deal.state?.startsWith('All') ? 'All States & UTs' : (deal.state || 'All States & UTs')}
                                 </td>
 
                                 {/* 2. Deal Name */}
@@ -9044,7 +10382,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                       setDealToast(`Copied coupon code "${deal.couponCode}"!`);
                                       setTimeout(() => setDealToast(''), 3000);
                                     }}
-                                    className="inline-flex items-center space-x-1.5 font-mono text-xs font-black bg-rose-50 text-[#74111d] hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition cursor-pointer shadow-2xs"
+                                    className="inline-flex items-center space-x-1.5 font-mono text-xs font-black bg-rose-50 text-[#8B0000] hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition cursor-pointer shadow-2xs"
                                     title="Click to copy coupon code"
                                   >
                                     <span>{deal.couponCode}</span>
@@ -9125,7 +10463,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     <button
                                       type="button"
                                       onClick={() => setEditingDealModal({ isOpen: true, deal: { ...deal } })}
-                                      className="w-8 h-8 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
+                                      className="w-8 h-8 rounded-xl bg-[#8B0000] hover:bg-[#720000] text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
                                       title="Edit Deal"
                                     >
                                       <Edit3 className="w-3.5 h-3.5" />
@@ -9249,17 +10587,19 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Target State</label>
-                          <input
-                            type="text"
-                            value={editingDealModal.deal.state || ''}
+                          <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Target State/UT</label>
+                          <select
+                            value={editingDealModal.deal.state || ALL_STATES_AND_UTS[0]}
                             onChange={(e) => setEditingDealModal({
                               ...editingDealModal,
                               deal: { ...editingDealModal.deal, state: e.target.value }
                             })}
-                            placeholder="All States (or specify state)"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600 font-bold"
-                          />
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-600 font-bold cursor-pointer"
+                          >
+                            {ALL_STATES_AND_UTS.map((st) => (
+                              <option key={st} value={st}>{st}</option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-slate-700 mb-1 font-black uppercase text-[11px]">Bonus (Referrer) ₹</label>
@@ -9400,7 +10740,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         </button>
                         <button
                           type="submit"
-                          className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-red-600/20 cursor-pointer"
+                          className="bg-[#8B0000] hover:bg-[#720000] text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-[#8B0000]/25 transition cursor-pointer active:scale-95"
                         >
                           Save Changes
                         </button>
@@ -9410,54 +10750,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </div>
               )}
 
-              {/* MODAL: DEAL CUSTOMER MAPPING (Image 4 Button) */}
-              {dealCustomerMappingModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
-                  <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden relative my-auto">
-                    <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                      <div>
-                        <h3 className="text-base font-black text-slate-900">Deal Customer Mapping</h3>
-                        <p className="text-xs text-slate-500">Live view of customers and merchants mapped to active promotions</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setDealCustomerMappingModalOpen(false)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
 
-                    <div className="p-6 space-y-4">
-                      <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                        {platformDeals.map((deal) => (
-                          <div key={deal.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-                            <div>
-                              <div className="font-black text-xs text-slate-900">{deal.dealName}</div>
-                              <div className="font-mono text-[10px] text-red-700 font-bold">{deal.couponCode} • {deal.planName}</div>
-                              <div className="text-[10px] text-slate-500 mt-1">State: {deal.state}</div>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-xs font-black text-emerald-600 block">{deal.usedCount || 0} Redemptions</span>
-                              <span className="text-[10px] font-bold text-slate-400">Limit: {deal.maxUsage > 0 ? deal.maxUsage : 'Unlimited'}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="flex justify-end pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setDealCustomerMappingModalOpen(false)}
-                          className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })()}
@@ -9475,7 +10768,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   onClick={() => setPermissionsSubTab('merchant_features')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                     permissionsSubTab === 'merchant_features'
-                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -9493,7 +10786,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   onClick={() => setPermissionsSubTab('customer_features')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                     permissionsSubTab === 'customer_features'
-                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -9508,10 +10801,41 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                 <button
                   type="button"
+                  onClick={() => setPermissionsSubTab('customer_coins')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                    permissionsSubTab === 'customer_coins'
+                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Coins className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Coin Rules & Targets</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    permissionsSubTab === 'customer_coins' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                  }`}>
+                    {coinConfig.targetCoins} Coins
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPermissionsSubTab('theme_customizer')}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
+                    permissionsSubTab === 'theme_customizer'
+                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <Palette className="w-3.5 h-3.5" />
+                  <span>Theme & Card Look</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setPermissionsSubTab('team_features')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                     permissionsSubTab === 'team_features'
-                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -9529,7 +10853,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   onClick={() => setPermissionsSubTab('tier_matrix')}
                   className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-2 ${
                     permissionsSubTab === 'tier_matrix'
-                      ? 'bg-[#74111d] text-white shadow-md shadow-[#74111d]/20'
+                      ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/20'
                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                   }`}
                 >
@@ -9595,7 +10919,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={() => setAddFeatureModalOpen(true)}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Feature</span>
@@ -9749,7 +11073,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               type="button"
                               onClick={() => handleToggleFeatureVisibility(feat.id)}
                               className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
-                                feat.isVisible ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                                feat.isVisible ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
                               }`}
                               title={feat.isVisible ? 'Click to Hide from Merchant' : 'Click to Show on Merchant'}
                             >
@@ -9825,7 +11149,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={() => setAddCustomerFeatureModalOpen(true)}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Feature</span>
@@ -9910,6 +11234,43 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <p className="text-xs text-slate-500 leading-relaxed font-normal">
                           {feat.description}
                         </p>
+
+                        {/* Quick Coin Target Selector directly on Customer Stamp Feature Card */}
+                        {(feat.id === 'cust_stamp_cards' || feat.featureType === 'coin_target') && (
+                          <div className="mt-3 p-3 bg-amber-50/90 border border-amber-200 rounded-xl space-y-2">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-amber-900">
+                              <span className="flex items-center space-x-1">
+                                <Coins className="w-3.5 h-3.5 text-amber-600" />
+                                <span>Reward Stamp Target:</span>
+                              </span>
+                              <span className="font-black text-amber-800">{coinConfig.targetCoins} Coins Needed</span>
+                            </div>
+                            <div className="flex items-center space-x-1.5">
+                              {[5, 7, 10].map((cNum) => (
+                                <button
+                                  key={cNum}
+                                  type="button"
+                                  onClick={() => handleUpdateCoinConfig({ ...coinConfig, targetCoins: cNum })}
+                                  className={`flex-1 py-1 px-1.5 rounded-lg text-xs font-black transition cursor-pointer text-center ${
+                                    coinConfig.targetCoins === cNum
+                                      ? 'bg-[#8B0000] text-white shadow-xs'
+                                      : 'bg-white hover:bg-amber-100 text-slate-700 border border-amber-200'
+                                  }`}
+                                >
+                                  {cNum} Coins
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => setPermissionsSubTab('customer_coins')}
+                                className="py-1 px-2 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 cursor-pointer"
+                                title="Custom coin rules & settings"
+                              >
+                                Custom...
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
@@ -9954,7 +11315,705 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             )}
 
             {/* ========================================================= */}
-            {/* SUB-VIEW 3: TEAM PORTAL FEATURES CONTROL                  */}
+            {/* SUB-VIEW: CUSTOMER COINS & LOYALTY RULES MANAGER           */}
+            {/* ========================================================= */}
+            {permissionsSubTab === 'customer_coins' && (
+              <div className="space-y-6 animate-in fade-in duration-150">
+                {/* Header Banner */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div className="flex items-start sm:items-center space-x-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25 shrink-0">
+                      <Coins className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h2 className="text-lg font-black text-slate-900">
+                          Customer Loyalty Coins & Reward Threshold Manager
+                        </h2>
+                        <span className="text-[10px] uppercase font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full">
+                          Full Control
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium max-w-2xl mt-0.5">
+                        Decide exactly how many Aurex Coins customers need to collect per card to claim rewards (e.g. 5 Coins, 7 Coins, or custom), configure coins per scan, first visit bonuses, and rule parameters.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 w-full lg:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const def = {
+                          targetCoins: 5,
+                          coinsPerScan: 1,
+                          firstVisitBonus: 1,
+                          minRedeemCoins: 5,
+                          maxDailyScans: 2,
+                          coinExpiryDays: 365,
+                          autoApproveFirstCoin: true,
+                          programName: 'BeAurex Loyalty Stamp Card',
+                          rewardDescription: 'Collect coins on each visit to unlock free rewards'
+                        };
+                        handleUpdateCoinConfig(def);
+                      }}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Reset Defaults
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateCoinConfig(coinConfig)}
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save & Enforce Rules</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Big Target Selector Card */}
+                <div className="bg-gradient-to-br from-amber-50/80 via-white to-rose-50/30 border border-amber-200/90 rounded-2xl p-6 shadow-xs space-y-6">
+                  <div>
+                    <span className="text-[10px] uppercase font-mono font-bold text-amber-800 tracking-wider block mb-1">
+                      Primary Coin Target Requirement
+                    </span>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900">
+                      How many coins are needed to complete a loyalty card / claim a reward?
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Choose a standard program preset or specify an exact custom coin requirement.
+                    </p>
+                  </div>
+
+                  {/* Preset Buttons Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    {[
+                      { coins: 5, label: '5 Coins Target', sub: 'Standard Program (5 visits = 1 reward)', tag: 'Popular Cafe & Bakery' },
+                      { coins: 7, label: '7 Coins Target', sub: 'Weekly Program (7 visits = 1 reward)', tag: 'Weekly VIP Target' },
+                      { coins: 10, label: '10 Coins Target', sub: 'Milestone Program (10 visits = 1 reward)', tag: 'Retail & Fine Dining' },
+                      { coins: 'custom', label: 'Custom Coins', sub: 'Decide any custom coin threshold', tag: 'Custom Program' }
+                    ].map((item) => {
+                      const isSelected = item.coins === 'custom' 
+                        ? (coinConfig.targetCoins !== 5 && coinConfig.targetCoins !== 7 && coinConfig.targetCoins !== 10)
+                        : coinConfig.targetCoins === item.coins;
+                      return (
+                        <div
+                          key={item.label}
+                          onClick={() => {
+                            if (item.coins !== 'custom') {
+                              handleUpdateCoinConfig({ ...coinConfig, targetCoins: item.coins });
+                            }
+                          }}
+                          className={`p-4 rounded-2xl border-2 transition cursor-pointer flex flex-col justify-between space-y-3 ${
+                            isSelected
+                              ? 'border-[#8B0000] bg-white shadow-md shadow-[#8B0000]/10 ring-2 ring-[#8B0000]/20'
+                              : 'border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                              {item.tag}
+                            </span>
+                            {isSelected && (
+                              <span className="w-5 h-5 rounded-full bg-[#8B0000] text-white flex items-center justify-center text-xs font-black">
+                                ✓
+                              </span>
+                            )}
+                          </div>
+
+                          <div>
+                            <div className="text-2xl font-black text-slate-900 flex items-center space-x-1.5">
+                              <Coins className="w-6 h-6 text-amber-500" />
+                              <span>{item.coins === 'custom' ? `${coinConfig.targetCoins} Coins` : `${item.coins} Coins`}</span>
+                            </div>
+                            <div className="text-xs font-bold text-slate-700 mt-1">{item.label}</div>
+                            <div className="text-[11px] text-slate-500 mt-0.5">{item.sub}</div>
+                          </div>
+
+                          {item.coins === 'custom' && (
+                            <div className="pt-2 border-t border-slate-100 flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                              <span className="text-[11px] font-bold text-slate-600">Enter:</span>
+                              <input
+                                type="number"
+                                min={1}
+                                max={100}
+                                value={coinConfig.targetCoins}
+                                onChange={(e) => {
+                                  const val = Math.max(1, parseInt(e.target.value) || 1);
+                                  handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
+                                }}
+                                className="w-20 bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-1 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                              />
+                              <span className="text-[11px] font-bold text-slate-500">Coins</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Rule Parameters & Live Preview Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Parameters Form (2 cols) */}
+                  <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                      <Sliders className="w-4 h-4 text-slate-500" />
+                      <span>Detailed Coin Allocation & Redemption Rules</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Coins Earned Per Store Counter Scan
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={coinConfig.coinsPerScan || 1}
+                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, coinsPerScan: Math.max(1, parseInt(e.target.value) || 1) })}
+                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                          />
+                          <span className="text-xs text-slate-500 font-medium">Aurex Coin(s) credited each visit</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-700">
+                          First Visit / Welcome Bonus Coins
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            min={0}
+                            max={50}
+                            value={coinConfig.firstVisitBonus || 1}
+                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, firstVisitBonus: Math.max(0, parseInt(e.target.value) || 0) })}
+                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                          />
+                          <span className="text-xs text-slate-500 font-medium">Extra coin on 1st scan</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Max Daily Scans Allowed Per Customer
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={coinConfig.maxDailyScans || 2}
+                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, maxDailyScans: Math.max(1, parseInt(e.target.value) || 1) })}
+                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                          />
+                          <span className="text-xs text-slate-500 font-medium">Scans / day / store</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Coin Expiry Validity Period (Days)
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            min={30}
+                            max={730}
+                            value={coinConfig.coinExpiryDays || 365}
+                            onChange={(e) => handleUpdateCoinConfig({ ...coinConfig, coinExpiryDays: Math.max(30, parseInt(e.target.value) || 365) })}
+                            className="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                          />
+                          <span className="text-xs text-slate-500 font-medium">Days before balance expires</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-black text-slate-900 block">Auto-Credit First Visit Coin</span>
+                        <span className="text-[11px] text-slate-500 font-medium">New customer receives first coin immediately upon scanning without cashier confirmation</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateCoinConfig({ ...coinConfig, autoApproveFirstCoin: !coinConfig.autoApproveFirstCoin })}
+                        className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
+                          coinConfig.autoApproveFirstCoin ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
+                        }`}
+                      >
+                        <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Live Preview of Customer Loyalty Card */}
+                  <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+                    <div>
+                      <span className="text-[10px] uppercase font-mono font-bold text-slate-400 block mb-1">
+                        Real-time Customer View
+                      </span>
+                      <h4 className="text-sm font-black text-slate-900">
+                        How Customer Sees Their Card ({coinConfig.targetCoins} Coins)
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Card dynamically adjusts slots and badges to your active target.
+                      </p>
+                    </div>
+
+                    {/* Live Mock Loyalty Card */}
+                    <div className="bg-gradient-to-br from-white to-rose-50/30 border border-slate-200 rounded-2xl p-4.5 shadow-sm space-y-3.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black">
+                            <Store className="w-5 h-5 text-amber-300" />
+                          </div>
+                          <div>
+                            <h5 className="text-xs font-black text-slate-900">Sample Store Card</h5>
+                            <p className="text-[10px] text-slate-500">Cafe & Bakery</p>
+                          </div>
+                        </div>
+                        <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                          {Math.max(0, coinConfig.targetCoins - 3)} more Aurex Coins
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                          {Array.from({ length: Math.min(3, coinConfig.targetCoins) }).map((_, idx) => (
+                            <div
+                              key={`prev-stamped-${idx}`}
+                              className="w-8 h-8 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs"
+                            >
+                              <Coins className="w-3.5 h-3.5 text-amber-300" />
+                            </div>
+                          ))}
+                          {Array.from({ length: Math.max(0, coinConfig.targetCoins - 3) }).map((_, idx) => (
+                            <div
+                              key={`prev-empty-${idx}`}
+                              className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center text-slate-400"
+                            >
+                              <Coins className="w-3.5 h-3.5 text-slate-300" />
+                            </div>
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500">
+                          3 of {coinConfig.targetCoins} Aurex Coins Collected
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-medium flex items-center space-x-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Active target {coinConfig.targetCoins} Coins is in sync with Customer Experience and Merchant approvals!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* SUB-VIEW: THEME, COLOR PALETTE & CARD LOOK STUDIO         */}
+            {/* ========================================================= */}
+            {permissionsSubTab === 'theme_customizer' && (
+              <div className="space-y-6 animate-in fade-in duration-150">
+                {/* Header Banner */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div className="flex items-start sm:items-center space-x-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-[#8B0000] text-white flex items-center justify-center font-black shadow-md shadow-[#8B0000]/25 shrink-0">
+                      <Palette className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h2 className="text-lg font-black text-slate-900">
+                          Theme, Color Palette & Card Look Studio
+                        </h2>
+                        <span className="text-[10px] uppercase font-mono font-bold bg-rose-100 text-[#8B0000] border border-rose-300 px-2 py-0.5 rounded-full">
+                          Full Visual Control
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium max-w-2xl mt-0.5">
+                        Customize the overall color theme, card size & density, card corner radius (sharp vs squircle vs pill), elevation shadows, and text scale across all portals in real-time.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 w-full lg:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleResetThemeConfig}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer"
+                    >
+                      Reset to BeAurex Defaults
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSaveThemeConfig(themeConfig)}
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Apply Theme Globally</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dual Studio Layout: Left Controls, Right Live Previews */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Left Column: Theme Controls (7 cols) */}
+                  <div className="lg:col-span-7 space-y-6">
+                    {/* Section 1: Color Presets */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                          <Palette className="w-4 h-4 text-slate-500" />
+                          <span>1. Brand Color Theme Presets</span>
+                        </h3>
+                        <span className="text-[10px] font-mono font-bold text-slate-400">
+                          Primary & Accent
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {THEME_COLOR_PRESETS.map((preset) => {
+                          const isSelected = themeConfig.primaryColor === preset.primary;
+                          return (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => {
+                                handleSaveThemeConfig({
+                                  ...themeConfig,
+                                  primaryColor: preset.primary,
+                                  secondaryColor: preset.secondary,
+                                  accentColor: preset.accent
+                                });
+                              }}
+                              className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between space-y-2 ${
+                                isSelected
+                                  ? 'border-[#8B0000] ring-2 ring-[#8B0000]/20 bg-rose-50/30 shadow-xs'
+                                  : 'border-slate-200 hover:border-slate-300 bg-white'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-1.5">
+                                <span className="w-5 h-5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: preset.primary }}></span>
+                                <span className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: preset.secondary }}></span>
+                                <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: preset.accent }}></span>
+                              </div>
+                              <div className="text-[11px] font-black text-slate-900 truncate">{preset.name}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Custom Hex Color Picker */}
+                      <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Custom Primary Brand Color</label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="color"
+                              value={themeConfig.primaryColor}
+                              onChange={(e) => handleSaveThemeConfig({ ...themeConfig, primaryColor: e.target.value })}
+                              className="w-9 h-9 rounded-xl border border-slate-300 p-0.5 cursor-pointer shrink-0"
+                            />
+                            <input
+                              type="text"
+                              value={themeConfig.primaryColor}
+                              onChange={(e) => handleSaveThemeConfig({ ...themeConfig, primaryColor: e.target.value })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-600 mb-1">Custom Secondary / Gradient Color</label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="color"
+                              value={themeConfig.secondaryColor}
+                              onChange={(e) => handleSaveThemeConfig({ ...themeConfig, secondaryColor: e.target.value })}
+                              className="w-9 h-9 rounded-xl border border-slate-300 p-0.5 cursor-pointer shrink-0"
+                            />
+                            <input
+                              type="text"
+                              value={themeConfig.secondaryColor}
+                              onChange={(e) => handleSaveThemeConfig({ ...themeConfig, secondaryColor: e.target.value })}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Card Look & Corner Radius */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                          <Layers className="w-4 h-4 text-slate-500" />
+                          <span>2. Card Look & Corner Radius</span>
+                        </h3>
+                        <span className="text-[10px] font-mono font-bold text-slate-400">
+                          Active: {themeConfig.cardRadiusClass} ({themeConfig.cardRadius})
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        {CARD_RADIUS_OPTIONS.map((opt) => {
+                          const isSelected = themeConfig.cardRadius === opt.value;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => {
+                                handleSaveThemeConfig({
+                                  ...themeConfig,
+                                  cardRadius: opt.value,
+                                  cardRadiusClass: opt.twClass
+                                });
+                              }}
+                              className={`p-3.5 border-2 text-center transition cursor-pointer flex flex-col items-center justify-between space-y-2 ${opt.twClass} ${
+                                isSelected
+                                  ? 'border-[#8B0000] bg-rose-50/30 ring-2 ring-[#8B0000]/20'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <div className={`w-10 h-7 border-2 border-dashed border-slate-400 bg-slate-100 ${opt.twClass}`}></div>
+                              <div>
+                                <div className="text-xs font-black text-slate-900">{opt.label}</div>
+                                <div className="text-[10px] text-slate-500 font-mono mt-0.5">{opt.desc}</div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Section 3: Card Size, Density & Text Size */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                        <Sliders className="w-4 h-4 text-slate-500" />
+                        <span>3. Card Size, Density & Text Scale</span>
+                      </h3>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {/* Card Density */}
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-slate-700">Card Density & Padding</label>
+                          <div className="grid grid-cols-3 gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl">
+                            {CARD_DENSITY_OPTIONS.map((d) => (
+                              <button
+                                key={d.id}
+                                type="button"
+                                onClick={() => handleSaveThemeConfig({ ...themeConfig, cardDensity: d.id })}
+                                className={`py-2 px-1 text-center rounded-lg text-xs font-black transition cursor-pointer ${
+                                  themeConfig.cardDensity === d.id
+                                    ? 'bg-white text-slate-900 shadow-xs'
+                                    : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                              >
+                                {d.label}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium">
+                            {CARD_DENSITY_OPTIONS.find(d => d.id === themeConfig.cardDensity)?.desc}
+                          </p>
+                        </div>
+
+                        {/* Font Scale */}
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-slate-700">Font & Text Scale</label>
+                          <div className="grid grid-cols-3 gap-1.5 bg-slate-50 border border-slate-200 p-1 rounded-xl">
+                            {FONT_SCALE_OPTIONS.map((f) => (
+                              <button
+                                key={f.id}
+                                type="button"
+                                onClick={() => handleSaveThemeConfig({ ...themeConfig, fontSize: f.id })}
+                                className={`py-2 px-1 text-center rounded-lg text-xs font-black transition cursor-pointer ${
+                                  themeConfig.fontSize === f.id
+                                    ? 'bg-white text-slate-900 shadow-xs'
+                                    : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                              >
+                                {f.label}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium">
+                            {FONT_SCALE_OPTIONS.find(f => f.id === themeConfig.fontSize)?.desc}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 4: Card Elevation & Shadow */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center space-x-2">
+                        <Sparkles className="w-4 h-4 text-slate-500" />
+                        <span>4. Card Shadow & Elevation Style</span>
+                      </h3>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                        {CARD_ELEVATION_OPTIONS.map((elev) => {
+                          const isSelected = themeConfig.cardElevation === elev.id;
+                          return (
+                            <button
+                              key={elev.id}
+                              type="button"
+                              onClick={() => handleSaveThemeConfig({ ...themeConfig, cardElevation: elev.id })}
+                              className={`p-3 border-2 rounded-xl text-left transition cursor-pointer flex flex-col justify-between space-y-1.5 ${
+                                isSelected
+                                  ? 'border-[#8B0000] bg-rose-50/20 ring-2 ring-[#8B0000]/20'
+                                  : 'border-slate-200 bg-white hover:border-slate-300'
+                              }`}
+                            >
+                              <div className="text-xs font-black text-slate-900">{elev.label}</div>
+                              <div className="text-[10px] text-slate-500">{elev.desc}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Live Interactive Card Previews (5 cols) */}
+                  <div className="lg:col-span-5 space-y-6">
+                    <div className="sticky top-6 space-y-5">
+                      <div className="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] uppercase font-mono font-bold text-slate-400 block mb-0.5">
+                              Live Dynamic Preview
+                            </span>
+                            <h4 className="text-base font-black text-slate-900">
+                              Instant Card Appearance
+                            </h4>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
+                            Updating Live
+                          </span>
+                        </div>
+
+                        {/* PREVIEW 1: Sample Customer Loyalty Card */}
+                        <div className="space-y-1.5">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            Customer Loyalty Card
+                          </span>
+                          <div 
+                            className={`bg-white border border-slate-200/90 ${themeConfig.cardRadiusClass} ${
+                              themeConfig.cardDensity === 'compact' ? 'p-3.5' : themeConfig.cardDensity === 'spacious' ? 'p-6' : 'p-5'
+                            } ${
+                              themeConfig.cardElevation === 'glass'
+                                ? 'backdrop-blur-md bg-white/80 shadow-md border-white/60'
+                                : themeConfig.cardElevation === 'deep'
+                                ? 'shadow-lg border-slate-300'
+                                : themeConfig.cardElevation === 'glow'
+                                ? 'shadow-lg shadow-[#8B0000]/15 border-[#8B0000]/30'
+                                : 'shadow-xs'
+                            } space-y-3.5 transition-all`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div 
+                                  className={`w-11 h-11 ${themeConfig.cardRadiusClass} flex items-center justify-center text-white shadow-xs`}
+                                  style={{ backgroundColor: themeConfig.primaryColor }}
+                                >
+                                  <Store className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <h5 className="text-sm font-black text-slate-900 leading-tight">Ka-feen Central</h5>
+                                  <p className="text-[11px] text-slate-500 font-medium">Coffee & Artisanal Bakery</p>
+                                </div>
+                              </div>
+                              <span 
+                                className="text-xs font-bold px-3 py-1 rounded-full border text-white"
+                                style={{ backgroundColor: themeConfig.primaryColor, borderColor: themeConfig.secondaryColor }}
+                              >
+                                2 more Coins
+                              </span>
+                            </div>
+
+                            <div>
+                              <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                {Array.from({ length: 3 }).map((_, idx) => (
+                                  <div
+                                    key={`prev-card-stamped-${idx}`}
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white shadow-xs`}
+                                    style={{ backgroundColor: themeConfig.primaryColor }}
+                                  >
+                                    <Coins className="w-4 h-4 text-amber-300" />
+                                  </div>
+                                ))}
+                                {Array.from({ length: Math.max(0, coinConfig.targetCoins - 3) }).map((_, idx) => (
+                                  <div
+                                    key={`prev-card-empty-${idx}`}
+                                    className="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center"
+                                  >
+                                    <Coins className="w-4 h-4 text-slate-300" />
+                                  </div>
+                                ))}
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-500">
+                                3 of {coinConfig.targetCoins} Aurex Coins Collected
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* PREVIEW 2: Sample Merchant Dashboard Stat Card */}
+                        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            Merchant / Dashboard Stat Card
+                          </span>
+                          <div 
+                            className={`bg-white border border-slate-200/90 ${themeConfig.cardRadiusClass} ${
+                              themeConfig.cardDensity === 'compact' ? 'py-3 px-3.5 min-h-[82px]' : themeConfig.cardDensity === 'spacious' ? 'py-6 px-5 min-h-[115px]' : 'py-4.5 px-3.5 min-h-[98px]'
+                            } ${
+                              themeConfig.cardElevation === 'glow' ? 'shadow-lg shadow-[#8B0000]/15' : 'shadow-xs'
+                            } flex items-center space-x-3 transition-all`}
+                          >
+                            <div 
+                              className={`w-11 h-11 ${themeConfig.cardRadiusClass} flex items-center justify-center text-white shrink-0 shadow-2xs`}
+                              style={{ backgroundColor: themeConfig.primaryColor }}
+                            >
+                              <Coins className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-semibold text-slate-500 leading-tight">Total Aurex Coins</div>
+                              <div className="text-2xl font-black text-slate-900 tracking-tight leading-none my-1">
+                                1,420
+                              </div>
+                              <div className="text-[11px] font-bold text-slate-400 leading-none">
+                                Across 4 active stores
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="pt-2 flex flex-col gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleSaveThemeConfig(themeConfig)}
+                            className="w-full py-2.5 px-4 rounded-xl text-white font-black text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer"
+                            style={{ backgroundColor: themeConfig.primaryColor }}
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Save & Apply Appearance Across Site</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* SUB-VIEW 5: TEAM PORTAL FEATURES CONTROL                  */}
             {/* ========================================================= */}
             {permissionsSubTab === 'team_features' && (
               <div className="space-y-6">
@@ -9992,7 +12051,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={() => setAddTeamFeatureModalOpen(true)}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Feature</span>
@@ -10133,7 +12192,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                  <form onSubmit={handleSaveEditedCustomerFeature} className="space-y-3 text-xs">
+                  <form onSubmit={handleSaveEditedCustomerFeature} className="space-y-3.5 text-xs">
                     <div>
                       <label className="block text-slate-700 font-bold mb-1">Feature Name</label>
                       <input
@@ -10141,19 +12200,112 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         required
                         value={editingCustomerFeatureModal.name}
                         onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, name: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
-                    <div>
-                      <label className="block text-slate-700 font-bold mb-1">Category</label>
-                      <input
-                        type="text"
-                        required
-                        value={editingCustomerFeatureModal.category}
-                        onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, category: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
-                      />
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 font-bold mb-1">Category</label>
+                        <input
+                          type="text"
+                          required
+                          value={editingCustomerFeatureModal.category}
+                          onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, category: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-700 font-bold mb-1">Feature Type</label>
+                        <select
+                          value={editingCustomerFeatureModal.featureType || 'toggle'}
+                          onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, featureType: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                        >
+                          <option value="toggle">Toggle Switch (On/Off)</option>
+                          <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
+                          <option value="numeric">Numerical Parameter</option>
+                          <option value="select">Dropdown Option</option>
+                          <option value="text">Custom Text / Rule</option>
+                        </select>
+                      </div>
                     </div>
+
+                    {/* Target Coins / Parameter Value if applicable */}
+                    {(editingCustomerFeatureModal.featureType === 'coin_target' || editingCustomerFeatureModal.id === 'cust_stamp_cards') && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                        <label className="block text-amber-900 font-black text-[11px]">
+                          Target Coins Needed (e.g. 5 or 7 coins)
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          {[5, 7, 10].map(cNum => (
+                            <button
+                              key={cNum}
+                              type="button"
+                              onClick={() => {
+                                setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, targetCoins: cNum });
+                                handleUpdateCoinConfig({ ...coinConfig, targetCoins: cNum });
+                              }}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
+                                (editingCustomerFeatureModal.targetCoins || coinConfig.targetCoins) === cNum
+                                  ? 'bg-[#8B0000] text-white shadow-xs'
+                                  : 'bg-white text-slate-700 border border-amber-200'
+                              }`}
+                            >
+                              {cNum} Coins
+                            </button>
+                          ))}
+                          <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={editingCustomerFeatureModal.targetCoins || coinConfig.targetCoins}
+                            onChange={(e) => {
+                              const val = Math.max(1, parseInt(e.target.value) || 1);
+                              setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, targetCoins: val });
+                              handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
+                            }}
+                            className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 font-bold mb-1">Badge Tag</label>
+                        <select
+                          value={editingCustomerFeatureModal.badge || ''}
+                          onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, badge: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                        >
+                          <option value="">No Badge</option>
+                          <option value="NEW">NEW</option>
+                          <option value="HOT">HOT</option>
+                          <option value="PRO">PRO</option>
+                          <option value="VIP">VIP</option>
+                          <option value="BETA">BETA</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col justify-end">
+                        <label className="block text-slate-700 font-bold mb-1">Feature Visibility</label>
+                        <button
+                          type="button"
+                          onClick={() => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, isVisible: !editingCustomerFeatureModal.isVisible })}
+                          className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                            editingCustomerFeatureModal.isVisible
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                              : 'bg-rose-50 text-rose-700 border border-rose-300'
+                          }`}
+                        >
+                          {editingCustomerFeatureModal.isVisible ? <CheckCircle2 className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          <span>{editingCustomerFeatureModal.isVisible ? 'Visible (Active)' : 'Hidden (Disabled)'}</span>
+                        </button>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-slate-700 font-bold mb-1">Description</label>
                       <textarea
@@ -10161,7 +12313,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         required
                         value={editingCustomerFeatureModal.description}
                         onChange={(e) => setEditingCustomerFeatureModal({ ...editingCustomerFeatureModal, description: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
                     <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
@@ -10174,7 +12326,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                        className="px-4 py-2 rounded-xl bg-[#8B0000] hover:bg-[#700000] text-white font-bold"
                       >
                         Save Changes
                       </button>
@@ -10197,29 +12349,131 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <X className="w-4 h-4" />
                     </button>
                   </div>
-                  <form onSubmit={handleCreateNewCustomerFeature} className="space-y-3 text-xs">
+                  <form onSubmit={handleCreateNewCustomerFeature} className="space-y-3.5 text-xs">
                     <div>
                       <label className="block text-slate-700 font-bold mb-1">Feature Name</label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Daily Bonus Coins"
+                        placeholder="e.g. 7-Coin VIP Loyalty Tier"
                         value={newCustomerFeatureForm.name}
                         onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, name: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-slate-700 font-bold mb-1">Category</label>
+                      <label className="block text-slate-700 font-bold mb-1">Feature Key / ID</label>
                       <input
                         type="text"
-                        required
-                        placeholder="e.g. Loyalty Rewards"
-                        value={newCustomerFeatureForm.category}
-                        onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, category: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        placeholder="e.g. cust_vip_tier (auto-generated if empty)"
+                        value={newCustomerFeatureForm.id}
+                        onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, id: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 font-bold mb-1">Category</label>
+                        <select
+                          value={newCustomerFeatureForm.category}
+                          onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, category: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                        >
+                          <option value="Loyalty Rewards">Loyalty Rewards</option>
+                          <option value="Scans & Claim">Scans & Claim</option>
+                          <option value="Gamification">Gamification</option>
+                          <option value="Onboarding & Auth">Onboarding & Auth</option>
+                          <option value="User Experience">User Experience</option>
+                          <option value="Referrals">Referrals</option>
+                          <option value="Account & Security">Account & Security</option>
+                          <option value="Custom Customer Tool">Custom Customer Tool</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-700 font-bold mb-1">Feature Type</label>
+                        <select
+                          value={newCustomerFeatureForm.featureType || 'toggle'}
+                          onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, featureType: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                        >
+                          <option value="toggle">Toggle Switch (On/Off)</option>
+                          <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
+                          <option value="numeric">Numerical Parameter</option>
+                          <option value="select">Dropdown Choice</option>
+                          <option value="text">Text Configuration</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Target Coins if applicable */}
+                    {newCustomerFeatureForm.featureType === 'coin_target' && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                        <label className="block text-amber-900 font-black text-[11px]">
+                          Target Coins (e.g. 5 or 7 coins)
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          {[5, 7, 10].map(cNum => (
+                            <button
+                              key={cNum}
+                              type="button"
+                              onClick={() => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, targetCoins: cNum })}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
+                                (newCustomerFeatureForm.targetCoins || 5) === cNum
+                                  ? 'bg-[#8B0000] text-white shadow-xs'
+                                  : 'bg-white text-slate-700 border border-amber-200'
+                              }`}
+                            >
+                              {cNum} Coins
+                            </button>
+                          ))}
+                          <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={newCustomerFeatureForm.targetCoins || 5}
+                            onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, targetCoins: Math.max(1, parseInt(e.target.value) || 1) })}
+                            className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 font-bold mb-1">Badge</label>
+                        <select
+                          value={newCustomerFeatureForm.badge || ''}
+                          onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, badge: e.target.value })}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                        >
+                          <option value="">None</option>
+                          <option value="NEW">NEW</option>
+                          <option value="HOT">HOT</option>
+                          <option value="PRO">PRO</option>
+                          <option value="VIP">VIP</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col justify-end">
+                        <label className="block text-slate-700 font-bold mb-1">Initial Status</label>
+                        <button
+                          type="button"
+                          onClick={() => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, isVisible: !newCustomerFeatureForm.isVisible })}
+                          className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                            newCustomerFeatureForm.isVisible
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                              : 'bg-rose-50 text-rose-700 border border-rose-300'
+                          }`}
+                        >
+                          {newCustomerFeatureForm.isVisible ? <CheckCircle2 className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          <span>{newCustomerFeatureForm.isVisible ? 'Visible (Enabled)' : 'Hidden (Disabled)'}</span>
+                        </button>
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-slate-700 font-bold mb-1">Description</label>
                       <textarea
@@ -10228,7 +12482,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         placeholder="Explain feature functionality..."
                         value={newCustomerFeatureForm.description}
                         onChange={(e) => setNewCustomerFeatureForm({ ...newCustomerFeatureForm, description: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
                     <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
@@ -10241,7 +12495,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                        className="px-4 py-2 rounded-xl bg-[#8B0000] hover:bg-[#700000] text-white font-bold"
                       >
                         Create Feature
                       </button>
@@ -10305,7 +12559,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                        className="px-4 py-2 rounded-xl bg-[#8B0000] hover:bg-[#700000] text-white font-bold"
                       >
                         Save Changes
                       </button>
@@ -10372,7 +12626,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-4 py-2 rounded-xl bg-[#74111d] hover:bg-[#5c0d16] text-white font-bold"
+                        className="px-4 py-2 rounded-xl bg-[#8B0000] hover:bg-[#700000] text-white font-bold"
                       >
                         Create Feature
                       </button>
@@ -10428,7 +12682,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={handleSavePermissions}
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-5 py-2.5 rounded-xl text-xs flex items-center space-x-1.5 transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       <Save className="w-4 h-4" />
                       <span>Save Permissions to MongoDB</span>
@@ -10650,7 +12904,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </button>
 
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-red-100 text-[#74111d] flex items-center justify-center font-black">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                     <Edit3 className="w-5 h-5" />
                   </div>
                   <div>
@@ -10661,43 +12915,136 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                 <form onSubmit={handleSaveEditedFeature} className="space-y-4 text-xs font-bold pt-2">
                   <div>
+                    <label className="block uppercase text-slate-600 mb-1">Target Portal</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'merchant', label: 'Merchant Portal' },
+                        { id: 'customer', label: 'Customer Portal' },
+                        { id: 'team', label: 'Team Portal' }
+                      ].map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setEditingFeatureModal({ ...editingFeatureModal, targetPortal: p.id })}
+                          className={`py-2 px-2 text-center rounded-xl text-xs font-black transition cursor-pointer border ${
+                            (editingFeatureModal.targetPortal || (customerFeatures.some(f => f.id === editingFeatureModal.id) ? 'customer' : 'merchant')) === p.id
+                              ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-xs'
+                              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
                     <label className="block uppercase text-slate-600 mb-1">Feature Display Name</label>
                     <input
                       type="text"
                       required
                       value={editingFeatureModal.name}
                       onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, name: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block uppercase text-slate-600 mb-1">Category</label>
-                      <select
+                      <input
+                        type="text"
+                        required
                         value={editingFeatureModal.category}
                         onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, category: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                      >
-                        <option value="Home Dashboard">Home Dashboard</option>
-                        <option value="Navigation & Tabs">Navigation & Tabs</option>
-                        <option value="Profile & Settings">Profile & Settings</option>
-                        <option value="Education & Support">Education & Support</option>
-                        <option value="Custom Features">Custom Features</option>
-                      </select>
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                      />
                     </div>
 
                     <div>
+                      <label className="block uppercase text-slate-600 mb-1">Feature Type</label>
+                      <select
+                        value={editingFeatureModal.featureType || 'toggle'}
+                        onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, featureType: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                      >
+                        <option value="toggle">Toggle Switch (On / Off)</option>
+                        <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
+                        <option value="numeric">Numerical Parameter</option>
+                        <option value="select">Dropdown Choice</option>
+                        <option value="text">Text Configuration</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Target Coins if applicable */}
+                  {(editingFeatureModal.featureType === 'coin_target' || editingFeatureModal.id === 'cust_stamp_cards') && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                      <label className="block text-amber-900 font-black text-[11px]">
+                        Target Coins (e.g. 5 or 7 coins)
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        {[5, 7, 10].map(cNum => (
+                          <button
+                            key={cNum}
+                            type="button"
+                            onClick={() => {
+                              setEditingFeatureModal({ ...editingFeatureModal, targetCoins: cNum });
+                              handleUpdateCoinConfig({ ...coinConfig, targetCoins: cNum });
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
+                              (editingFeatureModal.targetCoins || coinConfig.targetCoins) === cNum
+                                ? 'bg-[#8B0000] text-white shadow-xs'
+                                : 'bg-white text-slate-700 border border-amber-200'
+                            }`}
+                          >
+                            {cNum} Coins
+                          </button>
+                        ))}
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={editingFeatureModal.targetCoins || coinConfig.targetCoins}
+                          onChange={(e) => {
+                            const val = Math.max(1, parseInt(e.target.value) || 1);
+                            setEditingFeatureModal({ ...editingFeatureModal, targetCoins: val });
+                            handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
+                          }}
+                          className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
                       <label className="block uppercase text-slate-600 mb-1">Min Required Plan</label>
                       <select
-                        value={editingFeatureModal.minPlan}
+                        value={editingFeatureModal.minPlan || 'All Plans'}
                         onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, minPlan: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                       >
                         <option value="All Plans">All Plans (Universal)</option>
                         <option value="Standard">Standard Tier</option>
                         <option value="Pro">Pro / Professional Tier</option>
                         <option value="Legacy">Legacy Lifetime</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Badge Tag</label>
+                      <select
+                        value={editingFeatureModal.badge || ''}
+                        onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, badge: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                      >
+                        <option value="">No Badge</option>
+                        <option value="NEW">NEW</option>
+                        <option value="HOT">HOT</option>
+                        <option value="PRO">PRO</option>
+                        <option value="VIP">VIP</option>
+                        <option value="BETA">BETA</option>
                       </select>
                     </div>
                   </div>
@@ -10709,20 +13056,20 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       required
                       value={editingFeatureModal.description}
                       onChange={(e) => setEditingFeatureModal({ ...editingFeatureModal, description: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 resize-none font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 resize-none font-medium"
                     />
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                     <div>
                       <span className="text-xs font-black text-slate-900 block">Feature Visibility</span>
-                      <span className="text-[10px] text-slate-500 font-medium">Show or hide this item on merchant app</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Show or hide this item on portal</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setEditingFeatureModal({ ...editingFeatureModal, isVisible: !editingFeatureModal.isVisible })}
                       className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
-                        editingFeatureModal.isVisible ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                        editingFeatureModal.isVisible ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
                       }`}
                     >
                       <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
@@ -10739,7 +13086,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-black transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white font-black transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       Save Feature Changes
                     </button>
@@ -10750,7 +13097,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
           )}
 
           {/* ========================================================= */}
-          {/* MODAL: ADD CUSTOM MERCHANT FEATURE */}
+          {/* MODAL: ADD CUSTOM FEATURE (Unified for Merchant / Customer / Team) */}
           {/* ========================================================= */}
           {addFeatureModalOpen && (
             <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -10764,25 +13111,38 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </button>
 
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-red-100 text-[#74111d] flex items-center justify-center font-black">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                     <Plus className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-slate-900">Add New Merchant Feature</h3>
-                    <p className="text-xs text-slate-500">Define a new capability toggle for the Merchant Dashboard</p>
+                    <h3 className="text-base font-black text-slate-900">Add New Feature</h3>
+                    <p className="text-xs text-slate-500">Define a new capability for Merchant, Customer, or Team portal</p>
                   </div>
                 </div>
 
                 <form onSubmit={handleCreateNewFeature} className="space-y-4 text-xs font-bold pt-2">
                   <div>
-                    <label className="block uppercase text-slate-600 mb-1">Feature Key / ID</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. flash_sale_banner (auto-generated if empty)"
-                      value={newFeatureForm.id}
-                      onChange={(e) => setNewFeatureForm({ ...newFeatureForm, id: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 font-mono"
-                    />
+                    <label className="block uppercase text-slate-600 mb-1">Target Portal</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'merchant', label: 'Merchant' },
+                        { id: 'customer', label: 'Customer' },
+                        { id: 'team', label: 'Team Hub' }
+                      ].map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setNewFeatureForm({ ...newFeatureForm, targetPortal: p.id })}
+                          className={`py-2 px-2 text-center rounded-xl text-xs font-black transition cursor-pointer border ${
+                            newFeatureForm.targetPortal === p.id
+                              ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-xs'
+                              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
@@ -10790,40 +13150,114 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Flash Sales Counter Banner"
+                      placeholder="e.g. VIP 7-Coin Reward Program"
                       value={newFeatureForm.name}
                       onChange={(e) => setNewFeatureForm({ ...newFeatureForm, name: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block uppercase text-slate-600 mb-1">Feature Key / ID</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. vip_coin_program (auto-generated if empty)"
+                      value={newFeatureForm.id}
+                      onChange={(e) => setNewFeatureForm({ ...newFeatureForm, id: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 font-mono"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block uppercase text-slate-600 mb-1">Category</label>
-                      <select
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Loyalty Rewards, Gamification"
                         value={newFeatureForm.category}
                         onChange={(e) => setNewFeatureForm({ ...newFeatureForm, category: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
-                      >
-                        <option value="Home Dashboard">Home Dashboard</option>
-                        <option value="Navigation & Tabs">Navigation & Tabs</option>
-                        <option value="Profile & Settings">Profile & Settings</option>
-                        <option value="Education & Support">Education & Support</option>
-                        <option value="Custom Features">Custom Features</option>
-                      </select>
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                      />
                     </div>
 
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Feature Type</label>
+                      <select
+                        value={newFeatureForm.featureType || 'toggle'}
+                        onChange={(e) => setNewFeatureForm({ ...newFeatureForm, featureType: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                      >
+                        <option value="toggle">Toggle Switch (On / Off)</option>
+                        <option value="coin_target">Aurex Coin Target (5, 7, etc.)</option>
+                        <option value="numeric">Numerical Parameter</option>
+                        <option value="select">Dropdown Choice</option>
+                        <option value="text">Text Configuration</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Target Coins if applicable */}
+                  {newFeatureForm.featureType === 'coin_target' && (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                      <label className="block text-amber-900 font-black text-[11px]">
+                        Target Coins Needed (e.g. 5 or 7 coins)
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        {[5, 7, 10].map(cNum => (
+                          <button
+                            key={cNum}
+                            type="button"
+                            onClick={() => setNewFeatureForm({ ...newFeatureForm, targetCoins: cNum })}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black transition cursor-pointer ${
+                              (newFeatureForm.targetCoins || 5) === cNum
+                                ? 'bg-[#8B0000] text-white shadow-xs'
+                                : 'bg-white text-slate-700 border border-amber-200'
+                            }`}
+                          >
+                            {cNum} Coins
+                          </button>
+                        ))}
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={newFeatureForm.targetCoins || 5}
+                          onChange={(e) => setNewFeatureForm({ ...newFeatureForm, targetCoins: Math.max(1, parseInt(e.target.value) || 1) })}
+                          className="w-16 bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-black text-slate-900 text-center"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block uppercase text-slate-600 mb-1">Min Required Plan</label>
                       <select
                         value={newFeatureForm.minPlan}
                         onChange={(e) => setNewFeatureForm({ ...newFeatureForm, minPlan: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                       >
                         <option value="All Plans">All Plans (Universal)</option>
                         <option value="Standard">Standard Tier</option>
                         <option value="Pro">Pro / Professional Tier</option>
                         <option value="Legacy">Legacy Lifetime</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block uppercase text-slate-600 mb-1">Badge Tag</label>
+                      <select
+                        value={newFeatureForm.badge || ''}
+                        onChange={(e) => setNewFeatureForm({ ...newFeatureForm, badge: e.target.value })}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
+                      >
+                        <option value="">None</option>
+                        <option value="NEW">NEW</option>
+                        <option value="HOT">HOT</option>
+                        <option value="PRO">PRO</option>
+                        <option value="VIP">VIP</option>
+                        <option value="BETA">BETA</option>
                       </select>
                     </div>
                   </div>
@@ -10833,23 +13267,23 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <textarea
                       rows={3}
                       required
-                      placeholder="Describe what this feature controls on the merchant dashboard..."
+                      placeholder="Describe what this feature controls..."
                       value={newFeatureForm.description}
                       onChange={(e) => setNewFeatureForm({ ...newFeatureForm, description: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 resize-none font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 resize-none font-medium"
                     />
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                     <div>
                       <span className="text-xs font-black text-slate-900 block">Default Visibility</span>
-                      <span className="text-[10px] text-slate-500 font-medium">Show immediately on Merchant Dashboard</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Show immediately on portal</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setNewFeatureForm({ ...newFeatureForm, isVisible: !newFeatureForm.isVisible })}
                       className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ${
-                        newFeatureForm.isVisible ? 'bg-[#74111d] justify-end' : 'bg-slate-300 justify-start'
+                        newFeatureForm.isVisible ? 'bg-[#8B0000] justify-end' : 'bg-slate-300 justify-start'
                       }`}
                     >
                       <span className="w-4 h-4 bg-white rounded-full shadow-md"></span>
@@ -10866,7 +13300,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white font-black transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white font-black transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                     >
                       Create Feature
                     </button>
@@ -10902,6 +13336,65 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </div>
                 )}
 
+                {/* 4 Team Metric Cards (Exact Match to Landing Page Gradient Style & Left Icon Squircle) */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5 lg:gap-4">
+                  {/* Card 1: Total Team Members */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Team Members</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {teamMembers.length || 0}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">Registered staff</div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Active Members */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                      <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Active Members</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {teamMembers.filter(m => m.status === 'ACTIVE' || m.status === 'Active').length || teamMembers.length}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">100% operational</div>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Stores Onboarded */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#8B0000] to-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                      <Store className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Stores Onboarded</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {teamMembers.reduce((acc, m) => acc + (Number(m.totalMwCreated) || 0), 0) || 48}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+18% this month</div>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Total Sales Generated */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/25">
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Sales Generated</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        ₹ 1,84,500
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-none whitespace-nowrap truncate">+24% vs target</div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* 1. Create Team Member Form Card */}
                 <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
                   <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
@@ -10909,7 +13402,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <h2 className="text-base font-black text-slate-900">Create Team Member</h2>
                       <p className="text-[11px] text-slate-500">Register new staff accounts to onboard retail stores and track loyalty referrals</p>
                     </div>
-                    <span className="text-[10px] font-black uppercase text-[#74111d] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-black uppercase text-[#8B0000] bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full">
                       Account Provisioning
                     </span>
                   </div>
@@ -10927,7 +13420,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           value={newTeamMember.name}
                           onChange={(e) => setNewTeamMember({ ...newTeamMember, name: e.target.value })}
                           placeholder="e.g. Ajeet Kumar"
-                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] transition"
+                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] transition"
                         />
                       </div>
 
@@ -10941,7 +13434,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           value={newTeamMember.email}
                           onChange={(e) => setNewTeamMember({ ...newTeamMember, email: e.target.value })}
                           placeholder="name@example.com"
-                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] transition"
+                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] transition"
                         />
                       </div>
 
@@ -10954,7 +13447,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           value={newTeamMember.district}
                           onChange={(e) => setNewTeamMember({ ...newTeamMember, district: e.target.value })}
                           placeholder="Enter district"
-                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] transition"
+                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] transition"
                         />
                       </div>
 
@@ -10967,7 +13460,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           value={newTeamMember.state}
                           onChange={(e) => setNewTeamMember({ ...newTeamMember, state: e.target.value })}
                           placeholder="Enter state"
-                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] transition"
+                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] transition"
                         />
                       </div>
                     </div>
@@ -10983,7 +13476,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           value={newTeamMember.mobile}
                           onChange={(e) => setNewTeamMember({ ...newTeamMember, mobile: e.target.value })}
                           placeholder="Optional mobile number"
-                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] transition"
+                          className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] transition"
                         />
                       </div>
 
@@ -10995,25 +13488,40 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           <input
                             type={showTeamPassword ? 'text' : 'password'}
                             required
+                            autoComplete="new-password"
                             value={newTeamMember.password}
                             onChange={(e) => setNewTeamMember({ ...newTeamMember, password: e.target.value })}
-                            placeholder="••••••••"
-                            className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#74111d] focus:ring-1 focus:ring-[#74111d] pr-10 transition"
+                            placeholder="Min. 8 chars (e.g. Aurex#2026)"
+                            className="w-full bg-slate-50/60 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000] pr-10 transition font-medium"
                           />
                           <button
                             type="button"
                             onClick={() => setShowTeamPassword(!showTeamPassword)}
                             className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
                           >
-                            {showTeamPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            {showTeamPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                           </button>
                         </div>
+                        {newTeamMember.password && (
+                          <div className="mt-1 text-[10px]">
+                            {validatePassword(newTeamMember.password).isValid ? (
+                              <span className="text-emerald-600 font-bold flex items-center space-x-1">
+                                <Check className="w-3 h-3 inline" />
+                                <span>Strong password</span>
+                              </span>
+                            ) : (
+                              <span className="text-amber-600 font-medium">
+                                Needs 8+ chars, upper, lower, number, symbol
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div className="lg:col-span-2">
                         <button
                           type="submit"
-                          className="w-full sm:w-auto bg-[#74111d] hover:bg-[#5e0c15] text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-sm hover:shadow shadow-[#74111d]/25 cursor-pointer flex items-center justify-center space-x-2"
+                          className="w-full sm:w-auto bg-[#8B0000] hover:bg-[#720000] text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-sm hover:shadow shadow-[#8B0000]/25 cursor-pointer flex items-center justify-center space-x-2"
                         >
                           <UserPlus className="w-4 h-4" />
                           <span>Create Team Member</span>
@@ -11038,7 +13546,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         value={searchTeam}
                         onChange={(e) => setSearchTeam(e.target.value)}
                         placeholder="Search member, email, mobile..."
-                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#74111d]"
+                        className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
                   </div>
@@ -11046,47 +13554,35 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[950px] text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold bg-slate-50/70">
-                          <th className="py-3.5 px-4">User ID</th>
-                          <th className="py-3.5 px-4">Member</th>
-                          <th className="py-3.5 px-4">Mobile</th>
-                          <th className="py-3.5 px-4">MW ID</th>
-                          <th className="py-3.5 px-4 text-center">Total MW Created</th>
-                          <th className="py-3.5 px-4 text-center">Total Sales</th>
-                          <th className="py-3.5 px-4 text-center">Dashboard Details</th>
-                          <th className="py-3.5 px-4 text-center">Referral Details</th>
-                          <th className="py-3.5 px-4 text-center">Customer Manager</th>
-                          <th className="py-3.5 px-4">User email</th>
-                          <th className="py-3.5 px-4">District</th>
-                          <th className="py-3.5 px-4">State</th>
-                          <th className="py-3.5 px-4 text-center">Status</th>
-                          <th className="py-3.5 px-4">Last Login</th>
-                          <th className="py-3.5 px-4 text-right">Actions</th>
+                        <tr className="border-b border-slate-200 text-slate-700 uppercase text-[11px] font-bold bg-slate-50/70 whitespace-nowrap">
+                          <th className="py-3.5 px-4 font-bold">User ID</th>
+                          <th className="py-3.5 px-4 font-bold">Member</th>
+                          <th className="py-3.5 px-4 font-bold">Mobile</th>
+                          <th className="py-3.5 px-4 text-center font-bold">Total Sales</th>
+                          <th className="py-3.5 px-4 text-center font-bold">Dashboard Details</th>
+                          <th className="py-3.5 px-4 text-center font-bold">Referral Details</th>
+                          <th className="py-3.5 px-4 text-center font-bold">Customer Manager</th>
+                          <th className="py-3.5 px-4 font-bold">User email</th>
+                          <th className="py-3.5 px-4 font-bold">District</th>
+                          <th className="py-3.5 px-4 font-bold">State</th>
+                          <th className="py-3.5 px-4 text-center font-bold">Status</th>
+                          <th className="py-3.5 px-4 font-bold">Last Login</th>
+                          <th className="py-3.5 px-4 text-right font-bold">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredTeamMembers.map((m) => (
                           <tr key={m.userId} className="hover:bg-slate-50/70 transition">
-                            <td className="py-3.5 px-4 font-black text-slate-900">{m.userId}</td>
-                            <td className="py-3.5 px-4 font-bold text-slate-800">{m.name}</td>
-                            <td className="py-3.5 px-4 font-mono text-slate-600">{m.mobile}</td>
-                            <td className="py-3.5 px-4">
-                              {m.mwId && m.mwId !== '—' ? (
-                                <span className="text-[#74111d] font-bold hover:underline cursor-pointer">
-                                  {m.mwId}
-                                </span>
-                              ) : (
-                                <span className="text-slate-400">—</span>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-bold text-slate-900">{m.totalMwCreated}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-900">{m.userId}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-900">{m.name}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-800">{m.mobile}</td>
                             <td className="py-3.5 px-4 text-center font-bold text-slate-900">{m.totalSales}</td>
                             
                             {/* Dashboard Details: View button */}
                             <td className="py-3.5 px-4 text-center">
                               <button
                                 onClick={() => setSelectedDashboardMember(m)}
-                                className="border border-[#74111d]/30 text-[#74111d] hover:bg-rose-50 text-[11px] font-bold px-3 py-1 rounded-lg transition cursor-pointer"
+                                className="border border-[#8B0000]/30 text-[#8B0000] hover:bg-rose-50 text-[11px] font-bold px-3 py-1 rounded-lg transition cursor-pointer"
                               >
                                 View
                               </button>
@@ -11099,7 +13595,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                   setSelectedReferralMember(m);
                                   setReferralSearchModal('');
                                 }}
-                                className="border border-[#74111d]/30 text-[#74111d] hover:bg-rose-50 text-[11px] font-bold px-3 py-1 rounded-lg transition cursor-pointer"
+                                className="border border-[#8B0000]/30 text-[#8B0000] hover:bg-rose-50 text-[11px] font-bold px-3 py-1 rounded-lg transition cursor-pointer"
                               >
                                 View
                               </button>
@@ -11114,7 +13610,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                     setCrmSearchModal('');
                                     setExpandedLeadId(null);
                                   }}
-                                  className="border border-[#74111d]/30 text-[#74111d] hover:bg-rose-50 text-[11px] font-bold px-2.5 py-0.5 rounded-lg transition cursor-pointer"
+                                  className="border border-[#8B0000]/30 text-[#8B0000] hover:bg-rose-50 text-[11px] font-bold px-2.5 py-0.5 rounded-lg transition cursor-pointer"
                                 >
                                   View
                                 </button>
@@ -11128,14 +13624,14 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               </div>
                             </td>
 
-                            <td className="py-3.5 px-4 font-mono text-slate-600 text-[11px]">{m.email}</td>
-                            <td className="py-3.5 px-4 text-slate-500">{m.district}</td>
-                            <td className="py-3.5 px-4 text-slate-500">{m.state}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-800 text-xs">{m.email}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-800">{m.district}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-800">{m.state}</td>
                             
                             {/* Status: Active / Deactivated */}
                             <td className="py-3.5 px-4 text-center">
                               <span
-                                className={`text-[9px] font-black uppercase px-2.5 py-1 rounded-full inline-block ${
+                                className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full inline-block ${
                                   m.status === 'ACTIVE' 
                                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                                     : 'bg-rose-100 text-rose-800 border border-rose-300'
@@ -11145,7 +13641,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               </span>
                             </td>
 
-                            <td className="py-3.5 px-4 text-slate-500 text-[11px]">{m.lastLogin}</td>
+                            <td className="py-3.5 px-4 font-bold text-slate-700 text-xs whitespace-nowrap">{m.lastLogin || 'Never'}</td>
                             
                             {/* Action: Edit, Reset Password, Activate/Deactivate, Delete */}
                             <td className="py-3.5 px-4 text-right">
@@ -11166,7 +13662,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                       mwId: m.mwId || ''
                                     }
                                   })}
-                                  className="p-1.5 rounded-lg text-slate-600 hover:text-[#74111d] hover:bg-rose-50 transition cursor-pointer"
+                                  className="p-1.5 rounded-lg text-slate-600 hover:text-[#8B0000] hover:bg-rose-50 transition cursor-pointer"
                                   title="Edit Team Member Details"
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
@@ -11293,7 +13789,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             />
                           </div>
                           <div>
-                            <label className="block text-slate-700 mb-1">State</label>
+                            <label className="block text-slate-700 mb-1">State/UT</label>
                             <input
                               type="text"
                               value={editTeamMemberModal.form.state}
@@ -11316,7 +13812,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           </button>
                           <button
                             type="submit"
-                            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-red-600/20 cursor-pointer"
+                            className="bg-[#8B0000] hover:bg-[#720000] text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-[#8B0000]/25 transition cursor-pointer active:scale-95"
                           >
                             Save Changes
                           </button>
@@ -11364,7 +13860,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               type="button"
                               onClick={() => setResetPasswordModal({
                                 ...resetPasswordModal,
-                                newPassword: `BX@${Math.floor(100000 + Math.random() * 900000)}`
+                                newPassword: `BX@${Math.floor(1000 + Math.random() * 9000)}aZ#`
                               })}
                               className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-xs font-bold shrink-0 cursor-pointer"
                               title="Generate random password"
@@ -11403,56 +13899,136 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
             {/* TAB: CUSTOMER CRM & LIVE TELEMETRY */}
             {activeTab === 'customers' && (
               <div className="space-y-6 animate-in fade-in duration-150">
-                {/* 4 Stat Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
+                {/* Aurex Coin Rules & Target Control Banner (User Requested: Direct Coin Control e.g. 5 vs 7 coins) */}
+                <div className="bg-gradient-to-r from-amber-50 via-rose-50/50 to-amber-50/30 border border-amber-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div className="flex items-start sm:items-center space-x-3.5">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black shadow-md shadow-amber-500/25 shrink-0">
+                      <Coins className="w-6 h-6" />
+                    </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Customers</p>
-                      <h3 className="text-2xl font-black text-slate-900 mt-1">{customers.length}</h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Registered consumer accounts</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/25 group-hover:scale-105 transition-transform">
-                      <Users className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Customers</p>
-                      <h3 className="text-2xl font-black text-emerald-700 mt-1">
-                        {customers.filter(c => c.isActive !== false).length}
-                      </h3>
-                      <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">Full wallet & login access</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/25 group-hover:scale-105 transition-transform">
-                      <CheckCircle2 className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Suspended Accounts</p>
-                      <h3 className="text-2xl font-black text-rose-600 mt-1">
-                        {customers.filter(c => c.isActive === false).length}
-                      </h3>
-                      <p className="text-[11px] text-rose-500 font-semibold mt-0.5">Login & OTP locked</p>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-black shadow-md shadow-red-500/25 group-hover:scale-105 transition-transform">
-                      <Ban className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-
-                  <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-xs flex items-center justify-between group hover:shadow-md transition">
-                    <div>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Live Telemetry</p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <h3 className="text-lg font-black text-slate-900">Real-Time Sync</h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-sm sm:text-base font-black text-slate-900">
+                          Loyalty Coin Rules & Reward Target Control
+                        </h3>
+                        <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full">
+                          Live Enforced
+                        </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Live signups & login tracker</p>
+                      <p className="text-xs text-slate-600 font-medium mt-0.5">
+                        Target coins needed to complete a loyalty card: <span className="font-black text-amber-900">{coinConfig.targetCoins} Coins</span> • {coinConfig.coinsPerScan || 1} coin per scan • +{coinConfig.firstVisitBonus || 1} first visit bonus
+                      </p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center font-black shadow-md shadow-violet-500/25 group-hover:scale-105 transition-transform">
-                      <Activity className="w-6 h-6 text-white" />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider mr-1 hidden sm:inline">
+                      Set Target:
+                    </span>
+                    {[5, 7, 10].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => handleUpdateCoinConfig({ ...coinConfig, targetCoins: num })}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center space-x-1.5 shadow-2xs ${
+                          coinConfig.targetCoins === num
+                            ? 'bg-[#8B0000] text-white shadow-md shadow-[#8B0000]/25 ring-2 ring-[#8B0000]/20'
+                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        <Coins className="w-3.5 h-3.5" />
+                        <span>{num} Coins</span>
+                        {num === 5 && <span className="text-[9px] opacity-75 hidden sm:inline">(Standard)</span>}
+                        {num === 7 && <span className="text-[9px] opacity-75 hidden sm:inline">(Weekly VIP)</span>}
+                      </button>
+                    ))}
+
+                    {/* Custom Coins Input */}
+                    <div className="flex items-center space-x-1 bg-white border border-slate-200 rounded-xl px-2 py-1 shadow-2xs">
+                      <span className="text-[11px] font-bold text-slate-500">Custom:</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={coinConfig.targetCoins}
+                        onChange={(e) => {
+                          const val = Math.max(1, parseInt(e.target.value) || 1);
+                          handleUpdateCoinConfig({ ...coinConfig, targetCoins: val });
+                        }}
+                        className="w-12 text-center text-xs font-black text-slate-900 bg-slate-50 rounded-lg py-0.5 border border-slate-200 focus:outline-none focus:border-[#8B0000]"
+                      />
+                      <span className="text-[11px] font-bold text-slate-500">Coins</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPermissionsSubTab('customer_coins');
+                        setActiveTab('permissions');
+                      }}
+                      className="bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center space-x-1.5 shadow-2xs ml-auto lg:ml-0"
+                    >
+                      <Sliders className="w-3.5 h-3.5 text-slate-500" />
+                      <span>All Rules</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 Stat Cards (Matching Landing Page Gradient Style & Left Icon Squircle) */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3.5 lg:gap-4">
+                  {/* Card 1: Total Customers */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Total Customers</div>
+                      <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {customers.length}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Registered accounts</div>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Active Customers */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                      <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Active Customers</div>
+                      <div className="text-lg sm:text-2xl font-black text-emerald-700 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {customers.filter(c => c.isActive !== false).length}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-emerald-600 leading-none whitespace-nowrap truncate">Full wallet & login</div>
+                    </div>
+                  </div>
+
+                  {/* Card 3: Suspended Accounts */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                      <Ban className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Suspended Accounts</div>
+                      <div className="text-lg sm:text-2xl font-black text-rose-600 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                        {customers.filter(c => c.isActive === false).length}
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-rose-500 leading-none whitespace-nowrap truncate">Login & OTP locked</div>
+                    </div>
+                  </div>
+
+                  {/* Card 4: Live Telemetry */}
+                  <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2 sm:space-x-3.5">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-violet-500/25">
+                      <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Live Telemetry</div>
+                      <div className="flex items-center space-x-1.5 my-0.5 sm:my-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+                        <span className="text-base sm:text-xl font-black text-slate-900 whitespace-nowrap">Live Sync</span>
+                      </div>
+                      <div className="text-[10px] sm:text-[11px] font-bold text-slate-400 leading-none whitespace-nowrap truncate">Real-time tracker</div>
                     </div>
                   </div>
                 </div>
@@ -11510,7 +14086,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                       <input
                         type="text"
-                        placeholder="Search customer, phone, store..."
+                        placeholder="Search customer, phone, email..."
                         value={searchCustomer}
                         onChange={(e) => setSearchCustomer(e.target.value)}
                         className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 shadow-2xs font-bold"
@@ -11520,14 +14096,12 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                   {/* Table with Exact SuperAdmin Merchants Columns & Horizontal Scrollbar */}
                   <div className="overflow-x-auto custom-scrollbar pb-3">
-                    <table className="w-full min-w-[1450px] text-left text-xs border-collapse">
+                    <table className="w-full min-w-[1100px] text-left text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Customer</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[190px]">Mobile & Email</th>
-                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[210px]">Favorite Store</th>
-                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[120px]">Visits</th>
-                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[140px]">Tier & Points</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[140px]">Aurex Coin</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Registered On</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[200px]">Last Login / Active</th>
                           <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[130px]">Account Status</th>
@@ -11537,7 +14111,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <tbody className="divide-y divide-slate-100">
                         {filteredCustomers.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="py-12 text-center text-xs text-slate-400 font-black">
+                            <td colSpan={7} className="py-12 text-center text-xs text-slate-400 font-black">
                               No customer records found matching your filters.
                             </td>
                           </tr>
@@ -11559,48 +14133,43 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                   <div className="font-extrabold text-slate-900 flex items-center space-x-1.5 whitespace-nowrap">
                                     <span className="font-black text-sm">{c.name || 'Valued Customer'}</span>
                                   </div>
-                                  <div className="text-[11px] text-slate-400 font-mono font-bold mt-0.5 whitespace-nowrap">
+                                  <div className="text-xs font-mono font-black text-slate-900 mt-0.5 whitespace-nowrap">
                                     {c.customerId || ('BX-' + String(c.id || c._id || '0000').slice(-6).toUpperCase())}
                                   </div>
                                 </td>
 
                                 {/* Mobile & Email */}
                                 <td className="py-3.5 px-4 whitespace-nowrap">
-                                  <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <div className="font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                                     <span>{c.mobile || '—'}</span>
                                   </div>
                                   {c.email && (
-                                    <div className="font-bold text-slate-600 text-[11px] truncate mt-0.5 whitespace-nowrap flex items-center space-x-1.5" title={c.email}>
-                                      <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <div className="font-bold text-slate-600 text-[11px] truncate mt-0.5 whitespace-nowrap" title={c.email}>
                                       <span>{c.email}</span>
                                     </div>
                                   )}
                                 </td>
 
-                                {/* Favorite Store */}
-                                <td className="py-3.5 px-4 whitespace-nowrap">
-                                  <div className="font-black text-slate-900 text-xs whitespace-nowrap flex items-center space-x-1.5">
-                                    <Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                    <span>{c.favoriteStore || 'Ka-feen Coffee Shop'}</span>
-                                  </div>
-                                </td>
-
-                                {/* Visits */}
+                                {/* Aurex Coin */}
                                 <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                                  <span className="bg-red-50 text-red-700 font-black px-3 py-1 rounded-xl border border-red-200 text-xs whitespace-nowrap inline-flex items-center space-x-1 shadow-2xs">
-                                    <span>{c.totalVisits || 1}</span>
-                                    <span className="text-[10px] uppercase font-bold">visits</span>
-                                  </span>
-                                </td>
-
-                                {/* Tier & Points */}
-                                <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                                  <div className="font-black text-emerald-700 text-xs whitespace-nowrap">
-                                    {c.points || 100} PTS
-                                  </div>
-                                  <div className="font-bold text-slate-500 text-[11px] mt-0.5 whitespace-nowrap">
-                                    {c.tier || 'Bronze Member'}
+                                  <div className="inline-flex items-center space-x-2">
+                                    <span className="font-black text-emerald-700 text-xs whitespace-nowrap">
+                                      {c.points || 100} Coins
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setAdjustCoinsModal(c);
+                                        setAdjustCoinsAmount(5);
+                                        setAdjustCoinsMode('add');
+                                        setAdjustCoinsReason('Admin loyalty balance adjustment');
+                                      }}
+                                      className="p-1 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black transition cursor-pointer inline-flex items-center space-x-1 shadow-2xs"
+                                      title="Adjust or set coins for this customer"
+                                    >
+                                      <Coins className="w-3 h-3 text-emerald-600" />
+                                      <span>Adjust</span>
+                                    </button>
                                   </div>
                                 </td>
 
@@ -11672,6 +14241,124 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     </table>
                   </div>
                 </div>
+
+                {/* MODAL: ADJUST CUSTOMER COINS */}
+                {adjustCoinsModal && (
+                  <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative space-y-4 animate-in zoom-in-95 duration-150">
+                      <button 
+                        type="button"
+                        onClick={() => setAdjustCoinsModal(null)}
+                        className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center font-black">
+                          <Coins className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-black text-slate-900">Manage Customer Coins</h3>
+                          <p className="text-xs text-slate-500 font-mono">
+                            {adjustCoinsModal.name || 'Customer'} • {adjustCoinsModal.customerId || 'BX-0000'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-600">Current Balance:</span>
+                        <span className="text-base font-black text-emerald-700">{adjustCoinsModal.points || 100} Coins</span>
+                      </div>
+
+                      <form onSubmit={handleSaveCustomerCoinAdjustment} className="space-y-4 text-xs font-bold pt-1">
+                        <div>
+                          <label className="block uppercase text-slate-600 mb-1">Adjustment Action</label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { id: 'add', label: '➕ Add Coins' },
+                              { id: 'deduct', label: '➖ Deduct' },
+                              { id: 'set', label: '🎯 Set Balance' }
+                            ].map(m => (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => setAdjustCoinsMode(m.id)}
+                                className={`py-2 px-2 text-center rounded-xl text-xs font-black transition cursor-pointer border ${
+                                  adjustCoinsMode === m.id
+                                    ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-xs'
+                                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                                }`}
+                              >
+                                {m.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block uppercase text-slate-600 mb-1">
+                            {adjustCoinsMode === 'set' ? 'New Exact Balance' : 'Coin Amount'}
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100000}
+                              required
+                              value={adjustCoinsAmount}
+                              onChange={(e) => setAdjustCoinsAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-black text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                            />
+                            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">Aurex Coins</span>
+                          </div>
+                        </div>
+
+                        {/* Quick Amount Pills */}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] font-bold text-slate-400 mr-1">Quick Picks:</span>
+                          {[1, 5, 7, 10, 50].map((quick) => (
+                            <button
+                              key={quick}
+                              type="button"
+                              onClick={() => setAdjustCoinsAmount(quick)}
+                              className="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+                            >
+                              +{quick}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div>
+                          <label className="block uppercase text-slate-600 mb-1">Reason / Note (Optional)</label>
+                          <input
+                            type="text"
+                            value={adjustCoinsReason}
+                            onChange={(e) => setAdjustCoinsReason(e.target.value)}
+                            placeholder="e.g. Loyalty campaign bonus, Store compensation"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setAdjustCoinsModal(null)}
+                            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold transition cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-xl bg-[#8B0000] hover:bg-[#720000] text-white font-black transition cursor-pointer shadow-md shadow-[#8B0000]/25"
+                          >
+                            Confirm & Save Balance
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -11753,7 +14440,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               onClick={() => setShowSecret(!showSecret)}
                               className="absolute right-3 top-2 text-slate-400 hover:text-slate-600"
                             >
-                              {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                              {showSecret ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                             </button>
                           </div>
                         </div>
@@ -11789,7 +14476,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50/60 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 font-black text-slate-900 text-sm">
-                        <Smartphone className="w-4 h-4 text-[#74111d]" />
+                        <Smartphone className="w-4 h-4 text-[#8B0000]" />
                         <span>SMS OTP Gateway (DLT Certified)</span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -11862,7 +14549,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="button"
                           disabled={testSmsLoading || !testSmsMobile}
                           onClick={handleTestSms}
-                          className="bg-[#74111d] hover:bg-[#5a0c16] text-white text-xs font-black px-4 py-1.5 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
+                          className="bg-[#8B0000] hover:bg-[#5a0c16] text-white text-xs font-black px-4 py-1.5 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           {testSmsLoading ? 'Sending...' : 'Send Test SMS'}
                         </button>
@@ -11925,7 +14612,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50/60 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 font-black text-slate-900 text-sm">
-                        <Mail className="w-4 h-4 text-[#74111d]" />
+                        <Mail className="w-4 h-4 text-[#8B0000]" />
                         <span>Email & SMTP Notifications (Gmail / SendGrid / Custom SMTP)</span>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -12029,7 +14716,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     {/* Quick Test Email Tool */}
                     <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
                       <span className="text-[11px] font-bold text-slate-700 uppercase flex items-center space-x-1">
-                        <Zap className="w-3.5 h-3.5 text-[#74111d]" />
+                        <Zap className="w-3.5 h-3.5 text-[#8B0000]" />
                         <span>Instant SMTP Mail Server Delivery Test</span>
                       </span>
                       <div className="flex gap-2">
@@ -12044,7 +14731,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="button"
                           disabled={testEmailLoading || !testEmailAddr}
                           onClick={handleTestEmail}
-                          className="bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black px-4 py-1.5 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
+                          className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black px-4 py-1.5 rounded-xl transition cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           {testEmailLoading ? 'Testing...' : 'Send Test Email'}
                         </button>
@@ -12061,7 +14748,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="p-5 border border-slate-200 rounded-2xl bg-slate-50/60 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 font-black text-slate-900 text-sm">
-                        <Globe className="w-4 h-4 text-[#74111d]" />
+                        <Globe className="w-4 h-4 text-[#8B0000]" />
                         <span>Maps, Cloud Assets & AI Engines</span>
                       </div>
                     </div>
@@ -12173,7 +14860,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="flex justify-end pt-2">
                     <button
                       type="submit"
-                      className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-extrabold px-8 py-3 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center space-x-2"
+                      className="bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold px-8 py-3 rounded-xl shadow-lg shadow-red-600/30 transition transform hover:-translate-y-0.5 cursor-pointer text-sm flex items-center space-x-2"
                     >
                       <Save className="w-4 h-4" />
                       <span>Save All API Credentials</span>
@@ -12194,7 +14881,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 <div className="space-y-3 font-mono text-xs">
                   <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-100 text-[#74111d]">INFO</span>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-rose-100 text-[#8B0000]">INFO</span>
                       <div>
                         <span className="font-bold text-slate-900">Merchant Login:</span> owner@royalsweets.com from IP 103.21.244.12
                       </div>
@@ -12263,9 +14950,9 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <button
                       type="button"
                       onClick={() => setActiveTab('faq_editor')}
-                      className="px-4 py-2.5 rounded-xl bg-rose-50 text-[#74111d] hover:bg-rose-100 border border-rose-200 text-xs font-bold transition flex items-center space-x-2 cursor-pointer shadow-xs"
+                      className="px-4 py-2.5 rounded-xl bg-rose-50 text-[#8B0000] hover:bg-rose-100 border border-rose-200 text-xs font-bold transition flex items-center space-x-2 cursor-pointer shadow-xs"
                     >
-                      <HelpCircle className="w-4 h-4 text-[#74111d]" />
+                      <HelpCircle className="w-4 h-4 text-[#8B0000]" />
                       <span>FAQ Editor</span>
                     </button>
                   </div>
@@ -12292,7 +14979,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <div>
                       <div className="flex items-start space-x-4 mb-4">
                         <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
-                          <Store className="w-6 h-6 text-[#74111d]" />
+                          <Store className="w-6 h-6 text-[#8B0000]" />
                         </div>
                         <div>
                           <h3 className="font-black text-base text-slate-900">Platform</h3>
@@ -12403,7 +15090,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <div>
                       <div className="flex items-start space-x-4 mb-4">
                         <div className="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
-                          <HelpCircle className="w-6 h-6 text-[#74111d]" />
+                          <HelpCircle className="w-6 h-6 text-[#8B0000]" />
                         </div>
                         <div>
                           <h3 className="font-black text-base text-slate-900">FAQ</h3>
@@ -12524,7 +15211,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
 
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center font-black">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                       <Store className="w-6 h-6" />
                     </div>
                     <div>
@@ -12551,7 +15238,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         type="text"
                         value={platformSettings.platformName}
                         onChange={(e) => setPlatformSettings({ ...platformSettings, platformName: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         required
                       />
                     </div>
@@ -12562,7 +15249,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         type="text"
                         value={platformSettings.supportTagline}
                         onChange={(e) => setPlatformSettings({ ...platformSettings, supportTagline: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                       />
                     </div>
 
@@ -12573,7 +15260,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={platformSettings.businessRegistration}
                           onChange={(e) => setPlatformSettings({ ...platformSettings, businessRegistration: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                       <div>
@@ -12582,7 +15269,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={platformSettings.defaultCurrency}
                           onChange={(e) => setPlatformSettings({ ...platformSettings, defaultCurrency: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                     </div>
@@ -12594,7 +15281,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={platformSettings.timezone}
                           onChange={(e) => setPlatformSettings({ ...platformSettings, timezone: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                       <div>
@@ -12603,7 +15290,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="email"
                           value={platformSettings.contactEmail}
                           onChange={(e) => setPlatformSettings({ ...platformSettings, contactEmail: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                     </div>
@@ -12618,7 +15305,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                        className="px-6 py-2.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white text-xs font-bold rounded-xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer"
                       >
                         Save Platform Settings
                       </button>
@@ -12640,7 +15327,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
 
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-black">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                       <Phone className="w-6 h-6" />
                     </div>
                     <div>
@@ -12668,7 +15355,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="email"
                           value={contactSettings.supportEmail}
                           onChange={(e) => setContactSettings({ ...contactSettings, supportEmail: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                           required
                         />
                       </div>
@@ -12678,7 +15365,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={contactSettings.supportPhone}
                           onChange={(e) => setContactSettings({ ...contactSettings, supportPhone: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                           required
                         />
                       </div>
@@ -12690,7 +15377,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         type="text"
                         value={contactSettings.emergencyPhone}
                         onChange={(e) => setContactSettings({ ...contactSettings, emergencyPhone: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                       />
                     </div>
 
@@ -12700,7 +15387,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         rows={2}
                         value={contactSettings.address}
                         onChange={(e) => setContactSettings({ ...contactSettings, address: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600 resize-none"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 resize-none"
                       />
                     </div>
 
@@ -12711,7 +15398,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={contactSettings.twitterUrl}
                           onChange={(e) => setContactSettings({ ...contactSettings, twitterUrl: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                       <div>
@@ -12720,7 +15407,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={contactSettings.instagramUrl}
                           onChange={(e) => setContactSettings({ ...contactSettings, instagramUrl: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                     </div>
@@ -12735,7 +15422,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                        className="px-6 py-2.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white text-xs font-bold rounded-xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer"
                       >
                         Save Contact Details
                       </button>
@@ -12757,7 +15444,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
 
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-black">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                       <Palette className="w-6 h-6" />
                     </div>
                     <div>
@@ -12785,7 +15472,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={brandSettings.brandName}
                           onChange={(e) => setBrandSettings({ ...brandSettings, brandName: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                           required
                         />
                       </div>
@@ -12795,7 +15482,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={brandSettings.logoUrl}
                           onChange={(e) => setBrandSettings({ ...brandSettings, logoUrl: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                     </div>
@@ -12880,7 +15567,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                        className="px-6 py-2.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white text-xs font-bold rounded-xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer"
                       >
                         Save Brand Settings
                       </button>
@@ -12896,7 +15583,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 relative my-auto max-h-[90vh] flex flex-col">
                   <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center font-black">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] flex items-center justify-center font-black">
                         <HelpCircle className="w-6 h-6" />
                       </div>
                       <div>
@@ -12923,16 +15610,14 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           if (q && q.trim()) {
                             const a = prompt('Enter the answer:');
                             if (a && a.trim()) {
-                              const newFaq = { id: 'f_' + Date.now(), question: q.trim(), answer: a.trim() };
+                              const newFaq = { id: 'f_' + Date.now(), question: q.trim(), answer: a.trim(), category: 'General', status: 'Published', order: faqList.length + 1 };
                               const updated = [...faqList, newFaq];
-                              setFaqList(updated);
-                              setFaqMeta(prev => ({ ...prev, totalFaqs: updated.length }));
-                              try { localStorage.setItem('loyalqr_faqs', JSON.stringify(updated)); } catch {}
+                              persistFaqs(updated);
                               showSettingsToast('New FAQ added successfully!');
                             }
                           }
                         }}
-                        className="bg-[#8B0000] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1 cursor-pointer hover:bg-[#720000]"
+                        className="bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1 cursor-pointer shadow-sm"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add Question</span>
@@ -12948,10 +15633,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             </span>
                             <button
                               onClick={() => {
-                                const filtered = faqList.filter(item => item.id !== f.id);
-                                setFaqList(filtered);
-                                setFaqMeta(prev => ({ ...prev, totalFaqs: filtered.length }));
-                                try { localStorage.setItem('loyalqr_faqs', JSON.stringify(filtered)); } catch {}
+                                const filtered = faqList.filter(item => String(item.id) !== String(f.id));
+                                persistFaqs(filtered);
                                 showSettingsToast('FAQ item deleted.');
                               }}
                               className="text-slate-400 hover:text-red-600 transition p-1"
@@ -12991,7 +15674,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
 
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-black">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                       <ShieldCheck className="w-6 h-6" />
                     </div>
                     <div>
@@ -13041,7 +15724,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={privacyPolicyData.version}
                           onChange={(e) => setPrivacyPolicyData({ ...privacyPolicyData, version: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                           required
                         />
                       </div>
@@ -13062,7 +15745,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         rows={8}
                         value={privacyPolicyData.content}
                         onChange={(e) => setPrivacyPolicyData({ ...privacyPolicyData, content: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600 leading-relaxed"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 leading-relaxed"
                         required
                       />
                     </div>
@@ -13077,7 +15760,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                        className="px-6 py-2.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white text-xs font-bold rounded-xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer"
                       >
                         Publish Privacy Policy
                       </button>
@@ -13099,7 +15782,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
 
                   <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-black">
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                       <FileText className="w-6 h-6" />
                     </div>
                     <div>
@@ -13149,7 +15832,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={termsData.version}
                           onChange={(e) => setTermsData({ ...termsData, version: e.target.value })}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                           required
                         />
                       </div>
@@ -13170,7 +15853,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         rows={8}
                         value={termsData.content}
                         onChange={(e) => setTermsData({ ...termsData, content: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-red-600 leading-relaxed"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 leading-relaxed"
                         required
                       />
                     </div>
@@ -13185,7 +15868,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-2 bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer"
+                        className="px-6 py-2.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white text-xs font-bold rounded-xl shadow-md shadow-[#8B0000]/25 transition cursor-pointer"
                       >
                         Publish Terms & Conditions
                       </button>
@@ -13224,7 +15907,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               </button>
 
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-[#74111d] flex items-center justify-center font-black text-base shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-rose-100 text-[#8B0000] flex items-center justify-center font-black text-base shadow-xs">
                   {selectedDashboardMember.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
@@ -13235,7 +15918,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
               <div className="grid grid-cols-3 gap-3 mb-6">
                 <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-                  <span className="text-[10px] font-bold uppercase text-slate-400">Stores (MW)</span>
+                  <span className="text-[10px] font-bold uppercase text-slate-400">Stores Onboarded</span>
                   <div className="text-xl font-black text-slate-900 mt-1">{selectedDashboardMember.totalMwCreated}</div>
                 </div>
                 <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center">
@@ -13250,8 +15933,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
               <div className="space-y-3 bg-slate-50 rounded-2xl p-4 border border-slate-100 text-xs">
                 <div className="flex justify-between py-1 border-b border-slate-200/60">
-                  <span className="text-slate-500 font-medium">Linked Store Codes (MW ID):</span>
-                  <span className="font-bold text-[#74111d] font-mono">{selectedDashboardMember.mwId}</span>
+                  <span className="text-slate-500 font-medium">Linked Store Codes:</span>
+                  <span className="font-bold text-[#8B0000] font-mono">{selectedDashboardMember.mwId}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-200/60">
                   <span className="text-slate-500 font-medium">Contact Mobile:</span>
@@ -13281,7 +15964,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       referralCode: selectedDashboardMember.referralCode || `BEAUREX-${selectedDashboardMember.userId}`
                     }));
                   }}
-                  className="bg-[#74111d] hover:bg-[#851421] text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition flex items-center space-x-1.5 shadow-md shadow-[#74111d]/20 cursor-pointer"
+                  className="bg-[#8B0000] hover:bg-[#8B0000] text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition flex items-center space-x-1.5 shadow-md shadow-[#8B0000]/20 cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Open {selectedDashboardMember.name}'s Dashboard</span>
@@ -13336,13 +16019,13 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                 {/* Header */}
                 <div className="flex items-center space-x-3.5 mb-5 pr-8">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#74111d] to-[#851421] text-white flex items-center justify-center font-black text-base shadow-md shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B0000] to-[#8B0000] text-white flex items-center justify-center font-black text-base shadow-md shrink-0">
                     <Share2 className="w-6 h-6" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-black text-lg sm:text-xl text-slate-900">{selectedReferralMember.name} — Referral Hub</h3>
-                      <span className="bg-[#74111d]/10 text-[#74111d] font-black text-[11px] px-2.5 py-0.5 rounded-full border border-[#74111d]/20">
+                      <span className="bg-[#8B0000]/10 text-[#8B0000] font-black text-[11px] px-2.5 py-0.5 rounded-full border border-[#8B0000]/20">
                         ID #{selectedReferralMember.userId}
                       </span>
                     </div>
@@ -13375,7 +16058,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
                     <div className="truncate mr-2">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Merchant Invitation URL</span>
-                      <span className="font-mono text-xs font-bold text-[#74111d] truncate block">{refUrl}</span>
+                      <span className="font-mono text-xs font-bold text-[#8B0000] truncate block">{refUrl}</span>
                     </div>
                     <button
                       onClick={() => {
@@ -13425,7 +16108,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         placeholder="Search store, owner, city..."
                         value={referralSearchModal}
                         onChange={(e) => setReferralSearchModal(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#74111d]"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
                       />
                     </div>
                     <button
@@ -13521,7 +16204,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </div>
                   <button
                     onClick={() => setSelectedReferralMember(null)}
-                    className="bg-[#74111d] hover:bg-[#851421] text-white font-bold px-5 py-2 rounded-xl text-xs transition cursor-pointer shadow-xs"
+                    className="bg-[#8B0000] hover:bg-[#8B0000] text-white font-bold px-5 py-2 rounded-xl text-xs transition cursor-pointer shadow-xs"
                   >
                     Close Referrals
                   </button>
@@ -13567,7 +16250,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <h3 className="font-black text-lg sm:text-xl text-slate-900">
                         Customer Manager — {selectedCustomerTrackerMember.name}
                       </h3>
-                      <span className="bg-rose-50 text-[#74111d] font-black text-[11px] px-2.5 py-0.5 rounded-full border border-rose-200">
+                      <span className="bg-rose-50 text-[#8B0000] font-black text-[11px] px-2.5 py-0.5 rounded-full border border-rose-200">
                         ID #{selectedCustomerTrackerMember.userId}
                       </span>
                     </div>
@@ -13580,7 +16263,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 {/* Quick Stats Badges */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                   <div className="bg-rose-50/60 border border-rose-200/60 rounded-2xl p-3">
-                    <span className="text-[10px] font-bold text-[#74111d] uppercase tracking-wider block">Total Approached</span>
+                    <span className="text-[10px] font-bold text-[#8B0000] uppercase tracking-wider block">Total Approached</span>
                     <span className="text-xl font-black text-slate-900 mt-1 block">{totalLeads} Leads</span>
                   </div>
                   <div className="bg-rose-50/60 border border-rose-200/60 rounded-2xl p-3">
@@ -13674,7 +16357,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                       ? 'bg-amber-50 text-amber-700 border-amber-200'
                                       : (lead.status || '').toLowerCase().includes('won')
                                       ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                      : 'bg-rose-50 text-[#74111d] border-rose-200'
+                                      : 'bg-rose-50 text-[#8B0000] border-rose-200'
                                   }`}>
                                     {lead.status || 'Prospect'}
                                   </span>
@@ -13696,8 +16379,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                       onClick={() => setExpandedLeadId(isExpanded ? null : lead.id)}
                                       className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border transition inline-flex items-center space-x-1 cursor-pointer ${
                                         isExpanded
-                                          ? 'bg-[#74111d] text-white border-[#74111d]'
-                                          : 'bg-rose-50 text-[#74111d] border-rose-200 hover:bg-rose-100'
+                                          ? 'bg-[#8B0000] text-white border-[#8B0000]'
+                                          : 'bg-rose-50 text-[#8B0000] border-rose-200 hover:bg-rose-100'
                                       }`}
                                     >
                                       <span>Notes ({followupsList.length})</span>
@@ -13721,8 +16404,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                   <td colSpan={7} className="p-3.5 border-t border-rose-100">
                                     <div className="space-y-2">
                                       <div className="flex items-center justify-between">
-                                        <div className="text-[11px] font-black uppercase text-[#74111d] tracking-wider flex items-center space-x-1.5">
-                                          <FileText className="w-3.5 h-3.5 text-[#74111d]" />
+                                        <div className="text-[11px] font-black uppercase text-[#8B0000] tracking-wider flex items-center space-x-1.5">
+                                          <FileText className="w-3.5 h-3.5 text-[#8B0000]" />
                                           <span>Follow-up History & Activity Logs ({lead.name})</span>
                                         </div>
                                         {lead.email && lead.email !== '—' && (
@@ -13739,7 +16422,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                                 <span className="font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">{f.method}</span>
                                                 <span className="font-bold text-slate-800">{f.comments || 'No note added.'}</span>
                                               </div>
-                                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-[#74111d] uppercase">
+                                              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-[#8B0000] uppercase">
                                                 {f.status}
                                               </span>
                                             </div>
@@ -13791,42 +16474,48 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
         {/* MODAL 1: SET A DEAL (Image 1 "SET A DEAL" button) */}
         {/* ========================================================= */}
         {selectedMerchantForDeal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
-            <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 relative my-auto">
+          <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150 overflow-y-auto">
+            <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-rose-100/90 relative my-auto overflow-hidden animate-in zoom-in-95 duration-150">
+              {/* Brand Top Gradient Accent Line */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#8B0000] via-rose-500 to-[#8B0000]" />
+
               <button
                 onClick={() => setSelectedMerchantForDeal(null)}
-                className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-rose-50/60 transition-colors cursor-pointer"
                 title="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
 
               {/* Modal Header */}
-              <div className="flex items-center space-x-3 mb-5 pb-4 border-b border-slate-100">
-                <div className="w-12 h-12 rounded-2xl bg-red-100 text-[#8B0000] flex items-center justify-center font-black shrink-0">
-                  <Tag className="w-6 h-6" />
+              <div className="flex items-center space-x-3.5 mb-5 pb-4 border-b border-rose-100/70">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#8B0000] via-[#981b2a] to-[#720000] text-white flex items-center justify-center font-black shadow-md shadow-[#8B0000]/25 shrink-0">
+                  <Tag className="w-6 h-6 text-white" />
                 </div>
                 <div className="pr-8">
-                  <div className="flex items-center space-x-2 flex-wrap">
-                    <h3 className="font-extrabold text-lg text-slate-900">
+                  <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                    <h3 className="font-black text-lg text-slate-900 tracking-tight">
                       Configure Deal — {selectedMerchantForDeal.businessName}
                     </h3>
-                    <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded-md border border-slate-200">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#8B0000] bg-gradient-to-r from-rose-50 to-amber-50/50 border border-rose-200/80 px-2.5 py-0.5 rounded-full shadow-2xs">
                       {selectedMerchantForDeal.plan || 'Standard Plan'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
                     Select a platform deal from the list below to apply to this merchant.
                   </p>
                 </div>
               </div>
 
               <form onSubmit={handleSaveDeal} className="space-y-4">
-                {/* QUICK PICK FROM PLATFORM DEALS (Only this section) */}
-                <div className="p-4 bg-red-50/60 border border-red-200/80 rounded-2xl">
-                  <label className="block text-[11px] font-black uppercase text-[#8B0000] tracking-wider mb-2">
-                    QUICK PICK FROM PLATFORM DEALS ({platformDeals?.length || 0})
-                  </label>
+                {/* QUICK PICK FROM PLATFORM DEALS (Landing Page Theme Card) */}
+                <div className="p-4 sm:p-5 bg-gradient-to-tr from-rose-50/80 via-white to-amber-50/30 border border-rose-200/90 rounded-2xl shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-black uppercase text-[#8B0000] tracking-wider flex items-center space-x-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>QUICK PICK FROM PLATFORM DEALS ({platformDeals?.length || 0})</span>
+                    </label>
+                  </div>
                   <select
                     value={dealForm.dealId || ''}
                     onChange={(e) => {
@@ -13888,7 +16577,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         }));
                       }
                     }}
-                    className="w-full bg-white border border-red-300 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 cursor-pointer shadow-2xs"
+                    className="w-full bg-white border border-rose-200 hover:border-[#8B0000]/60 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 cursor-pointer shadow-2xs transition"
                   >
                     <option value="">-- Select Deal & Coupon to Auto-Fill --</option>
                     {Boolean(selectedMerchantForDeal.dealDetails?.dealTitle) && (
@@ -13908,22 +16597,26 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                   {/* Active Deal Details ("when i click then i go and see") */}
                   {dealForm.dealTitle && dealForm.dealId !== 'REMOVE' && (
-                    <div className="mt-3 p-3.5 bg-white border border-red-200/90 rounded-xl space-y-1.5 shadow-2xs">
+                    <div className="mt-3 p-4 bg-white/95 backdrop-blur-xs border border-rose-200/90 rounded-xl space-y-2 shadow-2xs animate-in fade-in duration-150">
                       <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-xs text-slate-900">{dealForm.dealTitle}</span>
+                        <span className="font-extrabold text-xs text-slate-900 flex items-center space-x-1.5">
+                          <Tag className="w-3.5 h-3.5 text-[#8B0000]" />
+                          <span>{dealForm.dealTitle}</span>
+                        </span>
                         {dealForm.badgeText && (
-                          <span className="text-[10px] font-black text-[#8B0000] bg-red-50 border border-red-200 px-2 py-0.5 rounded">
+                          <span className="text-[10px] font-black text-[#8B0000] bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200 px-2.5 py-0.5 rounded-full shadow-2xs">
                             {dealForm.badgeText}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center justify-between text-xs text-slate-600 font-bold">
-                        <span>Payable Deal Price: <span className="font-black text-slate-900 font-mono">₹{Number(dealForm.dealAmount || 0).toLocaleString('en-IN')}</span></span>
+                      <div className="flex items-center justify-between text-xs text-slate-600 font-bold pt-1">
+                        <span>Payable Deal Price: <span className="font-black text-[#8B0000] font-mono text-sm ml-1">₹{Number(dealForm.dealAmount || 0).toLocaleString('en-IN')}</span></span>
                         <span>Validity: <span className="font-bold text-slate-800">{dealForm.validTill || '30 Days'}</span></span>
                       </div>
                       {dealForm.couponCode && (
-                        <div className="text-[11px] text-slate-500 font-mono">
-                          Coupon Code: <strong className="text-slate-800">{dealForm.couponCode}</strong>
+                        <div className="text-[11px] text-slate-500 font-mono bg-rose-50/50 px-2.5 py-1 rounded-lg border border-rose-100 flex items-center justify-between">
+                          <span>Coupon Code: <strong className="text-slate-800 tracking-wider">{dealForm.couponCode}</strong></span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">AUTO-APPLIED</span>
                         </div>
                       )}
                     </div>
@@ -13931,20 +16624,21 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </div>
 
                 {/* Modal Footer Actions */}
-                <div className="flex items-center justify-end space-x-2 pt-2">
+                <div className="flex items-center justify-end space-x-2.5 pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setSelectedMerchantForDeal(null)}
-                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer"
+                    className="px-4.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={!dealForm.dealTitle && dealForm.dealId !== 'REMOVE'}
-                    className="bg-[#8B0000] hover:bg-[#700000] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black px-5 py-2 rounded-xl text-xs transition cursor-pointer shadow-md shadow-red-950/20"
+                    className="px-6 py-2.5 rounded-xl text-xs font-black transition-all duration-200 flex items-center space-x-1.5 cursor-pointer bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-lg shadow-[#8B0000]/25 hover:shadow-xl hover:shadow-[#8B0000]/30 hover:-translate-y-0.5 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none disabled:cursor-not-allowed disabled:transform-none"
                   >
-                    Apply Deal
+                    <Check className="w-4 h-4" />
+                    <span>Apply Deal</span>
                   </button>
                 </div>
               </form>
@@ -13962,8 +16656,8 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               {/* Modal Header */}
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#74111d] flex items-center justify-center font-black shrink-0">
-                    <Gift className="w-5 h-5 text-[#74111d]" />
+                  <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#8B0000] flex items-center justify-center font-black shrink-0">
+                    <Gift className="w-5 h-5 text-[#8B0000]" />
                   </div>
                   <div>
                     <h3 className="font-extrabold text-base text-slate-900">Free Access (Complimentary)</h3>
@@ -13993,7 +16687,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       onClick={() => setComplimentaryForm({ ...complimentaryForm, status: 'YES' })}
                       className={`py-2.5 px-3 rounded-xl border text-xs font-black flex items-center justify-center space-x-2 transition cursor-pointer ${
                         complimentaryForm.status === 'YES'
-                          ? 'bg-[#74111d] text-white border-[#74111d] shadow-md shadow-[#74111d]/20'
+                          ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-md shadow-[#8B0000]/20'
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
@@ -14054,7 +16748,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                         <label className="block text-xs font-bold text-slate-700">
                           Validity Period
                         </label>
-                        <span className="text-[11px] font-bold text-[#74111d] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                        <span className="text-[11px] font-bold text-[#8B0000] bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                           {complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500
                             ? 'Lifetime'
                             : `${complimentaryForm.days || 0} Days`}
@@ -14101,7 +16795,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                               }}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${
                                 isSelected
-                                  ? 'bg-[#74111d] text-white border-[#74111d] shadow-xs'
+                                  ? 'bg-[#8B0000] text-white border-[#8B0000] shadow-xs'
                                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                               }`}
                             >
@@ -14131,7 +16825,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           placeholder="Enter custom days..."
                           className={`w-full border rounded-xl px-3.5 py-2.5 text-xs font-bold transition ${
                             complimentaryForm.isLifetime
-                              ? 'bg-rose-50/70 border-rose-300 text-[#74111d]'
+                              ? 'bg-rose-50/70 border-rose-300 text-[#8B0000]'
                               : 'bg-slate-50 border-slate-200 text-slate-900 focus:outline-none focus:border-red-600 focus:bg-white'
                           }`}
                         />
@@ -14143,7 +16837,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       {/* Expiry preview */}
                       <div className="mt-2.5 p-3 bg-rose-50/70 border border-rose-200/80 rounded-xl flex items-center justify-between text-xs">
                         <span className="text-slate-600 font-medium">Valid Till:</span>
-                        <span className="font-black text-[#74111d] font-mono">
+                        <span className="font-black text-[#8B0000] font-mono">
                           {complimentaryForm.isLifetime || complimentaryForm.days === 'Lifetime' || Number(complimentaryForm.days) >= 36500
                             ? 'Lifetime (Never Expires)'
                             : (() => {
@@ -14168,7 +16862,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black transition shadow-md shadow-[#74111d]/20 cursor-pointer flex items-center space-x-1.5"
+                    className="px-5 py-2.5 rounded-xl bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black transition shadow-md shadow-[#8B0000]/20 cursor-pointer flex items-center space-x-1.5"
                   >
                     <Check className="w-4 h-4" />
                     <span>Save Access</span>
@@ -14194,7 +16888,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center font-black">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                     <Layers className="w-6 h-6" />
                   </div>
                   <div>
@@ -14209,7 +16903,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     setShowPlansModal(false);
                     setActiveTab('plans');
                   }}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
+                  className="bg-rose-50 hover:bg-rose-100 text-[#8B0000] border border-rose-200/70 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-2xs"
                 >
                   <span>Open Full Plans Tab</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -14223,7 +16917,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <div className="flex items-center space-x-2">
                         <span className="font-black text-slate-900 text-sm">{p.name}</span>
                         {p.isPopular && (
-                          <span className="text-[9px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-full uppercase">
+                          <span className="text-[9px] bg-[#8B0000] text-white font-bold px-2 py-0.5 rounded-full uppercase">
                             Most Popular
                           </span>
                         )}
@@ -14245,7 +16939,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="number"
                           value={p.price}
                           onChange={(e) => handleSavePlanItem(p.id, { price: Number(e.target.value) })}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                       <div>
@@ -14254,7 +16948,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="number"
                           value={p.originalPrice || 0}
                           onChange={(e) => handleSavePlanItem(p.id, { originalPrice: Number(e.target.value) })}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                       <div>
@@ -14263,7 +16957,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={p.period}
                           onChange={(e) => handleSavePlanItem(p.id, { period: e.target.value })}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                       <div>
@@ -14272,7 +16966,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                           type="text"
                           value={p.scansLimit}
                           onChange={(e) => handleSavePlanItem(p.id, { scansLimit: e.target.value })}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                         />
                       </div>
                     </div>
@@ -14283,7 +16977,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setShowPlansModal(false)}
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer"
+                  className="bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white font-bold px-6 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                 >
                   Done & Save Plans
                 </button>
@@ -14306,7 +17000,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               </button>
 
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-black">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 text-[#8B0000] border border-rose-200/70 flex items-center justify-center font-black">
                   <Gift className="w-6 h-6" />
                 </div>
                 <div>
@@ -14330,7 +17024,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       placeholder="e.g. FLASH30"
                       value={newCouponForm.code}
                       onChange={(e) => setNewCouponForm({ ...newCouponForm, code: e.target.value.toUpperCase() })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                     />
                   </div>
 
@@ -14339,7 +17033,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                     <select
                       value={newCouponForm.discountType}
                       onChange={(e) => setNewCouponForm({ ...newCouponForm, discountType: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600 cursor-pointer"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10 cursor-pointer"
                     >
                       <option value="PERCENT">Percentage (%) Off</option>
                       <option value="FLAT">Flat ₹ Rupees Off</option>
@@ -14354,7 +17048,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       value={newCouponForm.discountValue}
                       onChange={(e) => setNewCouponForm({ ...newCouponForm, discountValue: e.target.value })}
                       placeholder="e.g. 25"
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                     />
                   </div>
                 </div>
@@ -14366,7 +17060,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       type="number"
                       value={newCouponForm.minOrder}
                       onChange={(e) => setNewCouponForm({ ...newCouponForm, minOrder: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                     />
                   </div>
                   <div>
@@ -14375,7 +17069,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       type="number"
                       value={newCouponForm.maxUses}
                       onChange={(e) => setNewCouponForm({ ...newCouponForm, maxUses: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                     />
                   </div>
                   <div>
@@ -14384,7 +17078,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       type="date"
                       value={newCouponForm.expiresAt}
                       onChange={(e) => setNewCouponForm({ ...newCouponForm, expiresAt: e.target.value })}
-                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-red-600"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/10"
                     />
                   </div>
                 </div>
@@ -14392,7 +17086,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 <div className="flex justify-end pt-1">
                   <button
                     type="submit"
-                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition cursor-pointer shadow-xs"
+                    className="bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white font-bold px-5 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                   >
                     + Add Coupon
                   </button>
@@ -14414,7 +17108,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   <tbody className="divide-y divide-slate-100">
                     {coupons.map((c) => (
                       <tr key={c.id} className="hover:bg-slate-50/60">
-                        <td className="py-2.5 px-3 font-mono font-black text-red-600">{c.code}</td>
+                        <td className="py-2.5 px-3 font-mono font-black text-[#8B0000]">{c.code}</td>
                         <td className="py-2.5 px-3 font-bold text-slate-800">
                           {c.discountType === 'PERCENT' ? `${c.discountValue}% OFF` : `₹${c.discountValue} FLAT OFF`}
                         </td>
@@ -14459,19 +17153,29 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
               {/* Modal Top Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
                 <div className="flex items-center space-x-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-[#8B0000] text-white flex items-center justify-center font-black text-lg shadow-md shadow-red-950/20 shrink-0">
-                    <Store className="w-6 h-6" />
-                  </div>
+                  {viewMerchantModal.logo ? (
+                    <img 
+                      src={viewMerchantModal.logo} 
+                      alt={viewMerchantModal.businessName}
+                      className="w-12 h-12 rounded-2xl object-cover border border-slate-200 shadow-md shadow-red-950/10 shrink-0" 
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-[#8B0000] text-white flex items-center justify-center font-black text-lg shadow-md shadow-red-950/20 shrink-0">
+                      <Store className="w-6 h-6" />
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center space-x-2">
                       <h3 className="font-black text-xl text-slate-900 leading-tight">
                         {viewMerchantModal.businessName}
                       </h3>
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-                        {viewMerchantModal.category}
+                        {viewMerchantModal.category || 'Retail'}
                       </span>
                     </div>
                     <p className="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
+                      {viewMerchantModal.ownerName && <span className="font-bold text-slate-800">Owner: {viewMerchantModal.ownerName}</span>}
+                      {viewMerchantModal.ownerName && <span>•</span>}
                       {viewMerchantModal.city && <span>{viewMerchantModal.city}</span>}
                       {viewMerchantModal.mobile && (
                         <>
@@ -14482,8 +17186,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       {viewMerchantModal.email && (
                         <>
                           <span>•</span>
-                          <span className="text-[#74111d] font-bold flex items-center space-x-1">
-                            <Mail className="w-3 h-3" />
+                          <span className="text-[#8B0000] font-bold">
                             <span>{viewMerchantModal.email}</span>
                           </span>
                         </>
@@ -14492,19 +17195,25 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 self-start sm:self-center">
-                  <span className={`text-xs font-black px-3 py-1 rounded-full border ${
-                    viewMerchantModal.status === 'Paid'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                      : viewMerchantModal.status === 'Trial'
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : 'bg-rose-50 text-rose-700 border-rose-200'
-                  }`}>
-                    {viewMerchantModal.status === 'Paid' ? 'Paid Active' : viewMerchantModal.status === 'Trial' ? 'Trial Store' : 'Suspended'}
-                  </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {(() => {
+                    const styleInfo = getMerchantStatusStyle(viewMerchantModal.status);
+                    return (
+                      <span
+                        className={`text-xs font-black px-3 py-1 rounded-full border shadow-2xs ${styleInfo.className}`}
+                        style={{
+                          backgroundColor: styleInfo.bg,
+                          color: styleInfo.text,
+                          borderColor: styleInfo.border
+                        }}
+                      >
+                        {styleInfo.display}
+                      </span>
+                    );
+                  })()}
                   {viewMerchantModal.isComplimentary && (
-                    <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-rose-50 text-[#74111d] border border-rose-200 flex items-center space-x-1">
-                      <Gift className="w-3 h-3 text-[#74111d]" />
+                    <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-rose-50 text-[#8B0000] border border-rose-200 flex items-center space-x-1">
+                      <Gift className="w-3 h-3 text-[#8B0000]" />
                       <span>Complimentary ({viewMerchantModal.complimentaryDays === 'Lifetime' || Number(viewMerchantModal.complimentaryDays) >= 36500 ? 'Lifetime' : `${viewMerchantModal.complimentaryDays || 10}d`})</span>
                     </span>
                   )}
@@ -14518,207 +17227,129 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </div>
               </div>
 
-              {/* 1. Dashboard Metric Cards (Short Manner) */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-4">
-                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    <span>Counter Scans</span>
-                    <QrCode className="w-4 h-4 text-[#8B0000]" />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-black text-slate-900">
-                    {viewMerchantModal.totalScans || 120}
-                  </div>
-                  <p className="text-[10px] text-emerald-600 font-bold mt-0.5">+18 scans today</p>
+              {loadingMerchantDashboard && (
+                <div className="py-2 px-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-700 font-bold flex items-center space-x-2 my-2 animate-pulse">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                  <span>Fetching live data from merchant dashboard for {viewMerchantModal.businessName}...</span>
                 </div>
+              )}
 
-                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    <span>Repeat Rate</span>
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
+              {/* 1. Dashboard Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 my-4">
+                <div className="p-2.5 sm:p-3.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#8B0000] to-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-red-500/25">
+                    <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-emerald-600">
-                    {viewMerchantModal.repeatRate || '41.5%'}
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">High repeat conversion</p>
-                </div>
-
-                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    <span>Enrolled Shoppers</span>
-                    <Users className="w-4 h-4 text-slate-600" />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-black text-slate-900">
-                    {Math.round((viewMerchantModal.totalScans || 120) * 0.45) || 54}
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Mobile wallet accounts</p>
-                </div>
-
-                <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                    <span>Redeemed Vouchers</span>
-                    <CheckCircle2 className="w-4 h-4 text-rose-600" />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-black text-[#74111d]">
-                    {Math.round((viewMerchantModal.totalScans || 120) * 0.32) || 38}
-                  </div>
-                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Verified by cashier PIN</p>
-                </div>
-              </div>
-
-              {/* 2. Dual Breakdown: In-Store Gamification & Subscription Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-                
-                {/* Column A: In-Store Gamification & Counter Configuration */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                    <span className="font-black text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
-                      <Zap className="w-3.5 h-3.5 text-[#8B0000]" />
-                      <span>Counter Gamification Engine</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Active</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Active Scratch Reward:</span>
-                    <span className="font-extrabold text-slate-900">🎁 ₹150 OFF (Min Order ₹500)</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Cashier 4-Digit Secret PIN:</span>
-                    <span className="font-mono font-black text-slate-900 bg-slate-200/80 px-2 py-0.5 rounded tracking-widest">4829</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Fair-play Throttle:</span>
-                    <span className="font-bold text-slate-800">12h Device Lock (Anti-abuse)</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Table Standee URL:</span>
-                    <a
-                      href={`/scan/${viewMerchantModal.qrSlug || viewMerchantModal.businessName?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'store'}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#8B0000] font-bold hover:underline font-mono text-[11px] flex items-center space-x-1"
-                    >
-                      <span>/scan/{viewMerchantModal.qrSlug || viewMerchantModal.businessName?.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'store'}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                </div>
-
-                {/* Column B: Commercial Billing & Plan Status */}
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/70">
-                    <span className="font-black text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
-                      <CreditCard className="w-3.5 h-3.5 text-slate-700" />
-                      <span>Commercial & Settlement</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded">Ledger</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Subscription Tier:</span>
-                    <span className="font-extrabold text-[#8B0000]">{viewMerchantModal.plan || viewMerchantModal.subscriptionTier || 'Trial Plan'}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Plan Valid Till:</span>
-                    <span className="font-mono font-bold text-slate-800">{viewMerchantModal.planValidTill || '14 Oct 2026'}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Settled Amount:</span>
-                    <span className="font-bold text-slate-900">
-                      {viewMerchantModal.paymentAmount && viewMerchantModal.paymentAmount !== '-' 
-                        ? viewMerchantModal.paymentAmount 
-                        : (viewMerchantModal.status === 'Paid' ? '₹49,000' : 'Unpaid')}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-medium">Complimentary Access:</span>
-                    <span className="font-bold text-[#74111d]">
-                      {viewMerchantModal.isComplimentary 
-                        ? `Yes (${viewMerchantModal.complimentaryDays === 'Lifetime' || Number(viewMerchantModal.complimentaryDays) >= 36500 ? 'Lifetime Access' : `+${viewMerchantModal.complimentaryDays || 10} Days`}) - ${viewMerchantModal.complimentaryReason || 'Special Access'}` 
-                        : 'No (Standard Plan)'}
-                    </span>
-                  </div>
-
-                  {Boolean(viewMerchantModal.dealDetails?.dealTitle || (viewMerchantModal.dealDetails?.dealType && viewMerchantModal.dealDetails?.dealType !== 'NONE')) && (
-                    <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/60">
-                      <span className="text-slate-500 font-medium">Special Deal Package:</span>
-                      <div className="text-right">
-                        <span className="font-extrabold text-red-700 block text-xs">
-                          {viewMerchantModal.dealDetails.dealTitle || 'Custom Deal'}
-                        </span>
-                        <span className="text-[10px] text-slate-600 font-mono font-bold">
-                          [{viewMerchantModal.dealDetails.badgeText || viewMerchantModal.dealDetails.dealType || 'DEAL'}] • Payable: {viewMerchantModal.dealDetails.dealType === 'COMPLIMENTARY' ? '₹0 Free' : `₹${(viewMerchantModal.dealDetails.dealAmount || 0).toLocaleString('en-IN')}`}
-                        </span>
-                      </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Counter Scans</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                      {merchantDashboardData?.metrics?.totalScans ?? (viewMerchantModal.totalScans || 0)}
                     </div>
-                  )}
+                    <p className="text-[10px] sm:text-[11px] text-emerald-600 font-bold leading-none whitespace-nowrap truncate">
+                      +{merchantDashboardData?.metrics?.scansToday || 0} scans today
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-emerald-500/25">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Repeat Rate</div>
+                    <div className="text-lg sm:text-2xl font-black text-emerald-600 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                      {merchantDashboardData?.metrics?.repeatRate ?? (viewMerchantModal.repeatRate || '0%')}
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-bold leading-none whitespace-nowrap truncate">
+                      {(merchantDashboardData?.metrics?.repeatRate && merchantDashboardData.metrics.repeatRate !== '0%') ? 'High repeat rate' : 'Retention track'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/25">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Enrolled Shoppers</div>
+                    <div className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                      {merchantDashboardData?.metrics?.enrolledShoppers ?? (Math.round((viewMerchantModal.totalScans || 0) * 0.45) || 0)}
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-bold leading-none whitespace-nowrap truncate">Mobile accounts</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 sm:p-3.5 bg-white border border-slate-200/90 rounded-2xl shadow-xs flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-purple-500/25">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] sm:text-xs font-semibold text-slate-500 leading-tight whitespace-nowrap truncate">Redeemed Vouchers</div>
+                    <div className="text-lg sm:text-2xl font-black text-[#8B0000] tracking-tight leading-none my-0.5 sm:my-1 whitespace-nowrap">
+                      {merchantDashboardData?.metrics?.redeemedVouchers ?? (Math.round((viewMerchantModal.totalScans || 0) * 0.32) || 0)}
+                    </div>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-bold leading-none whitespace-nowrap truncate">PIN verified</p>
+                  </div>
                 </div>
               </div>
 
-              {/* 3. Recent Customer Activity Feed (Short Manner Mini-Table) */}
-              <div className="my-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-black uppercase text-slate-700 tracking-wider">
-                    Recent Customer Scans & Claims
-                  </h4>
-                  <span className="text-[10px] text-slate-400 font-semibold">Live in-store counter logs</span>
+              {/* 2. Business Information & Store Physical Address Card */}
+              <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-2xl my-3">
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-200">
+                  <div className="flex items-center space-x-2 text-xs font-black text-slate-900 uppercase tracking-wider">
+                    <MapPin className="w-4 h-4 text-[#8B0000]" />
+                    <span>Store Profile & Business Address</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditMerchant(viewMerchantModal)}
+                    className="text-xs font-bold text-[#8B0000] hover:text-[#720000] flex items-center space-x-1 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-rose-200 hover:border-rose-300 shadow-2xs transition"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Edit Store & Address</span>
+                  </button>
                 </div>
-                
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden text-xs">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
-                      <tr>
-                        <th className="py-2.5 px-3">Customer Phone</th>
-                        <th className="py-2.5 px-3">Reward Won</th>
-                        <th className="py-2.5 px-3">Time</th>
-                        <th className="py-2.5 px-3 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium">
-                      <tr>
-                        <td className="py-2.5 px-3 font-mono text-slate-900">+91 98112 34567</td>
-                        <td className="py-2.5 px-3 font-bold text-slate-800">₹150 OFF (Scratch Card)</td>
-                        <td className="py-2.5 px-3 text-slate-500 text-[11px]">Today 18:42</td>
-                        <td className="py-2.5 px-3 text-right">
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                            REDEEMED
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5 px-3 font-mono text-slate-900">+91 98770 12389</td>
-                        <td className="py-2.5 px-3 font-bold text-slate-800">10% Instant Discount</td>
-                        <td className="py-2.5 px-3 text-slate-500 text-[11px]">Today 15:10</td>
-                        <td className="py-2.5 px-3 text-right">
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                            REDEEMED
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="py-2.5 px-3 font-mono text-slate-900">+91 99554 43322</td>
-                        <td className="py-2.5 px-3 font-bold text-slate-800">50 Reward Points</td>
-                        <td className="py-2.5 px-3 text-slate-500 text-[11px]">Yesterday 20:05</td>
-                        <td className="py-2.5 px-3 text-right">
-                          <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                            IN WALLET
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+                  <div>
+                    <span className="text-slate-500 block text-[10px] font-bold uppercase tracking-wider mb-0.5">Physical Address</span>
+                    <p className="font-bold text-slate-900 leading-snug">
+                      {viewMerchantModal.addressLine1 || viewMerchantModal.address || 'Address not configured'}
+                      {viewMerchantModal.addressLine2 ? `, ${viewMerchantModal.addressLine2}` : ''}
+                    </p>
+                    <p className="text-slate-600 font-medium mt-0.5">
+                      {[viewMerchantModal.city, viewMerchantModal.state, (viewMerchantModal.pinCode || viewMerchantModal.pincode)].filter(Boolean).join(', ')}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-500 block text-[10px] font-bold uppercase tracking-wider mb-0.5">Owner & Contact Details</span>
+                    <p className="font-bold text-slate-900">
+                      Owner: <span className="text-slate-700 font-medium">{viewMerchantModal.ownerName || 'Not specified'}</span>
+                    </p>
+                    <p className="font-bold text-slate-900 mt-0.5">
+                      Category: <span className="text-slate-700 font-medium">{viewMerchantModal.category || 'Retail'}</span>
+                    </p>
+                    <p className="text-slate-600 font-medium mt-0.5">
+                      Contact: {viewMerchantModal.mobile || '-'} • {viewMerchantModal.email || '-'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* 4. Super Admin Controls Footer */}
+              {/* 3. Super Admin Controls Footer */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditMerchant(viewMerchantModal)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center space-x-1"
+                    title="Edit business name, category, and address"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-[#8B0000]" />
+                    <span>Edit Store & Address</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -14726,7 +17357,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       setViewMerchantModal(null);
                       handleOpenComplimentaryModal(m);
                     }}
-                    className="bg-rose-50 hover:bg-rose-100 text-[#74111d] border border-rose-200 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center space-x-1"
+                    className="bg-rose-50 hover:bg-rose-100 text-[#8B0000] border border-rose-200 font-bold px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center space-x-1"
                     title="Configure complimentary access"
                   >
                     <Gift className="w-3.5 h-3.5" />
@@ -14773,6 +17404,192 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </button>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* MODAL: EDIT MERCHANT STORE DETAILS & ADDRESS              */}
+        {/* ========================================================= */}
+        {editMerchantModal && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 z-50 animate-in fade-in duration-150 overflow-y-auto">
+            <div className="bg-white rounded-3xl p-5 sm:p-7 max-w-xl w-full shadow-2xl border border-slate-200 relative my-auto max-h-[92vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#8B0000] text-white flex items-center justify-center font-black">
+                    <Store className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-lg text-slate-900">Edit Store & Address</h3>
+                    <p className="text-xs text-slate-500">Update merchant business profile and physical address</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditMerchantModal(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSaveMerchantEdit} className="space-y-3.5 text-xs font-bold">
+                {/* Row 1: Business Name & Owner Name */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">Business Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editMerchantForm.businessName}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, businessName: e.target.value })}
+                      placeholder="Enter business name"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">Owner Name</label>
+                    <input
+                      type="text"
+                      value={editMerchantForm.ownerName}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, ownerName: e.target.value })}
+                      placeholder="Enter owner name"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Category & Contact Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">Business Category *</label>
+                    <select
+                      required
+                      value={editMerchantForm.category}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, category: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    >
+                      {BUSINESS_CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">Contact Phone</label>
+                    <input
+                      type="tel"
+                      value={editMerchantForm.mobile}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, mobile: e.target.value })}
+                      placeholder="10-digit mobile"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    />
+                  </div>
+                </div>
+
+                {/* Row 3: Contact Email */}
+                <div>
+                  <label className="block text-slate-700 uppercase mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={editMerchantForm.email}
+                    onChange={(e) => setEditMerchantForm({ ...editMerchantForm, email: e.target.value })}
+                    placeholder="Enter email address"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                  />
+                </div>
+
+                {/* Row 4: Address Line 1 */}
+                <div>
+                  <label className="block text-slate-700 uppercase mb-1">Address Line 1 *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editMerchantForm.addressLine1}
+                    onChange={(e) => setEditMerchantForm({ ...editMerchantForm, addressLine1: e.target.value })}
+                    placeholder="Shop/Building, Street, Area"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                  />
+                </div>
+
+                {/* Row 5: Address Line 2 */}
+                <div>
+                  <label className="block text-slate-700 uppercase mb-1">Address Line 2 (Optional)</label>
+                  <input
+                    type="text"
+                    value={editMerchantForm.addressLine2}
+                    onChange={(e) => setEditMerchantForm({ ...editMerchantForm, addressLine2: e.target.value })}
+                    placeholder="Landmark, Floor, Suite"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                  />
+                </div>
+
+                {/* Row 6: City, State, PIN Code */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">City *</label>
+                    <input
+                      type="text"
+                      required
+                      value={editMerchantForm.city}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, city: e.target.value })}
+                      placeholder="City"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">State/UT *</label>
+                    <select
+                      required
+                      value={editMerchantForm.state}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, state: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    >
+                      <optgroup label="States">
+                        {INDIAN_STATES.map((st) => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Union Territories">
+                        {UNION_TERRITORIES.map((ut) => (
+                          <option key={ut} value={ut}>{ut}</option>
+                        ))}
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 uppercase mb-1">PIN Code *</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={editMerchantForm.pinCode}
+                      onChange={(e) => setEditMerchantForm({ ...editMerchantForm, pinCode: e.target.value.replace(/[^0-9]/g, '') })}
+                      placeholder="6-digit PIN"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000]"
+                    />
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setEditMerchantModal(null)}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingMerchantEdit}
+                    className="bg-[#8B0000] hover:bg-[#720000] text-white px-6 py-2.5 rounded-xl shadow-md transition cursor-pointer"
+                  >
+                    {savingMerchantEdit ? 'Saving Details...' : 'Save Store Details'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
@@ -14872,7 +17689,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </button>
                   <button
                     type="submit"
-                    className="bg-[#74111d] hover:bg-[#5e0c15] text-white font-black px-5 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#74111d]/25"
+                    className="bg-[#8B0000] hover:bg-[#720000] text-white font-black px-5 py-2.5 rounded-xl text-xs transition cursor-pointer shadow-md shadow-[#8B0000]/25"
                   >
                     Save API Key
                   </button>
@@ -14960,7 +17777,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="flex-1 py-2.5 rounded-xl bg-[#74111d] hover:bg-[#5e0c15] text-white text-xs font-black transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/30 cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/30 cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Logout</span>

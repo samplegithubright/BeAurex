@@ -150,27 +150,36 @@ router.post('/razorpay/verify-payment', async (req, res) => {
     }
 
     // Resolve Plan & Expiry
-    let tier = 'PROFESSIONAL';
-    let durationDays = 3 * 365;
-    let price = 49000;
+    const allPlans = await systemStore.getAllPlans();
+    const foundPlan = allPlans.find(p => p.id === planId || p._id?.toString() === planId || p.name?.toLowerCase() === planId?.toLowerCase()) || {
+      id: planId,
+      name: 'Standard Plan',
+      price: 24000,
+      period: '/ Year'
+    };
 
-    if (planId === 'plan_standard') {
-      tier = 'STANDARD';
-      durationDays = 365;
-      price = 24000;
-    } else if (planId === 'plan_legacy') {
-      tier = 'LEGACY';
-      durationDays = 100 * 365;
-      price = 75000;
-    }
+    let durationDays = 365;
+    const pStr = String(foundPlan.period || '').toLowerCase();
+    if (pStr.includes('lifetime')) durationDays = 100 * 365;
+    else if (pStr.includes('3 year')) durationDays = 3 * 365;
+    else if (pStr.includes('2 year')) durationDays = 2 * 365;
+    else if (pStr.includes('month')) durationDays = 30;
+    else if (foundPlan.trialDays) durationDays = foundPlan.trialDays;
 
     const expiryDate = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    const price = foundPlan.price || 24000;
+    const tier = foundPlan.name;
 
     merchant.subscriptionTier = tier;
+    merchant.plan = tier;
+    merchant.planName = tier;
+    merchant.planId = foundPlan.id || planId;
+    merchant.planPrice = '₹' + Number(price).toLocaleString('en-IN');
+    merchant.planPeriod = foundPlan.period || '/ Year';
     merchant.subscriptionExpiresAt = expiryDate;
     merchant.planValidTill = expiryDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     merchant.paymentDate = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    merchant.paymentAmount = '₹' + price.toLocaleString('en-IN');
+    merchant.paymentAmount = '₹' + Number(price).toLocaleString('en-IN');
     merchant.isActive = true;
     merchant.isComplimentary = false;
     merchant.trialExpiresAt = null;

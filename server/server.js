@@ -44,9 +44,53 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = formatMongoUri(process.env.MONGO_URI);
 
+// Database connection caching for serverless environments (Vercel) & traditional servers
+let cachedDb = null;
+async function connectDB() {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+  if (cachedDb) {
+    return cachedDb;
+  }
+  if (!MONGO_URI) {
+    console.warn('⚠️ MONGO_URI is not configured in .env');
+    return null;
+  }
+  cachedDb = mongoose.connect(MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000,
+    family: 4 // Force IPv4 to prevent Windows IPv6 resolution timeouts on Atlas
+  }).then((m) => {
+    const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
+    console.log('✅ Connected to MongoDB Atlas at', safeUri);
+    try { ensureDemoMerchant(); } catch (_) {}
+    try { ensureSparseCustomerIndexes(); } catch (_) {}
+    return m;
+  }).catch((err) => {
+    console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
+    cachedDb = null;
+    return null;
+  });
+  return cachedDb;
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Auto-connect middleware: ensure DB connection attempt with max 2s wait so routes never hang
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1 && MONGO_URI) {
+    try {
+      await Promise.race([
+        connectDB(),
+        new Promise(resolve => setTimeout(resolve, 2000))
+      ]);
+    } catch (_) {}
+  }
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRouter);
@@ -68,11 +112,12 @@ app.get('/api/health', (req, res) => {
 
 const systemStore = require('./services/systemStore');
 
-// Public endpoint for Landing Page live plans (synchronized across Super Admin and MongoDB)
+// Public endpoint for live plans (synchronized across Super Admin and MongoDB)
 app.get('/api/public/plans', async (req, res) => {
   try {
-    const plans = await systemStore.getPublicPlans();
-    res.json({ success: true, plans });
+    const plans = await systemStore.getAllPlans();
+    const active = plans.filter(p => p.isActive !== false);
+    res.json({ success: true, plans: active.length > 0 ? active : plans });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -97,6 +142,16 @@ app.get('/api/public/policies/:type', async (req, res) => {
   }
 });
 
+// Public endpoint for live Landing Page FAQs (synchronized across Super Admin and MongoDB)
+app.get('/api/public/faqs', async (req, res) => {
+  try {
+    const faqs = await systemStore.getPublicFaqs();
+    res.json({ success: true, faqs });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Public endpoint: Submit Contact Inquiry form (saves to MongoDB & SystemStore)
 app.post('/api/public/contact', async (req, res) => {
   try {
@@ -104,14 +159,31 @@ app.post('/api/public/contact', async (req, res) => {
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: 'Please enter your name.' });
     }
-    if (!phone || !phone.trim()) {
-      return res.status(400).json({ success: false, message: 'Please enter your contact phone number.' });
+
+    // Strict 10-digit phone validation (Indian mobile: begins with 6-9)
+    const rawPhone = (phone || '').toString().trim();
+    const cleanPhone = rawPhone.replace(/\D/g, '').replace(/^91/, '').replace(/^0/, '');
+    if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' 
+      });
+    }
+
+    // Strict email validation
+    const rawEmail = (email || '').toString().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    if (!rawEmail || !emailRegex.test(rawEmail)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please enter a valid email address (e.g. name@example.com).' 
+      });
     }
 
     const saved = await systemStore.createContactInquiry({
       name: name.trim(),
-      phone: phone.trim(),
-      email: (email || '').trim(),
+      phone: cleanPhone,
+      email: rawEmail.toLowerCase(),
       message: (message || '').trim(),
       ip: req.ip || req.headers['x-forwarded-for'] || ''
     });
@@ -153,44 +225,6 @@ async function ensureSparseCustomerIndexes() {
     }
   } catch (_) {}
 }
-
-// Database connection caching for serverless environments (Vercel) & traditional servers
-let cachedDb = null;
-async function connectDB() {
-  if (mongoose.connection.readyState === 1) {
-    return mongoose.connection;
-  }
-  if (cachedDb) {
-    return cachedDb;
-  }
-  if (!MONGO_URI) {
-    console.warn('⚠️ MONGO_URI is not configured in .env');
-    return null;
-  }
-  cachedDb = mongoose.connect(MONGO_URI, {
-    serverSelectionTimeoutMS: 10000,
-    family: 4 // Force IPv4 to prevent Windows IPv6 resolution timeouts on Atlas
-  }).then((m) => {
-    const safeUri = MONGO_URI.replace(/:([^@]+)@/, ':****@');
-    console.log('✅ Connected to MongoDB Atlas at', safeUri);
-    try { ensureDemoMerchant(); } catch (_) {}
-    try { ensureSparseCustomerIndexes(); } catch (_) {}
-    return m;
-  }).catch((err) => {
-    console.warn('⚠️ MongoDB Atlas connection notice:', err.message);
-    cachedDb = null;
-    return null;
-  });
-  return cachedDb;
-}
-
-// Auto-connect middleware for serverless invocations
-app.use(async (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    await connectDB();
-  }
-  next();
-});
 
 // Start server if run directly (local development / container)
 if (process.env.VERCEL !== '1' && require.main === module) {

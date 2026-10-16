@@ -11,6 +11,7 @@ const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
 const CONFIG_FILE = path.join(DATA_DIR, 'system_config.json');
 const LEGAL_FILE = path.join(DATA_DIR, 'legal_policies.json');
 const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
+const FAQS_FILE = path.join(DATA_DIR, 'faqs.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -68,31 +69,7 @@ const initialPlans = [
     isActive: true,
     displayOrder: 2
   },
-  {
-    id: 'plan_legacy',
-    name: 'Legacy Plan',
-    price: 75000,
-    originalPrice: 120000,
-    period: 'Lifetime',
-    subtext: 'Ultimate lifetime system configuration',
-    tagText: 'One-Time Payment • No Renewals',
-    highlightBadge: 'Best Value',
-    isPopular: false,
-    trialDays: 2,
-    scansLimit: 'Unlimited customer QR scans',
-    features: [
-      'Customer retention system',
-      'Free account setup & acrylic config',
-      'Unlimited customer QR scans',
-      'Priority VIP Support',
-      'Dedicated Relationship Manager',
-      'All Future Enterprise Upgrades'
-    ],
-    ctaText: 'Start 2-Day Trial',
-    showOnLandingPage: true,
-    isActive: true,
-    displayOrder: 3
-  },
+
   {
     id: 'plan_trial',
     name: '2-Day Free Trial',
@@ -191,12 +168,12 @@ At BeAurex, we value your privacy and are committed to protecting your personal 
 We collect necessary information to provide and operate digital loyalty programs:
 • Merchant Business Information (Store name, business category, counter address, contact details)
 • Customer Profile Data (Name, email address, customer ID, phone number if provided)
-• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)
+• QR & Aurex Coin Activity (Counter scan timestamps, Aurex Coins earned, rewards unlocked and redeemed)
 • Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)
 
 2. How We Use Your Information
 We use information strictly for:
-• Operating customer rewards and digital stamp issuance
+• Operating customer rewards and Aurex Coin issuance
 • Validating customer reward claims at merchant physical counters
 • Preventing fraudulent or duplicate scans
 • Facilitating peer-to-peer customer referral rewards
@@ -227,13 +204,13 @@ Welcome to BeAurex. These Terms and Conditions govern your access to and usage o
 By accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.
 
 2. Merchant Obligations & Counter Conduct
-• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.
+• Participating merchants agree to honor validly earned Aurex Coins and approved reward claims presented by registered customers.
 • Merchants must not manipulate scan telemetry or create counterfeit QR displays.
 • Counter staff must verify the 6-character Customer ID before confirming reward redemptions.
 
 3. Customer Rewards & Points Policy
-• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
-• Stamps and points carry no direct legal tender cash value outside designated partner stores.
+• Loyalty Aurex Coins and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.
+• Aurex Coins and points carry no direct legal tender cash value outside designated partner stores.
 • Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.
 
 4. Platform Availability & Fair Use
@@ -247,10 +224,60 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
   }
 };
 
+// 4. Initial / Default Platform FAQs (Matches Landing Page exactly)
+const initialFaqs = [
+  {
+    id: 'f1',
+    question: "Will my account be automatically charged when the trial ends?",
+    answer: "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue.",
+    category: 'General',
+    status: 'Published',
+    order: 1,
+    lastUpdated: 'May 24, 2026 11:20 AM'
+  },
+  {
+    id: 'f2',
+    question: "How is user phone number security managed?",
+    answer: "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing.",
+    category: 'General',
+    status: 'Published',
+    order: 2,
+    lastUpdated: 'May 24, 2026 10:45 AM'
+  },
+  {
+    id: 'f3',
+    question: "Do customers need to download an application from the App Store?",
+    answer: "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser.",
+    category: 'General',
+    status: 'Published',
+    order: 3,
+    lastUpdated: 'May 24, 2026 09:30 AM'
+  },
+  {
+    id: 'f4',
+    question: "Can I customize the discounts and reward percentages?",
+    answer: "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances.",
+    category: 'Rewards',
+    status: 'Published',
+    order: 4,
+    lastUpdated: 'May 24, 2026 09:15 AM'
+  },
+  {
+    id: 'f5',
+    question: "How does the acrylic counter standee get configured?",
+    answer: "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk.",
+    category: 'Merchant',
+    status: 'Published',
+    order: 5,
+    lastUpdated: 'May 24, 2026 08:50 AM'
+  }
+];
+
 // In-Memory Caches
 let memoryPlans = [...initialPlans];
 let memoryConfig = { ...initialConfig };
 let memoryPolicies = { ...initialPolicies };
+let memoryFaqs = [...initialFaqs];
 
 // Helper: Read JSON from file
 function readJsonFile(filePath, fallback) {
@@ -265,10 +292,19 @@ function readJsonFile(filePath, fallback) {
   return fallback;
 }
 
-// Helper: Write JSON to file
+// Helper: Write JSON to file only if content actually changed
 function writeJsonFile(filePath, data) {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    const newContent = JSON.stringify(data, null, 2);
+    if (fs.existsSync(filePath)) {
+      try {
+        const oldContent = fs.readFileSync(filePath, 'utf-8');
+        if (oldContent === newContent) {
+          return; // Identical: preserve mtime and avoid triggering file watchers
+        }
+      } catch (_) {}
+    }
+    fs.writeFileSync(filePath, newContent, 'utf-8');
   } catch (err) {
     console.error(`[SystemStore] Error writing to ${filePath}:`, err.message);
   }
@@ -278,11 +314,13 @@ function writeJsonFile(filePath, data) {
 memoryPlans = readJsonFile(PLANS_FILE, initialPlans);
 memoryConfig = readJsonFile(CONFIG_FILE, initialConfig);
 memoryPolicies = readJsonFile(LEGAL_FILE, initialPolicies);
+memoryFaqs = readJsonFile(FAQS_FILE, initialFaqs);
 
 // Save to disk to ensure files exist
 if (!fs.existsSync(PLANS_FILE)) writeJsonFile(PLANS_FILE, memoryPlans);
 if (!fs.existsSync(CONFIG_FILE)) writeJsonFile(CONFIG_FILE, memoryConfig);
 if (!fs.existsSync(LEGAL_FILE)) writeJsonFile(LEGAL_FILE, memoryPolicies);
+if (!fs.existsSync(FAQS_FILE)) writeJsonFile(FAQS_FILE, memoryFaqs);
 
 // Helper to check if Mongo is ready
 function isMongoConnected() {
@@ -315,7 +353,8 @@ async function syncWithMongo() {
       await SystemConfig.create({
         ...memoryConfig,
         plansConfig: memoryPlans,
-        legalPolicies: memoryPolicies
+        legalPolicies: memoryPolicies,
+        faqs: memoryFaqs
       }).catch(() => {});
     } else {
       memoryConfig = {
@@ -333,6 +372,14 @@ async function syncWithMongo() {
         writeJsonFile(LEGAL_FILE, memoryPolicies);
       } else {
         await SystemConfig.findOneAndUpdate({}, { legalPolicies: memoryPolicies }).catch(() => {});
+      }
+
+      // 4. Sync FAQs with MongoDB
+      if (dbConfig.faqs && Array.isArray(dbConfig.faqs) && dbConfig.faqs.length > 0) {
+        memoryFaqs = dbConfig.faqs;
+        writeJsonFile(FAQS_FILE, memoryFaqs);
+      } else {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }).catch(() => {});
       }
     }
   } catch (err) {
@@ -355,18 +402,18 @@ setInterval(() => {
 
 // API Methods
 const systemStore = {
-  // Get all active plans visible on Landing Page
+  // Get all active plans visible on Landing Page (Always max 3 plans)
   async getPublicPlans() {
     if (isMongoConnected()) {
       try {
         const dbPlans = await Plan.find({ isActive: true, showOnLandingPage: true }).sort({ displayOrder: 1 }).lean();
-        if (dbPlans && dbPlans.length > 0) {
-          return dbPlans;
+        if (Array.isArray(dbPlans)) {
+          return dbPlans.slice(0, 3);
         }
       } catch (e) {}
     }
     const publicList = memoryPlans.filter(p => p.isActive !== false && p.showOnLandingPage !== false);
-    return publicList.length > 0 ? publicList : memoryPlans.slice(0, 3);
+    return publicList.slice(0, 3);
   },
 
   // Get all plans (for Super Admin dashboard management)
@@ -374,9 +421,8 @@ const systemStore = {
     if (isMongoConnected()) {
       try {
         const dbPlans = await Plan.find().sort({ displayOrder: 1 }).lean();
-        if (dbPlans && dbPlans.length > 0) {
+        if (Array.isArray(dbPlans) && dbPlans.length > 0) {
           memoryPlans = dbPlans;
-          writeJsonFile(PLANS_FILE, memoryPlans);
           return memoryPlans;
         }
       } catch (e) {}
@@ -401,12 +447,26 @@ const systemStore = {
     // Save to MongoDB asynchronously if connected
     if (isMongoConnected()) {
       try {
+        // 1. Remove any plans from MongoDB that were deleted in Super Admin
+        const activeIds = memoryPlans.map(p => p.id).filter(Boolean);
+        if (activeIds.length > 0) {
+          await Plan.deleteMany({ id: { $nin: activeIds } }).catch(() => {});
+        } else {
+          await Plan.deleteMany({}).catch(() => {});
+        }
+
+        // 2. Upsert each remaining active plan
         for (const p of memoryPlans) {
+          const updateData = { ...p };
+          delete updateData._id;
+          delete updateData.__v;
+          delete updateData.createdAt;
+          delete updateData.updatedAt;
           await Plan.findOneAndUpdate(
             { id: p.id },
-            { $set: p },
+            { $set: updateData },
             { upsert: true, new: true, setDefaultsOnInsert: true }
-          ).catch(() => {});
+          ).catch((err) => console.warn('[SystemStore] Single plan DB write warning:', err.message));
         }
         await SystemConfig.findOneAndUpdate({}, { plansConfig: memoryPlans }, { upsert: true }).catch(() => {});
       } catch (err) {
@@ -435,11 +495,16 @@ const systemStore = {
 
     if (isMongoConnected()) {
       try {
+        const updateData = { ...p };
+        delete updateData._id;
+        delete updateData.__v;
+        delete updateData.createdAt;
+        delete updateData.updatedAt;
         await Plan.findOneAndUpdate(
           { id: p.id },
-          { $set: p },
+          { $set: updateData },
           { upsert: true, new: true, setDefaultsOnInsert: true }
-        ).catch(() => {});
+        ).catch((err) => console.warn('[SystemStore] Single plan upsert warning:', err.message));
         await SystemConfig.findOneAndUpdate({}, { plansConfig: memoryPlans }, { upsert: true }).catch(() => {});
       } catch (err) {
         console.warn('[SystemStore] DB upsert plan error:', err.message);
@@ -451,12 +516,17 @@ const systemStore = {
 
   // Delete a plan
   async deletePlan(planId) {
-    memoryPlans = memoryPlans.filter(p => p.id !== planId);
+    memoryPlans = memoryPlans.filter(p => p.id !== planId && p._id !== planId);
     writeJsonFile(PLANS_FILE, memoryPlans);
 
     if (isMongoConnected()) {
       try {
-        await Plan.findOneAndDelete({ id: planId }).catch(() => {});
+        await Plan.deleteMany({
+          $or: [
+            { id: planId },
+            ...(mongoose.Types.ObjectId.isValid(planId) ? [{ _id: planId }] : [])
+          ]
+        }).catch(() => {});
         await SystemConfig.findOneAndUpdate({}, { plansConfig: memoryPlans }, { upsert: true }).catch(() => {});
       } catch (err) {
         console.warn('[SystemStore] DB delete plan error:', err.message);
@@ -595,7 +665,6 @@ const systemStore = {
             ...memoryPolicies,
             ...dbConfig.legalPolicies
           };
-          writeJsonFile(LEGAL_FILE, memoryPolicies);
           return memoryPolicies;
         }
       } catch (e) {}
@@ -714,7 +783,6 @@ const systemStore = {
             createdAt: d.createdAt,
             updatedAt: d.updatedAt
           }));
-          writeJsonFile(CONTACTS_FILE, formatted);
           return formatted;
         }
       } catch (err) {
@@ -767,6 +835,81 @@ const systemStore = {
     const updated = currentList.filter(c => c.id !== id && c._id !== id);
     writeJsonFile(CONTACTS_FILE, updated);
     return true;
+  },
+
+  // Platform FAQs Management
+  async getAllFaqs() {
+    return memoryFaqs;
+  },
+
+  async getPublicFaqs() {
+    return memoryFaqs.filter(f => f.status !== 'Draft' && f.status !== 'Unpublished');
+  },
+
+  async saveFaqs(newFaqs) {
+    if (!Array.isArray(newFaqs)) return memoryFaqs;
+    memoryFaqs = newFaqs;
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {
+        console.warn('[SystemStore] Error syncing faqs to MongoDB:', err.message);
+      }
+    }
+    return memoryFaqs;
+  },
+
+  async addFaq(faq) {
+    const newEntry = {
+      id: faq.id || 'f_' + Date.now(),
+      question: faq.question || '',
+      answer: faq.answer || '',
+      category: faq.category || 'General',
+      status: faq.status || 'Published',
+      order: Number(faq.order) || (memoryFaqs.length + 1),
+      lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+    memoryFaqs.push(newEntry);
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {}
+    }
+    return memoryFaqs;
+  },
+
+  async updateFaq(id, updatedData) {
+    memoryFaqs = memoryFaqs.map(f => {
+      if (String(f.id) === String(id)) {
+        return {
+          ...f,
+          ...updatedData,
+          id: f.id,
+          lastUpdated: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        };
+      }
+      return f;
+    });
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {}
+    }
+    return memoryFaqs;
+  },
+
+  async deleteFaq(id) {
+    memoryFaqs = memoryFaqs.filter(f => String(f.id) !== String(id));
+    writeJsonFile(FAQS_FILE, memoryFaqs);
+    if (isMongoConnected()) {
+      try {
+        await SystemConfig.findOneAndUpdate({}, { faqs: memoryFaqs }, { upsert: true });
+      } catch (err) {}
+    }
+    return memoryFaqs;
   }
 };
 
