@@ -680,10 +680,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const lastScanKey = `beaurex_scan_req_${cleanSlug}`;
         const lastScanTime = parseInt(sessionStorage.getItem(lastScanKey) || '0', 10);
         const now = Date.now();
-        if (now - lastScanTime > 10000) {
+        if (now - lastScanTime > 8000) {
           sessionStorage.setItem(lastScanKey, String(now));
           setTimeout(() => {
-            handleRequestAurexCoin(cleanSlug);
+            handleScanClaimRewardOrCoin(cleanSlug);
           }, 350);
         }
       }
@@ -1448,8 +1448,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     if (firstCoinMap[cleanSlug] || !allowFirstCoin) {
       setTimeout(() => {
-        handleRequestAurexCoin(cleanSlug);
+        handleScanClaimRewardOrCoin(cleanSlug);
       }, 300);
+    }
+  };
+
+  // Smart scanner router: claims reward if customer collected target coins, otherwise collects next Aurex coin
+  const handleScanClaimRewardOrCoin = (overrideSlug) => {
+    const cleanSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
+    const activeCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+    const currentCoins = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 1);
+    const targetCoins = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
+
+    if (currentCoins >= targetCoins) {
+      handleInitiateRewardClaim(cleanSlug);
+    } else {
+      handleRequestAurexCoin(cleanSlug);
     }
   };
 
@@ -1487,7 +1501,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     setPendingClaimId(claimId);
     setWaitingApprovalActive(true);
     setApprovalType('coin');
-    setCurrentScreen('after_scan');
+    setCurrentScreen('waiting_approval');
 
     // Clear any prior approval artifact so fresh review is required
     try {
@@ -1535,7 +1549,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   };
 
   // Reward Claim Approval Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting for Merchant Approval) -> Screen 13 (Merchant Approved & Claimed)
-  const handleInitiateClaim = () => {
+  const handleInitiateClaim = (overrideSlug) => {
+    const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
     const claimId = `rem_${Date.now()}`;
     const now = new Date();
@@ -1545,21 +1560,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     const claimObj = {
       id: claimId,
+      claimId: claimId,
       requestType: 'offer',
-      customerName: customerUser.name || 'Sumit',
+      customerName: customerUser.name || 'Rohan Sharma',
       customerId: `ID: ${cleanCustomerId}`,
-      rewardTitle: `${selectedReward.title || '30% OFF'} ${selectedReward.subtitle || 'on next purchase'}`.trim(),
+      rewardTitle: selectedReward?.title ? `${selectedReward.title} ${selectedReward.subtitle || ''}`.trim() : '30% OFF on Next Purchase',
       stamps: '5/5 Aurex Coins completed',
-      timeAgo: `${createdDate}, ${timeStr}`,
+      timeAgo: `Today, ${timeStr}`,
       createdAt: createdAtIso,
       requestedAt: createdAtIso,
       createdDate,
       createdTime: timeStr,
-      expiresIn: `Expires: ${selectedReward.validTill || '30 Jul 2026'}`,
-      voucherType: selectedReward.title?.includes('30') ? '30' : (selectedReward.title?.includes('Coffee') ? 'coffee' : '20'),
+      expiresIn: `Expires: ${selectedReward?.validTill || '30 Jul 2026'}`,
+      voucherType: selectedReward?.title?.includes('Coffee') ? 'coffee' : '30',
       avatarBg: 'bg-emerald-500',
       status: 'PENDING',
-      storeSlug: storeInfo?.qrSlug || slug || 'store'
+      storeSlug: activeStoreSlug
     };
 
     setPendingClaimId(claimId);
@@ -1578,6 +1594,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
       localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'beaurex_pending_redemptions',
+        newValue: JSON.stringify(updated)
+      }));
     } catch (_) {}
 
     // 2. Broadcast to Merchant via BroadcastChannel
@@ -1597,9 +1617,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         id: claimId,
         claimId: claimId,
         customerId: cleanCustomerId,
-        customerName: customerUser.name || 'Sumit',
+        customerName: customerUser.name || 'Rohan Sharma',
         rewardTitle: claimObj.rewardTitle,
-        storeSlug: claimObj.storeSlug,
+        storeSlug: activeStoreSlug,
         stamps: claimObj.stamps,
         voucherType: claimObj.voucherType,
         createdAt: createdAtIso,
@@ -1609,6 +1629,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       })
     }).catch(() => {});
   };
+
+  const handleInitiateRewardClaim = handleInitiateClaim;
 
   // Listen for Merchant Approval or Decline while waiting on Screen 12 or on after_scan waiting state
   useEffect(() => {
@@ -1699,7 +1721,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       channel.onmessage = (event) => {
         const d = event.data;
         if (!d) return;
-        const matchesClaim = pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId));
+        const matchesClaim = (pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId))) ||
+          (cleanCustomerId && d.customerId && String(d.customerId).replace(/^ID:\s*/, '').trim() === cleanCustomerId);
 
         if (matchesClaim) {
           if (d.type === 'REWARD_APPROVED' || d.type === 'COIN_COLLECT_APPROVED') {
@@ -1716,7 +1739,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (e.key === 'beaurex_latest_approval' && e.newValue) {
         try {
           const payload = JSON.parse(e.newValue);
-          const matchesClaim = pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId));
+          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) ||
+            (cleanCustomerId && payload.customerId && String(payload.customerId).replace(/^ID:\s*/, '').trim() === cleanCustomerId);
 
           if (matchesClaim) {
             if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
@@ -1737,7 +1761,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const raw = localStorage.getItem('beaurex_latest_approval');
         if (raw) {
           const payload = JSON.parse(raw);
-          const matchesClaim = pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId));
+          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) ||
+            (cleanCustomerId && payload.customerId && String(payload.customerId).replace(/^ID:\s*/, '').trim() === cleanCustomerId);
 
           if (matchesClaim) {
             if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
@@ -3056,45 +3081,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 })}
               </div>
 
-              {/* Coin Claim Actions / Waiting Status */}
-              {waitingApprovalActive && approvalType === 'coin' ? (
-                <div className="pt-2">
-                  <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-3 flex items-center justify-center space-x-2 text-amber-900 text-xs font-bold animate-pulse">
-                    <Clock className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
-                    <span>Waiting for merchant approval at counter...</span>
+              {/* Waiting Status Banner (if waiting approval active) */}
+              {waitingApprovalActive && (
+                <div 
+                  onClick={() => setCurrentScreen('waiting_approval')}
+                  className="pt-2 cursor-pointer"
+                >
+                  <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-2.5 flex items-center justify-between text-amber-900 text-xs font-bold animate-pulse hover:bg-amber-100/70 transition">
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
+                      <span>Waiting for merchant approval at counter...</span>
+                    </div>
+                    <span className="text-xs text-amber-800 underline font-semibold shrink-0">View ID →</span>
                   </div>
-                </div>
-              ) : currentStamps < totalStamps && (
-                <div className="pt-1">
-                  {currentStamps === 0 ? (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={handleRequestAurexCoin}
-                        className="w-full sm:w-auto mx-auto bg-[#8B0000] hover:bg-[#720000] text-white text-xs sm:text-sm font-black py-2.5 px-6 rounded-2xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer active:scale-95"
-                      >
-                        <Coins className="w-4 h-4 text-amber-300" />
-                        <span>Claim 1st Aurex Coin</span>
-                      </button>
-                      <p className="text-[10px] text-slate-500 font-medium mt-1.5">
-                        Tap to send coin claim request for merchant approval
-                      </p>
-                    </div>
-                  ) : allowFirstCoinSetting && hasClaimedFirstCoin && currentStamps === 1 ? (
-                    /* First image requirement: remove claim button when first coin is awarded with auto-approval ON */
-                    null
-                  ) : (
-                    <div>
-                      <button
-                        type="button"
-                        onClick={handleRequestAurexCoin}
-                        className="w-full sm:w-auto mx-auto bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000]/30 text-xs font-black py-2 px-4 rounded-xl shadow-2xs transition flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
-                      >
-                        <Coins className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Claim Next Aurex Coin</span>
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -3111,22 +3110,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   return (
                     <div
                       key={reward.id}
-                      onClick={() => {
-                        if (!isAchieved) return;
-                        setSelectedReward({
-                          title: reward.title,
-                          subtitle: reward.subtitle,
-                          storeName: storeInfo.storeName || 'Adobe 1865',
-                          requiresStamps: reward.requiredCoins,
-                          validTill: reward.expiry,
-                          image: reward.image,
-                          approvedAt: 'Ready Now'
-                        });
-                        setCurrentScreen('reward_details');
-                      }}
                       className={`bg-white border rounded-2xl p-3 sm:p-3.5 shadow-xs flex items-center space-x-3 sm:space-x-3.5 transition ${
                         isAchieved
-                          ? 'border-emerald-200/90 cursor-pointer hover:border-emerald-300'
+                          ? 'border-emerald-200/90'
                           : 'border-slate-200/90 opacity-90'
                       }`}
                     >
@@ -3165,34 +3151,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </span>
                         </div>
 
-                        {/* Footer: Expiry & Claim Now button (Responsive stacking for small phones) */}
-                        <div className="mt-2 sm:mt-2.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-1.5 sm:gap-2">
+                        {/* Footer: Expiry Badge */}
+                        <div className="mt-2 sm:mt-2.5 flex items-center justify-between">
                           <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 whitespace-nowrap">
                             EXPIRES {reward.expiry}
                           </span>
-
-                          {isAchieved && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedReward({
-                                  title: reward.title,
-                                  subtitle: reward.subtitle,
-                                  storeName: storeInfo.storeName || 'Adobe 1865',
-                                  requiresStamps: reward.requiredCoins,
-                                  validTill: reward.expiry,
-                                  image: reward.image,
-                                  approvedAt: 'Ready Now'
-                                });
-                                setCurrentScreen('reward_details');
-                              }}
-                              className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center space-x-1 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap ml-auto sm:ml-0"
-                            >
-                              <Gift className="w-3.5 h-3.5 text-amber-200" />
-                              <span>Claim Now</span>
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -3647,69 +3610,125 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 12: WAITING FOR APPROVAL (Matching media_1791479289955.png) */}
+      {/* SCREEN 12: WAITING FOR APPROVAL (Matching Image 3) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen === 'waiting_approval' && (
-        <div className="w-full max-w-sm mx-auto px-4 py-10 sm:py-14 text-center space-y-6 animate-in fade-in duration-300">
-          
-          {/* Hourglass Ring Loader */}
-          <div className="relative w-28 h-28 mx-auto flex items-center justify-center">
-            {/* Spinning gradient ring border */}
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#8B0000] border-r-rose-400 border-b-rose-100 animate-spin" />
-            {/* Hourglass or Coin icon */}
-            {approvalType === 'coin' ? (
-              <Coins className="w-10 h-10 text-amber-500 animate-bounce" />
-            ) : (
-              <Hourglass className="w-10 h-10 text-[#8B0000]" />
-            )}
-          </div>
+      {currentScreen === 'waiting_approval' && (() => {
+        const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+        const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
+        const activeCategory = storeInfo.categoryName || 'Coffee Shop';
 
-          <div className="space-y-1.5 pt-1">
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              {approvalType === 'coin' ? 'Waiting for Coin Approval' : 'Waiting for Approval'}
-            </h2>
-            <p className="text-xs sm:text-sm font-semibold text-slate-600 max-w-xs mx-auto">
-              {approvalType === 'coin' 
-                ? 'Your request to collect 1 Aurex Coin is being reviewed by the merchant.'
-                : 'Your reward claim request is being reviewed by the merchant.'}
-            </p>
-          </div>
-
-          {/* Customer ID Card */}
-          <div className="bg-[#fef2f2] border border-rose-100 rounded-3xl p-4 sm:p-5 flex items-center space-x-4 max-w-xs sm:max-w-sm mx-auto shadow-xs text-left">
-            {/* ID Badge Outline Icon */}
-            <div className="w-12 h-10 rounded-xl border-2 border-slate-800 flex items-center justify-center space-x-1.5 shrink-0 bg-transparent px-1.5">
-              <User className="w-4 h-4 text-slate-800 stroke-[2.5]" />
-              <div className="flex flex-col space-y-0.5">
-                <div className="w-3.5 h-0.5 bg-slate-800 rounded-full"></div>
-                <div className="w-3.5 h-0.5 bg-slate-800 rounded-full"></div>
-                <div className="w-3.5 h-0.5 bg-slate-800 rounded-full"></div>
+        return (
+          <div className="w-full max-w-sm mx-auto px-4 py-3 sm:py-5 text-center animate-in fade-in duration-300">
+            {/* Top Bar with Back Arrow & Store info matching Image 3 */}
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-100 text-left">
+              <button
+                type="button"
+                onClick={() => setCurrentScreen('after_scan')}
+                className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
+                title="Back to Loyalty Card"
+              >
+                <ArrowLeft className="w-6 h-6 stroke-[2]" />
+              </button>
+              <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
+                <Coffee className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-black text-slate-900 leading-tight truncate">
+                  {activeStoreName}
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  {activeCategory}
+                </p>
               </div>
             </div>
 
-            <div className="min-w-0 flex-1">
-              <span className="text-xs font-bold text-slate-800 block">
-                Customer ID
-              </span>
-              <span className="text-xl sm:text-2xl font-black text-[#8B0000] font-mono tracking-wider block mt-0.5">
-                {customerUser.customerId || 'LQR-8F4A29'}
-              </span>
-            </div>
-          </div>
+            {/* Hourglass with Segmented Red Circle Loader matching Image 3 */}
+            <div className="pt-10 pb-4">
+              <div className="relative w-36 h-36 mx-auto flex items-center justify-center">
+                {/* 4-segment animated circle ring */}
+                <svg className="absolute inset-0 w-full h-full animate-spin duration-3000" viewBox="0 0 100 100">
+                  {/* Pale pink segments */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="44"
+                    fill="none"
+                    stroke="#fecdd3"
+                    strokeWidth="3.5"
+                    strokeDasharray="60 15"
+                    strokeLinecap="round"
+                  />
+                  {/* Crimson dark red segments */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="44"
+                    fill="none"
+                    stroke="#c0151f"
+                    strokeWidth="3.5"
+                    strokeDasharray="60 85"
+                    strokeDashoffset="15"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="44"
+                    fill="none"
+                    stroke="#c0151f"
+                    strokeWidth="3.5"
+                    strokeDasharray="60 85"
+                    strokeDashoffset="135"
+                    strokeLinecap="round"
+                  />
+                </svg>
 
-          <div className="space-y-2">
-            <span className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>{approvalType === 'coin' ? 'Awaiting Cashier Approval for Aurex Coin' : 'Awaiting Cashier Approval'}</span>
-            </span>
-            <p className="text-xs sm:text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed">
-              {approvalType === 'coin' 
-                ? <>Show your Customer ID to the cashier. Once they click <strong>Accept</strong> on their BeAurex Terminal, 1 Aurex Coin will be added to your card.</>
-                : <>Show your Customer ID to the merchant. Once they click <strong>Accept</strong> on their BeAurex Terminal, your reward will unlock here automatically.</>}
+                {/* Hourglass Icon */}
+                <div className="relative flex items-center justify-center">
+                  <Hourglass className="w-12 h-12 text-[#c0151f] stroke-[2.2]" />
+                </div>
+              </div>
+            </div>
+
+            {/* Waiting for Approval Headline & Subtitle */}
+            <div className="space-y-1.5 mt-2">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                Waiting for Approval
+              </h2>
+              <p className="text-sm font-semibold text-slate-600 max-w-xs mx-auto">
+                Your request is being reviewed by the merchant.
+              </p>
+            </div>
+
+            {/* Customer ID Card matching Image 3 */}
+            <div className="bg-[#fff5f5] border border-rose-100 rounded-3xl p-5 flex items-center space-x-4 max-w-xs sm:max-w-sm mx-auto shadow-xs text-left mt-6">
+              {/* ID Badge Icon */}
+              <div className="w-12 h-9 rounded-xl border-2 border-slate-900 flex items-center justify-center space-x-1.5 shrink-0 bg-transparent px-1.5">
+                <User className="w-4 h-4 text-slate-900 stroke-[2.5]" />
+                <div className="flex flex-col space-y-0.5">
+                  <div className="w-3.5 h-0.5 bg-slate-900 rounded-full"></div>
+                  <div className="w-3.5 h-0.5 bg-slate-900 rounded-full"></div>
+                  <div className="w-3.5 h-0.5 bg-slate-900 rounded-full"></div>
+                </div>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <span className="text-xs sm:text-sm font-bold text-slate-900 block leading-tight">
+                  Customer ID
+                </span>
+                <span className="text-2xl sm:text-3xl font-black text-[#c0151f] font-mono tracking-wider block mt-0.5">
+                  {cleanCustomerId}
+                </span>
+              </div>
+            </div>
+
+            {/* Instruction Footer matching Image 3 */}
+            <p className="text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed mt-5">
+              Please share your Customer ID with the cashier.
             </p>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 13: REWARD CLAIMED (Matching media_1791479304410.png) */}
