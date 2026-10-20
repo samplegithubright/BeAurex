@@ -563,6 +563,216 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     });
   };
 
+  // Request Aurex Coin Approval Flow: Customer wants to collect 1 Aurex Coin
+  const handleRequestAurexCoin = (overrideSlug) => {
+    const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const claimId = `coin_${Date.now()}`;
+    const now = new Date();
+    const createdDate = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const createdAtIso = now.toISOString();
+
+    const coinObj = {
+      id: claimId,
+      claimId: claimId,
+      requestType: 'coin',
+      voucherType: 'coin',
+      coins: 1,
+      customerName: customerUser.name || 'Rohan Sharma',
+      customerId: `ID: ${cleanCustomerId}`,
+      rewardTitle: 'Collect 1 Aurex Coin',
+      stamps: '1 Aurex Coin Requested',
+      timeAgo: `Today, ${timeStr}`,
+      createdAt: createdAtIso,
+      requestedAt: createdAtIso,
+      createdDate,
+      createdTime: timeStr,
+      expiresIn: 'Session',
+      avatarBg: 'bg-amber-500',
+      status: 'PENDING',
+      storeSlug: activeStoreSlug
+    };
+
+    setPendingClaimId(claimId);
+    setWaitingApprovalActive(true);
+    setApprovalType('coin');
+    setCurrentScreen('waiting_approval');
+
+    try {
+      localStorage.removeItem('beaurex_latest_approval');
+    } catch (_) {}
+
+    try {
+      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'beaurex_pending_redemptions',
+        newValue: JSON.stringify(updated)
+      }));
+    } catch (_) {}
+
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage({ type: 'COIN_REQUEST', claim: coinObj });
+      setTimeout(() => {
+        try { channel.close(); } catch (_) {}
+      }, 1500);
+    } catch (_) {}
+
+    fetch('/api/customer/coin/request-approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: claimId,
+        claimId: claimId,
+        customerId: cleanCustomerId,
+        customerName: customerUser.name || 'Rohan Sharma',
+        coins: 1,
+        storeSlug: activeStoreSlug,
+        createdAt: createdAtIso,
+        requestedAt: createdAtIso,
+        createdDate,
+        createdTime: timeStr
+      })
+    }).catch(() => {});
+  };
+
+  // Reward Claim Approval Flow: Customer wants to redeem their reward
+  const handleInitiateClaim = (overrideSlug) => {
+    const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
+    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
+    const claimId = `rem_${Date.now()}`;
+    const now = new Date();
+    const createdDate = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const createdAtIso = now.toISOString();
+
+    const claimObj = {
+      id: claimId,
+      claimId: claimId,
+      requestType: 'offer',
+      customerName: customerUser.name || 'Rohan Sharma',
+      customerId: `ID: ${cleanCustomerId}`,
+      rewardTitle: selectedReward?.title ? `${selectedReward.title} ${selectedReward.subtitle || ''}`.trim() : '30% OFF on Next Purchase',
+      stamps: '5/5 Aurex Coins completed',
+      timeAgo: `Today, ${timeStr}`,
+      createdAt: createdAtIso,
+      requestedAt: createdAtIso,
+      createdDate,
+      createdTime: timeStr,
+      expiresIn: `Expires: ${selectedReward?.validTill || '30 Jul 2026'}`,
+      voucherType: selectedReward?.title?.includes('Coffee') ? 'coffee' : '30',
+      avatarBg: 'bg-emerald-500',
+      status: 'PENDING',
+      storeSlug: activeStoreSlug
+    };
+
+    setPendingClaimId(claimId);
+    setWaitingApprovalActive(true);
+    setApprovalType('offer');
+    setCurrentScreen('waiting_approval');
+
+    try {
+      localStorage.removeItem('beaurex_latest_approval');
+    } catch (_) {}
+
+    try {
+      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const existing = existingRaw ? JSON.parse(existingRaw) : [];
+      const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
+      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'beaurex_pending_redemptions',
+        newValue: JSON.stringify(updated)
+      }));
+    } catch (_) {}
+
+    try {
+      const channel = new BroadcastChannel('beaurex_redemptions');
+      channel.postMessage({ type: 'CLAIM_REQUEST', claim: claimObj });
+      setTimeout(() => {
+        try { channel.close(); } catch (_) {}
+      }, 1500);
+    } catch (_) {}
+
+    fetch('/api/customer/reward/request-approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: claimId,
+        claimId: claimId,
+        customerId: cleanCustomerId,
+        customerName: customerUser.name || 'Rohan Sharma',
+        rewardTitle: claimObj.rewardTitle,
+        storeSlug: activeStoreSlug,
+        stamps: claimObj.stamps,
+        voucherType: claimObj.voucherType,
+        createdAt: createdAtIso,
+        requestedAt: createdAtIso,
+        createdDate,
+        createdTime: timeStr
+      })
+    }).catch(() => {});
+  };
+
+  const handleInitiateRewardClaim = handleInitiateClaim;
+
+  // Smart scanner router: claims reward if customer collected target coins, otherwise collects next Aurex coin
+  const handleScanClaimRewardOrCoin = (overrideSlug) => {
+    const cleanSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
+    let customerCards = [];
+    try {
+      customerCards = JSON.parse(localStorage.getItem('beaurex_customer_cards') || '[]');
+    } catch (_) {}
+    const activeCard = customerCards.find(c => c.slug === cleanSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug)
+      || loyaltyCardsList.find(c => c.slug === cleanSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+    const currentCoins = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 1);
+    const targetCoins = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
+
+    if (currentCoins >= targetCoins) {
+      handleInitiateRewardClaim(cleanSlug);
+    } else {
+      handleRequestAurexCoin(cleanSlug);
+    }
+  };
+
+  // Central Unified Scan Processor (for camera scans, simulator scans, and QR link visits)
+  const processStoreScan = (cleanSlug, displayName, activeCategory) => {
+    if (!cleanSlug) return;
+    try {
+      stopCamera();
+    } catch (_) {}
+
+    const resolvedName = displayName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const resolvedCategory = activeCategory || 'Coffee Shop';
+
+    setStoreInfo(prev => ({
+      ...prev,
+      storeName: resolvedName,
+      qrSlug: cleanSlug,
+      categoryName: resolvedCategory
+    }));
+
+    registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory);
+
+    // After scanning (and login/signup), customer lands directly on Screen 1 (First Image: reward_details)
+    setSelectedReward({
+      id: `rew-${cleanSlug}`,
+      title: '30% OFF',
+      subtitle: 'on next purchase',
+      storeName: resolvedName,
+      requiresStamps: 2,
+      validTill: '30 Jul 2026',
+      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      approvedDate: 'Today',
+      approvedTime: '06:13 pm'
+    });
+    setCurrentScreen('reward_details');
+  };
+
   // Reusable customer auth completion & redirect handler
   const completeCustomerAuthRedirect = () => {
     setIsAuthenticated(true);
@@ -572,52 +782,60 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const redirectParam = new URLSearchParams(window.location.search).get('redirect');
     const targetSlug = slug || (redirectParam && redirectParam.startsWith('/scan/') ? redirectParam.replace('/scan/', '') : null);
 
-    if (targetSlug) {
-      const cleanSlug = String(targetSlug).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      let category = 'Retail & Store';
+    const cleanSlug = targetSlug ? String(targetSlug).toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'ka-feen';
+    let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    let category = 'Coffee Shop';
 
-      try {
-        const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
-        if (savedMerchant) {
-          const m = JSON.parse(savedMerchant);
-          if (m?.qrSlug === cleanSlug || !slug) {
-            if (m.businessName) merchantName = m.businessName;
-            if (m.category) category = m.category;
-          }
+    try {
+      const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
+      if (savedMerchant) {
+        const m = JSON.parse(savedMerchant);
+        if (m?.qrSlug === cleanSlug || !slug) {
+          if (m.businessName) merchantName = m.businessName;
+          if (m.category) category = m.category;
         }
-      } catch (_) {}
-
-      try {
-        const savedStore = localStorage.getItem('beaurex_store_profile');
-        if (savedStore) {
-          const p = JSON.parse(savedStore);
-          if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug)) {
-            merchantName = p.storeName;
-            if (p.category) category = p.category;
-          }
-        }
-      } catch (_) {}
-
-      const matchedCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
-      if (matchedCard) {
-        merchantName = matchedCard.name;
-        category = matchedCard.category;
       }
+    } catch (_) {}
 
-      setStoreInfo(prev => ({
-        ...prev,
-        storeName: merchantName,
-        qrSlug: cleanSlug,
-        categoryName: category
-      }));
-      registerScannedStoreCard(cleanSlug, merchantName, category);
-      setCurrentScreen('after_scan');
-      navigate(`/scan/${cleanSlug}`, { replace: true });
-    } else {
-      setCurrentScreen('home');
-      navigate('/customer', { replace: true });
+    try {
+      const savedStore = localStorage.getItem('beaurex_store_profile');
+      if (savedStore) {
+        const p = JSON.parse(savedStore);
+        if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug)) {
+          merchantName = p.storeName;
+          if (p.category) category = p.category;
+        }
+      }
+    } catch (_) {}
+
+    const matchedCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+    if (matchedCard) {
+      merchantName = matchedCard.name;
+      category = matchedCard.category;
     }
+
+    setStoreInfo(prev => ({
+      ...prev,
+      storeName: merchantName,
+      qrSlug: cleanSlug,
+      categoryName: category
+    }));
+    registerScannedStoreCard(cleanSlug, merchantName, category);
+
+    // Flow: scan -> login/signup -> Screen 1 (reward_details, First Image)
+    setSelectedReward({
+      id: `rew-${cleanSlug}`,
+      title: '30% OFF',
+      subtitle: 'on next purchase',
+      storeName: merchantName,
+      requiresStamps: 2,
+      validTill: '30 Jul 2026',
+      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      approvedDate: 'Today',
+      approvedTime: '06:13 pm'
+    });
+    setCurrentScreen('reward_details');
+    navigate(targetSlug ? `/scan/${cleanSlug}` : '/customer', { replace: true });
   };
 
   // If slug is in URL on mount or change, identify store
@@ -661,32 +879,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         qrSlug: cleanSlug,
         categoryName: category
       }));
-      setCurrentScreen('after_scan');
-      registerScannedStoreCard(cleanSlug, prettyName, category);
 
-      // Subsequent scans (2nd, 3rd, 4th visit, etc.):
-      // Automatically send coin collection request to merchant if 1st coin was already awarded or first-coin approval is off
-      let firstCoinMap = {};
-      try {
-        firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
-      } catch (_) {}
-      let allowFirstCoin = true;
-      try {
-        const saved = localStorage.getItem('beaurex_allow_first_coin');
-        if (saved !== null) allowFirstCoin = JSON.parse(saved) === true;
-      } catch (_) {}
-
-      if (firstCoinMap[cleanSlug] || !allowFirstCoin) {
-        const lastScanKey = `beaurex_scan_req_${cleanSlug}`;
-        const lastScanTime = parseInt(sessionStorage.getItem(lastScanKey) || '0', 10);
-        const now = Date.now();
-        if (now - lastScanTime > 8000) {
-          sessionStorage.setItem(lastScanKey, String(now));
-          setTimeout(() => {
-            handleScanClaimRewardOrCoin(cleanSlug);
-          }, 350);
-        }
-      }
+      processStoreScan(cleanSlug, prettyName, category);
     }
   }, [slug]);
 
@@ -1382,10 +1576,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         categoryName: category
       }));
 
-      registerScannedStoreCard(cleanSlug, merchantName, category);
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-      setCurrentScreen('after_scan');
-      navigate(`/scan/${cleanSlug}`, { replace: true });
+      processStoreScan(cleanSlug, merchantName, category);
       return;
     }
     animFrameIdRef.current = requestAnimationFrame(scanQrCodeLoop);
@@ -1402,8 +1593,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // Simulate scanning counter QR (navigates dynamically to current merchant instead of hardcoded Ka-feen)
   const simulateScanSuccess = () => {
     stopCamera();
-    confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
-
     let activeSlug = slug || storeInfo?.qrSlug;
     let activeName = storeInfo?.storeName;
     let activeCategory = storeInfo?.categoryName || 'Retail & Store';
@@ -1424,213 +1613,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const cleanSlug = String(activeSlug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const displayName = activeName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-    setStoreInfo(prev => ({
-      ...prev,
-      storeName: displayName,
-      qrSlug: cleanSlug,
-      categoryName: activeCategory
-    }));
-
-    registerScannedStoreCard(cleanSlug, displayName, activeCategory);
-    setCurrentScreen('after_scan');
-    navigate(`/scan/${cleanSlug}`, { replace: true });
-
-    // When scanning 2nd, 3rd, 4th time: automatically dispatch coin collection request to merchant
-    let firstCoinMap = {};
-    try {
-      firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
-    } catch (_) {}
-    let allowFirstCoin = true;
-    try {
-      const saved = localStorage.getItem('beaurex_allow_first_coin');
-      if (saved !== null) allowFirstCoin = JSON.parse(saved) === true;
-    } catch (_) {}
-
-    if (firstCoinMap[cleanSlug] || !allowFirstCoin) {
-      setTimeout(() => {
-        handleScanClaimRewardOrCoin(cleanSlug);
-      }, 300);
-    }
+    processStoreScan(cleanSlug, displayName, activeCategory);
   };
-
-  // Smart scanner router: claims reward if customer collected target coins, otherwise collects next Aurex coin
-  const handleScanClaimRewardOrCoin = (overrideSlug) => {
-    const cleanSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
-    const activeCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
-    const currentCoins = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 1);
-    const targetCoins = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
-
-    if (currentCoins >= targetCoins) {
-      handleInitiateRewardClaim(cleanSlug);
-    } else {
-      handleRequestAurexCoin(cleanSlug);
-    }
-  };
-
-  // Request Aurex Coin Approval Flow: Customer wants to collect 1 Aurex Coin
-  const handleRequestAurexCoin = (overrideSlug) => {
-    const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
-    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
-    const claimId = `coin_${Date.now()}`;
-    const now = new Date();
-    const createdDate = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-    const createdAtIso = now.toISOString();
-
-    const coinObj = {
-      id: claimId,
-      claimId: claimId,
-      requestType: 'coin',
-      voucherType: 'coin',
-      coins: 1,
-      customerName: customerUser.name || 'Rohan Sharma',
-      customerId: `ID: ${cleanCustomerId}`,
-      rewardTitle: 'Collect 1 Aurex Coin',
-      stamps: '1 Aurex Coin Requested',
-      timeAgo: `Today, ${timeStr}`,
-      createdAt: createdAtIso,
-      requestedAt: createdAtIso,
-      createdDate,
-      createdTime: timeStr,
-      expiresIn: 'Session',
-      avatarBg: 'bg-amber-500',
-      status: 'PENDING',
-      storeSlug: activeStoreSlug
-    };
-
-    setPendingClaimId(claimId);
-    setWaitingApprovalActive(true);
-    setApprovalType('coin');
-    setCurrentScreen('waiting_approval');
-
-    // Clear any prior approval artifact so fresh review is required
-    try {
-      localStorage.removeItem('beaurex_latest_approval');
-    } catch (_) {}
-
-    // 1. Sync locally in localStorage for cross-tab merchant dashboard
-    try {
-      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
-      const existing = existingRaw ? JSON.parse(existingRaw) : [];
-      const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
-      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'beaurex_pending_redemptions',
-        newValue: JSON.stringify(updated)
-      }));
-    } catch (_) {}
-
-    // 2. Broadcast to Merchant via BroadcastChannel (keep channel alive briefly so message transmits reliably)
-    try {
-      const channel = new BroadcastChannel('beaurex_redemptions');
-      channel.postMessage({ type: 'COIN_REQUEST', claim: coinObj });
-      setTimeout(() => {
-        try { channel.close(); } catch (_) {}
-      }, 1500);
-    } catch (_) {}
-
-    // 3. Submit to server endpoint
-    fetch('/api/customer/coin/request-approval', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: claimId,
-        claimId: claimId,
-        customerId: cleanCustomerId,
-        customerName: customerUser.name || 'Rohan Sharma',
-        coins: 1,
-        storeSlug: activeStoreSlug,
-        createdAt: createdAtIso,
-        requestedAt: createdAtIso,
-        createdDate,
-        createdTime: timeStr
-      })
-    }).catch(() => {});
-  };
-
-  // Reward Claim Approval Flow: Screen 10 (Reward Details) -> Screen 12 (Waiting for Merchant Approval) -> Screen 13 (Merchant Approved & Claimed)
-  const handleInitiateClaim = (overrideSlug) => {
-    const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
-    const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
-    const claimId = `rem_${Date.now()}`;
-    const now = new Date();
-    const createdDate = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-    const createdAtIso = now.toISOString();
-
-    const claimObj = {
-      id: claimId,
-      claimId: claimId,
-      requestType: 'offer',
-      customerName: customerUser.name || 'Rohan Sharma',
-      customerId: `ID: ${cleanCustomerId}`,
-      rewardTitle: selectedReward?.title ? `${selectedReward.title} ${selectedReward.subtitle || ''}`.trim() : '30% OFF on Next Purchase',
-      stamps: '5/5 Aurex Coins completed',
-      timeAgo: `Today, ${timeStr}`,
-      createdAt: createdAtIso,
-      requestedAt: createdAtIso,
-      createdDate,
-      createdTime: timeStr,
-      expiresIn: `Expires: ${selectedReward?.validTill || '30 Jul 2026'}`,
-      voucherType: selectedReward?.title?.includes('Coffee') ? 'coffee' : '30',
-      avatarBg: 'bg-emerald-500',
-      status: 'PENDING',
-      storeSlug: activeStoreSlug
-    };
-
-    setPendingClaimId(claimId);
-    setWaitingApprovalActive(true);
-    setApprovalType('offer');
-    setCurrentScreen('waiting_approval');
-
-    // Clear any prior approval artifact so fresh review is required
-    try {
-      localStorage.removeItem('beaurex_latest_approval');
-    } catch (_) {}
-
-    // 1. Sync locally in localStorage for cross-tab merchant dashboard
-    try {
-      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
-      const existing = existingRaw ? JSON.parse(existingRaw) : [];
-      const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
-      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'beaurex_pending_redemptions',
-        newValue: JSON.stringify(updated)
-      }));
-    } catch (_) {}
-
-    // 2. Broadcast to Merchant via BroadcastChannel
-    try {
-      const channel = new BroadcastChannel('beaurex_redemptions');
-      channel.postMessage({ type: 'CLAIM_REQUEST', claim: claimObj });
-      setTimeout(() => {
-        try { channel.close(); } catch (_) {}
-      }, 1500);
-    } catch (_) {}
-
-    // 3. Submit to server endpoint
-    fetch('/api/customer/reward/request-approval', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: claimId,
-        claimId: claimId,
-        customerId: cleanCustomerId,
-        customerName: customerUser.name || 'Rohan Sharma',
-        rewardTitle: claimObj.rewardTitle,
-        storeSlug: activeStoreSlug,
-        stamps: claimObj.stamps,
-        voucherType: claimObj.voucherType,
-        createdAt: createdAtIso,
-        requestedAt: createdAtIso,
-        createdDate,
-        createdTime: timeStr
-      })
-    }).catch(() => {});
-  };
-
-  const handleInitiateRewardClaim = handleInitiateClaim;
 
   // Listen for Merchant Approval or Decline while waiting on Screen 12 or on after_scan waiting state
   useEffect(() => {
@@ -1654,10 +1638,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         });
 
         // Also update loyalty card in loyaltyCardsList & localStorage
+        const activeSlug = payload?.storeSlug || storeInfo.qrSlug || slug;
         setLoyaltyCardsList(prev => {
-          const activeSlug = storeInfo.qrSlug || slug;
           const updated = prev.map(c => {
-            if (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug) {
+            const isMatch = (activeSlug && (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug)) || prev.length === 1;
+            if (isMatch) {
               const newStamps = Math.min(c.totalStamps || 5, (Number(c.stamps) || 0) + addedCoins);
               return {
                 ...c,
@@ -1677,7 +1662,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
         // Mark first coin claimed in map
         try {
-          const activeSlug = storeInfo.qrSlug || slug;
           if (activeSlug) {
             const firstMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
             firstMap[activeSlug] = true;
@@ -1710,7 +1694,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         setCurrentScreen('after_scan');
       } else {
         alert('Merchant declined the reward claim request.');
-        setCurrentScreen('reward_details');
+        setCurrentScreen('after_scan');
       }
     };
 
@@ -1721,8 +1705,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       channel.onmessage = (event) => {
         const d = event.data;
         if (!d) return;
-        const matchesClaim = (pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId))) ||
-          (cleanCustomerId && d.customerId && String(d.customerId).replace(/^ID:\s*/, '').trim() === cleanCustomerId);
+        const dCust = String(d.customerId || '').replace(/^ID:\s*/, '').trim();
+        const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim();
+        const matchesCustomer = Boolean(myCust && dCust && (myCust === dCust || myCust.slice(-6) === dCust.slice(-6)));
+        const matchesClaim = (pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId))) || matchesCustomer;
 
         if (matchesClaim) {
           if (d.type === 'REWARD_APPROVED' || d.type === 'COIN_COLLECT_APPROVED') {
@@ -1739,8 +1725,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (e.key === 'beaurex_latest_approval' && e.newValue) {
         try {
           const payload = JSON.parse(e.newValue);
-          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) ||
-            (cleanCustomerId && payload.customerId && String(payload.customerId).replace(/^ID:\s*/, '').trim() === cleanCustomerId);
+          const dCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+          const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim();
+          const matchesCustomer = Boolean(myCust && dCust && (myCust === dCust || myCust.slice(-6) === dCust.slice(-6)));
+          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer;
 
           if (matchesClaim) {
             if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
@@ -1761,8 +1749,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const raw = localStorage.getItem('beaurex_latest_approval');
         if (raw) {
           const payload = JSON.parse(raw);
-          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) ||
-            (cleanCustomerId && payload.customerId && String(payload.customerId).replace(/^ID:\s*/, '').trim() === cleanCustomerId);
+          const dCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
+          const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim();
+          const matchesCustomer = Boolean(myCust && dCust && (myCust === dCust || myCust.slice(-6) === dCust.slice(-6)));
+          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer;
 
           if (matchesClaim) {
             if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
@@ -1925,7 +1915,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     setRewardsSubTab('history');
     setHistoryFilter('Active');
-    setCurrentScreen('rewards');
+    setCoinApprovedMsg('Merchant approved! You received 1 Aurex Coin! 🎉');
+    setCurrentScreen('after_scan');
   };
 
   // =========================================================================
@@ -3081,6 +3072,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 })}
               </div>
 
+              {/* Claim Next Aurex Coin Button (matching Image 4) */}
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => handleRequestAurexCoin()}
+                  className="w-full sm:w-auto mx-auto bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000]/40 text-xs font-black py-2.5 px-6 rounded-xl shadow-2xs transition flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
+                >
+                  <Coins className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Claim Next Aurex Coin</span>
+                </button>
+              </div>
+
               {/* Waiting Status Banner (if waiting approval active) */}
               {waitingApprovalActive && (
                 <div 
@@ -3151,11 +3154,36 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           </span>
                         </div>
 
-                        {/* Footer: Expiry Badge */}
+                        {/* Footer: Expiry Badge & Claim Now Button */}
                         <div className="mt-2 sm:mt-2.5 flex items-center justify-between">
                           <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 whitespace-nowrap">
                             EXPIRES {reward.expiry}
                           </span>
+
+                          {isAchieved && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedReward({
+                                  id: reward.id,
+                                  title: reward.title,
+                                  subtitle: reward.subtitle,
+                                  storeName: storeInfo.storeName || 'Ka-feen',
+                                  requiresStamps: reward.requiredCoins,
+                                  validTill: reward.expiry,
+                                  image: reward.image,
+                                  approvedDate: 'Today',
+                                  approvedTime: '06:13 pm'
+                                });
+                                setCurrentScreen('reward_details');
+                              }}
+                              className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center space-x-1 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap ml-auto sm:ml-0"
+                            >
+                              <Gift className="w-3.5 h-3.5 text-amber-200" />
+                              <span>Claim Now</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -3534,80 +3562,112 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 10: REWARD DETAILS / CLAIM NOW (Matching media_1791479255151.png) */}
+      {/* SCREEN 10: REWARD DETAILS / CLAIM NOW (Matching Image 1) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen === 'reward_details' && (
-        <div className="w-full max-w-sm mx-auto px-4 py-4 space-y-3.5 pb-24 animate-in fade-in duration-300">
-          
-          {/* Top Card: Reward Info */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4">
-            <img
-              src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-              alt={selectedReward.title || '30% OFF'}
-              className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover shrink-0 shadow-xs"
-            />
-            <div className="min-w-0 flex-1">
-              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
-                {selectedReward.title || '30% OFF'}
-              </h2>
-              <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-1">
-                {selectedReward.subtitle || 'on next purchase'}
-              </p>
-              <div className="mt-3">
-                <span className="inline-block px-3.5 py-1.5 rounded-full bg-rose-50 text-[#8B0000] text-xs font-black tracking-tight">
-                  Requires {selectedReward.requiresStamps || 2} Aurex Coins
-                </span>
+      {currentScreen === 'reward_details' && (() => {
+        const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
+        const activeCategory = storeInfo.categoryName || 'Coffee Shop';
+        const progressStamps = customerUser.stamps || 3;
+        const totalStamps = customerUser.totalStamps || 5;
+
+        return (
+          <div className="w-full max-w-sm mx-auto px-4 py-3 sm:py-5 space-y-3.5 pb-24 animate-in fade-in duration-300">
+            {/* Top Bar with Back Arrow & Store info matching Image 1 */}
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-100 text-left">
+              <button
+                type="button"
+                onClick={() => setCurrentScreen('after_scan')}
+                className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
+                title="Back to Loyalty Card"
+              >
+                <ArrowLeft className="w-6 h-6 stroke-[2]" />
+              </button>
+              <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
+                <Coffee className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-black text-slate-900 leading-tight truncate">
+                  {activeStoreName}
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  {activeCategory}
+                </p>
               </div>
             </div>
-          </div>
 
-          {/* Card 2: Your Progress */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-black text-slate-900">Your Progress</span>
-              <span className="text-sm font-black text-slate-900">{customerUser.stamps || 3} / {customerUser.totalStamps || 5} Aurex Coins</span>
-            </div>
-            
-            <div className="flex items-center space-x-3 pt-1 pb-0.5">
-              {[1, 2, 3].map((n) => (
-                <div
-                  key={n}
-                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
-                >
-                  <Coins className="w-5 h-5 text-amber-300" />
+            {/* Top Card: Reward Info */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4">
+              <img
+                src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+                alt={selectedReward.title || '30% OFF'}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shrink-0 shadow-xs"
+              />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
+                  {selectedReward.title || '30% OFF'}
+                </h2>
+                <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-1">
+                  {selectedReward.subtitle || 'on next purchase'}
+                </p>
+                <div className="mt-3">
+                  <span className="inline-block px-3.5 py-1.5 rounded-full bg-rose-50 text-[#8B0000] text-xs font-black tracking-tight border border-rose-100">
+                    Requires {selectedReward.requiresStamps || 2} Stamps
+                  </span>
                 </div>
-              ))}
-              {[4, 5].map((n) => (
-                <div
-                  key={n}
-                  className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-slate-300 bg-white shrink-0"
-                />
-              ))}
+              </div>
+            </div>
+
+            {/* Card 2: Your Progress */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-black text-slate-900">Your Progress</span>
+                <span className="text-sm font-black text-slate-900">{progressStamps} / {totalStamps} Stamps</span>
+              </div>
+              
+              <div className="flex items-center space-x-3 pt-1 pb-0.5">
+                {Array.from({ length: totalStamps }).map((_, idx) => {
+                  const isFilled = idx < progressStamps;
+                  return isFilled ? (
+                    <div
+                      key={idx}
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
+                    >
+                      <Coffee className="w-5 h-5 text-white" />
+                    </div>
+                  ) : (
+                    <div
+                      key={idx}
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-slate-300 bg-white shrink-0"
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Card 3: Valid Till */}
+            <div className="bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 border border-rose-100/70 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+              <div className="flex items-center space-x-2 text-slate-800">
+                <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
+                <span className="text-xs sm:text-sm font-bold text-slate-800">Valid Till</span>
+              </div>
+              <span className="text-xs sm:text-sm font-black text-[#8B0000]">
+                {selectedReward.validTill || '30 Jul 2026'}
+              </span>
+            </div>
+
+            {/* Claim Now Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleInitiateClaim}
+                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
+              >
+                Claim Now
+              </button>
             </div>
           </div>
-
-          {/* Card 3: Valid Till */}
-          <div className="bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 border border-rose-100/70 rounded-2xl p-4 flex items-center justify-between shadow-xs">
-            <div className="flex items-center space-x-2 text-slate-800">
-              <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
-              <span className="text-xs sm:text-sm font-bold text-slate-800">Valid Till</span>
-            </div>
-            <span className="text-xs sm:text-sm font-black text-[#8B0000]">
-              {selectedReward.validTill || '30 Jul 2026'}
-            </span>
-          </div>
-
-          {/* Claim Now Button */}
-          <div className="pt-2">
-            <button
-              onClick={handleInitiateClaim}
-              className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
-            >
-              Claim Now
-            </button>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 12: WAITING FOR APPROVAL (Matching Image 3) */}
@@ -3731,80 +3791,105 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       })()}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 13: REWARD CLAIMED (Matching media_1791479304410.png) */}
+      {/* SCREEN 13: REWARD CLAIMED (Matching Image 3) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen === 'reward_congrats' && (
-        <div className="w-full max-w-sm mx-auto px-4 py-8 sm:py-12 text-center space-y-5 animate-in fade-in duration-300 relative">
-          
-          {/* Floating Confetti Diamonds */}
-          <div className="relative flex justify-center items-center pt-2">
-            {/* Top decorative diamond particles */}
-            <div className="absolute -top-3 left-10 w-2.5 h-2.5 bg-rose-500 rotate-45 pointer-events-none" />
-            <div className="absolute top-1 left-20 w-2 h-2 bg-amber-400 rotate-45 pointer-events-none" />
-            <div className="absolute -top-4 right-14 w-2.5 h-2.5 bg-cyan-500 rotate-45 pointer-events-none" />
-            <div className="absolute top-3 right-8 w-2.5 h-2.5 bg-emerald-500 rotate-45 pointer-events-none" />
-            <div className="absolute top-0 right-24 w-2 h-2 bg-purple-500 rotate-45 pointer-events-none" />
-            <div className="absolute -top-2 left-28 w-2 h-2 bg-purple-600 rotate-45 pointer-events-none" />
+      {currentScreen === 'reward_congrats' && (() => {
+        const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
+        const activeCategory = storeInfo.categoryName || 'Coffee Shop';
 
-            {/* Solid Green Checkmark Circle */}
-            <div className="w-24 h-24 rounded-full bg-[#00a854] text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <Check className="w-12 h-12 stroke-[3.5] text-white" />
+        return (
+          <div className="w-full max-w-sm mx-auto px-4 py-3 sm:py-5 text-center space-y-4 animate-in fade-in duration-300 relative pb-20">
+            {/* Top Bar with Back Arrow & Store info matching Image 3 */}
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-100 text-left">
+              <button
+                type="button"
+                onClick={handleClaimDone}
+                className="p-1 -ml-1 text-slate-800 hover:text-slate-900 cursor-pointer"
+                title="Back to Loyalty Card"
+              >
+                <ArrowLeft className="w-6 h-6 stroke-[2]" />
+              </button>
+              <div className="w-11 h-11 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
+                <Coffee className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-black text-slate-900 leading-tight truncate">
+                  {activeStoreName}
+                </h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  {activeCategory}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#00a854] tracking-tight">
-              Reward Claimed!
-            </h2>
-            <p className="text-sm font-bold text-slate-800">
-              Enjoy your reward 🎉
-            </p>
-          </div>
+            {/* Floating Confetti Diamonds */}
+            <div className="relative flex justify-center items-center pt-2">
+              {/* Top decorative diamond particles */}
+              <div className="absolute -top-3 left-10 w-2.5 h-2.5 bg-rose-500 rotate-45 pointer-events-none" />
+              <div className="absolute top-1 left-20 w-2 h-2 bg-amber-400 rotate-45 pointer-events-none" />
+              <div className="absolute -top-4 right-14 w-2.5 h-2.5 bg-cyan-500 rotate-45 pointer-events-none" />
+              <div className="absolute top-3 right-8 w-2.5 h-2.5 bg-emerald-500 rotate-45 pointer-events-none" />
+              <div className="absolute top-0 right-24 w-2 h-2 bg-purple-500 rotate-45 pointer-events-none" />
+              <div className="absolute -top-2 left-28 w-2 h-2 bg-purple-600 rotate-45 pointer-events-none" />
 
-          {/* Reward Card */}
-          <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4 text-left">
-            <img
-              src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-              alt={selectedReward.title || '30% OFF'}
-              className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-xs"
-            />
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
-                {selectedReward.title || '30% OFF'}
-              </h3>
-              <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-0.5">
-                {selectedReward.subtitle || 'on next purchase'}
+              {/* Solid Green Checkmark Circle */}
+              <div className="w-24 h-24 rounded-full bg-[#00a854] text-white flex items-center justify-center shadow-lg shadow-emerald-500/25">
+                <Check className="w-12 h-12 stroke-[3.5] text-white" />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#00a854] tracking-tight">
+                Reward Claimed!
+              </h2>
+              <p className="text-sm font-bold text-slate-800">
+                Enjoy your reward 🎉
               </p>
             </div>
-          </div>
 
-          {/* Approved On Card */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex items-center justify-between text-left">
-            <div className="flex items-center space-x-2 text-slate-800">
-              <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
-              <span className="text-xs sm:text-sm font-bold text-slate-800">Approved On</span>
+            {/* Reward Card */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4 text-left">
+              <img
+                src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+                alt={selectedReward.title || '30% OFF'}
+                className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+              />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                  {selectedReward.title || '30% OFF'}
+                </h3>
+                <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-0.5">
+                  {selectedReward.subtitle || 'on next purchase'}
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <span className="text-xs sm:text-sm font-black text-slate-900 block">
-                {selectedReward.approvedDate || '20 May 2026'}
-              </span>
-              <span className="text-xs font-bold text-slate-900 block mt-0.5">
-                {selectedReward.approvedTime || '11:45 AM'}
-              </span>
-            </div>
-          </div>
 
-          {/* Done Button */}
-          <div className="pt-2">
-            <button
-              onClick={handleClaimDone}
-              className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
-            >
-              Done
-            </button>
+            {/* Approved On Card matching Image 3 */}
+            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-xs flex items-center justify-between text-left">
+              <div className="flex items-center space-x-2 text-slate-800">
+                <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
+                <span className="text-xs sm:text-sm font-bold text-slate-800">Approved On</span>
+              </div>
+              <span className="text-xs sm:text-sm font-black text-slate-900">
+                {selectedReward.approvedDate && selectedReward.approvedDate.includes(',')
+                  ? selectedReward.approvedDate
+                  : `${selectedReward.approvedDate || 'Today'}, ${selectedReward.approvedTime || '06:13 pm'}`}
+              </span>
+            </div>
+
+            {/* Done Button */}
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handleClaimDone}
+                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
+              >
+                Done
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 9: PROFILE (Batch 2) */}

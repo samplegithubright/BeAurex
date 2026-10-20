@@ -392,15 +392,22 @@ export default function MerchantDashboard() {
       rewardTitle: item.rewardTitle,
       approvedAt: formattedApprovedAt,
       approvedDate: approvedDate,
+      storeSlug: item.storeSlug || 'store',
       timestamp: Date.now()
     };
 
     localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'beaurex_latest_approval',
+      newValue: JSON.stringify(payload)
+    }));
 
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
       channel.postMessage(payload);
-      channel.close();
+      setTimeout(() => {
+        try { channel.close(); } catch (_) {}
+      }, 1500);
     } catch (_) {}
 
     try {
