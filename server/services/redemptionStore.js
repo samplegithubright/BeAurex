@@ -176,7 +176,7 @@ function approveClaim(claimId, customerId) {
   const approvedItem = {
     ...item,
     status: 'APPROVED',
-    approvedAt: timeStr,
+    approvedAt: `Today, ${timeStr}`,
     approvedDate: dateStr,
     approvedTimestamp: now.toISOString()
   };

@@ -663,6 +663,30 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       }));
       setCurrentScreen('after_scan');
       registerScannedStoreCard(cleanSlug, prettyName, category);
+
+      // Subsequent scans (2nd, 3rd, 4th visit, etc.):
+      // Automatically send coin collection request to merchant if 1st coin was already awarded or first-coin approval is off
+      let firstCoinMap = {};
+      try {
+        firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
+      } catch (_) {}
+      let allowFirstCoin = true;
+      try {
+        const saved = localStorage.getItem('beaurex_allow_first_coin');
+        if (saved !== null) allowFirstCoin = JSON.parse(saved) === true;
+      } catch (_) {}
+
+      if (firstCoinMap[cleanSlug] || !allowFirstCoin) {
+        const lastScanKey = `beaurex_scan_req_${cleanSlug}`;
+        const lastScanTime = parseInt(sessionStorage.getItem(lastScanKey) || '0', 10);
+        const now = Date.now();
+        if (now - lastScanTime > 10000) {
+          sessionStorage.setItem(lastScanKey, String(now));
+          setTimeout(() => {
+            handleRequestAurexCoin(cleanSlug);
+          }, 350);
+        }
+      }
     }
   }, [slug]);
 
@@ -1410,10 +1434,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     registerScannedStoreCard(cleanSlug, displayName, activeCategory);
     setCurrentScreen('after_scan');
     navigate(`/scan/${cleanSlug}`, { replace: true });
+
+    // When scanning 2nd, 3rd, 4th time: automatically dispatch coin collection request to merchant
+    let firstCoinMap = {};
+    try {
+      firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
+    } catch (_) {}
+    let allowFirstCoin = true;
+    try {
+      const saved = localStorage.getItem('beaurex_allow_first_coin');
+      if (saved !== null) allowFirstCoin = JSON.parse(saved) === true;
+    } catch (_) {}
+
+    if (firstCoinMap[cleanSlug] || !allowFirstCoin) {
+      setTimeout(() => {
+        handleRequestAurexCoin(cleanSlug);
+      }, 300);
+    }
   };
 
   // Request Aurex Coin Approval Flow: Customer wants to collect 1 Aurex Coin
-  const handleRequestAurexCoin = () => {
+  const handleRequestAurexCoin = (overrideSlug) => {
+    const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
     const claimId = `coin_${Date.now()}`;
     const now = new Date();
@@ -1423,6 +1465,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     const coinObj = {
       id: claimId,
+      claimId: claimId,
       requestType: 'coin',
       voucherType: 'coin',
       coins: 1,
@@ -1430,7 +1473,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       customerId: `ID: ${cleanCustomerId}`,
       rewardTitle: 'Collect 1 Aurex Coin',
       stamps: '1 Aurex Coin Requested',
-      timeAgo: `${createdDate}, ${timeStr}`,
+      timeAgo: `Today, ${timeStr}`,
       createdAt: createdAtIso,
       requestedAt: createdAtIso,
       createdDate,
@@ -1438,13 +1481,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       expiresIn: 'Session',
       avatarBg: 'bg-amber-500',
       status: 'PENDING',
-      storeSlug: storeInfo?.qrSlug || slug || 'store'
+      storeSlug: activeStoreSlug
     };
 
     setPendingClaimId(claimId);
     setWaitingApprovalActive(true);
     setApprovalType('coin');
-    setCurrentScreen('waiting_approval');
+    setCurrentScreen('after_scan');
 
     // Clear any prior approval artifact so fresh review is required
     try {
@@ -1457,13 +1500,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
       localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'beaurex_pending_redemptions',
+        newValue: JSON.stringify(updated)
+      }));
     } catch (_) {}
 
-    // 2. Broadcast to Merchant via BroadcastChannel
+    // 2. Broadcast to Merchant via BroadcastChannel (keep channel alive briefly so message transmits reliably)
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
       channel.postMessage({ type: 'COIN_REQUEST', claim: coinObj });
-      channel.close();
+      setTimeout(() => {
+        try { channel.close(); } catch (_) {}
+      }, 1500);
     } catch (_) {}
 
     // 3. Submit to server endpoint
@@ -1476,7 +1525,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         customerId: cleanCustomerId,
         customerName: customerUser.name || 'Rohan Sharma',
         coins: 1,
-        storeSlug: coinObj.storeSlug,
+        storeSlug: activeStoreSlug,
         createdAt: createdAtIso,
         requestedAt: createdAtIso,
         createdDate,
@@ -1535,7 +1584,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
       channel.postMessage({ type: 'CLAIM_REQUEST', claim: claimObj });
-      channel.close();
+      setTimeout(() => {
+        try { channel.close(); } catch (_) {}
+      }, 1500);
     } catch (_) {}
 
     // 3. Submit to server endpoint
@@ -1559,9 +1610,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }).catch(() => {});
   };
 
-  // Listen for Merchant Approval or Decline while waiting on Screen 12
+  // Listen for Merchant Approval or Decline while waiting on Screen 12 or on after_scan waiting state
   useEffect(() => {
-    if (currentScreen !== 'waiting_approval') return;
+    if (currentScreen !== 'waiting_approval' && !waitingApprovalActive) return;
 
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
 
@@ -1723,7 +1774,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       window.removeEventListener('storage', handleStorage);
       if (channel) channel.close();
     };
-  }, [currentScreen, pendingClaimId, customerUser.customerId, approvalType]);
+  }, [currentScreen, waitingApprovalActive, pendingClaimId, customerUser.customerId, approvalType]);
 
   // Method to trigger approval simulation directly if testing locally
   const handleSimulateMerchantApproval = () => {
@@ -3029,6 +3080,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                         Tap to send coin claim request for merchant approval
                       </p>
                     </div>
+                  ) : allowFirstCoinSetting && hasClaimedFirstCoin && currentStamps === 1 ? (
+                    /* First image requirement: remove claim button when first coin is awarded with auto-approval ON */
+                    null
                   ) : (
                     <div>
                       <button

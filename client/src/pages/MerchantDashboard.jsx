@@ -313,14 +313,10 @@ export default function MerchantDashboard() {
       channel.onmessage = (event) => {
         if ((event.data?.type === 'CLAIM_REQUEST' || event.data?.type === 'COIN_REQUEST') && event.data.claim) {
           setPendingRedemptions(prev => {
-            const cleanId = String(event.data.claim.customerId || '').replace(/^ID:\s*/, '').trim();
-            const exists = prev.some(p => p.id === event.data.claim.id || (p.customerId && p.customerId.includes(cleanId)));
-            if (!exists) {
-              const updated = [event.data.claim, ...prev];
-              localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
-              return updated;
-            }
-            return prev;
+            const incoming = event.data.claim;
+            const updated = [incoming, ...prev.filter(p => p.id !== incoming.id)];
+            localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+            return updated;
           });
         }
       };
@@ -333,10 +329,37 @@ export default function MerchantDashboard() {
     };
   }, []);
 
+  // Formatter for Approved on: Today, 06:13 pm | Yesterday, 04:15 pm | 20 Oct 2026, 02:05 pm
+  const formatApprovedOn = (item) => {
+    if (!item) return '';
+    const now = new Date();
+    const todayStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    const rawTime = String(item.approvedAt || '').trim();
+    if (rawTime.includes('Today') || rawTime.includes('Yesterday') || (rawTime.includes(',') && !rawTime.startsWith(','))) {
+      return rawTime;
+    }
+
+    const timeOnly = rawTime || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = item.approvedDate || todayStr;
+
+    if (dateStr === todayStr) {
+      return `Today, ${timeOnly}`;
+    } else if (dateStr === yesterdayStr) {
+      return `Yesterday, ${timeOnly}`;
+    } else {
+      return `${dateStr}, ${timeOnly}`;
+    }
+  };
+
   const handleAcceptRedemption = async (item) => {
     const now = new Date();
     const approvedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const approvedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const formattedApprovedAt = `Today, ${approvedTime}`;
 
     setPendingRedemptions(prev => {
       const updated = prev.filter(p => p.id !== item.id);
@@ -347,7 +370,7 @@ export default function MerchantDashboard() {
     const approvedItem = {
       ...item,
       status: 'APPROVED',
-      approvedAt: approvedTime,
+      approvedAt: formattedApprovedAt,
       approvedDate: approvedDate
     };
 
@@ -367,7 +390,7 @@ export default function MerchantDashboard() {
       customerId: cleanCustomerId,
       customerName: item.customerName,
       rewardTitle: item.rewardTitle,
-      approvedAt: approvedTime,
+      approvedAt: formattedApprovedAt,
       approvedDate: approvedDate,
       timestamp: Date.now()
     };
@@ -3122,7 +3145,7 @@ export default function MerchantDashboard() {
                               
                               <div className="mt-2 text-xs text-slate-500">
                                 <span className="block text-slate-400 text-[11px]">Approved on</span>
-                                <span className="font-semibold text-slate-700">{item.approvedAt}</span>
+                                <span className="font-semibold text-slate-700">{formatApprovedOn(item)}</span>
                               </div>
                             </div>
                           </div>
