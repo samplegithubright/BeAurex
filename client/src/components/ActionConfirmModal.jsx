@@ -1,0 +1,138 @@
+import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle, Trash2, Save, ShieldAlert, CheckCircle2, X } from 'lucide-react';
+
+export default function ActionConfirmModal({
+  isOpen,
+  title = 'Permission Required',
+  message = 'Are you sure you want to proceed with this action?',
+  confirmText = 'Yes, Proceed',
+  cancelText = 'Cancel',
+  type = 'warning', // 'danger' | 'warning' | 'primary' | 'success'
+  onConfirm,
+  onClose
+}) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isOpen) return;
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const getTheme = () => {
+    switch (type) {
+      case 'danger':
+        return {
+          iconBg: 'bg-rose-50 text-[#8B0000] border-rose-200',
+          badgeText: 'Permanent Action',
+          badgeBg: 'bg-rose-50 text-[#8B0000] border-rose-200/80 font-black',
+          btnBg: 'bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-md shadow-[#8B0000]/25',
+          icon: Trash2
+        };
+      case 'primary':
+      case 'save':
+        return {
+          iconBg: 'bg-rose-50 text-[#8B0000] border-rose-200',
+          badgeText: 'Save to Database',
+          badgeBg: 'bg-rose-50 text-[#8B0000] border-rose-200/80 font-black',
+          btnBg: 'bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-md shadow-[#8B0000]/25',
+          icon: Save
+        };
+      case 'success':
+        return {
+          iconBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          badgeText: 'Verified Action',
+          badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-black',
+          btnBg: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25',
+          icon: CheckCircle2
+        };
+      case 'warning':
+      default:
+        return {
+          iconBg: 'bg-amber-50 text-amber-800 border-amber-200',
+          badgeText: 'Admin Permission Required',
+          badgeBg: 'bg-amber-50 text-amber-800 border-amber-200 font-black',
+          btnBg: 'bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000] hover:from-[#720000] hover:to-[#5a0000] text-white shadow-md shadow-[#8B0000]/25',
+          icon: ShieldAlert
+        };
+    }
+  };
+
+  const theme = getTheme();
+  const IconComponent = theme.icon;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+          style={{ fontFamily: "'Plus Jakarta Sans', 'Poppins', sans-serif" }}
+          className="relative w-full max-w-md bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-2xl text-slate-900 overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Subtle top ambient glow */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#8B0000] via-[#981b2a] to-[#720000]" />
+
+          {/* Close button top right */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Header Strip with Icon */}
+          <div className="flex items-start space-x-3.5 mb-4">
+            <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-xs ${theme.iconBg}`}>
+              <IconComponent className="w-6 h-6" />
+            </div>
+            <div className="flex-1 pr-6">
+              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${theme.badgeBg}`}>
+                {theme.badgeText}
+              </span>
+              <h3 className="text-base font-black text-slate-900 tracking-tight mt-1">
+                {title}
+              </h3>
+            </div>
+          </div>
+
+          {/* Prompt Message Body */}
+          <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl mb-6 text-xs text-slate-600 font-medium leading-relaxed">
+            {message}
+          </div>
+
+          {/* Actions Button Bar */}
+          <div className="flex items-center justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer active:scale-95"
+            >
+              {cancelText}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer shadow-md flex items-center space-x-2 active:scale-95 ${theme.btnBg}`}
+            >
+              <span>{confirmText}</span>
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}

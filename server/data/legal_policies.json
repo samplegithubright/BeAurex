@@ -1,0 +1,22 @@
+{
+  "privacy": {
+    "type": "Privacy Policy",
+    "title": "Privacy Policy",
+    "status": "Published",
+    "lastUpdated": "May 24, 2026 08:20 AM",
+    "version": "1.0",
+    "publishedBy": "Super Admin",
+    "publishedOn": "May 24, 2026 08:20 AM",
+    "content": "BeAurex Platform Privacy Policy (v1.0)\n\nAt BeAurex, we value your privacy and are committed to protecting your personal information and commercial integrity.\n\n1. Information We Collect\nWe collect necessary information to provide and operate digital loyalty programs:\n• Merchant Business Information (Store name, business category, counter address, contact details)\n• Customer Profile Data (Name, email address, customer ID, phone number if provided)\n• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)\n• Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)\n\n2. How We Use Your Information\nWe use information strictly for:\n• Operating customer rewards and digital stamp issuance\n• Validating customer reward claims at merchant physical counters\n• Preventing fraudulent or duplicate scans\n• Facilitating peer-to-peer customer referral rewards\n• Account security and service announcements\n\n3. Zero Third-Party Selling Guarantee\nBeAurex NEVER sells, rents, or shares customer or merchant personal contact information with third-party advertisers, data brokers, or marketing networks.\n\n4. Data Security & Storage\nAll communication between apps and BeAurex servers is protected using 256-bit TLS/SSL encryption. Data is stored in secure, SOC2-compliant cloud database infrastructure with automated backups and firewall filtering.\n\n5. Your Rights & Data Deletion\nCustomers and merchants have full control over their account data. You may request account review, data export, or complete account deletion at any time by contacting our privacy compliance desk at support@beaurex.com. Requests are processed within 48 business hours."
+  },
+  "terms": {
+    "type": "Terms & Conditions",
+    "title": "Terms & Conditions",
+    "status": "Published",
+    "lastUpdated": "May 24, 2026 08:20 AM",
+    "version": "1.0",
+    "publishedBy": "Super Admin",
+    "publishedOn": "May 24, 2026 08:20 AM",
+    "content": "BeAurex Platform Terms & Conditions (v1.0)\n\nWelcome to BeAurex. These Terms and Conditions govern your access to and usage of the BeAurex loyalty platform, merchant dashboard, counter standee QR codes, and customer web experience.\n\n1. Acceptance of Terms\nBy accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.\n\n2. Merchant Obligations & Counter Conduct\n• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.\n• Merchants must not manipulate scan telemetry or create counterfeit QR displays.\n• Counter staff must verify the 6-character Customer ID before confirming reward redemptions.\n\n3. Customer Rewards & Points Policy\n• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.\n• Stamps and points carry no direct legal tender cash value outside designated partner stores.\n• Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.\n\n4. Platform Availability & Fair Use\n• BeAurex strives for 99.9% platform availability. Periodic system maintenance will be communicated in advance.\n• Automated bots, GPS spoofing, automated QR scan spamming, and rate-limit circumvention are strictly prohibited and will result in immediate account termination.\n\n5. Subscription & Billing Terms\n• Merchants choosing paid subscription plans are billed according to their chosen billing period (Annual / 3-Year / Lifetime).\n• Standee acrylic kits are dispatched within 2-3 business days upon account activation.\n• Any disputes regarding subscription billing must be raised within 14 calendar days to support@beaurex.com."
+  }
+}

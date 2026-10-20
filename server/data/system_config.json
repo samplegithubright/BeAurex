@@ -1,0 +1,206 @@
+{
+  "razorpayKeyId": "",
+  "razorpayKeySecret": "",
+  "razorpayMode": "LIVE",
+  "mongoUri": "mongodb+srv://chandan:Chandan%40705@cluster0.im8vmoe.mongodb.net/beaurex?retryWrites=true&w=majority&appName=Cluster0",
+  "mongoStatus": "CONNECTED (MongoDB Atlas Cluster)",
+  "smsProvider": "FAST2SMS",
+  "smsApiKey": "",
+  "smsSenderId": "BEAURE",
+  "cooldownHours": 12,
+  "enableGeofencing": true,
+  "maxOtpAttempts": 5,
+  "whatsappToken": "EAAQ...whatsapp_live_token",
+  "whatsappPhoneId": "109283746501928",
+  "whatsappBusinessId": "waba_9918273645",
+  "cashfreeAppId": "CF_app_live_883921",
+  "cashfreeSecret": "CF_sec_live_99482104",
+  "stripeKey": "pk_live_51PBeAurexPlatform",
+  "emailProvider": "RESEND",
+  "emailApiKey": "re_live_9a8B7c6D5e4F3g2H1",
+  "emailSenderAddress": "notifications@beaurex.com",
+  "googleMapsApiKey": "AIzaSyA_LiveGoogleMapsKey2026",
+  "cloudinaryCloudName": "beaurex-assets",
+  "cloudinaryApiKey": "817263549102837",
+  "cloudinaryApiSecret": "cld_sec_9918273645",
+  "geminiApiKey": "AIzaSyGeminiApiKeyLive2026",
+  "openaiApiKey": "sk-proj-liveOpenAiKeyBeAurex",
+  "customApiKeys": [
+    {
+      "id": "cak_1",
+      "name": "Shiprocket Logistics API",
+      "keyName": "SHIPROCKET_AUTH_TOKEN",
+      "keyValue": "sr_tok_live_7718294021",
+      "env": "Production",
+      "description": "Used for QR standee acrylic frame courier delivery tracking",
+      "createdAt": "2026-10-04T13:13:58.747Z",
+      "_id": "6ac25116aabba80e721b797c"
+    },
+    {
+      "id": "cak_2",
+      "name": "Zoho CRM Lead Sync",
+      "keyName": "ZOHO_CRM_CLIENT_SECRET",
+      "keyValue": "zh_sec_live_8829410382",
+      "env": "Production",
+      "description": "Auto-sync field agent merchant onboarding leads",
+      "createdAt": "2026-10-04T13:13:58.748Z",
+      "_id": "6ac25116aabba80e721b797d"
+    }
+  ],
+  "_id": "6ac25116aabba80e721b797b",
+  "mongoPoolSize": 20,
+  "plansConfig": [
+    {
+      "id": "plan_1791877354680",
+      "name": "Legend",
+      "price": 70000,
+      "period": "/ Year",
+      "trialDays": 2,
+      "features": [
+        "Customer retention system",
+        "Free account setup & acrylic config",
+        "Custom QR code standee generator",
+        "Unlimited customer QR scans"
+      ],
+      "isPopular": false,
+      "isActive": true,
+      "_id": "6acde0ebf34e3cb9066ad3b7"
+    },
+    {
+      "id": "plan_1791878802678",
+      "name": "legend",
+      "price": 40000,
+      "period": "/ Year",
+      "trialDays": 2,
+      "features": [
+        "Customer retention system",
+        "Free account setup & acrylic config",
+        "Custom QR code standee generator",
+        "Unlimited customer QR scans",
+        "Free 5x7\" Acrylic Counter Standee",
+        "Digital Frequency Aurex Coin Card",
+        "Multi-Counter Branch Support",
+        "Customer CRM Mobile Export"
+      ],
+      "isPopular": false,
+      "isActive": true,
+      "_id": "6acde692f34e3cb9066ad41b"
+    },
+    {
+      "id": "plan_1791884164461",
+      "name": "hgbgyg",
+      "price": 45556,
+      "period": "/ Year",
+      "trialDays": 2,
+      "features": [
+        "Customer retention system",
+        "Free account setup & acrylic config",
+        "Custom QR code standee generator",
+        "Unlimited customer QR scans"
+      ],
+      "isPopular": false,
+      "isActive": true,
+      "_id": "6acdfb84763d2f17eaa32ef7"
+    }
+  ],
+  "coupons": [],
+  "createdAt": "2026-10-04T13:13:58.753Z",
+  "updatedAt": "2026-10-20T12:49:04.937Z",
+  "__v": 0,
+  "smtpHost": "",
+  "smtpUser": "",
+  "legalPolicies": {
+    "privacy": {
+      "type": "Privacy Policy",
+      "title": "Privacy Policy",
+      "status": "Published",
+      "lastUpdated": "May 24, 2026 08:20 AM",
+      "version": "1.0",
+      "publishedBy": "Super Admin",
+      "publishedOn": "May 24, 2026 08:20 AM",
+      "content": "BeAurex Platform Privacy Policy (v1.0)\n\nAt BeAurex, we value your privacy and are committed to protecting your personal information and commercial integrity.\n\n1. Information We Collect\nWe collect necessary information to provide and operate digital loyalty programs:\n• Merchant Business Information (Store name, business category, counter address, contact details)\n• Customer Profile Data (Name, email address, customer ID, phone number if provided)\n• QR & Stamp Activity (Counter scan timestamps, stamps earned, rewards unlocked and redeemed)\n• Analytics & Device Telemetry (Browser details, IP address for security & fraud protection)\n\n2. How We Use Your Information\nWe use information strictly for:\n• Operating customer rewards and digital stamp issuance\n• Validating customer reward claims at merchant physical counters\n• Preventing fraudulent or duplicate scans\n• Facilitating peer-to-peer customer referral rewards\n• Account security and service announcements\n\n3. Zero Third-Party Selling Guarantee\nBeAurex NEVER sells, rents, or shares customer or merchant personal contact information with third-party advertisers, data brokers, or marketing networks.\n\n4. Data Security & Storage\nAll communication between apps and BeAurex servers is protected using 256-bit TLS/SSL encryption. Data is stored in secure, SOC2-compliant cloud database infrastructure with automated backups and firewall filtering.\n\n5. Your Rights & Data Deletion\nCustomers and merchants have full control over their account data. You may request account review, data export, or complete account deletion at any time by contacting our privacy compliance desk at support@beaurex.com. Requests are processed within 48 business hours."
+    },
+    "terms": {
+      "type": "Terms & Conditions",
+      "title": "Terms & Conditions",
+      "status": "Published",
+      "lastUpdated": "May 24, 2026 08:20 AM",
+      "version": "1.0",
+      "publishedBy": "Super Admin",
+      "publishedOn": "May 24, 2026 08:20 AM",
+      "content": "BeAurex Platform Terms & Conditions (v1.0)\n\nWelcome to BeAurex. These Terms and Conditions govern your access to and usage of the BeAurex loyalty platform, merchant dashboard, counter standee QR codes, and customer web experience.\n\n1. Acceptance of Terms\nBy accessing or using BeAurex, you agree to be bound by these Terms and Conditions and our Privacy Policy. If you do not agree to all terms, you may not access or use our services.\n\n2. Merchant Obligations & Counter Conduct\n• Participating merchants agree to honor validly earned digital stamps and approved reward claims presented by registered customers.\n• Merchants must not manipulate scan telemetry or create counterfeit QR displays.\n• Counter staff must verify the 6-character Customer ID before confirming reward redemptions.\n\n3. Customer Rewards & Points Policy\n• Loyalty stamps and reward vouchers are issued at participating merchant businesses and hold promotional value solely for in-store redemption as described.\n• Stamps and points carry no direct legal tender cash value outside designated partner stores.\n• Referrals: Customers earning referral bonuses must ensure referred friends are authentic first-time visitors.\n\n4. Platform Availability & Fair Use\n• BeAurex strives for 99.9% platform availability. Periodic system maintenance will be communicated in advance.\n• Automated bots, GPS spoofing, automated QR scan spamming, and rate-limit circumvention are strictly prohibited and will result in immediate account termination.\n\n5. Subscription & Billing Terms\n• Merchants choosing paid subscription plans are billed according to their chosen billing period (Annual / 3-Year / Lifetime).\n• Standee acrylic kits are dispatched within 2-3 business days upon account activation.\n• Any disputes regarding subscription billing must be raised within 14 calendar days to support@beaurex.com."
+    }
+  },
+  "faqs": [
+    {
+      "id": "f1",
+      "question": "Will my account be automatically charged when the trial ends?",
+      "answer": "Absolutely not. We do not require payment details to start your trial. There are zero auto-debit loops. You manually choose whether to upgrade from your merchant hub when you see real repeat visit revenue.",
+      "category": "General",
+      "status": "Published",
+      "order": 1,
+      "lastUpdated": "May 24, 2026 11:20 AM",
+      "_id": "6ac9ce1e7de2411cc5d1a2e8"
+    },
+    {
+      "id": "f2",
+      "question": "How is user phone number security managed?",
+      "answer": "We focus strictly on isolated cloud privacy. Mobile numbers are verified via instantaneous SMS OTP and used solely for in-store voucher redemption. Shoppers face zero unsolicited promotional marketing.",
+      "category": "General",
+      "status": "Published",
+      "order": 2,
+      "lastUpdated": "May 24, 2026 10:45 AM",
+      "_id": "6ac9ce1e7de2411cc5d1a2e9"
+    },
+    {
+      "id": "f3",
+      "question": "Do customers need to download an application from the App Store?",
+      "answer": "No app download is required! Shoppers open their standard smartphone camera, scan the standee QR, and the reward experience immediately appears in their default browser.",
+      "category": "General",
+      "status": "Published",
+      "order": 3,
+      "lastUpdated": "May 24, 2026 09:30 AM",
+      "_id": "6ac9ce1e7de2411cc5d1a2ea"
+    },
+    {
+      "id": "f4",
+      "question": "Can I customize the discounts and reward percentages?",
+      "answer": "Yes, you have full control over reward campaign rules in your Merchant Hub. You can set percentage discounts, flat rupee off amounts, or free signature items with specific probability chances.",
+      "category": "Rewards",
+      "status": "Published",
+      "order": 4,
+      "lastUpdated": "May 24, 2026 09:15 AM",
+      "_id": "6ac9ce1e7de2411cc5d1a2eb"
+    },
+    {
+      "id": "f5",
+      "question": "How does the acrylic counter standee get configured?",
+      "answer": "Once registered, your dashboard instantly generates a customized, high-resolution vector print file sized for standard 5x7 inch acrylic tabletop frames. You can download and place it immediately on your checkout desk.",
+      "category": "Merchant",
+      "status": "Published",
+      "order": 5,
+      "lastUpdated": "May 24, 2026 08:50 AM",
+      "_id": "6ac9ce1e7de2411cc5d1a2ec"
+    },
+    {
+      "id": "f_1791865371778",
+      "question": "test",
+      "answer": "testtttt",
+      "category": "General",
+      "status": "Published",
+      "order": 6,
+      "lastUpdated": "Oct 13, 2026",
+      "_id": "6acdb21dec1b390316d654d2"
+    },
+    {
+      "id": "f_1792419565250",
+      "question": "night",
+      "answer": "skjnvsk vdsnfvkdsjvn kdvkdjf",
+      "category": "General",
+      "status": "Published",
+      "order": 7,
+      "lastUpdated": "Oct 19, 2026",
+      "_id": "6ad626edb47ff9998481840b"
+    }
+  ]
+}
