@@ -618,6 +618,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // Request Aurex Coin Approval Flow: Customer wants to collect 1 Aurex Coin
   const handleRequestAurexCoin = (overrideSlug) => {
     const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
+
+    // Stop collecting coins if customer has already collected target coins!
+    let customerCards = [];
+    try {
+      customerCards = JSON.parse(localStorage.getItem('beaurex_customer_cards') || '[]');
+    } catch (_) {}
+    const activeCard = customerCards.find(c => c.slug === activeStoreSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeStoreSlug)
+      || loyaltyCardsList.find(c => c.slug === activeStoreSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeStoreSlug);
+    const currentCoins = activeCard?.stamps ?? customerUser.stamps ?? 0;
+    const targetCoins = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
+
+    if (currentCoins >= targetCoins) {
+      handleInitiateClaim(activeStoreSlug);
+      return;
+    }
+
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
     const claimId = `coin_${Date.now()}`;
     const now = new Date();
@@ -816,6 +832,28 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const existingCard = customerCards.find(c => c.slug === cleanSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug)
       || loyaltyCardsList.find(c => c.slug === cleanSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
     const existingStamps = Number(existingCard?.stamps) || 0;
+    const targetCoins = Number(existingCard?.totalStamps) || getInitialTargetCoins() || 5;
+
+    // RULE: IF CARD IS COMPLETE (all coins collected), CANNOT COLLECT MORE COINS! Open Reward Redemption.
+    if (existingStamps >= targetCoins) {
+      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, existingStamps);
+      setSelectedReward({
+        id: `reward-redeem-${cleanSlug}`,
+        isCoin: false,
+        isCompletedReward: true,
+        title: `${resolvedName} Completion Reward`,
+        subtitle: `Card Completed (${existingStamps}/${targetCoins} Coins Collected)`,
+        storeName: resolvedName,
+        requiresStamps: targetCoins,
+        validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+        approvedDate: 'Today',
+        approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+      });
+      setApprovalType('offer');
+      setCurrentScreen('reward_details');
+      return;
+    }
 
     let firstCoinMap = {};
     try {
@@ -1732,28 +1770,43 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       
       if (isCoin) {
         const addedCoins = 1; // Strictly 1 coin at a time
+        const activeSlug = payload?.storeSlug || storeInfo.qrSlug || slug;
+
+        let reachedTarget = false;
+        let cardTarget = 5;
+        let finalStamps = 1;
+
         setCustomerUser(prev => {
+          cardTarget = prev.totalStamps || 5;
+          const current = Number(prev.stamps) || 0;
+          finalStamps = Math.min(cardTarget, current + addedCoins);
+          if (finalStamps >= cardTarget) {
+            reachedTarget = true;
+          }
           const updated = {
             ...prev,
-            stamps: Math.min(prev.totalStamps || 5, (Number(prev.stamps) || 0) + addedCoins)
+            stamps: finalStamps
           };
           try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
           return updated;
         });
 
         // Also update loyalty card in loyaltyCardsList & localStorage
-        const activeSlug = payload?.storeSlug || storeInfo.qrSlug || slug;
         setLoyaltyCardsList(prev => {
           const updated = prev.map(c => {
             const isMatch = (activeSlug && (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug)) || prev.length === 1;
             if (isMatch) {
-              const newStamps = Math.min(c.totalStamps || 5, (Number(c.stamps) || 0) + addedCoins);
+              const target = c.totalStamps || cardTarget || 5;
+              const newStamps = Math.min(target, (Number(c.stamps) || 0) + addedCoins);
+              if (newStamps >= target) {
+                reachedTarget = true;
+              }
               return {
                 ...c,
                 stamps: newStamps,
-                badgeText: newStamps >= (c.totalStamps || 5) ? 'Reward Ready 🎉' : `${Math.max(0, (c.totalStamps || 5) - newStamps)} more Aurex Coins`,
-                badgeClass: newStamps >= (c.totalStamps || 5) ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
-                statusText: `${newStamps} of ${c.totalStamps || 5} Aurex Coins`
+                badgeText: newStamps >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - newStamps)} more Aurex Coins`,
+                badgeClass: newStamps >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+                statusText: `${newStamps} of ${target} Aurex Coins`
               };
             }
             return c;
@@ -1774,19 +1827,64 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         } catch (_) {}
 
         setWaitingApprovalActive(false);
-        setCoinApprovedMsg(`Merchant approved! You received 1 Aurex Coin! 🎉`);
-        setSelectedReward({
-          id: `coin-${Date.now()}`,
-          isCoin: true,
-          title: `1 Aurex Coin Added!`,
-          subtitle: 'Approved by Merchant cashier',
-          storeName: storeInfo.storeName || 'Store',
-          requiresStamps: 1,
-          validTill: 'Active',
-          image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-          approvedDate: payload?.approvedDate || 'Today',
-          approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
+
+        // CHECK IF THIS WAS THE LAST COIN (Card Completed -> Reward Unlocked!)
+        if (reachedTarget || finalStamps >= cardTarget) {
+          const rewardTitle = `${storeInfo.storeName || 'Store'} Reward Voucher`;
+          const validDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+          const newRewardVoucher = {
+            id: `cr-${activeSlug || 'store'}-${Date.now()}`,
+            title: rewardTitle,
+            subtitle: 'Ready to Redeem at Checkout!',
+            storeName: storeInfo.storeName || 'Store',
+            requiresStamps: cardTarget,
+            stampsCollected: cardTarget,
+            validTill: validDate,
+            image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+            approvedAt: 'Ready Now',
+            description: `All ${cardTarget} Aurex Coins collected! Show to cashier to redeem your reward.`
+          };
+
+          setClaimableRewards(prev => [newRewardVoucher, ...prev.filter(r => r.storeName !== newRewardVoucher.storeName)]);
+          try {
+            const currentRaw = localStorage.getItem('beaurex_claimable_rewards');
+            const currentList = currentRaw ? JSON.parse(currentRaw) : [];
+            const merged = [newRewardVoucher, ...currentList.filter(r => r.storeName !== newRewardVoucher.storeName)];
+            localStorage.setItem('beaurex_claimable_rewards', JSON.stringify(merged));
+          } catch (_) {}
+
+          setCoinApprovedMsg(`Congratulations! All ${cardTarget} Aurex Coins collected! Reward Unlocked! 🎉`);
+          setSelectedReward({
+            id: `reward-unlocked-${Date.now()}`,
+            isCoin: false,
+            isCompletedReward: true,
+            title: 'Reward Unlocked! 🎉',
+            subtitle: `You collected all ${cardTarget} coins! Show cashier to redeem.`,
+            storeName: storeInfo.storeName || 'Store',
+            requiresStamps: cardTarget,
+            validTill: validDate,
+            image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+            approvedDate: payload?.approvedDate || 'Today',
+            approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          });
+        } else {
+          // Regular intermediate coin
+          setCoinApprovedMsg(`Merchant approved! You received 1 Aurex Coin! 🎉`);
+          setSelectedReward({
+            id: `coin-${Date.now()}`,
+            isCoin: true,
+            title: `1 Aurex Coin Added!`,
+            subtitle: `Coin ${finalStamps} of ${cardTarget} collected`,
+            storeName: storeInfo.storeName || 'Store',
+            requiresStamps: 1,
+            validTill: 'Active',
+            image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+            approvedDate: payload?.approvedDate || 'Today',
+            approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          });
+        }
+
         setCurrentScreen('reward_congrats');
         return;
       }
@@ -1985,15 +2083,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // Complete Claim and record in Reward History
   const handleClaimDone = () => {
     const isCoin = selectedReward?.isCoin || approvalType === 'coin' || selectedReward?.id?.includes('coin');
+    const isCompletedRewardUnlock = selectedReward?.isCompletedReward && !selectedReward?.isRedeemingOffer;
 
-    if (selectedReward && !isCoin) {
+    if (selectedReward && !isCoin && !isCompletedRewardUnlock) {
       setClaimableRewards((prev) => {
         const next = prev.filter(r => r.id !== selectedReward.id && r.title !== selectedReward.title);
         try { localStorage.setItem('beaurex_claimable_rewards', JSON.stringify(next)); } catch (e) {}
         return next;
       });
 
-      // Reset stamps on the redeemed store card ONLY when claiming an offer/reward (NOT for coins!)
+      // Reset stamps on the redeemed store card ONLY when claiming an offer/reward at cashier (NOT for coins or completion unlock!)
       setLoyaltyCardsList(prev => {
         const updated = prev.map(c => {
           if (c.name === selectedReward.storeName || c.slug === selectedReward.storeName?.toLowerCase().replace(/[^a-z0-9]+/g, '-')) {
@@ -2011,6 +2110,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         try {
           localStorage.setItem('beaurex_customer_cards', JSON.stringify(updated.map(c => ({ ...c, Icon: undefined }))));
         } catch (_) {}
+        return updated;
+      });
+
+      setCustomerUser(prev => {
+        const updated = {
+          ...prev,
+          stamps: 0,
+          rewardsRedeemedCount: (prev.rewardsRedeemedCount || 0) + 1
+        };
+        try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
         return updated;
       });
 
@@ -2040,7 +2149,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       });
     }
 
-    setCoinApprovedMsg(isCoin ? '1 Aurex Coin collected successfully! 🎉' : 'Reward claimed successfully! 🎉');
+    if (isCompletedRewardUnlock) {
+      setCoinApprovedMsg('Congratulations! Card completed and reward unlocked! 🎉');
+    } else if (isCoin) {
+      setCoinApprovedMsg('1 Aurex Coin collected successfully! 🎉');
+    } else {
+      setCoinApprovedMsg('Reward claimed successfully! 🎉');
+    }
     setCurrentScreen('after_scan');
   };
 
@@ -3079,6 +3194,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
                   Waiting for Merchant Approval...
                 </h3>
+              ) : currentStamps >= totalStamps ? (
+                <h3 className="text-base sm:text-lg font-black text-emerald-700 leading-tight flex items-center justify-center space-x-1.5">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                  <span>Card Complete ({currentStamps}/{totalStamps})!</span>
+                </h3>
               ) : currentStamps > 0 ? (
                 <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
                   You earned {currentStamps === 1 ? '1 Aurex Coin!' : `${currentStamps} Aurex Coins!`}
@@ -3152,6 +3272,45 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   );
                 })}
               </div>
+
+              {/* Card Completed Banner - Cannot collect more coins until redeemed! */}
+              {currentStamps >= totalStamps && (
+                <div className="pt-2 text-center animate-in zoom-in-95 duration-200">
+                  <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 space-y-2.5 text-center shadow-xs">
+                    <div className="flex items-center justify-center space-x-2 text-emerald-800 font-black text-xs sm:text-sm">
+                      <Trophy className="w-4 h-4 text-amber-500" />
+                      <span>Reward Unlocked! ({currentStamps}/{totalStamps} Coins)</span>
+                    </div>
+                    <p className="text-xs text-emerald-700 font-medium max-w-xs mx-auto">
+                      All coins collected! You cannot collect more coins on this card until your reward is redeemed at checkout.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedReward({
+                          id: `reward-redeem-${activeSlug}`,
+                          isCoin: false,
+                          isCompletedReward: true,
+                          title: `${storeInfo.storeName || 'Store'} Reward Voucher`,
+                          subtitle: `All ${totalStamps}/${totalStamps} Coins Collected!`,
+                          storeName: storeInfo.storeName || 'Store',
+                          requiresStamps: totalStamps,
+                          validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                          image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+                          approvedDate: 'Today',
+                          approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        });
+                        setApprovalType('offer');
+                        setCurrentScreen('reward_details');
+                      }}
+                      className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <Gift className="w-4 h-4 text-amber-300" />
+                      <span>Redeem Unlocked Reward</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Waiting Status Banner (if waiting approval active) */}
               {waitingApprovalActive && (
@@ -3835,10 +3994,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             <div className="space-y-1">
               <h2 className="text-2xl sm:text-3xl font-black text-[#00a854] tracking-tight">
-                {selectedReward?.isCoin ? 'Aurex Coin Claimed!' : 'Reward Claimed!'}
+                {selectedReward?.isCompletedReward
+                  ? 'Reward Unlocked! 🎉'
+                  : selectedReward?.isCoin
+                  ? 'Aurex Coin Claimed!'
+                  : 'Reward Claimed!'}
               </h2>
               <p className="text-sm font-bold text-slate-800">
-                {selectedReward?.isCoin ? 'Aurex Coin added to your loyalty card 🎉' : 'Enjoy your reward 🎉'}
+                {selectedReward?.isCompletedReward
+                  ? 'All required coins collected! Your reward is unlocked! 🎉'
+                  : selectedReward?.isCoin
+                  ? 'Aurex Coin added to your loyalty card 🎉'
+                  : 'Enjoy your reward 🎉'}
               </p>
             </div>
 
@@ -3847,6 +4014,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               {selectedReward?.isCoin ? (
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#8B0000] to-rose-900 flex items-center justify-center text-white shadow-xs shrink-0">
                   <Coins className="w-8 h-8 sm:w-10 sm:h-10 text-amber-300" />
+                </div>
+              ) : selectedReward?.isCompletedReward ? (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-white shadow-xs shrink-0">
+                  <Gift className="w-8 h-8 sm:w-10 sm:h-10 text-amber-100" />
                 </div>
               ) : (
                 <img
