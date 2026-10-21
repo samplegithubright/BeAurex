@@ -183,7 +183,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       activeCardsCount: 0,
       rewardsRedeemedCount: 0,
       points: 250,
-      stamps: 1,
+      stamps: 0,
       totalStamps: target,
       referralCode: 'BEAUREX-8F4A',
       referralCount: 3,
@@ -266,6 +266,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [waitingApprovalActive, setWaitingApprovalActive] = useState(false);
   const [approvalType, setApprovalType] = useState('offer'); // 'offer' or 'coin'
   const [coinApprovedMsg, setCoinApprovedMsg] = useState('');
+  const processedApprovalsRef = useRef(new Set());
 
   // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
@@ -548,28 +549,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   };
 
   // Helper to dynamically register or update a scanned store in customer's loyalty cards
-  const registerScannedStoreCard = (cleanSlug, storeName, category) => {
+  const registerScannedStoreCard = (cleanSlug, storeName, category, explicitStamps) => {
     if (!cleanSlug) return;
     const target = getInitialTargetCoins();
     const resolvedName = storeName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const resolvedCategory = category || 'Retail & Loyalty';
-
-    // 1. Check if merchant/admin has "allow first coin without approval" enabled (default true)
-    const allowFirstCoin = getAllowFirstCoinSetting();
-
-    // 2. Check if customer has already received their one-time first coin for this store
-    let firstCoinMap = {};
-    try {
-      firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
-    } catch (_) {}
-    const alreadyGotFirstCoin = Boolean(firstCoinMap[cleanSlug]);
 
     setLoyaltyCardsList(prev => {
       const existingIdx = prev.findIndex(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
       let updated;
       if (existingIdx >= 0) {
         const existing = prev[existingIdx];
-        const currentCoins = typeof existing.stamps === 'number' ? existing.stamps : (alreadyGotFirstCoin ? 1 : (allowFirstCoin ? 1 : 0));
+        const currentCoins = typeof explicitStamps === 'number' ? explicitStamps : (typeof existing.stamps === 'number' ? existing.stamps : 0);
         const updatedCard = {
           ...existing,
           name: resolvedName,
@@ -583,18 +574,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         updated = [...prev];
         updated[existingIdx] = updatedCard;
       } else {
-        // Brand-new store card: one-time first coin auto-approval check
-        let initialStamps = 0;
-        if (allowFirstCoin && !alreadyGotFirstCoin) {
-          initialStamps = 1;
-          firstCoinMap[cleanSlug] = true;
-          try {
-            localStorage.setItem('beaurex_first_coin_awarded_map', JSON.stringify(firstCoinMap));
-          } catch (_) {}
-          try {
-            confetti({ particleCount: 75, spread: 65, origin: { y: 0.6 } });
-          } catch (_) {}
-        }
+        const initialStamps = typeof explicitStamps === 'number' ? explicitStamps : 0;
         const newCard = {
           id: `lc-${cleanSlug}`,
           name: resolvedName,
@@ -625,7 +605,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const nextUser = {
           ...curr,
           activeCardsCount: updated.length,
-          stamps: matching?.stamps ?? curr.stamps ?? 1
+          stamps: matching?.stamps ?? (typeof explicitStamps === 'number' ? explicitStamps : (curr.stamps ?? 0))
         };
         try { localStorage.setItem('beaurex_customer_user', JSON.stringify(nextUser)); } catch (_) {}
         return nextUser;
@@ -828,22 +808,30 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       categoryName: resolvedCategory
     }));
 
-    registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory);
+    // Check existing card stamps and firstCoinMap
+    let customerCards = [];
+    try {
+      customerCards = JSON.parse(localStorage.getItem('beaurex_customer_cards') || '[]');
+    } catch (_) {}
+    const existingCard = customerCards.find(c => c.slug === cleanSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug)
+      || loyaltyCardsList.find(c => c.slug === cleanSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
+    const existingStamps = Number(existingCard?.stamps) || 0;
 
-    // Check if allowFirstCoin is enabled and if customer has already received first coin
-    const allowFirst = getAllowFirstCoinSetting();
     let firstCoinMap = {};
     try {
       firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
     } catch (_) {}
-    const alreadyGotFirstCoin = Boolean(firstCoinMap[cleanSlug]);
+    const alreadyGotFirstCoin = Boolean(firstCoinMap[cleanSlug]) || existingStamps > 0;
+    const allowFirst = getAllowFirstCoinSetting();
 
     if (allowFirst && !alreadyGotFirstCoin) {
-      // First visit bonus coin awarded automatically without approval!
+      // 1. FIRST TIME: Auto-award 1st coin (+1 strictly) and go directly to celebration page (reward_congrats)
       firstCoinMap[cleanSlug] = true;
       try {
         localStorage.setItem('beaurex_first_coin_awarded_map', JSON.stringify(firstCoinMap));
       } catch (_) {}
+
+      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, 1);
 
       try {
         confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
@@ -861,11 +849,31 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         approvedDate: 'Today',
         approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
       });
-      // FIRST TIME: Come on final page!
+      setApprovalType('coin');
       setCurrentScreen('reward_congrats');
     } else {
-      // AFTER THAT: Come on claim log page (loyalty card / after_scan)
-      setCurrentScreen('after_scan');
+      // 2. SECOND TIME (or subsequent visits, or if allowFirst is false):
+      // Register card if not already present, preserving existing stamps
+      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, existingStamps);
+
+      // Open the claim page (reward_details) for 1 Aurex Coin!
+      const currentCoins = existingStamps;
+      const targetCoins = existingCard?.totalStamps || 5;
+
+      setSelectedReward({
+        id: `coin-claim-${cleanSlug}-${Date.now()}`,
+        isCoin: true,
+        title: 'Collect 1 Aurex Coin',
+        subtitle: `Coin ${Math.min(targetCoins, currentCoins + 1)} of ${targetCoins}`,
+        storeName: resolvedName,
+        requiresStamps: 1,
+        validTill: 'Session',
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        approvedDate: 'Today',
+        approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+      });
+      setApprovalType('coin');
+      setCurrentScreen('reward_details');
     }
   };
 
@@ -1713,11 +1721,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
 
     const handleApproved = (payload) => {
+      const claimId = payload?.claimId || pendingClaimId || 'latest_approval';
+      if (processedApprovalsRef.current.has(claimId)) {
+        return;
+      }
+      processedApprovalsRef.current.add(claimId);
+
       confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
       const isCoin = payload?.type === 'COIN_COLLECT_APPROVED' || payload?.requestType === 'coin' || approvalType === 'coin';
       
       if (isCoin) {
-        const addedCoins = Number(payload?.coins) || 1;
+        const addedCoins = 1; // Strictly 1 coin at a time
         setCustomerUser(prev => {
           const updated = {
             ...prev,
@@ -1760,14 +1774,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         } catch (_) {}
 
         setWaitingApprovalActive(false);
-        setCoinApprovedMsg(`Merchant approved! You received ${addedCoins} Aurex Coin! 🎉`);
+        setCoinApprovedMsg(`Merchant approved! You received 1 Aurex Coin! 🎉`);
         setSelectedReward({
           id: `coin-${Date.now()}`,
           isCoin: true,
-          title: `${addedCoins} Aurex Coin Added!`,
+          title: `1 Aurex Coin Added!`,
           subtitle: 'Approved by Merchant cashier',
           storeName: storeInfo.storeName || 'Store',
-          requiresStamps: addedCoins,
+          requiresStamps: 1,
           validTill: 'Active',
           image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
           approvedDate: payload?.approvedDate || 'Today',
@@ -3024,47 +3038,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {currentScreen === 'after_scan' && (() => {
         const activeSlug = storeInfo.qrSlug || slug || 'adobe-1865';
         const activeCard = loyaltyCardsList.find(c => c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug);
-        const currentStamps = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 1);
+        const currentStamps = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 0);
         const totalStamps = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
-        const dynamicExpiry = '7/30/2026';
-
-        // Check if merchant/admin allows first coin without approval and whether customer already got it
-        const allowFirstCoinSetting = getAllowFirstCoinSetting();
-
-        const hasClaimedFirstCoin = (() => {
-          try {
-            const map = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
-            return Boolean(map[activeSlug]);
-          } catch (_) { return false; }
-        })();
-
-        // Rewards data matching reference image exactly
-        const rewardsList = [
-          {
-            id: 'rw-30-off',
-            title: '30% off on next purchase',
-            subtitle: 'on next purchase',
-            requiredCoins: 2,
-            image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-            expiry: dynamicExpiry
-          },
-          {
-            id: 'rw-50-discount',
-            title: '50% discount',
-            subtitle: 'Full card completion perk',
-            requiredCoins: 5,
-            image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
-            expiry: dynamicExpiry
-          },
-          {
-            id: 'rw-free-coffee',
-            title: 'Free Coffee',
-            subtitle: 'Beverage upgrade on bill',
-            requiredCoins: 3,
-            image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
-            expiry: dynamicExpiry
-          }
-        ];
 
         return (
           <div className="w-full max-w-lg mx-auto px-3.5 sm:px-4 py-3 space-y-4 pb-28">
@@ -3178,18 +3153,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 })}
               </div>
 
-              {/* Claim Next Aurex Coin Button (matching Image 4) */}
-              <div className="pt-2 text-center">
-                <button
-                  type="button"
-                  onClick={() => handleRequestAurexCoin()}
-                  className="w-full sm:w-auto mx-auto bg-white hover:bg-rose-50 text-[#8B0000] border border-[#8B0000]/40 text-xs font-black py-2.5 px-6 rounded-xl shadow-2xs transition flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95"
-                >
-                  <Coins className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Claim Next Aurex Coin</span>
-                </button>
-              </div>
-
               {/* Waiting Status Banner (if waiting approval active) */}
               {waitingApprovalActive && (
                 <div 
@@ -3205,97 +3168,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Available Rewards Section (Merchant Dashboard Card Aesthetic) */}
-            <div className="pt-1">
-              <h3 className="text-base font-black text-slate-900 mb-3">Available Rewards</h3>
-
-              <div className="space-y-3">
-                {rewardsList.map((reward) => {
-                  const isAchieved = currentStamps >= reward.requiredCoins;
-                  const coinsRemaining = Math.max(0, reward.requiredCoins - currentStamps);
-
-                  return (
-                    <div
-                      key={reward.id}
-                      className={`bg-white border rounded-2xl p-3 sm:p-3.5 shadow-xs flex items-center space-x-3 sm:space-x-3.5 transition ${
-                        isAchieved
-                          ? 'border-emerald-200/90'
-                          : 'border-slate-200/90 opacity-90'
-                      }`}
-                    >
-                      {/* Left Thumbnail Image */}
-                      <img
-                        src={reward.image}
-                        alt={reward.title}
-                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0"
-                      />
-
-                      {/* Right Details Container */}
-                      <div className="min-w-0 flex-1">
-                        {/* Title & Achieved Badge */}
-                        <div className="flex items-start justify-between gap-1.5">
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
-                            {reward.title}
-                          </h4>
-                          {isAchieved && (
-                            <span className="bg-[#10b981] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0">
-                              ACHIEVED
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Aurex Coins Badge & Status */}
-                        <div className="flex items-center flex-wrap gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
-                          <span className="bg-rose-50 text-rose-700 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-100 shrink-0">
-                            {reward.requiredCoins} AUREX COINS
-                          </span>
-                          <span className="text-[10px] sm:text-[11px] text-slate-600 font-medium">
-                            {isAchieved ? (
-                              <span className="text-emerald-700 font-bold">Ready to claim! 🎉</span>
-                            ) : (
-                              `• Collect ${coinsRemaining} more`
-                            )}
-                          </span>
-                        </div>
-
-                        {/* Footer: Expiry Badge & Claim Now Button */}
-                        <div className="mt-2 sm:mt-2.5 flex items-center justify-between">
-                          <span className="bg-amber-50 text-amber-700 border border-amber-200/70 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0 whitespace-nowrap">
-                            EXPIRES {reward.expiry}
-                          </span>
-
-                          {isAchieved && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedReward({
-                                  id: reward.id,
-                                  title: reward.title,
-                                  subtitle: reward.subtitle,
-                                  storeName: storeInfo.storeName || 'Ka-feen',
-                                  requiresStamps: reward.requiredCoins,
-                                  validTill: reward.expiry,
-                                  image: reward.image,
-                                  approvedDate: 'Today',
-                                  approvedTime: '06:13 pm'
-                                });
-                                setCurrentScreen('reward_details');
-                              }}
-                              className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-black px-3.5 py-1.5 rounded-xl shadow-xs transition flex items-center space-x-1 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap ml-auto sm:ml-0"
-                            >
-                              <Gift className="w-3.5 h-3.5 text-amber-200" />
-                              <span>Claim Now</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </div>
         );
@@ -3701,23 +3573,29 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
             </div>
 
-            {/* Top Card: Reward Info */}
+            {/* Top Card: Reward / Coin Info */}
             <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4">
-              <img
-                src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-                alt={selectedReward.title || '30% OFF'}
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shrink-0 shadow-xs"
-              />
+              {selectedReward?.isCoin || approvalType === 'coin' ? (
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                  <Coins className="w-12 h-12 text-amber-100" />
+                </div>
+              ) : (
+                <img
+                  src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+                  alt={selectedReward.title || '30% OFF'}
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shrink-0 shadow-xs"
+                />
+              )}
               <div className="min-w-0 flex-1">
-                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none">
-                  {selectedReward.title || '30% OFF'}
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                  {selectedReward?.title || (selectedReward?.isCoin || approvalType === 'coin' ? 'Collect 1 Aurex Coin' : '30% OFF')}
                 </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-1">
-                  {selectedReward.subtitle || 'on next purchase'}
+                <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
+                  {selectedReward?.subtitle || (selectedReward?.isCoin || approvalType === 'coin' ? 'Show to cashier to approve' : 'on next purchase')}
                 </p>
-                <div className="mt-3">
-                  <span className="inline-block px-3.5 py-1.5 rounded-full bg-rose-50 text-[#8B0000] text-xs font-black tracking-tight border border-rose-100">
-                    Requires {selectedReward.requiresStamps || 2} Stamps
+                <div className="mt-2.5">
+                  <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-black tracking-tight border border-amber-200/80">
+                    {selectedReward?.isCoin || approvalType === 'coin' ? '🪙 +1 Aurex Coin on Approval' : `Requires ${selectedReward.requiresStamps || 2} Stamps`}
                   </span>
                 </div>
               </div>
@@ -3726,8 +3604,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             {/* Card 2: Your Progress */}
             <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-slate-900">Your Progress</span>
-                <span className="text-sm font-black text-slate-900">{progressStamps} / {totalStamps} Stamps</span>
+                <span className="text-sm font-black text-slate-900">Your Coin Progress</span>
+                <span className="text-sm font-black text-slate-900">{progressStamps} / {totalStamps} Aurex Coins</span>
               </div>
               
               <div className="flex items-center space-x-3 pt-1 pb-0.5">
@@ -3738,26 +3616,30 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       key={idx}
                       className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
                     >
-                      <Coffee className="w-5 h-5 text-white" />
+                      <Coins className="w-5 h-5 text-amber-300" />
                     </div>
                   ) : (
                     <div
                       key={idx}
-                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-slate-300 bg-white shrink-0"
-                    />
+                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center shrink-0"
+                    >
+                      <Coins className="w-4 h-4 text-slate-300" />
+                    </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Card 3: Valid Till */}
+            {/* Card 3: Valid Till / Counter Approval Info */}
             <div className="bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 border border-rose-100/70 rounded-2xl p-4 flex items-center justify-between shadow-xs">
               <div className="flex items-center space-x-2 text-slate-800">
                 <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
-                <span className="text-xs sm:text-sm font-bold text-slate-800">Valid Till</span>
+                <span className="text-xs sm:text-sm font-bold text-slate-800">
+                  {selectedReward?.isCoin || approvalType === 'coin' ? 'Counter Approval' : 'Valid Till'}
+                </span>
               </div>
               <span className="text-xs sm:text-sm font-black text-[#8B0000]">
-                {selectedReward.validTill || '30 Jul 2026'}
+                {selectedReward?.isCoin || approvalType === 'coin' ? 'Waiting at counter' : (selectedReward.validTill || '30 Jul 2026')}
               </span>
             </div>
 
@@ -3765,10 +3647,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <div className="pt-2">
               <button
                 type="button"
-                onClick={handleInitiateClaim}
-                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
+                onClick={() => {
+                  if (selectedReward?.isCoin || approvalType === 'coin') {
+                    handleRequestAurexCoin();
+                  } else {
+                    handleInitiateClaim();
+                  }
+                }}
+                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98] flex items-center justify-center space-x-2"
               >
-                Claim Now
+                <Coins className="w-5 h-5 text-amber-300" />
+                <span>{selectedReward?.isCoin || approvalType === 'coin' ? 'Claim 1 Aurex Coin' : 'Claim Now'}</span>
               </button>
             </div>
           </div>
