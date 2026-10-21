@@ -153,16 +153,18 @@ function addPendingClaim(claim) {
 
 function approveClaim(claimId, customerId) {
   const cleanCustomer = customerId ? String(customerId).replace(/^ID:\s*/, '').trim() : '';
+  const targetId = claimId ? String(claimId).trim() : '';
+
   const idx = pendingList.findIndex(p => 
-    (claimId && p.id === claimId) || 
-    (cleanCustomer && p.customerId && p.customerId.includes(cleanCustomer))
+    (targetId && (p.id === targetId || p.claimId === targetId)) || 
+    (cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
   );
 
   if (idx === -1) {
     // Check if already approved
     const already = approvedList.find(a => 
-      (claimId && a.id === claimId) || 
-      (cleanCustomer && a.customerId && a.customerId.includes(cleanCustomer))
+      (targetId && (a.id === targetId || a.claimId === targetId)) || 
+      (cleanCustomer && a.customerId && (a.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || a.customerId.includes(cleanCustomer)))
     );
     if (already) return already;
     return null;
@@ -188,9 +190,11 @@ function approveClaim(claimId, customerId) {
 
 function declineClaim(claimId, customerId, reason = 'Declined by Merchant') {
   const cleanCustomer = customerId ? String(customerId).replace(/^ID:\s*/, '').trim() : '';
+  const targetId = claimId ? String(claimId).trim() : '';
+
   const idx = pendingList.findIndex(p => 
-    (claimId && p.id === claimId) || 
-    (cleanCustomer && p.customerId && p.customerId.includes(cleanCustomer))
+    (targetId && (p.id === targetId || p.claimId === targetId)) || 
+    (cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
   );
 
   if (idx === -1) return null;
@@ -212,34 +216,31 @@ function checkClaimStatus(customerId, claimId) {
   const cleanCustomer = customerId ? String(customerId).replace(/^ID:\s*/, '').trim() : '';
   const targetClaimId = claimId ? String(claimId).trim() : '';
   
-  if (targetClaimId) {
-    // 1. Check pending first - if it's still pending, it is NEVER approved!
-    const pending = pendingList.find(p => p.id === targetClaimId || p.claimId === targetClaimId);
-    if (pending) {
-      return { status: 'PENDING', claim: pending };
-    }
-
-    // 2. Check approved with exact claimId
-    const approved = approvedList.find(a => a.id === targetClaimId || a.claimId === targetClaimId);
-    if (approved) {
-      return { status: 'APPROVED', claim: approved };
-    }
-
-    // 3. Check declined with exact claimId
-    const declined = declinedList.find(d => d.id === targetClaimId || d.claimId === targetClaimId);
-    if (declined) {
-      return { status: 'DECLINED', claim: declined };
-    }
-
-    return { status: 'NOT_FOUND' };
+  // 1. Check pending first - if it's still pending, it is NEVER approved!
+  const pending = pendingList.find(p => 
+    (targetClaimId && (p.id === targetClaimId || p.claimId === targetClaimId)) ||
+    (cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
+  );
+  if (pending) {
+    return { status: 'PENDING', claim: pending };
   }
 
-  // If no claimId provided, only check if there is an active pending item
-  if (cleanCustomer) {
-    const pending = pendingList.find(p => p.customerId && p.customerId.includes(cleanCustomer));
-    if (pending) {
-      return { status: 'PENDING', claim: pending };
-    }
+  // 2. Check approved
+  const approved = approvedList.find(a => 
+    (targetClaimId && (a.id === targetClaimId || a.claimId === targetClaimId)) ||
+    (cleanCustomer && a.customerId && (a.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || a.customerId.includes(cleanCustomer)))
+  );
+  if (approved) {
+    return { status: 'APPROVED', claim: approved };
+  }
+
+  // 3. Check declined
+  const declined = declinedList.find(d => 
+    (targetClaimId && (d.id === targetClaimId || d.claimId === targetClaimId)) ||
+    (cleanCustomer && d.customerId && (d.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || d.customerId.includes(cleanCustomer)))
+  );
+  if (declined) {
+    return { status: 'DECLINED', claim: declined };
   }
 
   return { status: 'NOT_FOUND' };

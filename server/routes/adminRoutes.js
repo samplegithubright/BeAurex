@@ -2919,4 +2919,27 @@ router.delete('/contacts/:id', async (req, res) => {
   }
 });
 
+// Loyalty Coin Rules and Auto-Approval Config (Super Admin <-> Merchant <-> Customer Sync)
+router.get('/coin-config', async (req, res) => {
+  try {
+    const config = await systemStore.getCoinConfig();
+    res.json({ success: true, config });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+router.post('/coin-config', async (req, res) => {
+  try {
+    const config = await systemStore.saveCoinConfig(req.body);
+    res.json({
+      success: true,
+      message: 'Loyalty coin rules saved and synchronized across all portals successfully!',
+      config
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

@@ -578,8 +578,19 @@ export default function SuperAdminDashboard() {
     setCoinConfig(newConfig);
     try {
       localStorage.setItem('beaurex_coin_config', JSON.stringify(newConfig));
+      if (typeof newConfig.autoApproveFirstCoin === 'boolean') {
+        localStorage.setItem('beaurex_allow_first_coin', JSON.stringify(newConfig.autoApproveFirstCoin));
+      }
     } catch (_) {}
     window.dispatchEvent(new CustomEvent('beaurex_coin_config_updated', { detail: newConfig }));
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'beaurex_coin_config',
+      newValue: JSON.stringify(newConfig)
+    }));
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'beaurex_allow_first_coin',
+      newValue: JSON.stringify(newConfig.autoApproveFirstCoin)
+    }));
     showFeatureToast(`Loyalty Coin Rules updated: Target requirement is now ${newConfig.targetCoins} Coins!`);
     fetch('/api/admin/coin-config', {
       method: 'POST',
@@ -587,6 +598,23 @@ export default function SuperAdminDashboard() {
       body: JSON.stringify(newConfig)
     }).catch(() => {});
   };
+
+  useEffect(() => {
+    fetch('/api/admin/coin-config')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.config) {
+          setCoinConfig(prev => ({ ...prev, ...data.config }));
+          try {
+            localStorage.setItem('beaurex_coin_config', JSON.stringify(data.config));
+            if (typeof data.config.autoApproveFirstCoin === 'boolean') {
+              localStorage.setItem('beaurex_allow_first_coin', JSON.stringify(data.config.autoApproveFirstCoin));
+            }
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Customer Individual Coin Adjustment Modal state
   const [adjustCoinsModal, setAdjustCoinsModal] = useState(null);

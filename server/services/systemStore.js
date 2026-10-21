@@ -970,6 +970,36 @@ const systemStore = {
       }
     }
     return memoryPlatform;
+  },
+
+  async getCoinConfig() {
+    const COIN_CONFIG_FILE = path.join(DATA_DIR, 'coin_config.json');
+    const defaultCoinConfig = {
+      targetCoins: 5,
+      coinsPerScan: 1,
+      firstVisitBonus: 1,
+      minRedeemCoins: 5,
+      maxDailyScans: 2,
+      coinExpiryDays: 365,
+      autoApproveFirstCoin: true,
+      programName: 'BeAurex Loyalty Stamp Card',
+      rewardDescription: 'Collect coins on each visit to unlock free rewards'
+    };
+    try {
+      if (fs.existsSync(COIN_CONFIG_FILE)) {
+        const data = JSON.parse(fs.readFileSync(COIN_CONFIG_FILE, 'utf8'));
+        return { ...defaultCoinConfig, ...data };
+      }
+    } catch (_) {}
+    return defaultCoinConfig;
+  },
+
+  async saveCoinConfig(newConfig) {
+    const COIN_CONFIG_FILE = path.join(DATA_DIR, 'coin_config.json');
+    const current = await this.getCoinConfig();
+    const updated = { ...current, ...newConfig };
+    writeJsonFile(COIN_CONFIG_FILE, updated);
+    return updated;
   }
 };
 

@@ -105,71 +105,67 @@ export default function MerchantDashboard() {
   const [rewardsViewTab, setRewardsViewTab] = useState('pending'); // 'pending' | 'approved' | 'declined'
   const [redemptionTypeFilter, setRedemptionTypeFilter] = useState('all'); // 'all' | 'reward' | 'coin'
   const [rewardSearchQuery, setRewardSearchQuery] = useState('');
-  const [pendingRedemptions, setPendingRedemptions] = useState([
-    {
-      id: 'rem_ram',
-      requestType: 'offer',
-      customerName: 'ram',
-      customerId: 'ID: BX-X7F2UE',
-      rewardTitle: 'Buy 1 Get 1 Free on fresh brewed items',
-      stamps: '5/5 Aurex Coins completed',
-      timeAgo: 'Just now',
-      expiresIn: 'Expires: 30 Jul 2026',
-      voucherType: '20',
-      avatarBg: 'bg-emerald-600',
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'rem_1',
-      requestType: 'offer',
-      customerName: 'Sumit',
-      customerId: 'ID: LQR-8F4A29',
-      rewardTitle: '30% OFF on Next Purchase',
-      stamps: '5/5 Aurex Coins completed',
-      timeAgo: 'Today, 2:18 PM',
-      expiresIn: 'Expires: 30 Jul 2026',
-      voucherType: '30',
-      avatarBg: 'bg-emerald-500'
-    },
-    {
-      id: 'rem_2',
-      requestType: 'offer',
-      customerName: 'Ajeet',
-      customerId: 'ID: LQR-3K9D21',
-      rewardTitle: 'Free Coffee on Any Purchase',
-      stamps: '5/5 Aurex Coins completed',
-      timeAgo: 'Today, 12:45 PM',
-      expiresIn: 'Expires: 28 Jul 2026',
-      voucherType: 'coffee',
-      avatarBg: 'bg-indigo-500'
-    },
-    {
-      id: 'rem_3',
-      requestType: 'coin',
-      customerName: 'Rohan Sharma',
-      customerId: 'ID: BX-8F4A29',
-      rewardTitle: 'Wants to collect 1 Aurex Coin',
-      coins: 1,
-      stamps: '1 Aurex Coin Requested',
-      timeAgo: 'Today, 11:30 AM',
-      expiresIn: 'Aurex Coin Request',
-      voucherType: 'coin',
-      avatarBg: 'bg-amber-500'
-    },
-    {
-      id: 'rem_coin_2',
-      requestType: 'coin',
-      customerName: 'Priya Verma',
-      customerId: 'ID: BX-4C2D88',
-      rewardTitle: 'Wants to collect 2 Aurex Coins',
-      coins: 2,
-      stamps: '2 Aurex Coins Requested',
-      timeAgo: 'Today, 10:15 AM',
-      expiresIn: 'Aurex Coin Request',
-      voucherType: 'coin',
-      avatarBg: 'bg-amber-600'
-    }
-  ]);
+  const [pendingRedemptions, setPendingRedemptions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_pending_redemptions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [
+      {
+        id: 'rem_1',
+        requestType: 'offer',
+        customerName: 'Sumit',
+        customerId: 'ID: LQR-8F4A29',
+        rewardTitle: '30% OFF on Next Purchase',
+        stamps: '5/5 Aurex Coins completed',
+        timeAgo: 'Today, 2:18 PM',
+        expiresIn: 'Expires: 30 Jul 2026',
+        voucherType: '30',
+        avatarBg: 'bg-emerald-500'
+      },
+      {
+        id: 'rem_2',
+        requestType: 'offer',
+        customerName: 'Ajeet',
+        customerId: 'ID: LQR-3K9D21',
+        rewardTitle: 'Free Coffee on Any Purchase',
+        stamps: '5/5 Aurex Coins completed',
+        timeAgo: 'Today, 12:45 PM',
+        expiresIn: 'Expires: 28 Jul 2026',
+        voucherType: 'coffee',
+        avatarBg: 'bg-indigo-500'
+      },
+      {
+        id: 'rem_3',
+        requestType: 'coin',
+        customerName: 'Rohan Sharma',
+        customerId: 'ID: BX-8F4A29',
+        rewardTitle: 'Wants to collect 1 Aurex Coin',
+        coins: 1,
+        stamps: '1 Aurex Coin Requested',
+        timeAgo: 'Today, 11:30 AM',
+        expiresIn: 'Aurex Coin Request',
+        voucherType: 'coin',
+        avatarBg: 'bg-amber-500'
+      },
+      {
+        id: 'rem_coin_2',
+        requestType: 'coin',
+        customerName: 'Priya Verma',
+        customerId: 'ID: BX-4C2D88',
+        rewardTitle: 'Wants to collect 2 Aurex Coins',
+        coins: 2,
+        stamps: '2 Aurex Coins Requested',
+        timeAgo: 'Today, 10:15 AM',
+        expiresIn: 'Aurex Coin Request',
+        voucherType: 'coin',
+        avatarBg: 'bg-amber-600'
+      }
+    ];
+  });
 
   const [approvedRedemptions, setApprovedRedemptions] = useState([
     {
@@ -897,6 +893,13 @@ export default function MerchantDashboard() {
   const [allowMultipleScans, setAllowMultipleScans] = useState(true);
   const [allowFirstCoinWithoutApproval, setAllowFirstCoinWithoutApproval] = useState(() => {
     try {
+      const raw = localStorage.getItem('beaurex_coin_config');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.autoApproveFirstCoin === 'boolean') return parsed.autoApproveFirstCoin;
+      }
+    } catch (_) {}
+    try {
       const saved = localStorage.getItem('beaurex_allow_first_coin');
       return saved !== null ? JSON.parse(saved) : true;
     } catch {
@@ -907,7 +910,15 @@ export default function MerchantDashboard() {
   const handleToggleAllowFirstCoin = () => {
     const nextVal = !allowFirstCoinWithoutApproval;
     setAllowFirstCoinWithoutApproval(nextVal);
-    localStorage.setItem('beaurex_allow_first_coin', JSON.stringify(nextVal));
+    try {
+      localStorage.setItem('beaurex_allow_first_coin', JSON.stringify(nextVal));
+      const raw = localStorage.getItem('beaurex_coin_config');
+      const cfg = raw ? JSON.parse(raw) : {};
+      cfg.autoApproveFirstCoin = nextVal;
+      localStorage.setItem('beaurex_coin_config', JSON.stringify(cfg));
+      window.dispatchEvent(new CustomEvent('beaurex_coin_config_updated', { detail: cfg }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'beaurex_allow_first_coin', newValue: JSON.stringify(nextVal) }));
+    } catch (_) {}
     alert(`Allow first coin without approval is now ${nextVal ? 'ENABLED' : 'DISABLED'}.`);
   };
 
@@ -931,8 +942,20 @@ export default function MerchantDashboard() {
         } catch (_) {}
       }
     };
+    const handleCoinConfigUpdate = (e) => {
+      const cfg = e?.detail;
+      if (cfg && typeof cfg.autoApproveFirstCoin === 'boolean') {
+        setAllowFirstCoinWithoutApproval(cfg.autoApproveFirstCoin);
+      }
+    };
     window.addEventListener('beaurex_merchant_features_updated', handleFeaturesUpdate);
+    window.addEventListener('beaurex_coin_config_updated', handleCoinConfigUpdate);
     window.addEventListener('storage', handleFeaturesUpdate);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'beaurex_allow_first_coin') {
+        try { setAllowFirstCoinWithoutApproval(JSON.parse(e.newValue) === true); } catch (_) {}
+      }
+    });
 
     fetch('/api/admin/merchant-features')
       .then(r => r.json())
@@ -3394,6 +3417,73 @@ export default function MerchantDashboard() {
           {/* ============================================================= */}
           {activeTab === 'home' && (
             <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+
+              {/* LIVE PENDING COUNTER APPROVALS BANNER (Immediate Action for Cashier) */}
+              {pendingRedemptions.length > 0 && (
+                <div className="bg-gradient-to-r from-amber-500 via-rose-600 to-pink-600 rounded-2xl sm:rounded-3xl p-4 sm:p-5 text-white shadow-lg space-y-3.5 animate-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-amber-200">
+                        <Clock className="w-5 h-5 animate-spin" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-black leading-tight">
+                          Customer Approvals Waiting ({pendingRedemptions.length})
+                        </h3>
+                        <p className="text-xs text-white/80 font-medium">
+                          Customer is waiting at counter right now
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('rewards')}
+                      className="text-xs font-black underline hover:text-white/90 cursor-pointer"
+                    >
+                      View All in Rewards →
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    {pendingRedemptions.slice(0, 3).map((item) => {
+                      const isCoin = item.requestType === 'coin' || item.voucherType === 'coin';
+                      return (
+                        <div key={item.id} className="bg-white/95 text-slate-900 rounded-xl p-3 flex items-center justify-between gap-3 shadow-xs">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-xs sm:text-sm font-black truncate">{item.customerName}</span>
+                              <span className="text-[10px] font-bold text-slate-500 font-mono">{item.customerId}</span>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                isCoin ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                              }`}>
+                                {isCoin ? '🪙 1 Aurex Coin' : '🎁 Reward'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-600 truncate mt-0.5 font-medium">{item.rewardTitle}</p>
+                          </div>
+                          <div className="flex items-center space-x-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleAcceptRedemption(item)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-3.5 py-1.5 rounded-lg shadow-xs transition cursor-pointer active:scale-95 flex items-center space-x-1"
+                            >
+                              <Check className="w-3.5 h-3.5 stroke-[3]" />
+                              <span>Accept</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeclineRedemption(item)}
+                              className="bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-700 text-xs font-bold px-2.5 py-1.5 rounded-lg transition cursor-pointer"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* OVERVIEW SECTION (Matching Image Header & Period Filter) */}
               {isFeatureVisible('home_overview') && (

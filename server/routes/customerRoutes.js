@@ -1565,4 +1565,15 @@ router.get('/reward/check-approval', (req, res) => {
   }
 });
 
+// GET Active Platform Coin Configuration (target coins, auto-approval rules)
+router.get('/coin-config', async (req, res) => {
+  try {
+    const systemStore = require('../services/systemStore');
+    const config = await systemStore.getCoinConfig();
+    return res.json({ success: true, config });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

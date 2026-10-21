@@ -116,6 +116,21 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     return 5;
   };
 
+  const getAllowFirstCoinSetting = () => {
+    try {
+      const raw = localStorage.getItem('beaurex_coin_config');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.autoApproveFirstCoin === 'boolean') return parsed.autoApproveFirstCoin;
+      }
+    } catch (_) {}
+    try {
+      const saved = localStorage.getItem('beaurex_allow_first_coin');
+      if (saved !== null) return JSON.parse(saved) === true;
+    } catch (_) {}
+    return true;
+  };
+
   const resolveStoreIcon = (nameOrCat) => {
     const str = String(nameOrCat || '').toLowerCase();
     if (str.includes('coffee') || str.includes('cafe')) return Coffee;
@@ -313,6 +328,69 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   }, [initialAuthMode]);
 
+  // Synchronize Loyalty Coin Rules and Target from Super Admin & Backend
+  useEffect(() => {
+    const handleCoinConfigUpdate = (e) => {
+      const cfg = e?.detail;
+      if (cfg && cfg.targetCoins) {
+        const target = Number(cfg.targetCoins);
+        setLoyaltyCardsList(prev => prev.map(c => ({
+          ...c,
+          totalStamps: target,
+          badgeText: (c.stamps || 0) >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - (c.stamps || 0))} more Aurex Coins`,
+          statusText: `${c.stamps || 0} of ${target} Aurex Coins`
+        })));
+      }
+    };
+    window.addEventListener('beaurex_coin_config_updated', handleCoinConfigUpdate);
+    const handleStorage = (e) => {
+      if (e.key === 'beaurex_coin_config' && e.newValue) {
+        try {
+          const cfg = JSON.parse(e.newValue);
+          if (cfg?.targetCoins) {
+            const target = Number(cfg.targetCoins);
+            setLoyaltyCardsList(prev => prev.map(c => ({
+              ...c,
+              totalStamps: target,
+              badgeText: (c.stamps || 0) >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - (c.stamps || 0))} more Aurex Coins`,
+              statusText: `${c.stamps || 0} of ${target} Aurex Coins`
+            })));
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    // Initial load from backend API
+    fetch('/api/customer/coin-config')
+      .then(res => res.json())
+      .then(d => {
+        if (d?.success && d.config) {
+          try {
+            localStorage.setItem('beaurex_coin_config', JSON.stringify(d.config));
+            if (typeof d.config.autoApproveFirstCoin === 'boolean') {
+              localStorage.setItem('beaurex_allow_first_coin', JSON.stringify(d.config.autoApproveFirstCoin));
+            }
+          } catch (_) {}
+          if (d.config.targetCoins) {
+            const target = Number(d.config.targetCoins);
+            setLoyaltyCardsList(prev => prev.map(c => ({
+              ...c,
+              totalStamps: target,
+              badgeText: (c.stamps || 0) >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - (c.stamps || 0))} more Aurex Coins`,
+              statusText: `${c.stamps || 0} of ${target} Aurex Coins`
+            })));
+          }
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      window.removeEventListener('beaurex_coin_config_updated', handleCoinConfigUpdate);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
   // Customer OTP Verification states
   const [otpSent, setOtpSent] = useState(false);
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
@@ -476,14 +554,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const resolvedName = storeName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const resolvedCategory = category || 'Retail & Loyalty';
 
-    // 1. Check if merchant has "allow first coin without approval" enabled (default true)
-    let allowFirstCoin = true;
-    try {
-      const saved = localStorage.getItem('beaurex_allow_first_coin');
-      if (saved !== null) {
-        allowFirstCoin = JSON.parse(saved) === true;
-      }
-    } catch (_) {}
+    // 1. Check if merchant/admin has "allow first coin without approval" enabled (default true)
+    const allowFirstCoin = getAllowFirstCoinSetting();
 
     // 2. Check if customer has already received their one-time first coin for this store
     let firstCoinMap = {};
@@ -758,19 +830,43 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
     registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory);
 
-    // After scanning (and login/signup), customer lands directly on Screen 1 (First Image: reward_details)
-    setSelectedReward({
-      id: `rew-${cleanSlug}`,
-      title: '30% OFF',
-      subtitle: 'on next purchase',
-      storeName: resolvedName,
-      requiresStamps: 2,
-      validTill: '30 Jul 2026',
-      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      approvedDate: 'Today',
-      approvedTime: '06:13 pm'
-    });
-    setCurrentScreen('reward_details');
+    // Check if allowFirstCoin is enabled and if customer has already received first coin
+    const allowFirst = getAllowFirstCoinSetting();
+    let firstCoinMap = {};
+    try {
+      firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
+    } catch (_) {}
+    const alreadyGotFirstCoin = Boolean(firstCoinMap[cleanSlug]);
+
+    if (allowFirst && !alreadyGotFirstCoin) {
+      // First visit bonus coin awarded automatically without approval!
+      firstCoinMap[cleanSlug] = true;
+      try {
+        localStorage.setItem('beaurex_first_coin_awarded_map', JSON.stringify(firstCoinMap));
+      } catch (_) {}
+
+      try {
+        confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
+      } catch (_) {}
+
+      setSelectedReward({
+        id: `coin-first-${cleanSlug}`,
+        isCoin: true,
+        title: '1st Aurex Coin Added!',
+        subtitle: 'Welcome Bonus Coin Credited!',
+        storeName: resolvedName,
+        requiresStamps: 1,
+        validTill: 'Active',
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        approvedDate: 'Today',
+        approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
+      });
+      // FIRST TIME: Come on final page!
+      setCurrentScreen('reward_congrats');
+    } else {
+      // AFTER THAT: Come on claim log page (loyalty card / after_scan)
+      setCurrentScreen('after_scan');
+    }
   };
 
   // Reusable customer auth completion & redirect handler
@@ -782,7 +878,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const redirectParam = new URLSearchParams(window.location.search).get('redirect');
     const targetSlug = slug || (redirectParam && redirectParam.startsWith('/scan/') ? redirectParam.replace('/scan/', '') : null);
 
-    const cleanSlug = targetSlug ? String(targetSlug).toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'ka-feen';
+    // FIX ERROR 1: When user signs up or logs in WITHOUT scan -> GO TO HOME PAGE!
+    if (!targetSlug) {
+      setCurrentScreen('home');
+      navigate('/customer', { replace: true });
+      return;
+    }
+
+    const cleanSlug = String(targetSlug).toLowerCase().replace(/[^a-z0-9]+/g, '-');
     let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     let category = 'Coffee Shop';
 
@@ -820,22 +923,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       qrSlug: cleanSlug,
       categoryName: category
     }));
-    registerScannedStoreCard(cleanSlug, merchantName, category);
 
-    // Flow: scan -> login/signup -> Screen 1 (reward_details, First Image)
-    setSelectedReward({
-      id: `rew-${cleanSlug}`,
-      title: '30% OFF',
-      subtitle: 'on next purchase',
-      storeName: merchantName,
-      requiresStamps: 2,
-      validTill: '30 Jul 2026',
-      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      approvedDate: 'Today',
-      approvedTime: '06:13 pm'
-    });
-    setCurrentScreen('reward_details');
-    navigate(targetSlug ? `/scan/${cleanSlug}` : '/customer', { replace: true });
+    processStoreScan(cleanSlug, merchantName, category);
+    navigate(`/scan/${cleanSlug}`, { replace: true });
   };
 
   // If slug is in URL on mount or change, identify store
@@ -1671,9 +1761,19 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
         setWaitingApprovalActive(false);
         setCoinApprovedMsg(`Merchant approved! You received ${addedCoins} Aurex Coin! 🎉`);
-        setTimeout(() => {
-          setCurrentScreen('after_scan');
-        }, 1200);
+        setSelectedReward({
+          id: `coin-${Date.now()}`,
+          isCoin: true,
+          title: `${addedCoins} Aurex Coin Added!`,
+          subtitle: 'Approved by Merchant cashier',
+          storeName: storeInfo.storeName || 'Store',
+          requiresStamps: addedCoins,
+          validTill: 'Active',
+          image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+          approvedDate: payload?.approvedDate || 'Today',
+          approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+        setCurrentScreen('reward_congrats');
         return;
       }
 
@@ -1768,15 +1868,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         }
       } catch (_) {}
 
-      // Check server endpoint with EXACT claimId
-      if (pendingClaimId) {
+      // Check server endpoint with claimId or cleanCustomerId
+      if (pendingClaimId || cleanCustomerId) {
         try {
-          const res = await fetch(`/api/customer/reward/check-approval?customerId=${encodeURIComponent(cleanCustomerId)}&claimId=${encodeURIComponent(pendingClaimId)}`);
+          const res = await fetch(`/api/customer/reward/check-approval?customerId=${encodeURIComponent(cleanCustomerId)}&claimId=${encodeURIComponent(pendingClaimId || '')}`);
           const data = await res.json();
-          if (data.status === 'APPROVED' && data.claim && (String(data.claim.id) === String(pendingClaimId) || String(data.claim.claimId) === String(pendingClaimId))) {
+          if (data && data.status === 'APPROVED' && data.claim) {
             clearInterval(pollInterval);
             handleApproved(data.claim);
-          } else if (data.status === 'DECLINED' && data.claim && (String(data.claim.id) === String(pendingClaimId) || String(data.claim.claimId) === String(pendingClaimId))) {
+          } else if (data && data.status === 'DECLINED' && data.claim) {
             clearInterval(pollInterval);
             handleDeclined(data.claim || {});
           }
@@ -1842,14 +1942,25 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       });
       setWaitingApprovalActive(false);
       setCoinApprovedMsg('Merchant approved! You received 1 Aurex Coin! 🎉');
-      setTimeout(() => {
-        setCurrentScreen('after_scan');
-      }, 1200);
+      setSelectedReward({
+        id: `coin-${Date.now()}`,
+        isCoin: true,
+        title: '1 Aurex Coin Added!',
+        subtitle: 'Approved by Merchant cashier',
+        storeName: storeInfo.storeName || 'Store',
+        requiresStamps: 1,
+        validTill: 'Active',
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        approvedDate: approvedDate,
+        approvedTime: approvedTime
+      });
+      setCurrentScreen('reward_congrats');
       return;
     }
 
     setSelectedReward(prev => ({
       ...prev,
+      isCoin: false,
       approvedDate: approvedDate,
       approvedTime: approvedTime
     }));
@@ -1859,14 +1970,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   // Complete Claim and record in Reward History
   const handleClaimDone = () => {
-    if (selectedReward) {
+    const isCoin = selectedReward?.isCoin || approvalType === 'coin' || selectedReward?.id?.includes('coin');
+
+    if (selectedReward && !isCoin) {
       setClaimableRewards((prev) => {
         const next = prev.filter(r => r.id !== selectedReward.id && r.title !== selectedReward.title);
         try { localStorage.setItem('beaurex_claimable_rewards', JSON.stringify(next)); } catch (e) {}
         return next;
       });
 
-      // Reset stamps on the redeemed store card
+      // Reset stamps on the redeemed store card ONLY when claiming an offer/reward (NOT for coins!)
       setLoyaltyCardsList(prev => {
         const updated = prev.map(c => {
           if (c.name === selectedReward.storeName || c.slug === selectedReward.storeName?.toLowerCase().replace(/[^a-z0-9]+/g, '-')) {
@@ -1886,36 +1999,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         } catch (_) {}
         return updated;
       });
+
+      const now = new Date();
+      const todayFormatted = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      const expiryFormatted = expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+      setRewardHistory((prev) => {
+        const nextItem = {
+          id: `rh-${Date.now()}`,
+          title: selectedReward?.title || 'Reward Voucher',
+          storeName: selectedReward?.storeName || storeInfo.storeName || 'Store',
+          category: storeInfo.categoryName || 'Retail & Loyalty',
+          status: 'Active',
+          claimedDate: todayFormatted,
+          dateLabel: 'Valid till',
+          dateValue: selectedReward?.validTill || expiryFormatted,
+          image: selectedReward?.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+          voucherCode: `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          discount: selectedReward?.title || 'Reward Voucher'
+        };
+        const cleanPrev = prev.filter(i => !['rh-1', 'rh-2', 'rh-3', 'rh-4'].includes(i.id));
+        const updated = [nextItem, ...cleanPrev];
+        try { localStorage.setItem('beaurex_reward_history', JSON.stringify(updated)); } catch (e) {}
+        return updated;
+      });
     }
 
-    const now = new Date();
-    const todayFormatted = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const expiryDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const expiryFormatted = expiryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-
-    setRewardHistory((prev) => {
-      const nextItem = {
-        id: `rh-${Date.now()}`,
-        title: selectedReward?.title || 'Reward Voucher',
-        storeName: selectedReward?.storeName || storeInfo.storeName || 'Store',
-        category: storeInfo.categoryName || 'Retail & Loyalty',
-        status: 'Active',
-        claimedDate: todayFormatted,
-        dateLabel: 'Valid till',
-        dateValue: selectedReward?.validTill || expiryFormatted,
-        image: selectedReward?.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-        voucherCode: `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-        discount: selectedReward?.title || 'Reward Voucher'
-      };
-      const cleanPrev = prev.filter(i => !['rh-1', 'rh-2', 'rh-3', 'rh-4'].includes(i.id));
-      const updated = [nextItem, ...cleanPrev];
-      try { localStorage.setItem('beaurex_reward_history', JSON.stringify(updated)); } catch (e) {}
-      return updated;
-    });
-
-    setRewardsSubTab('history');
-    setHistoryFilter('Active');
-    setCoinApprovedMsg('Merchant approved! You received 1 Aurex Coin! 🎉');
+    setCoinApprovedMsg(isCoin ? '1 Aurex Coin collected successfully! 🎉' : 'Reward claimed successfully! 🎉');
     setCurrentScreen('after_scan');
   };
 
@@ -2917,13 +3028,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const totalStamps = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
         const dynamicExpiry = '7/30/2026';
 
-        // Check if merchant allows first coin without approval and whether customer already got it
-        const allowFirstCoinSetting = (() => {
-          try {
-            const saved = localStorage.getItem('beaurex_allow_first_coin');
-            return saved !== null ? JSON.parse(saved) === true : true;
-          } catch (_) { return true; }
-        })();
+        // Check if merchant/admin allows first coin without approval and whether customer already got it
+        const allowFirstCoinSetting = getAllowFirstCoinSetting();
 
         const hasClaimedFirstCoin = (() => {
           try {
@@ -3840,26 +3946,32 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             <div className="space-y-1">
               <h2 className="text-2xl sm:text-3xl font-black text-[#00a854] tracking-tight">
-                Reward Claimed!
+                {selectedReward?.isCoin ? 'Aurex Coin Claimed!' : 'Reward Claimed!'}
               </h2>
               <p className="text-sm font-bold text-slate-800">
-                Enjoy your reward 🎉
+                {selectedReward?.isCoin ? 'Aurex Coin added to your loyalty card 🎉' : 'Enjoy your reward 🎉'}
               </p>
             </div>
 
-            {/* Reward Card */}
+            {/* Reward / Coin Card */}
             <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4 text-left">
-              <img
-                src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-                alt={selectedReward.title || '30% OFF'}
-                className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-xs"
-              />
+              {selectedReward?.isCoin ? (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#8B0000] to-rose-900 flex items-center justify-center text-white shadow-xs shrink-0">
+                  <Coins className="w-8 h-8 sm:w-10 sm:h-10 text-amber-300" />
+                </div>
+              ) : (
+                <img
+                  src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+                  alt={selectedReward.title || '30% OFF'}
+                  className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+                />
+              )}
               <div className="min-w-0 flex-1">
                 <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
-                  {selectedReward.title || '30% OFF'}
+                  {selectedReward.title || (selectedReward?.isCoin ? '1st Aurex Coin' : '30% OFF')}
                 </h3>
                 <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-0.5">
-                  {selectedReward.subtitle || 'on next purchase'}
+                  {selectedReward.subtitle || (selectedReward?.isCoin ? 'Collected on your loyalty card' : 'on next purchase')}
                 </p>
               </div>
             </div>
