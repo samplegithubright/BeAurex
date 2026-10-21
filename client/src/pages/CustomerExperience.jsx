@@ -852,6 +852,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       categoryName: resolvedCategory
     }));
 
+    // If customer is not authenticated yet, do NOT mark as scanned or award coins yet!
+    // They must login/signup first; then completeCustomerAuthRedirect will process this scan.
+    if (!isAuthenticated) {
+      return;
+    }
+
     // Check existing card stamps
     let customerCards = [];
     try {
@@ -953,8 +959,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       categoryName: category
     }));
 
-    processStoreScan(cleanSlug, merchantName, category);
-    navigate(`/scan/${cleanSlug}`, { replace: true });
+    if (slug === cleanSlug) {
+      processStoreScan(cleanSlug, merchantName, category);
+    } else {
+      navigate(`/scan/${cleanSlug}`, { replace: true });
+    }
   };
 
   // If slug is in URL on mount or change, identify store
@@ -999,9 +1008,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         categoryName: category
       }));
 
-      processStoreScan(cleanSlug, prettyName, category);
+      if (isAuthenticated) {
+        processStoreScan(cleanSlug, prettyName, category);
+      }
     }
-  }, [slug]);
+  }, [slug, isAuthenticated]);
 
   // Copy text helper
   const handleCopyCustomer = (text) => {
@@ -1097,7 +1108,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     } catch (_) {
       // Local fallback for offline/development
       setLoginLoading(false);
-      const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const custId = 'LQR-8F4A29';
       const cust = {
         name: cleanEmail.split('@')[0].toUpperCase() || 'BeAurex Member',
         customerId: custId,
@@ -1188,7 +1199,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     } catch (_) {
       // Local fallback
       setLoginLoading(false);
-      const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      const custId = 'LQR-8F4A29';
       const cust = {
         name: loginName.trim(),
         customerId: custId,
@@ -1900,9 +1911,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       channel.onmessage = (event) => {
         const d = event.data;
         if (!d) return;
-        const dCust = String(d.customerId || '').replace(/^ID:\s*/, '').trim();
-        const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim();
-        const matchesCustomer = Boolean(myCust && dCust && (myCust === dCust || myCust.slice(-6) === dCust.slice(-6)));
+        const dCust = String(d.customerId || '').replace(/^ID:\s*/, '').trim().toUpperCase();
+        const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim().toUpperCase();
+        const matchesCustomer = Boolean(myCust && dCust && (
+          myCust === dCust || 
+          myCust.slice(-6) === dCust.slice(-6) ||
+          myCust.replace(/^(BX|LQR)-/, '') === dCust.replace(/^(BX|LQR)-/, '')
+        ));
         const matchesClaim = (pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId))) || matchesCustomer;
 
         if (matchesClaim) {
@@ -1920,9 +1935,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (e.key === 'beaurex_latest_approval' && e.newValue) {
         try {
           const payload = JSON.parse(e.newValue);
-          const dCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
-          const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim();
-          const matchesCustomer = Boolean(myCust && dCust && (myCust === dCust || myCust.slice(-6) === dCust.slice(-6)));
+          const dCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim().toUpperCase();
+          const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim().toUpperCase();
+          const matchesCustomer = Boolean(myCust && dCust && (
+            myCust === dCust || 
+            myCust.slice(-6) === dCust.slice(-6) ||
+            myCust.replace(/^(BX|LQR)-/, '') === dCust.replace(/^(BX|LQR)-/, '')
+          ));
           const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer;
 
           if (matchesClaim) {
@@ -1944,9 +1963,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const raw = localStorage.getItem('beaurex_latest_approval');
         if (raw) {
           const payload = JSON.parse(raw);
-          const dCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim();
-          const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim();
-          const matchesCustomer = Boolean(myCust && dCust && (myCust === dCust || myCust.slice(-6) === dCust.slice(-6)));
+          const dCust = String(payload.customerId || '').replace(/^ID:\s*/, '').trim().toUpperCase();
+          const myCust = String(cleanCustomerId || '').replace(/^ID:\s*/, '').trim().toUpperCase();
+          const matchesCustomer = Boolean(myCust && dCust && (
+            myCust === dCust || 
+            myCust.slice(-6) === dCust.slice(-6) ||
+            myCust.replace(/^(BX|LQR)-/, '') === dCust.replace(/^(BX|LQR)-/, '')
+          ));
           const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer;
 
           if (matchesClaim) {
@@ -4110,6 +4133,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <p className="text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed mt-5">
               Please share your Customer ID with the cashier.
             </p>
+
+            {/* Quick Demo Approval Option */}
+            <div className="pt-4">
+              <button
+                type="button"
+                onClick={handleSimulateMerchantApproval}
+                className="text-xs text-slate-400 hover:text-[#8B0000] underline font-medium cursor-pointer transition py-1 px-2"
+                title="Simulate cashier approval directly for testing"
+              >
+                Instant Approval (Demo Test)
+              </button>
+            </div>
           </div>
         );
       })()}
@@ -4400,9 +4435,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* PERSISTENT BOTTOM NAVIGATION BAR - Mobile Only (matching media_1791477164813.png) */}
+      {/* PERSISTENT BOTTOM NAVIGATION BAR - Mobile Only (matching media_1791477164813.png & Image 1) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen !== 'scan' && (
+      {!['scan', 'reward_details', 'waiting_approval', 'reward_congrats'].includes(currentScreen) && (
         <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/90 px-6 py-2 flex items-center justify-between shadow-lg md:hidden">
           {/* Home Tab */}
           <button
