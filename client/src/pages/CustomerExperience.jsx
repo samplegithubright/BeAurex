@@ -2983,56 +2983,38 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             {/* Top Metric Cards: Responsive Merchant Dashboard Type Card */}
             {!emptyStateDemo && (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                {/* Card 1: Total Aurex Coins */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
-                    <Coins className="w-6 h-6 text-amber-600" />
+              <div className="grid grid-cols-2 gap-2 sm:gap-3.5 lg:gap-4">
+                {/* Card 1: Active Cards */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:py-4.5 sm:px-4.5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                  <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <CreditCard className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-rose-700" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-500 leading-tight">
-                      Aurex Coins
-                    </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
-                      {totalCustomerCoins}
-                    </div>
-                    <div className="text-xs font-bold text-amber-700 leading-tight">
-                      {totalCustomerCoins === 1 ? '1 Coin Available' : `${totalCustomerCoins} Coins Available`}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2: Active Cards */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
-                    <CreditCard className="w-6 h-6 text-rose-700" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-500 leading-tight">
+                    <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight">
                       Active Cards
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1">
                       {loyaltyCardsList.length}
                     </div>
-                    <div className="text-xs font-bold text-emerald-600 leading-tight">
+                    <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-tight">
                       {loyaltyCardsList.length === 1 ? '1 Store Enrolled' : `${loyaltyCardsList.length} Stores Enrolled`}
                     </div>
                   </div>
                 </div>
 
-                {/* Card 3: Rewards Redeemed */}
-                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
-                    <Gift className="w-6 h-6 text-emerald-600" />
+                {/* Card 2: Rewards Redeemed */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:py-4.5 sm:px-4.5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
+                  <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Gift className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-xs font-bold text-slate-500 leading-tight">
+                    <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight">
                       Rewards Claimed
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1">
                       {customerUser.rewardsRedeemedCount ?? 0}
                     </div>
-                    <div className="text-xs font-bold text-emerald-600 leading-tight">
+                    <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-tight">
                       {(customerUser.rewardsRedeemedCount ?? 0) > 0 ? `${customerUser.rewardsRedeemedCount} Claimed` : '0 Claimed'}
                     </div>
                   </div>
