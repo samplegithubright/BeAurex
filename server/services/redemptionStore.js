@@ -157,14 +157,14 @@ function approveClaim(claimId, customerId) {
 
   const idx = pendingList.findIndex(p => 
     (targetId && (p.id === targetId || p.claimId === targetId)) || 
-    (cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
+    (!targetId && cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
   );
 
   if (idx === -1) {
     // Check if already approved
     const already = approvedList.find(a => 
       (targetId && (a.id === targetId || a.claimId === targetId)) || 
-      (cleanCustomer && a.customerId && (a.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || a.customerId.includes(cleanCustomer)))
+      (!targetId && cleanCustomer && a.customerId && (a.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || a.customerId.includes(cleanCustomer)))
     );
     if (already) return already;
     return null;
@@ -194,7 +194,7 @@ function declineClaim(claimId, customerId, reason = 'Declined by Merchant') {
 
   const idx = pendingList.findIndex(p => 
     (targetId && (p.id === targetId || p.claimId === targetId)) || 
-    (cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
+    (!targetId && cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
   );
 
   if (idx === -1) return null;
@@ -204,7 +204,8 @@ function declineClaim(claimId, customerId, reason = 'Declined by Merchant') {
     ...item,
     status: 'DECLINED',
     reason,
-    declinedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    declinedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    declinedTimestamp: new Date().toISOString()
   };
 
   declinedList.unshift(declinedItem);
@@ -217,30 +218,43 @@ function checkClaimStatus(customerId, claimId) {
   const targetClaimId = claimId ? String(claimId).trim() : '';
   
   // 1. Check pending first - if it's still pending, it is NEVER approved!
-  const pending = pendingList.find(p => 
-    (targetClaimId && (p.id === targetClaimId || p.claimId === targetClaimId)) ||
-    (cleanCustomer && p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)))
-  );
-  if (pending) {
-    return { status: 'PENDING', claim: pending };
+  if (targetClaimId) {
+    const pending = pendingList.find(p => p.id === targetClaimId || p.claimId === targetClaimId);
+    if (pending) {
+      return { status: 'PENDING', claim: pending };
+    }
+  } else if (cleanCustomer) {
+    const pending = pendingList.find(p => p.customerId && (p.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || p.customerId.includes(cleanCustomer)));
+    if (pending) {
+      return { status: 'PENDING', claim: pending };
+    }
   }
 
   // 2. Check approved
-  const approved = approvedList.find(a => 
-    (targetClaimId && (a.id === targetClaimId || a.claimId === targetClaimId)) ||
-    (cleanCustomer && a.customerId && (a.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || a.customerId.includes(cleanCustomer)))
-  );
-  if (approved) {
-    return { status: 'APPROVED', claim: approved };
+  if (targetClaimId) {
+    const approved = approvedList.find(a => a.id === targetClaimId || a.claimId === targetClaimId);
+    if (approved) {
+      return { status: 'APPROVED', claim: approved };
+    }
+  } else if (cleanCustomer) {
+    // Only return recent approvals (within the last 60 seconds) to prevent resurrecting old claims
+    const approved = approvedList.find(a => {
+      const match = a.customerId && (a.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || a.customerId.includes(cleanCustomer));
+      if (!match) return false;
+      const ts = a.approvedTimestamp ? new Date(a.approvedTimestamp).getTime() : 0;
+      return Date.now() - ts < 60000;
+    });
+    if (approved) {
+      return { status: 'APPROVED', claim: approved };
+    }
   }
 
   // 3. Check declined
-  const declined = declinedList.find(d => 
-    (targetClaimId && (d.id === targetClaimId || d.claimId === targetClaimId)) ||
-    (cleanCustomer && d.customerId && (d.customerId.replace(/^ID:\s*/, '').trim() === cleanCustomer || d.customerId.includes(cleanCustomer)))
-  );
-  if (declined) {
-    return { status: 'DECLINED', claim: declined };
+  if (targetClaimId) {
+    const declined = declinedList.find(d => d.id === targetClaimId || d.claimId === targetClaimId);
+    if (declined) {
+      return { status: 'DECLINED', claim: declined };
+    }
   }
 
   return { status: 'NOT_FOUND' };

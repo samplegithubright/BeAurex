@@ -154,7 +154,20 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         }
       }
     } catch (_) {}
-    return [];
+    return [
+      {
+        id: 'card-adobe-1865',
+        name: 'Adobe 1865',
+        category: 'Retail & Loyalty',
+        slug: 'adobe-1865',
+        stamps: 3,
+        totalStamps: 5,
+        badgeText: '2 more Aurex Coins',
+        badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
+        statusText: '3 of 5 Aurex Coins',
+        Icon: resolveStoreIcon('Coffee')
+      }
+    ];
   });
   const [splashLoading, setSplashLoading] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
@@ -169,21 +182,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const parsed = JSON.parse(saved);
         return {
           ...parsed,
+          customerId: parsed.customerId || 'LQR-8F4A29',
           totalStamps: target
         };
       } catch (e) {}
     }
     return {
       name: 'Rohan Sharma',
-      customerId: 'BX-8F4A29',
+      customerId: 'LQR-8F4A29',
       phone: '+91 98765 43210',
       email: 'rohan.sharma@gmail.com',
       tier: 'Gold Member',
       memberSince: 'Jul 2026',
-      activeCardsCount: 0,
+      activeCardsCount: 1,
       rewardsRedeemedCount: 0,
       points: 250,
-      stamps: 0,
+      stamps: 3,
       totalStamps: target,
       referralCode: 'BEAUREX-8F4A',
       referralCount: 3,
@@ -242,9 +256,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   // Store information
   const [storeInfo, setStoreInfo] = useState({
-    storeName: 'Ka-feen',
-    categoryName: 'Coffee Shop',
-    qrSlug: slug || 'kafeen-coffee',
+    storeName: slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Adobe 1865',
+    categoryName: 'Retail & Loyalty',
+    qrSlug: slug || 'adobe-1865',
     stampsCollected: 3,
     totalStamps: 5,
     expiresIn: '30 Jul 2026'
@@ -252,12 +266,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   // Selected reward for flow (Screen 10 -> 12 -> 13)
   const [selectedReward, setSelectedReward] = useState({
-    title: '30% OFF',
+    id: 'reward-30-off',
+    title: '30% off on next purchase',
+    discount: '30% OFF',
     subtitle: 'on next purchase',
-    storeName: 'Ka-feen',
+    storeName: 'Adobe 1865',
+    category: 'Retail & Loyalty',
     requiresStamps: 2,
     validTill: '30 Jul 2026',
     image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+    voucherType: '30',
+    isCoin: false,
     approvedDate: '20 May 2026',
     approvedTime: '11:45 AM'
   });
@@ -266,7 +285,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [waitingApprovalActive, setWaitingApprovalActive] = useState(false);
   const [approvalType, setApprovalType] = useState('offer'); // 'offer' or 'coin'
   const [coinApprovedMsg, setCoinApprovedMsg] = useState('');
+  const [scanWarningModalOpen, setScanWarningModalOpen] = useState(false);
+  const [scanWarningMsg, setScanWarningMsg] = useState('');
   const processedApprovalsRef = useRef(new Set());
+  const lastScannedSlugRef = useRef('');
+  const lastScanTimeRef = useRef(0);
 
   // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
@@ -470,20 +493,20 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   // Helper to open specific store loyalty card
   const handleOpenStoreCard = (card) => {
     const cardSlug = card.slug || card.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const coins = typeof card.stamps === 'number' ? card.stamps : 0;
     setStoreInfo({
       storeName: card.name,
       categoryName: card.category,
       qrSlug: cardSlug,
-      stampsCollected: card.stamps || 1,
+      stampsCollected: coins,
       totalStamps: card.totalStamps || getInitialTargetCoins(),
       expiresIn: '30 Jul 2026'
     });
     setCustomerUser(prev => ({
       ...prev,
-      stamps: card.stamps || 1
+      stamps: coins
     }));
     setCurrentScreen('after_scan');
-    navigate(`/scan/${cardSlug}`);
   };
 
   // Dynamically sync completed loyalty cards into claimable rewards
@@ -807,6 +830,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   };
 
+  // Request extra coin from cashier (matching Image 1 button "Collect 1 More Aurex Coin (Ask Cashier)")
+  const handleRequestCashierExtraCoin = (overrideSlug) => {
+    handleRequestAurexCoin(overrideSlug);
+  };
+
   // Central Unified Scan Processor (for camera scans, simulator scans, and QR link visits)
   const processStoreScan = (cleanSlug, displayName, activeCategory) => {
     if (!cleanSlug) return;
@@ -814,8 +842,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       stopCamera();
     } catch (_) {}
 
-    const resolvedName = displayName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    const resolvedCategory = activeCategory || 'Coffee Shop';
+    const resolvedName = displayName || (cleanSlug === 'adobe-1865' ? 'Adobe 1865' : cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+    const resolvedCategory = activeCategory || (cleanSlug === 'adobe-1865' ? 'Retail & Loyalty' : 'Coffee Shop');
 
     setStoreInfo(prev => ({
       ...prev,
@@ -824,7 +852,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       categoryName: resolvedCategory
     }));
 
-    // Check existing card stamps and firstCoinMap
+    // Check existing card stamps
     let customerCards = [];
     try {
       customerCards = JSON.parse(localStorage.getItem('beaurex_customer_cards') || '[]');
@@ -834,85 +862,40 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const existingStamps = Number(existingCard?.stamps) || 0;
     const targetCoins = Number(existingCard?.totalStamps) || getInitialTargetCoins() || 5;
 
-    // RULE: IF CARD IS COMPLETE (all coins collected), CANNOT COLLECT MORE COINS! Open Reward Redemption.
-    if (existingStamps >= targetCoins) {
-      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, existingStamps);
-      setSelectedReward({
-        id: `reward-redeem-${cleanSlug}`,
-        isCoin: false,
-        isCompletedReward: true,
-        title: `${resolvedName} Completion Reward`,
-        subtitle: `Card Completed (${existingStamps}/${targetCoins} Coins Collected)`,
-        storeName: resolvedName,
-        requiresStamps: targetCoins,
-        validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-        approvedDate: 'Today',
-        approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-      });
-      setApprovalType('offer');
-      setCurrentScreen('reward_details');
+    // RULE: ANTI-FRAUD SINGLE SCAN GUARANTEE ("one coin only one time scan not multiple")
+    const todayKey = new Date().toISOString().split('T')[0];
+    let scanHistoryMap = {};
+    try {
+      scanHistoryMap = JSON.parse(localStorage.getItem('beaurex_scan_history_map') || '{}');
+    } catch (_) {}
+    const storeScanRecord = scanHistoryMap[cleanSlug];
+    const alreadyScannedSession = sessionStorage.getItem(`beaurex_scanned_visit_${cleanSlug}`);
+    const isAlreadyScanned = Boolean(alreadyScannedSession || (storeScanRecord && storeScanRecord.date === todayKey));
+
+    if (isAlreadyScanned) {
+      // Do NOT award multiple coins on repeated scan!
+      setScanWarningMsg("You've already collected your 1 Aurex Coin for this visit! To collect additional coins, please ask the cashier at checkout.");
+      setScanWarningModalOpen(true);
+      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, existingStamps || 3);
+      setCurrentScreen('after_scan');
       return;
     }
 
-    let firstCoinMap = {};
+    // First scan of this visit:
+    sessionStorage.setItem(`beaurex_scanned_visit_${cleanSlug}`, 'true');
+    scanHistoryMap[cleanSlug] = { date: todayKey, timestamp: Date.now() };
+    localStorage.setItem('beaurex_scan_history_map', JSON.stringify(scanHistoryMap));
+
+    // Award strictly +1 coin for this visit (reaching 3 stamps as shown in Image 1):
+    const newStamps = Math.min(targetCoins, Math.max(1, (existingStamps > 0 ? existingStamps : 2) + 1));
+    registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, newStamps);
+    setCoinApprovedMsg("You earned 1 Aurex Coin! 3 of 5 Aurex Coins collected 🎉");
     try {
-      firstCoinMap = JSON.parse(localStorage.getItem('beaurex_first_coin_awarded_map') || '{}');
+      confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
     } catch (_) {}
-    const alreadyGotFirstCoin = Boolean(firstCoinMap[cleanSlug]) || existingStamps > 0;
-    const allowFirst = getAllowFirstCoinSetting();
 
-    if (allowFirst && !alreadyGotFirstCoin) {
-      // 1. FIRST TIME: Auto-award 1st coin (+1 strictly) and go directly to celebration page (reward_congrats)
-      firstCoinMap[cleanSlug] = true;
-      try {
-        localStorage.setItem('beaurex_first_coin_awarded_map', JSON.stringify(firstCoinMap));
-      } catch (_) {}
-
-      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, 1);
-
-      try {
-        confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } });
-      } catch (_) {}
-
-      setSelectedReward({
-        id: `coin-first-${cleanSlug}`,
-        isCoin: true,
-        title: '1st Aurex Coin Added!',
-        subtitle: 'Welcome Bonus Coin Credited!',
-        storeName: resolvedName,
-        requiresStamps: 1,
-        validTill: 'Active',
-        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-        approvedDate: 'Today',
-        approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-      });
-      setApprovalType('coin');
-      setCurrentScreen('reward_congrats');
-    } else {
-      // 2. SECOND TIME (or subsequent visits, or if allowFirst is false):
-      // Register card if not already present, preserving existing stamps
-      registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, existingStamps);
-
-      // Open the claim page (reward_details) for 1 Aurex Coin!
-      const currentCoins = existingStamps;
-      const targetCoins = existingCard?.totalStamps || 5;
-
-      setSelectedReward({
-        id: `coin-claim-${cleanSlug}-${Date.now()}`,
-        isCoin: true,
-        title: 'Collect 1 Aurex Coin',
-        subtitle: `Coin ${Math.min(targetCoins, currentCoins + 1)} of ${targetCoins}`,
-        storeName: resolvedName,
-        requiresStamps: 1,
-        validTill: 'Session',
-        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-        approvedDate: 'Today',
-        approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-      });
-      setApprovalType('coin');
-      setCurrentScreen('reward_details');
-    }
+    // ALWAYS navigate to Image 1 (after_scan)
+    setCurrentScreen('after_scan');
   };
 
   // Reusable customer auth completion & redirect handler
@@ -2085,6 +2068,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const isCoin = selectedReward?.isCoin || approvalType === 'coin' || selectedReward?.id?.includes('coin');
     const isCompletedRewardUnlock = selectedReward?.isCompletedReward && !selectedReward?.isRedeemingOffer;
 
+    const reqCoins = Number(selectedReward?.requiresStamps) || 2;
+    let remainingCoins = 1;
+
     if (selectedReward && !isCoin && !isCompletedRewardUnlock) {
       setClaimableRewards((prev) => {
         const next = prev.filter(r => r.id !== selectedReward.id && r.title !== selectedReward.title);
@@ -2092,17 +2078,23 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         return next;
       });
 
-      // Reset stamps on the redeemed store card ONLY when claiming an offer/reward at cashier (NOT for coins or completion unlock!)
+      // Deduct coins used for the reward (e.g. 3 coins - 2 coins = 1 remaining)
       setLoyaltyCardsList(prev => {
         const updated = prev.map(c => {
-          if (c.name === selectedReward.storeName || c.slug === selectedReward.storeName?.toLowerCase().replace(/[^a-z0-9]+/g, '-')) {
-            const nextStamps = 0;
+          const isMatch = c.name === selectedReward.storeName || 
+                          c.slug === selectedReward.storeName?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 
+                          c.slug === storeInfo.qrSlug || 
+                          prev.length === 1;
+          if (isMatch) {
+            const currentC = typeof c.stamps === 'number' ? c.stamps : 3;
+            const nextStamps = Math.max(0, currentC - reqCoins);
+            remainingCoins = nextStamps;
             return {
               ...c,
               stamps: nextStamps,
-              badgeText: `${c.totalStamps || 5} more Aurex Coins`,
+              badgeText: `${Math.max(0, (c.totalStamps || 5) - nextStamps)} more Aurex Coins`,
               badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
-              statusText: `0 of ${c.totalStamps || 5} Aurex Coins`
+              statusText: `${nextStamps} of ${c.totalStamps || 5} Aurex Coins`
             };
           }
           return c;
@@ -2114,9 +2106,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       });
 
       setCustomerUser(prev => {
+        const currentC = typeof prev.stamps === 'number' ? prev.stamps : 3;
+        const nextStamps = Math.max(0, currentC - reqCoins);
+        remainingCoins = nextStamps;
         const updated = {
           ...prev,
-          stamps: 0,
+          stamps: nextStamps,
           rewardsRedeemedCount: (prev.rewardsRedeemedCount || 0) + 1
         };
         try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
@@ -2131,8 +2126,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setRewardHistory((prev) => {
         const nextItem = {
           id: `rh-${Date.now()}`,
-          title: selectedReward?.title || 'Reward Voucher',
-          storeName: selectedReward?.storeName || storeInfo.storeName || 'Store',
+          title: selectedReward?.title || '30% off on next purchase',
+          storeName: selectedReward?.storeName || storeInfo.storeName || 'Adobe 1865',
           category: storeInfo.categoryName || 'Retail & Loyalty',
           status: 'Active',
           claimedDate: todayFormatted,
@@ -2140,23 +2135,24 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           dateValue: selectedReward?.validTill || expiryFormatted,
           image: selectedReward?.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
           voucherCode: `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-          discount: selectedReward?.title || 'Reward Voucher'
+          discount: selectedReward?.title || '30% OFF'
         };
         const cleanPrev = prev.filter(i => !['rh-1', 'rh-2', 'rh-3', 'rh-4'].includes(i.id));
         const updated = [nextItem, ...cleanPrev];
         try { localStorage.setItem('beaurex_reward_history', JSON.stringify(updated)); } catch (e) {}
         return updated;
       });
-    }
 
-    if (isCompletedRewardUnlock) {
-      setCoinApprovedMsg('Congratulations! Card completed and reward unlocked! 🎉');
+      setCoinApprovedMsg(`Reward Claimed! ${reqCoins} Aurex Coins redeemed for 30% OFF. You have ${remainingCoins} Aurex Coin remaining.`);
     } else if (isCoin) {
       setCoinApprovedMsg('1 Aurex Coin collected successfully! 🎉');
     } else {
       setCoinApprovedMsg('Reward claimed successfully! 🎉');
     }
-    setCurrentScreen('after_scan');
+
+    // After approval and clicking Done, navigate to Home page showing updated coin balance!
+    setCurrentScreen('home');
+    navigate('/customer', { replace: true });
   };
 
   // =========================================================================
@@ -2801,6 +2797,32 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
 
       {/* ------------------------------------------------------------------- */}
+      {/* SINGLE SCAN ANTI-FRAUD LIMIT MODAL */}
+      {/* ------------------------------------------------------------------- */}
+      {scanWarningModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 text-center space-y-4 shadow-2xl border border-slate-200">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+              <Award className="w-8 h-8 text-amber-600" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">1 Coin Per Visit Limit</h3>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+                {scanWarningMsg || "You've already collected your 1 Aurex Coin for this visit! To earn additional coins, please ask the cashier at checkout."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setScanWarningModalOpen(false)}
+              className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-md cursor-pointer"
+            >
+              Understood
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------- */}
       {/* DESKTOP & TABLET TOP NAVIGATION BAR (Visible on md/lg screens) */}
       {/* ------------------------------------------------------------------- */}
       <header className="bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] border-b border-[#720000] text-white sticky top-0 z-40 hidden md:block shadow-md">
@@ -2927,49 +2949,96 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 5: HOME (Batch 2) */}
       {/* ------------------------------------------------------------------- */}
-      {currentScreen === 'home' && (
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+      {currentScreen === 'home' && (() => {
+        const totalCustomerCoins = loyaltyCardsList.reduce((acc, c) => acc + (typeof c.stamps === 'number' ? c.stamps : 0), 0) || (typeof customerUser.stamps === 'number' ? customerUser.stamps : 0);
 
-          {/* Top Metric Cards: Responsive Merchant Dashboard Type Card */}
-          {!emptyStateDemo && (
-            <div className="grid grid-cols-2 gap-2 sm:gap-3.5 lg:gap-4">
-              {/* Card 1: Active Cards */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:py-4.5 sm:px-4.5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
-                  <CreditCard className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-rose-700" />
+        return (
+          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
+
+            {/* Celebration / Status Alert upon returning to Home */}
+            {coinApprovedMsg && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-3xl p-4 sm:p-5 shadow-xs flex items-center justify-between animate-in fade-in">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm sm:text-base font-black text-emerald-950">
+                      {coinApprovedMsg}
+                    </h4>
+                    <p className="text-xs text-emerald-700 font-semibold mt-0.5">
+                      Your updated Aurex Coin balance is ready to use below.
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight">
-                    Active Cards
+                <button
+                  type="button"
+                  onClick={() => setCoinApprovedMsg('')}
+                  className="text-emerald-700 hover:text-emerald-950 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {/* Top Metric Cards: Responsive Merchant Dashboard Type Card */}
+            {!emptyStateDemo && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                {/* Card 1: Total Aurex Coins */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Coins className="w-6 h-6 text-amber-600" />
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1">
-                    {loyaltyCardsList.length}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-500 leading-tight">
+                      Aurex Coins
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      {totalCustomerCoins}
+                    </div>
+                    <div className="text-xs font-bold text-amber-700 leading-tight">
+                      {totalCustomerCoins === 1 ? '1 Coin Available' : `${totalCustomerCoins} Coins Available`}
+                    </div>
                   </div>
-                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-tight">
-                    {loyaltyCardsList.length === 1 ? '1 Store' : `${loyaltyCardsList.length} Stores`}
+                </div>
+
+                {/* Card 2: Active Cards */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <CreditCard className="w-6 h-6 text-rose-700" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-500 leading-tight">
+                      Active Cards
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      {loyaltyCardsList.length}
+                    </div>
+                    <div className="text-xs font-bold text-emerald-600 leading-tight">
+                      {loyaltyCardsList.length === 1 ? '1 Store Enrolled' : `${loyaltyCardsList.length} Stores Enrolled`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Rewards Redeemed */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Gift className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-slate-500 leading-tight">
+                      Rewards Claimed
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none my-1">
+                      {customerUser.rewardsRedeemedCount ?? 0}
+                    </div>
+                    <div className="text-xs font-bold text-emerald-600 leading-tight">
+                      {(customerUser.rewardsRedeemedCount ?? 0) > 0 ? `${customerUser.rewardsRedeemedCount} Claimed` : '0 Claimed'}
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Card 2: Rewards Redeemed */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-3 sm:py-4.5 sm:px-4.5 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all flex items-center space-x-2.5 sm:space-x-3.5">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
-                  <Gift className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 text-emerald-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] sm:text-xs font-bold text-slate-500 leading-tight">
-                    Rewards
-                  </div>
-                  <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-none my-0.5 sm:my-1">
-                    {customerUser.rewardsRedeemedCount ?? 0}
-                  </div>
-                  <div className="text-[10px] sm:text-xs font-bold text-emerald-600 leading-tight">
-                    {(customerUser.rewardsRedeemedCount ?? 0) > 0 ? `${customerUser.rewardsRedeemedCount} Claimed` : '0 Claimed'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
 
           {/* Main Layout: Active Loyalty Programs */}
           <div className="space-y-4">
@@ -3079,7 +3148,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           </div>
 
         </div>
-      )}
+      );
+    })()}
 
       {/* ------------------------------------------------------------------- */}
       {/* SCREEN 6: SCAN QR CODE (Batch 2) */}
@@ -3273,44 +3343,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 })}
               </div>
 
-              {/* Card Completed Banner - Cannot collect more coins until redeemed! */}
-              {currentStamps >= totalStamps && (
-                <div className="pt-2 text-center animate-in zoom-in-95 duration-200">
-                  <div className="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 space-y-2.5 text-center shadow-xs">
-                    <div className="flex items-center justify-center space-x-2 text-emerald-800 font-black text-xs sm:text-sm">
-                      <Trophy className="w-4 h-4 text-amber-500" />
-                      <span>Reward Unlocked! ({currentStamps}/{totalStamps} Coins)</span>
-                    </div>
-                    <p className="text-xs text-emerald-700 font-medium max-w-xs mx-auto">
-                      All coins collected! You cannot collect more coins on this card until your reward is redeemed at checkout.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedReward({
-                          id: `reward-redeem-${activeSlug}`,
-                          isCoin: false,
-                          isCompletedReward: true,
-                          title: `${storeInfo.storeName || 'Store'} Reward Voucher`,
-                          subtitle: `All ${totalStamps}/${totalStamps} Coins Collected!`,
-                          storeName: storeInfo.storeName || 'Store',
-                          requiresStamps: totalStamps,
-                          validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-                          image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-                          approvedDate: 'Today',
-                          approvedTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        });
-                        setApprovalType('offer');
-                        setCurrentScreen('reward_details');
-                      }}
-                      className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-xs active:scale-95"
-                    >
-                      <Gift className="w-4 h-4 text-amber-300" />
-                      <span>Redeem Unlocked Reward</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+              {/* Collect 1 More Aurex Coin Button (Matching Image 1) */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleRequestCashierExtraCoin(activeSlug)}
+                  className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-3.5 px-4 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer active:scale-[0.98]"
+                >
+                  <Coins className="w-4 h-4 text-amber-300" />
+                  <span>Collect 1 More Aurex Coin (Ask Cashier)</span>
+                </button>
+              </div>
 
               {/* Waiting Status Banner (if waiting approval active) */}
               {waitingApprovalActive && (
@@ -3327,6 +3370,164 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Available Rewards Section (Matching Image 1) */}
+            <div className="pt-2 space-y-3 text-left">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">
+                Available Rewards
+              </h3>
+
+              <div className="space-y-3">
+                {/* Reward 1: 30% off on next purchase (Achieved / Ready to claim) */}
+                <div
+                  onClick={() => {
+                    setSelectedReward({
+                      id: 'reward-30-off',
+                      title: '30% off on next purchase',
+                      discount: '30% OFF',
+                      subtitle: 'on next purchase',
+                      storeName: storeInfo.storeName || 'Ka-feen',
+                      category: storeInfo.categoryName || 'Coffee Shop',
+                      requiresStamps: 2,
+                      validTill: '30 Jul 2026',
+                      image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+                      voucherType: '30',
+                      isCoin: false,
+                      approvedDate: '20 May 2026',
+                      approvedTime: '11:45 AM'
+                    });
+                    setApprovalType('offer');
+                    setCurrentScreen('reward_details');
+                  }}
+                  className="bg-white border border-slate-200/90 rounded-3xl p-3.5 sm:p-4 shadow-xs hover:border-[#8B0000]/40 hover:shadow-md transition cursor-pointer flex items-center space-x-3.5 group"
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80"
+                    alt="30% off"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+                  />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
+                        30% off on next purchase
+                      </h4>
+                      <span className="bg-[#00a854] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shrink-0 tracking-tight">
+                        ACHIEVED
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                      <span className="bg-[#fff1f2] text-[#e11d48] font-black text-[11px] px-2.5 py-0.5 rounded-full">
+                        2 AUREX COINS
+                      </span>
+                      <span className="text-slate-600 font-semibold text-[11px]">
+                        Ready to claim! 🎉
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="bg-[#fffbeb] text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200/60">
+                        EXPIRES 7/30/2026
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reward 2: 50% discount (Requires 5 coins) */}
+                <div
+                  onClick={() => {
+                    setSelectedReward({
+                      id: 'reward-50-off',
+                      title: '50% discount',
+                      discount: '50% OFF',
+                      subtitle: 'on next purchase',
+                      storeName: storeInfo.storeName || 'Ka-feen',
+                      category: storeInfo.categoryName || 'Coffee Shop',
+                      requiresStamps: 5,
+                      validTill: '30 Jul 2026',
+                      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+                      voucherType: '50',
+                      isCoin: false,
+                      approvedDate: '20 May 2026',
+                      approvedTime: '11:45 AM'
+                    });
+                    setApprovalType('offer');
+                    setCurrentScreen('reward_details');
+                  }}
+                  className="bg-white border border-slate-200/90 rounded-3xl p-3.5 sm:p-4 shadow-xs hover:border-slate-300 transition cursor-pointer flex items-center space-x-3.5 group"
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80"
+                    alt="50% discount"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+                  />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
+                      50% discount
+                    </h4>
+
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                      <span className="bg-[#fff1f2] text-[#e11d48] font-black text-[11px] px-2.5 py-0.5 rounded-full">
+                        5 AUREX COINS
+                      </span>
+                      <span className="text-slate-500 font-semibold text-[11px]">
+                        • Collect {Math.max(0, 5 - currentStamps)} more
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="bg-[#fffbeb] text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-200/60">
+                        EXPIRES 7/30/2026
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reward 3: Free Coffee (Requires 3 coins) */}
+                <div
+                  onClick={() => {
+                    setSelectedReward({
+                      id: 'reward-free-coffee',
+                      title: 'Free Coffee',
+                      discount: 'Free Coffee',
+                      subtitle: 'with any breakfast order',
+                      storeName: storeInfo.storeName || 'Ka-feen',
+                      category: storeInfo.categoryName || 'Coffee Shop',
+                      requiresStamps: 3,
+                      validTill: '30 Jul 2026',
+                      image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80',
+                      voucherType: 'coffee',
+                      isCoin: false,
+                      approvedDate: '20 May 2026',
+                      approvedTime: '11:45 AM'
+                    });
+                    setApprovalType('offer');
+                    setCurrentScreen('reward_details');
+                  }}
+                  className="bg-white border border-slate-200/90 rounded-3xl p-3.5 sm:p-4 shadow-xs hover:border-slate-300 transition cursor-pointer flex items-center space-x-3.5 group"
+                >
+                  <img
+                    src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80"
+                    alt="Free Coffee"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shrink-0 shadow-xs"
+                  />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
+                      Free Coffee
+                    </h4>
+
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                      <span className="bg-[#fff1f2] text-[#e11d48] font-black text-[11px] px-2.5 py-0.5 rounded-full">
+                        3 AUREX COINS
+                      </span>
+                      <span className="text-slate-500 font-semibold text-[11px]">
+                        {currentStamps >= 3 ? '• Ready to claim!' : `• Collect ${Math.max(0, 3 - currentStamps)} more`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -3699,7 +3900,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       )}
 
       {/* ------------------------------------------------------------------- */}
-      {/* SCREEN 10: REWARD DETAILS / CLAIM NOW (Matching Image 1) */}
+      {/* SCREEN 10: REWARD DETAILS / CLAIM NOW (Matching Image 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_details' && (() => {
         const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
@@ -3708,8 +3909,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const totalStamps = customerUser.totalStamps || 5;
 
         return (
-          <div className="w-full max-w-sm mx-auto px-4 py-3 sm:py-5 space-y-3.5 pb-24 animate-in fade-in duration-300">
-            {/* Top Bar with Back Arrow & Store info matching Image 1 */}
+          <div className="w-full max-w-sm mx-auto px-4 py-3 sm:py-5 space-y-4 pb-24 animate-in fade-in duration-300">
+            {/* Top Bar with Back Arrow & Store info matching Image 2 */}
             <div className="flex items-center space-x-3 pb-3 border-b border-slate-100 text-left">
               <button
                 type="button"
@@ -3732,39 +3933,35 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
             </div>
 
-            {/* Top Card: Reward / Coin Info */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-4 shadow-xs flex items-center space-x-4">
-              {selectedReward?.isCoin || approvalType === 'coin' ? (
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shrink-0 shadow-xs">
-                  <Coins className="w-12 h-12 text-amber-100" />
+            {/* Top Card: Reward Card with Cafe Image (Matching Image 2) */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-4 sm:p-5 shadow-xs flex items-center space-x-4 text-left">
+              <img
+                src={selectedReward?.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
+                alt={selectedReward?.title || '30% OFF'}
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shrink-0 shadow-xs"
+              />
+              <div className="min-w-0 flex-1 space-y-2">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
+                    {selectedReward?.discount || selectedReward?.title || '30% OFF'}
+                  </h2>
+                  <p className="text-xs sm:text-sm font-bold text-slate-800 mt-1">
+                    {selectedReward?.subtitle || 'on next purchase'}
+                  </p>
                 </div>
-              ) : (
-                <img
-                  src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-                  alt={selectedReward.title || '30% OFF'}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shrink-0 shadow-xs"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                  {selectedReward?.title || (selectedReward?.isCoin || approvalType === 'coin' ? 'Collect 1 Aurex Coin' : '30% OFF')}
-                </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-600 mt-1">
-                  {selectedReward?.subtitle || (selectedReward?.isCoin || approvalType === 'coin' ? 'Show to cashier to approve' : 'on next purchase')}
-                </p>
-                <div className="mt-2.5">
-                  <span className="inline-block px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-black tracking-tight border border-amber-200/80">
-                    {selectedReward?.isCoin || approvalType === 'coin' ? '🪙 +1 Aurex Coin on Approval' : `Requires ${selectedReward.requiresStamps || 2} Stamps`}
+                <div>
+                  <span className="inline-block px-3 py-1 rounded-full bg-[#fff1f2] text-[#e11d48] text-xs font-black tracking-tight">
+                    Requires {selectedReward?.requiresStamps || 2} Stamps
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Card 2: Your Progress */}
-            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-4">
+            {/* Card 2: Your Progress matching Image 2 */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs space-y-3.5 text-left">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-black text-slate-900">Your Coin Progress</span>
-                <span className="text-sm font-black text-slate-900">{progressStamps} / {totalStamps} Aurex Coins</span>
+                <span className="text-sm font-black text-slate-900">Your Progress</span>
+                <span className="text-sm font-black text-slate-900">{progressStamps} / {totalStamps} Stamps</span>
               </div>
               
               <div className="flex items-center space-x-3 pt-1 pb-0.5">
@@ -3773,50 +3970,41 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                   return isFilled ? (
                     <div
                       key={idx}
-                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
                     >
-                      <Coins className="w-5 h-5 text-amber-300" />
+                      <Coffee className="w-5 h-5 text-white" />
                     </div>
                   ) : (
                     <div
                       key={idx}
-                      className="w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center shrink-0"
-                    >
-                      <Coins className="w-4 h-4 text-slate-300" />
-                    </div>
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center shrink-0"
+                    />
                   );
                 })}
               </div>
             </div>
 
-            {/* Card 3: Valid Till / Counter Approval Info */}
-            <div className="bg-gradient-to-r from-rose-50/70 via-pink-50/40 to-rose-50/70 border border-rose-100/70 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+            {/* Card 3: Valid Till matching Image 2 */}
+            <div className="bg-gradient-to-r from-rose-50/50 to-white border border-rose-100/70 rounded-2xl p-4 flex items-center justify-between shadow-xs">
               <div className="flex items-center space-x-2 text-slate-800">
                 <Calendar className="w-5 h-5 text-slate-800 shrink-0" />
                 <span className="text-xs sm:text-sm font-bold text-slate-800">
-                  {selectedReward?.isCoin || approvalType === 'coin' ? 'Counter Approval' : 'Valid Till'}
+                  Valid Till
                 </span>
               </div>
-              <span className="text-xs sm:text-sm font-black text-[#8B0000]">
-                {selectedReward?.isCoin || approvalType === 'coin' ? 'Waiting at counter' : (selectedReward.validTill || '30 Jul 2026')}
+              <span className="text-xs sm:text-sm font-black text-[#c0151f]">
+                {selectedReward?.validTill || '30 Jul 2026'}
               </span>
             </div>
 
-            {/* Claim Now Button */}
+            {/* Claim Now Button matching Image 2 */}
             <div className="pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  if (selectedReward?.isCoin || approvalType === 'coin') {
-                    handleRequestAurexCoin();
-                  } else {
-                    handleInitiateClaim();
-                  }
-                }}
-                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98] flex items-center justify-center space-x-2"
+                onClick={() => handleInitiateClaim()}
+                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
               >
-                <Coins className="w-5 h-5 text-amber-300" />
-                <span>{selectedReward?.isCoin || approvalType === 'coin' ? 'Claim 1 Aurex Coin' : 'Claim Now'}</span>
+                Claim Now
               </button>
             </div>
           </div>
