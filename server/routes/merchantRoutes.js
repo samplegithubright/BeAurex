@@ -317,7 +317,19 @@ router.post('/rewards', async (req, res) => {
 router.delete('/rewards/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await Reward.findByIdAndDelete(id);
+    const { title } = req.query;
+    const mongoose = require('mongoose');
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      await Reward.findByIdAndDelete(id);
+    }
+
+    if (title) {
+      await Reward.deleteMany({ title: String(title).trim() });
+    } else if (!mongoose.Types.ObjectId.isValid(id)) {
+      await Reward.deleteMany({ title: id });
+    }
+
     res.json({ success: true, message: 'Reward removed successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

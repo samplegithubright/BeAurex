@@ -856,7 +856,21 @@ export default function MerchantDashboard() {
         discountValue: 30,
         banner: offerBanner
       })
-    }).catch(() => {});
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.reward && data.reward._id) {
+          const serverId = data.reward._id.toString();
+          setRewards(prev => {
+            const updated = prev.map(r => (r.id === newProg.id ? { ...r, id: serverId, _id: serverId } : r));
+            try {
+              localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updated));
+            } catch (_) {}
+            return updated;
+          });
+        }
+      })
+      .catch(() => {});
 
     setOfferSuccessModalOpen(true);
     setOfferPageView('list');
@@ -2517,6 +2531,48 @@ export default function MerchantDashboard() {
     });
   };
 
+  const executeDeleteOffer = async (targetReward) => {
+    if (!targetReward) return;
+    const targetId = targetReward.id || targetReward._id;
+    const targetTitle = String(targetReward.title || '').trim();
+
+    // 1. Remove from React state, update localStorage, and notify BroadcastChannel
+    let updatedRewards = [];
+    setRewards(prev => {
+      updatedRewards = prev.filter(r => {
+        const rId = r.id || r._id;
+        if (targetId && rId && rId === targetId) return false;
+        if (targetTitle && String(r.title || '').trim().toLowerCase() === targetTitle.toLowerCase() && (Number(r.stampsRequired) === Number(targetReward.stampsRequired) || r.condition === targetReward.condition)) return false;
+        return true;
+      });
+      try {
+        localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updatedRewards));
+        const ch = new BroadcastChannel('beaurex_merchant_offers');
+        ch.postMessage({ type: 'OFFERS_UPDATED', offers: updatedRewards });
+        setTimeout(() => { try { ch.close(); } catch (_) {} }, 1000);
+      } catch (_) {}
+      return updatedRewards;
+    });
+
+    // 2. Clear editing state if this offer was open in edit mode
+    if (editingOfferId && (editingOfferId === targetId || editingOfferId === targetReward.id || editingOfferId === targetReward._id)) {
+      setEditingOfferId(null);
+      setOfferPageView('list');
+      handleResetOrNewOffer();
+    }
+
+    // 3. Delete from backend MongoDB via DELETE /api/merchant/rewards/:id?title=...
+    try {
+      const deleteUrl = targetId 
+        ? `/api/merchant/rewards/${targetId}?title=${encodeURIComponent(targetTitle)}`
+        : `/api/merchant/rewards/by-title?title=${encodeURIComponent(targetTitle)}`;
+      await fetch(deleteUrl, { method: 'DELETE' });
+      if (targetReward._id && targetReward._id !== targetId) {
+        await fetch(`/api/merchant/rewards/${targetReward._id}?title=${encodeURIComponent(targetTitle)}`, { method: 'DELETE' });
+      }
+    } catch (_) {}
+  };
+
   const handleDeleteReward = (r) => {
     requestConfirm({
       title: 'Permission Required: Delete Reward Rule',
@@ -2524,8 +2580,7 @@ export default function MerchantDashboard() {
       confirmText: 'Yes, Delete Reward',
       type: 'danger',
       onConfirm: () => {
-        setRewards(prev => prev.filter(rw => rw.id !== r.id));
-        if (r.id) fetch(`/api/merchant/rewards/${r.id}`, { method: 'DELETE' }).catch(() => {});
+        executeDeleteOffer(r);
       }
     });
   };
@@ -4297,36 +4352,33 @@ export default function MerchantDashboard() {
                                   <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-[#8B0000] transition-colors">
                                     {r.title}
                                   </h4>
-                                  <div className="flex items-center space-x-1 shrink-0 mt-0.5">
-                                    {/* Action buttons revealed on hover so default card appearance is 100% identical to preview */}
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1.5 mr-1">
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleToggleOfferActive(r.id);
-                                        }}
-                                        className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition ${
-                                          r.isActive !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
-                                        }`}
-                                        title="Click to toggle Active/Paused"
-                                      >
-                                        <span className={`w-1.5 h-1.5 rounded-full ${r.isActive !== false ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                                        <span>{r.isActive !== false ? 'Active' : 'Paused'}</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setDeleteRewardModal({ isOpen: true, reward: r });
-                                        }}
-                                        className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
-                                        title="Delete Offer"
-                                      >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                      </button>
-                                    </div>
-                                    <ChevronRight className="w-5 h-5 text-slate-400 stroke-[2.5] group-hover:text-slate-700 group-hover:translate-x-0.5 transition" />
+                                  <div className="flex items-center space-x-1.5 shrink-0 mt-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleOfferActive(r.id);
+                                      }}
+                                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition ${
+                                        r.isActive !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                      }`}
+                                      title="Click to toggle Active/Paused"
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full ${r.isActive !== false ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                      <span>{r.isActive !== false ? 'Active' : 'Paused'}</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        setDeleteRewardModal({ isOpen: true, reward: r });
+                                      }}
+                                      className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                                      title="Delete Offer"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5 pointer-events-none" />
+                                    </button>
                                   </div>
                                 </div>
 
@@ -4669,7 +4721,10 @@ export default function MerchantDashboard() {
                                 <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">
                                   {offerTitle.trim() || '30% OFF on Next Purchase'}
                                 </h4>
-                                <ChevronRight className="w-5 h-5 text-slate-400 stroke-[2.5] shrink-0 mt-0.5" />
+                                <div className="text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 mt-0.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                  <span>Active</span>
+                                </div>
                               </div>
 
                               <p className="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed mt-1">
@@ -7437,9 +7492,9 @@ export default function MerchantDashboard() {
               </button>
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (deleteRewardModal.reward) {
-                    setRewards(prev => prev.filter(r => r.id !== deleteRewardModal.reward.id));
+                    await executeDeleteOffer(deleteRewardModal.reward);
                   }
                   setDeleteRewardModal({ isOpen: false, reward: null });
                 }}
