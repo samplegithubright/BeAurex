@@ -3711,15 +3711,10 @@ export default function MerchantDashboard() {
                   <div className="flex flex-col sm:flex-row items-center sm:items-stretch gap-5 sm:gap-8 pt-1">
                     {/* Left: QR Code with centered gift badge */}
                     <div 
-                      onClick={() => {
-                        const slug = String(storeSlug || storeName || 'kafeen-cafe').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                        window.open(`/scan/${slug}`, '_blank');
-                      }}
-                      title="Click to test customer scan & claim experience"
-                      className="w-44 h-44 sm:w-48 sm:h-48 bg-white rounded-2xl p-2.5 border border-slate-100 flex items-center justify-center shadow-xs relative shrink-0 cursor-pointer hover:border-[#8B0000] hover:scale-[1.02] active:scale-[0.98] transition-all group"
+                      className="w-44 h-44 sm:w-48 sm:h-48 bg-white rounded-2xl p-2.5 border border-slate-100 flex items-center justify-center shadow-xs relative shrink-0"
                     >
                       {merchantQrDataUrl ? (
-                        <img src={merchantQrDataUrl} alt="Store QR Code" className="w-36 h-36 sm:w-40 sm:h-40 object-contain group-hover:opacity-95" />
+                        <img src={merchantQrDataUrl} alt="Store QR Code" className="w-36 h-36 sm:w-40 sm:h-40 object-contain" />
                       ) : (
                         <svg className="w-36 h-36" viewBox="0 0 100 100" fill="currentColor">
                           <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 10h10v10H40zM50 20h10v10H50zM40 30h10v10H40zM20 40h10v10H20zM30 50h10v10H30zM10 50h10v10H10zM50 50h10v10H50zM60 40h10v10H60zM70 50h10v10H70zM80 40h10v10H80zM40 70h10v10H40zM50 80h10v10H50zM70 70h10v10H70zM80 80h10v10H80zM90 70h10v10H90z"/>
@@ -5144,19 +5139,14 @@ export default function MerchantDashboard() {
                 {/* 3. CENTRAL QR CODE SECTION */}
                 <div className="px-5 py-1.5 flex justify-center">
                   <div 
-                    onClick={() => {
-                      const slug = String(storeSlug || storeName || 'kafeen-cafe').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                      window.open(`/scan/${slug}`, '_blank');
-                    }}
-                    title="Click to test customer scan & claim experience"
-                    className="p-2.5 bg-white rounded-2xl border-2 border-[#8B0000] shadow-2xs relative cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all group"
+                    className="p-2.5 bg-white rounded-2xl border-2 border-[#8B0000] shadow-2xs relative"
                   >
                     {merchantQrDataUrl ? (
                       <div className="relative">
                         <img 
                           src={merchantQrDataUrl} 
                           alt="Counter Standee QR Code" 
-                          className="w-40 h-40 sm:w-44 sm:h-44 object-contain block rounded-xl group-hover:opacity-95"
+                          className="w-40 h-40 sm:w-44 sm:h-44 object-contain block rounded-xl"
                         />
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white flex items-center justify-center shadow-md border-2 border-[#8B0000] p-1 overflow-hidden">

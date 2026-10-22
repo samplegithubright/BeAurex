@@ -4272,18 +4272,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <p className="text-sm font-semibold text-slate-700 max-w-xs mx-auto leading-relaxed mt-5">
               Please share your Customer ID with the cashier.
             </p>
-
-            {/* Quick Demo Approval Option */}
-            <div className="pt-4">
-              <button
-                type="button"
-                onClick={handleSimulateMerchantApproval}
-                className="text-xs text-slate-400 hover:text-[#8B0000] underline font-medium cursor-pointer transition py-1 px-2"
-                title="Simulate cashier approval directly for testing"
-              >
-                Instant Approval (Demo Test)
-              </button>
-            </div>
           </div>
         );
       })()}
