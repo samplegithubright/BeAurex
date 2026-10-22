@@ -3508,17 +3508,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 })}
               </div>
 
-              {/* Claim Next Aurex Coin Button (Matching Image 1) */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleRequestCashierExtraCoin(activeSlug)}
-                  className="w-full bg-white hover:bg-slate-50 text-[#8B0000] border border-[#8B0000]/40 font-black py-3 px-4 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer active:scale-[0.98]"
-                >
-                  <Coins className="w-4 h-4 text-amber-500" />
-                  <span>Claim Next Aurex Coin</span>
-                </button>
-              </div>
+
 
               {/* Waiting Status Banner (if waiting approval active) */}
               {waitingApprovalActive && (
