@@ -1498,19 +1498,79 @@ router.get('/redemptions/all', (req, res) => {
   }
 });
 
-// POST Merchant Approves Reward Claim
-router.post('/redemptions/approve', (req, res) => {
+// POST Merchant Approves Reward Claim or Coin Collection
+router.post('/redemptions/approve', async (req, res) => {
   try {
     const { claimId, customerId } = req.body;
     const approved = redemptionStore.approveClaim(claimId, customerId);
     if (!approved) {
       return res.status(404).json({ success: false, message: 'Redemption claim not found or already processed.' });
     }
-    console.log(`✅ Merchant APPROVED reward claim for ${approved.customerName} (${approved.customerId}) - ${approved.rewardTitle}`);
+
+    // Persist changes to MongoDB Customer
+    let customerStamps = undefined;
+    try {
+      const cleanCustId = (approved.customerId || customerId || '').replace(/^ID:\s*/, '').trim();
+      if (cleanCustId) {
+        const customer = await Customer.findOne({
+          $or: [
+            { customerId: cleanCustId },
+            { customerId: new RegExp(cleanCustId, 'i') },
+            { mobile: cleanCustId.replace(/\D/g, '') },
+            { email: cleanCustId.toLowerCase() }
+          ]
+        });
+
+        if (customer) {
+          if (approved.requestType === 'coin') {
+            const coinsToAdd = Number(approved.coins) || 1;
+            customer.stamps = (customer.stamps || 0) + coinsToAdd;
+            
+            // Update store progress for this merchant
+            if (!customer.storeProgress) customer.storeProgress = [];
+            const targetSlug = approved.storeSlug || 'ka-feen';
+            let prog = customer.storeProgress.find(p => p.storeSlug === targetSlug);
+            if (prog) {
+              prog.stampsCollected = (prog.stampsCollected || 0) + coinsToAdd;
+              prog.lastVisit = new Date();
+            } else {
+              customer.storeProgress.push({
+                storeSlug: targetSlug,
+                storeName: approved.storeSlug || 'Store',
+                stampsCollected: coinsToAdd,
+                totalStamps: 5,
+                lastVisit: new Date()
+              });
+            }
+          } else {
+            // Reward Offer Claim: subtract spent coins
+            const coinsSpent = Number(approved.coinsRequired || approved.stampsRequired) || 5;
+            customer.stamps = Math.max(0, (customer.stamps || 0) - coinsSpent);
+            customer.rewardsRedeemedCount = (customer.rewardsRedeemedCount || 0) + 1;
+
+            if (customer.storeProgress) {
+              const targetSlug = approved.storeSlug || 'ka-feen';
+              let prog = customer.storeProgress.find(p => p.storeSlug === targetSlug);
+              if (prog) {
+                prog.stampsCollected = Math.max(0, (prog.stampsCollected || 0) - coinsSpent);
+              }
+            }
+          }
+          await customer.save();
+          customerStamps = customer.stamps;
+          console.log(`✅ Synced customer ${customer.name} stamps in DB: now ${customer.stamps}`);
+        }
+      }
+    } catch (dbErr) {
+      console.warn('Could not sync customer in DB upon approval:', dbErr.message);
+    }
+
+    console.log(`✅ Merchant APPROVED claim for ${approved.customerName} (${approved.customerId}) - ${approved.rewardTitle}`);
     res.json({
       success: true,
-      message: `Reward approved! Customer can now enjoy ${approved.rewardTitle}.`,
-      claim: approved
+      message: approved.requestType === 'coin' ? 'Aurex Coin approved!' : `Reward approved! Customer can now enjoy ${approved.rewardTitle}.`,
+      claim: approved,
+      customerStamps
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

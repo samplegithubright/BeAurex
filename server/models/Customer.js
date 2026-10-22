@@ -120,6 +120,10 @@ const customerSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  totalStamps: {
+    type: Number,
+    default: 5
+  },
   activeCardsCount: {
     type: Number,
     default: 1

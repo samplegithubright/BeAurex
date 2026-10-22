@@ -28,8 +28,8 @@ const formatCustomerResponse = (c) => ({
   avatar: c.avatar || '',
   tier: c.tier || 'Bronze Member',
   points: c.points || 100,
-  stamps: typeof c.stamps === 'number' ? c.stamps : 3,
-  totalStamps: 5,
+  stamps: typeof c.stamps === 'number' ? c.stamps : 0,
+  totalStamps: c.totalStamps || 5,
   activeCardsCount: c.activeCardsCount || 1,
   rewardsRedeemedCount: c.rewardsRedeemedCount || 0,
   referralCode: c.referralCode || ('BX-' + (c.customerId ? c.customerId.slice(-4) : 'REWARD')),
@@ -1482,18 +1482,21 @@ const redemptionStore = require('../services/redemptionStore');
 // POST Customer Submits Reward Claim Request (Waiting for Merchant Approval)
 router.post('/reward/request-approval', async (req, res) => {
   try {
-    const { id, claimId, customerId, customerName, rewardTitle, storeSlug = 'ka-feen', stamps, voucherType, requestType, createdAt, requestedAt, createdDate, createdTime } = req.body;
+    const { id, claimId, customerId, customerName, rewardTitle, storeSlug = 'ka-feen', stamps, voucherType, requestType, coinsRequired, stampsRequired, createdAt, requestedAt, createdDate, createdTime } = req.body;
     
     const resolvedId = id || claimId;
+    const resolvedCoinsReq = Number(coinsRequired || stampsRequired) || 5;
     const claim = redemptionStore.addPendingClaim({
       id: resolvedId,
       claimId: resolvedId,
       requestType: requestType || (voucherType === 'coin' ? 'coin' : 'offer'),
+      coinsRequired: resolvedCoinsReq,
+      stampsRequired: resolvedCoinsReq,
       customerId: customerId || 'LQR-8F4A29',
       customerName: customerName || 'Customer',
       rewardTitle: rewardTitle || '30% OFF on next purchase',
       storeSlug,
-      stamps: stamps || '5/5 Aurex Coins completed',
+      stamps: stamps || `${resolvedCoinsReq}/${resolvedCoinsReq} Aurex Coins completed`,
       voucherType: voucherType || '30',
       createdAt,
       requestedAt,

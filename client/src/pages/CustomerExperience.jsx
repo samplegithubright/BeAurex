@@ -335,6 +335,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [approvalType, setApprovalType] = useState('offer'); // 'offer' or 'coin'
   const [coinApprovedMsg, setCoinApprovedMsg] = useState('');
   const [scanWarningModalOpen, setScanWarningModalOpen] = useState(false);
+  const [scanWarningTitle, setScanWarningTitle] = useState('1 Coin Per Day Limit');
   const [scanWarningMsg, setScanWarningMsg] = useState('');
   const processedApprovalsRef = useRef(new Set());
   const lastScannedSlugRef = useRef('');
@@ -731,7 +732,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const handleRequestAurexCoin = (overrideSlug) => {
     const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
 
-    // Stop collecting coins if customer has already collected target coins!
+    // Check if customer already collected maximum coins across merchant offers
     let customerCards = [];
     try {
       customerCards = JSON.parse(localStorage.getItem('beaurex_customer_cards') || '[]');
@@ -739,13 +740,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const activeCard = customerCards.find(c => c.slug === activeStoreSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeStoreSlug)
       || loyaltyCardsList.find(c => c.slug === activeStoreSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeStoreSlug);
     const currentCoins = activeCard?.stamps ?? customerUser.stamps ?? 0;
-    const targetCoins = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
 
-    if (currentCoins >= targetCoins) {
-      handleInitiateClaim(activeStoreSlug);
-      return;
+    let offers = merchantOffers;
+    if (!offers || offers.length === 0) {
+      try { offers = JSON.parse(localStorage.getItem('beaurex_merchant_rewards') || '[]'); } catch (_) {}
     }
-
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
     const claimId = `coin_${Date.now()}`;
     const now = new Date();
@@ -821,8 +820,27 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   };
 
   // Reward Claim Approval Flow: Customer wants to redeem their reward
-  const handleInitiateClaim = (overrideSlug) => {
+  const handleInitiateClaim = (overrideSlug, explicitReqCoins) => {
     const activeStoreSlug = overrideSlug || storeInfo?.qrSlug || slug || 'store';
+    
+    // Check customer coin balance
+    let customerCards = [];
+    try {
+      customerCards = JSON.parse(localStorage.getItem('beaurex_customer_cards') || '[]');
+    } catch (_) {}
+    const activeCard = customerCards.find(c => c.slug === activeStoreSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeStoreSlug)
+      || loyaltyCardsList.find(c => c.slug === activeStoreSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeStoreSlug);
+    const currentCoins = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 0);
+    const reqCoins = explicitReqCoins || Number(selectedReward?.requiresStamps) || 5;
+
+    // Check if customer has reached or completed the required coins
+    if (currentCoins < reqCoins) {
+      setScanWarningTitle('More Coins Required');
+      setScanWarningMsg(`You need ${reqCoins - currentCoins} more Aurex Coins to claim this reward. You have ${currentCoins} of ${reqCoins} coins.`);
+      setScanWarningModalOpen(true);
+      return;
+    }
+
     const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
     const claimId = `rem_${Date.now()}`;
     const now = new Date();
@@ -836,8 +854,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       requestType: 'offer',
       customerName: customerUser.name || 'Rohan Sharma',
       customerId: `ID: ${cleanCustomerId}`,
-      rewardTitle: selectedReward?.title ? `${selectedReward.title} ${selectedReward.subtitle || ''}`.trim() : '30% OFF on Next Purchase',
-      stamps: '5/5 Aurex Coins completed',
+      rewardTitle: selectedReward?.title ? `${selectedReward.title} ${selectedReward.subtitle || ''}`.trim() : 'Reward Offer',
+      coinsRequired: reqCoins,
+      stampsRequired: reqCoins,
+      stamps: `${reqCoins} Aurex Coins for Reward`,
       timeAgo: `Today, ${timeStr}`,
       createdAt: createdAtIso,
       requestedAt: createdAtIso,
@@ -888,6 +908,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         customerName: customerUser.name || 'Rohan Sharma',
         rewardTitle: claimObj.rewardTitle,
         storeSlug: activeStoreSlug,
+        coinsRequired: reqCoins,
+        stampsRequired: reqCoins,
         stamps: claimObj.stamps,
         voucherType: claimObj.voucherType,
         createdAt: createdAtIso,
@@ -941,8 +963,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       categoryName: resolvedCategory
     }));
 
-    // If customer is not authenticated yet, do NOT mark as scanned or award coins yet!
-    // They must login/signup first; then completeCustomerAuthRedirect will process this scan.
+    // If customer is not authenticated yet, direct to login/signup screen first
     if (!isAuthenticated) {
       try {
         sessionStorage.setItem('beaurex_pending_scan_slug', cleanSlug);
@@ -966,32 +987,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     // Register customer card with current coins
     registerScannedStoreCard(cleanSlug, resolvedName, resolvedCategory, existingStamps);
 
-    // RULE: ANTI-FRAUD SINGLE SCAN GUARANTEE ("one coin only one time scan not multiple")
-    const todayKey = new Date().toISOString().split('T')[0];
-    let scanHistoryMap = {};
+    // Clear any previous daily limit caches so customer can scan multiple times per day
     try {
-      scanHistoryMap = JSON.parse(localStorage.getItem('beaurex_scan_history_map') || '{}');
+      localStorage.removeItem('beaurex_qr_daily_scans');
     } catch (_) {}
-    const storeScanRecord = scanHistoryMap[cleanSlug];
-    const alreadyScannedSession = sessionStorage.getItem(`beaurex_scanned_visit_${cleanSlug}`);
-    const isAlreadyScanned = Boolean(alreadyScannedSession || (storeScanRecord && storeScanRecord.date === todayKey));
 
-    if (isAlreadyScanned) {
-      // Do NOT award multiple coins on repeated scan!
-      setScanWarningMsg("You've already collected your 1 Aurex Coin for this visit! To collect additional coins, please ask the cashier at checkout.");
-      setScanWarningModalOpen(true);
-      setCurrentScreen('after_scan');
-      return;
-    }
-
-    // First scan of this visit:
-    sessionStorage.setItem(`beaurex_scanned_visit_${cleanSlug}`, 'true');
-    scanHistoryMap[cleanSlug] = { date: todayKey, timestamp: Date.now() };
-    localStorage.setItem('beaurex_scan_history_map', JSON.stringify(scanHistoryMap));
-
-    // Request strictly 1 Aurex Coin from merchant (every coin approved by merchant)
+    // Request strictly 1 Aurex Coin from merchant on every scan (approval goes to merchant every time)
     handleRequestAurexCoin(cleanSlug);
-    setCurrentScreen('after_scan');
   };
 
   // Reusable customer auth completion & redirect handler
@@ -1877,7 +1879,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         setCustomerUser(prev => {
           cardTarget = prev.totalStamps || 5;
           const current = Number(prev.stamps) || 0;
-          finalStamps = Math.min(cardTarget, current + addedCoins);
+          finalStamps = current + addedCoins;
           if (finalStamps >= cardTarget) {
             reachedTarget = true;
           }
@@ -1895,7 +1897,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             const isMatch = (activeSlug && (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug)) || prev.length === 1;
             if (isMatch) {
               const target = c.totalStamps || cardTarget || 5;
-              const newStamps = Math.min(target, (Number(c.stamps) || 0) + addedCoins);
+              const newStamps = (Number(c.stamps) || 0) + addedCoins;
               if (newStamps >= target) {
                 reachedTarget = true;
               }
@@ -1988,7 +1990,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         return;
       }
 
-      // REWARD CLAIM APPROVED BY MERCHANT: Reset coins to 0 as required!
+      // REWARD CLAIM APPROVED BY MERCHANT: Deduct spent coins according to offer!
+      const coinsSpent = Number(payload?.coinsDeducted || payload?.coinsRequired || payload?.claim?.coinsRequired || payload?.claim?.stampsRequired || selectedReward?.requiresStamps) || 5;
+
       setSelectedReward(prev => ({
         ...prev,
         approvedDate: payload?.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -1997,17 +2001,35 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setWaitingApprovalActive(false);
 
       const activeSlug = payload?.storeSlug || storeInfo.qrSlug || slug;
-      // Reset card coins to zero
+      let remainingCoins = 0;
+
+      // Subtract spent coins from customer profile
+      setCustomerUser(prev => {
+        const current = Number(prev.stamps) || 0;
+        remainingCoins = Math.max(0, current - coinsSpent);
+        const updated = {
+          ...prev,
+          stamps: remainingCoins,
+          rewardsRedeemedCount: (prev.rewardsRedeemedCount || 0) + 1
+        };
+        try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
+        return updated;
+      });
+
+      // Subtract spent coins from loyalty card
       setLoyaltyCardsList(prev => {
         const updated = prev.map(c => {
           const isMatch = (activeSlug && (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug)) || prev.length === 1;
           if (isMatch) {
+            const current = Number(c.stamps) || 0;
+            const newStamps = Math.max(0, current - coinsSpent);
+            const target = c.totalStamps || 5;
             return {
               ...c,
-              stamps: 0,
-              badgeText: `${c.totalStamps || 5} more Aurex Coins`,
-              badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
-              statusText: `0 of ${c.totalStamps || 5} Aurex Coins`
+              stamps: newStamps,
+              badgeText: newStamps >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - newStamps)} more Aurex Coins`,
+              badgeClass: newStamps >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+              statusText: `${newStamps} Aurex Coins available`
             };
           }
           return c;
@@ -2015,17 +2037,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         try {
           localStorage.setItem('beaurex_customer_cards', JSON.stringify(updated.map(c => ({ ...c, Icon: undefined }))));
         } catch (_) {}
-        return updated;
-      });
-
-      // Reset customer profile stamps to zero
-      setCustomerUser(prev => {
-        const updated = {
-          ...prev,
-          stamps: 0,
-          rewardsRedeemedCount: (prev.rewardsRedeemedCount || 0) + 1
-        };
-        try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
         return updated;
       });
 
@@ -2265,9 +2276,12 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         return next;
       });
 
-      // Reset coins to 0 on reward redemption as required by user
-      const nextStamps = 0;
-      remainingCoins = 0;
+      // Deduct coins spent for this reward offer
+      const coinsSpent = reqCoins;
+      const currentCustStamps = Number(customerUser.stamps) || 0;
+      const nextStamps = Math.max(0, currentCustStamps - coinsSpent);
+      remainingCoins = nextStamps;
+
       setLoyaltyCardsList(prev => {
         const updated = prev.map(c => {
           const isMatch = c.name === selectedReward.storeName || 
@@ -2275,12 +2289,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           c.slug === storeInfo.qrSlug || 
                           prev.length === 1;
           if (isMatch) {
+            const current = Number(c.stamps) || 0;
+            const updatedStamps = Math.max(0, current - coinsSpent);
+            const target = c.totalStamps || 5;
             return {
               ...c,
-              stamps: 0,
-              badgeText: `${c.totalStamps || 5} more Aurex Coins`,
-              badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
-              statusText: `0 of ${c.totalStamps || 5} Aurex Coins`
+              stamps: updatedStamps,
+              badgeText: updatedStamps >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - updatedStamps)} more Aurex Coins`,
+              badgeClass: updatedStamps >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+              statusText: `${updatedStamps} Aurex Coins available`
             };
           }
           return c;
@@ -2294,7 +2311,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setCustomerUser(prev => {
         const updated = {
           ...prev,
-          stamps: 0,
+          stamps: nextStamps,
           rewardsRedeemedCount: (prev.rewardsRedeemedCount || 0) + 1
         };
         try { localStorage.setItem('beaurex_customer_user', JSON.stringify(updated)); } catch (_) {}
@@ -2326,7 +2343,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         return updated;
       });
 
-      setCoinApprovedMsg(`Reward Claimed! ${reqCoins} Aurex Coins redeemed for 30% OFF. You have ${remainingCoins} Aurex Coin remaining.`);
+      setCoinApprovedMsg(`Reward Claimed! ${reqCoins} Aurex Coins redeemed for ${selectedReward?.title || 'Reward'}. You have ${remainingCoins} Aurex Coin${remainingCoins === 1 ? '' : 's'} remaining.`);
     } else if (isCoin) {
       setCoinApprovedMsg('1 Aurex Coin collected successfully! 🎉');
     } else {
@@ -2989,7 +3006,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <Award className="w-8 h-8 text-amber-600" />
             </div>
             <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-slate-900 tracking-tight">1 Coin Per Visit Limit</h3>
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                {scanWarningTitle || '1 Coin Per Day Limit'}
+              </h3>
               <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                 {scanWarningMsg || "You've already collected your 1 Aurex Coin for this visit! To earn additional coins, please ask the cashier at checkout."}
               </p>
@@ -3138,32 +3157,6 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         return (
           <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
 
-            {/* Celebration / Status Alert upon returning to Home */}
-            {coinApprovedMsg && (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-3xl p-4 sm:p-5 shadow-xs flex items-center justify-between animate-in fade-in">
-                <div className="flex items-center space-x-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm sm:text-base font-black text-emerald-950">
-                      {coinApprovedMsg}
-                    </h4>
-                    <p className="text-xs text-emerald-700 font-semibold mt-0.5">
-                      Your updated Aurex Coin balance is ready to use below.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCoinApprovedMsg('')}
-                  className="text-emerald-700 hover:text-emerald-950 text-xs font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition cursor-pointer"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
-
             {/* Top Metric Cards: Responsive Merchant Dashboard Type Card */}
             {!emptyStateDemo && (
               <div className="grid grid-cols-2 gap-2 sm:gap-3.5 lg:gap-4">
@@ -3280,7 +3273,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           {/* Coin Indicators */}
                           <div>
                             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 pt-1">
-                              {Array.from({ length: Math.min(card.totalStamps, card.stamps) }).map((_, idx) => (
+                              {Array.from({ length: Math.max(0, card.stamps || 0) }).map((_, idx) => (
                                 <div
                                   key={`stamped-${card.id}-${idx}`}
                                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#8B0000] text-white flex items-center justify-center shadow-xs shrink-0 transition-transform group-hover:scale-105"
@@ -3289,7 +3282,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                                   <Star className="w-3.5 h-3.5 fill-white text-white" />
                                 </div>
                               ))}
-                              {Array.from({ length: stampsNeeded }).map((_, idx) => (
+                              {card.stamps < card.totalStamps && Array.from({ length: Math.max(0, card.totalStamps - card.stamps) }).map((_, idx) => (
                                 <div
                                   key={`unstamped-${card.id}-${idx}`}
                                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-dashed border-slate-300 bg-transparent flex items-center justify-center shrink-0"
@@ -3300,7 +3293,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
                             {/* Bottom Status text */}
                             <p className="text-xs font-bold text-slate-600">
-                              {card.stamps} of {card.totalStamps} Aurex Coins
+                              {card.stamps} Aurex Coin{card.stamps === 1 ? '' : 's'} available {card.stamps >= card.totalStamps ? '(Reward Unlocked 🎉)' : `• Need ${card.totalStamps - card.stamps} more`}
                             </p>
                           </div>
                         </div>
@@ -3389,7 +3382,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const activeSlug = storeInfo.qrSlug || slug || 'adobe-1865';
         const activeCard = loyaltyCardsList.find(c => c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug);
         const currentStamps = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 0);
-        const totalStamps = activeCard?.totalStamps ?? customerUser.totalStamps ?? 5;
+        let offers = merchantOffers;
+        if (!offers || offers.length === 0) {
+          try { offers = JSON.parse(localStorage.getItem('beaurex_merchant_rewards') || '[]'); } catch (_) {}
+        }
+        const maxOfferCoins = (Array.isArray(offers) && offers.length > 0)
+          ? Math.max(...offers.map(o => Number(o.stampsRequired) || 5))
+          : 5;
+        const totalStamps = Math.max(activeCard?.totalStamps || 5, maxOfferCoins, currentStamps);
 
         return (
           <div className="w-full max-w-lg mx-auto px-3.5 sm:px-4 py-3 space-y-4 pb-28">
@@ -3448,64 +3448,69 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 {currentStamps} of {totalStamps} Aurex Coins collected
               </p>
 
-              {/* 5 Coin Circles Track (Responsive + Milestone Stickers) */}
-              <div className="flex items-center justify-center gap-2 sm:gap-2.5 pt-2 pb-1 relative">
-                {Array.from({ length: totalStamps }).map((_, idx) => {
-                  const isCollected = idx < currentStamps;
-                  const isSecondLast = idx === totalStamps - 2;
-                  const isLast = idx === totalStamps - 1;
+              {/* Coin Circles Track (Responsive Wrap + Milestone Stickers) */}
+              <div className="pt-3 pb-2 px-1 w-full max-w-full">
+                <div className="flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-2.5 gap-y-4 sm:gap-y-5 max-w-full mx-auto">
+                  {Array.from({ length: totalStamps }).map((_, idx) => {
+                    const isCollected = idx < currentStamps;
+                    const isSecondLast = idx === totalStamps - 2;
+                    const isLast = idx === totalStamps - 1;
+                    const circleSizeClass = totalStamps > 6 ? "w-8 h-8 sm:w-9 sm:h-9" : "w-9 h-9 sm:w-10 sm:h-10";
 
-                  return (
-                    <div key={`coin-slot-${idx}`} className="relative shrink-0">
-                      {/* Second-to-last coin sticker (Perk Teaser) */}
-                      {isSecondLast && (
-                        <div
-                          className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-xs flex items-center space-x-0.5 whitespace-nowrap animate-pulse pointer-events-none z-10"
-                          title="Milestone Perk Sticker: 1 step away from 30% OFF!"
-                        >
-                          <span>🎁</span>
-                          <span className="hidden sm:inline">Perk</span>
-                        </div>
-                      )}
+                    return (
+                      <div key={`coin-slot-${idx}`} className="relative shrink-0">
+                        {/* Second-to-last coin sticker (Perk Teaser) */}
+                        {isSecondLast && (
+                          <div
+                            className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 via-rose-500 to-pink-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-xs flex items-center space-x-0.5 whitespace-nowrap animate-pulse pointer-events-none z-10"
+                            title="Milestone Perk Sticker: 1 step away from reward!"
+                          >
+                            <span>🎁</span>
+                            <span className="hidden sm:inline">Perk</span>
+                          </div>
+                        )}
 
-                      {/* Final coin sticker (Grand Reward) */}
-                      {isLast && !isCollected && (
-                        <div
-                          className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-xs flex items-center space-x-0.5 whitespace-nowrap pointer-events-none z-10"
-                          title="Grand Reward: 30% OFF"
-                        >
-                          <span>⭐</span>
-                          <span className="hidden sm:inline">30% OFF</span>
-                        </div>
-                      )}
+                        {/* Final coin sticker (Grand Reward) */}
+                        {isLast && !isCollected && (
+                          <div
+                            className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full shadow-xs flex items-center space-x-0.5 whitespace-nowrap pointer-events-none z-10"
+                            title="Grand Reward"
+                          >
+                            <span>⭐</span>
+                            <span className="hidden sm:inline">Reward</span>
+                          </div>
+                        )}
 
-                      {/* The Coin Circle */}
-                      {isCollected ? (
-                        <div
-                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs transition transform hover:scale-105 ${
-                            isLast ? 'ring-2 ring-amber-400 ring-offset-1' : ''
-                          }`}
-                          title={`Collected Coin ${idx + 1}`}
-                        >
-                          <Coins className="w-4 h-4 text-amber-300" />
-                        </div>
-                      ) : (
-                        <div
-                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-dashed ${
-                            isLast ? 'border-amber-400/80 bg-amber-50/50' : 'border-slate-300 bg-white/70'
-                          } flex items-center justify-center`}
-                          title={`Uncollected Coin ${idx + 1}`}
-                        >
-                          {isLast ? (
-                            <Award className="w-3.5 h-3.5 text-amber-500/70" />
-                          ) : isSecondLast ? (
-                            <Gift className="w-3.5 h-3.5 text-rose-400/60" />
-                          ) : null}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        {/* The Coin Circle */}
+                        {isCollected ? (
+                          <div
+                            className={`${circleSizeClass} rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs transition transform hover:scale-105 ${
+                              isLast ? 'ring-2 ring-amber-400 ring-offset-1' : ''
+                            }`}
+                            title={`Collected Coin ${idx + 1}`}
+                          >
+                            <Coins className="w-4 h-4 text-amber-300" />
+                          </div>
+                        ) : (
+                          <div
+                            className={`${circleSizeClass} rounded-full border-2 border-dashed ${
+                              isLast ? 'border-amber-400/80 bg-amber-50/50' : 'border-slate-300 bg-white/70'
+                            } flex items-center justify-center text-[10px] font-bold text-slate-400`}
+                            title={`Uncollected Coin ${idx + 1}`}
+                          >
+                            {isLast ? (
+                              <Award className="w-3.5 h-3.5 text-amber-500/70" />
+                            ) : isSecondLast ? (
+                              <Gift className="w-3.5 h-3.5 text-rose-400/60" />
+                            ) : (
+                              <span>{idx + 1}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
 
@@ -3536,7 +3541,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <div className="space-y-3">
                 {merchantOffers.map((offer, idx) => {
                   const reqCoins = Number(offer.stampsRequired) || 5;
-                  const isAchieved = currentStamps >= reqCoins;
+                  const isUnlocked = currentStamps >= reqCoins;
+                  const coinsNeeded = Math.max(0, reqCoins - currentStamps);
                   const offerImg = offer.banner || offer.image || (
                     offer.title?.toLowerCase().includes('coffee')
                       ? 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80'
@@ -3580,9 +3586,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
                             {offer.title}
                           </h4>
-                          {isAchieved && (
+                          {isUnlocked && (
                             <span className="bg-[#00a854] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shrink-0 tracking-tight">
-                              ACHIEVED
+                              UNLOCKED 🎉
                             </span>
                           )}
                         </div>
@@ -3591,13 +3597,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           <span className="bg-[#fff1f2] text-[#e11d48] font-black text-[11px] px-2.5 py-0.5 rounded-full uppercase">
                             {reqCoins} AUREX COINS
                           </span>
-                          {isAchieved ? (
+                          {isUnlocked ? (
                             <span className="text-[#00a854] font-bold text-[11px]">
-                              Ready to claim! 🎉
+                              Ready to claim! 🎉 ({reqCoins} coins)
                             </span>
                           ) : (
                             <span className="text-slate-500 font-semibold text-[11px]">
-                              • Collect {Math.max(0, reqCoins - currentStamps)} more
+                              • Collect {coinsNeeded} more Aurex Coin{coinsNeeded === 1 ? '' : 's'}
                             </span>
                           )}
                         </div>
@@ -3607,7 +3613,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             {validText}
                           </span>
 
-                          {isAchieved && (
+                          {isUnlocked && (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -3626,7 +3632,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                                   isCoin: false
                                 });
                                 setApprovalType('offer');
-                                handleInitiateClaim(storeInfo.qrSlug || slug);
+                                handleInitiateClaim(storeInfo.qrSlug || slug, reqCoins);
                               }}
                               className="bg-[#8B0000] hover:bg-[#6e0000] text-white text-xs font-black px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0"
                             >
@@ -3791,7 +3797,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           {/* Coin Indicators */}
                           <div>
                             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 pt-1">
-                              {Array.from({ length: Math.min(card.totalStamps, card.stamps) }).map((_, idx) => (
+                              {Array.from({ length: Math.max(0, card.stamps || 0) }).map((_, idx) => (
                                 <div
                                   key={`all-stamped-${card.id}-${idx}`}
                                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#8B0000] text-white flex items-center justify-center shadow-xs shrink-0 transition-transform group-hover:scale-105"
@@ -3800,7 +3806,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                                   <Star className="w-3.5 h-3.5 fill-white text-white" />
                                 </div>
                               ))}
-                              {Array.from({ length: stampsNeeded }).map((_, idx) => (
+                              {card.stamps < card.totalStamps && Array.from({ length: Math.max(0, card.totalStamps - card.stamps) }).map((_, idx) => (
                                 <div
                                   key={`all-unstamped-${card.id}-${idx}`}
                                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-dashed border-slate-300 bg-transparent flex items-center justify-center shrink-0"
@@ -3811,7 +3817,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
                             {/* Bottom Status text */}
                             <p className="text-xs font-bold text-slate-600">
-                              {card.stamps} of {card.totalStamps} Aurex Coins
+                              {card.stamps} Aurex Coin{card.stamps === 1 ? '' : 's'} available {card.stamps >= card.totalStamps ? '(Reward Unlocked 🎉)' : `• Need ${card.totalStamps - card.stamps} more`}
                             </p>
                           </div>
                         </div>
@@ -4017,8 +4023,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {currentScreen === 'reward_details' && (() => {
         const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
         const activeCategory = storeInfo.categoryName || 'Coffee Shop';
-        const progressStamps = customerUser.stamps || 3;
-        const totalStamps = customerUser.totalStamps || 5;
+        const reqStamps = Number(selectedReward?.requiresStamps) || 2;
+        const progressStamps = typeof customerUser.stamps === 'number' ? customerUser.stamps : 0;
+        const totalStamps = Math.max(reqStamps, progressStamps, 5);
+        const canClaim = progressStamps >= reqStamps;
 
         return (
           <div className="w-full max-w-sm mx-auto px-4 py-3 sm:py-5 space-y-4 pb-24 animate-in fade-in duration-300">
@@ -4076,21 +4084,26 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 <span className="text-sm font-black text-slate-900">{progressStamps} / {totalStamps} Aurex Coins</span>
               </div>
               
-              <div className="flex items-center space-x-3 pt-1 pb-0.5">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 pt-1.5 pb-0.5">
                 {Array.from({ length: totalStamps }).map((_, idx) => {
                   const isFilled = idx < progressStamps;
+                  const circleSizeClass = totalStamps > 6 ? "w-8 h-8 sm:w-9 sm:h-9" : "w-10 h-10 sm:w-11 sm:h-11";
                   return isFilled ? (
                     <div
                       key={idx}
-                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0"
+                      className={`${circleSizeClass} rounded-full bg-[#8B0000] flex items-center justify-center text-white shadow-xs shrink-0 transition-transform hover:scale-105`}
+                      title={`Collected Coin ${idx + 1}`}
                     >
-                      <Coffee className="w-5 h-5 text-white" />
+                      <Coffee className={totalStamps > 6 ? "w-4 h-4 text-white" : "w-5 h-5 text-white"} />
                     </div>
                   ) : (
                     <div
                       key={idx}
-                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center shrink-0"
-                    />
+                      className={`${circleSizeClass} rounded-full border-2 border-dashed border-slate-300 bg-slate-50/50 flex items-center justify-center shrink-0 text-slate-400 text-[10px] font-bold`}
+                      title={`Uncollected Coin ${idx + 1}`}
+                    >
+                      {idx + 1}
+                    </div>
                   );
                 })}
               </div>
@@ -4111,13 +4124,32 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
             {/* Claim Now Button matching Image 2 */}
             <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => handleInitiateClaim()}
-                className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98]"
-              >
-                Claim Now
-              </button>
+              {canClaim ? (
+                <button
+                  type="button"
+                  onClick={() => handleInitiateClaim(storeInfo.qrSlug || slug, reqStamps)}
+                  className="w-full bg-[#8B0000] hover:bg-[#690005] text-white font-black py-4 rounded-2xl text-sm sm:text-base transition shadow-md shadow-[#8B0000]/25 cursor-pointer active:scale-[0.98] flex items-center justify-center space-x-2"
+                >
+                  <Gift className="w-5 h-5 text-amber-200" />
+                  <span>Claim Now ({reqStamps} Coins)</span>
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full bg-slate-100 border border-slate-200 text-slate-400 font-bold py-3.5 rounded-2xl text-xs sm:text-sm cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    <Lock className="w-4 h-4 text-slate-400" />
+                    <span>
+                      Collect {reqStamps - progressStamps} more Aurex Coins to Claim
+                    </span>
+                  </button>
+                  <p className="text-[11px] text-slate-500 text-center font-medium">
+                    You have {progressStamps} of {reqStamps} Aurex Coins needed for this reward.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );

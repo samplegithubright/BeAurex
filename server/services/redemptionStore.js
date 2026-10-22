@@ -126,6 +126,8 @@ function addPendingClaim(claim) {
     claimId: claim.claimId || claim.id || genClaimId,
     requestType: claim.requestType || (claim.voucherType === 'coin' || claim.coins ? 'coin' : 'offer'),
     coins: claim.coins || (claim.voucherType === 'coin' ? 1 : undefined),
+    coinsRequired: Number(claim.coinsRequired || claim.stampsRequired) || (claim.requestType === 'offer' ? 5 : undefined),
+    stampsRequired: Number(claim.stampsRequired || claim.coinsRequired) || (claim.requestType === 'offer' ? 5 : undefined),
     customerName: claim.customerName || 'Customer',
     customerId: claim.customerId?.startsWith('ID:') ? claim.customerId : `ID: ${cleanId}`,
     rewardTitle: claim.rewardTitle || (claim.coins ? 'Wants to collect 1 Aurex Coin' : '30% OFF on Next Purchase'),
@@ -180,7 +182,10 @@ function approveClaim(claimId, customerId) {
     status: 'APPROVED',
     approvedAt: `Today, ${timeStr}`,
     approvedDate: dateStr,
-    approvedTimestamp: now.toISOString()
+    approvedTimestamp: now.toISOString(),
+    coinsRequired: item.coinsRequired || item.stampsRequired || (item.requestType === 'offer' ? 5 : undefined),
+    coinsDeducted: item.requestType === 'offer' ? (item.coinsRequired || item.stampsRequired || 5) : 0,
+    coinsAdded: item.requestType === 'coin' ? (item.coins || 1) : 0
   };
 
   approvedList.unshift(approvedItem);

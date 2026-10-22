@@ -382,6 +382,8 @@ export default function MerchantDashboard() {
       type: isCoinRequest ? 'COIN_COLLECT_APPROVED' : 'REWARD_APPROVED',
       requestType: isCoinRequest ? 'coin' : 'offer',
       coins: item.coins || 1,
+      coinsRequired: item.coinsRequired || item.stampsRequired,
+      coinsDeducted: isCoinRequest ? 0 : (item.coinsRequired || item.stampsRequired || 5),
       claimId: item.id,
       customerId: cleanCustomerId,
       customerName: item.customerName,
