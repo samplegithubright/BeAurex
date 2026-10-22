@@ -1576,4 +1576,92 @@ router.get('/coin-config', async (req, res) => {
   }
 });
 
+// GET Merchant Offers for Customer Experience
+router.get('/merchant-offers/:slug?', async (req, res) => {
+  try {
+    const Reward = require('../models/Reward');
+    const Merchant = require('../models/Merchant');
+    const { slug } = req.params;
+
+    let merchantId = null;
+    if (slug) {
+      const m = await Merchant.findOne({ qrSlug: slug });
+      if (m) merchantId = m._id;
+    }
+
+    let dbRewards = [];
+    try {
+      const q = merchantId ? { merchantId } : {};
+      dbRewards = await Reward.find(q).sort({ stampsRequired: 1, createdAt: -1 });
+    } catch (_) {}
+
+    const defaultOffers = [
+      {
+        id: 'reward-30-off',
+        title: '30% off on next purchase',
+        subtitle: 'on next purchase',
+        discount: '30% OFF',
+        discountType: 'PERCENTAGE',
+        discountValue: 30,
+        stampsRequired: 2,
+        validTill: '7/30/2026',
+        validity: 'EXPIRES 7/30/2026',
+        banner: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+        voucherType: '30'
+      },
+      {
+        id: 'reward-50-off',
+        title: '50% discount',
+        subtitle: 'on next purchase',
+        discount: '50% OFF',
+        discountType: 'PERCENTAGE',
+        discountValue: 50,
+        stampsRequired: 5,
+        validTill: '7/30/2026',
+        validity: 'EXPIRES 7/30/2026',
+        banner: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+        voucherType: '50'
+      },
+      {
+        id: 'reward-free-coffee',
+        title: 'Free Coffee',
+        subtitle: 'with any breakfast order',
+        discount: 'Free Coffee',
+        discountType: 'FREE_ITEM',
+        discountValue: 100,
+        stampsRequired: 3,
+        validTill: '7/30/2026',
+        validity: 'EXPIRES 7/30/2026',
+        banner: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80',
+        image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80',
+        voucherType: 'coffee'
+      }
+    ];
+
+    const offers = dbRewards.length > 0 ? dbRewards.map(r => ({
+      id: r._id.toString(),
+      title: r.title,
+      subtitle: r.description || 'Exclusive loyalty reward',
+      discount: `${r.discountValue}% OFF`,
+      discountType: r.discountType,
+      discountValue: r.discountValue,
+      stampsRequired: r.stampsRequired || 5,
+      validTill: '30 Jul 2026',
+      validity: `EXPIRES IN ${r.validityDays || 30} DAYS`,
+      banner: r.banner || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      image: r.banner || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      voucherType: r.discountType === 'FREE_ITEM' ? 'coffee' : String(r.discountValue || '30')
+    })) : defaultOffers;
+
+    return res.json({
+      success: true,
+      offers
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

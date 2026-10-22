@@ -719,6 +719,45 @@ export default function MerchantDashboard() {
     setRewards(prev => prev.map(r => r.id === offerId ? { ...r, isActive: !r.isActive } : r));
   };
 
+  // Image 1 Visual Match Helpers for Offer Cards
+  const getOfferBadgeData = (item) => {
+    const titleStr = String(item?.title || '').trim();
+    const percentMatch = titleStr.match(/(\d+)\s*%/);
+    if (percentMatch) {
+      return { top: `${percentMatch[1]}%`, sub: 'OFF', tag: 'LIMITED TIME' };
+    }
+    const rupeeMatch = titleStr.match(/₹\s*(\d+)/);
+    if (rupeeMatch) {
+      return { top: `₹${rupeeMatch[1]}`, sub: 'OFF', tag: 'LIMITED TIME' };
+    }
+    if (titleStr.toLowerCase().includes('free')) {
+      return { top: 'FREE', sub: 'ITEM', tag: 'SPECIAL REWARD' };
+    }
+    if (item?.discountValue) {
+      return { top: `${item.discountValue}%`, sub: 'OFF', tag: 'LIMITED TIME' };
+    }
+    return { top: '30%', sub: 'OFF', tag: 'LIMITED TIME' };
+  };
+
+  const getCleanValidityText = (val) => {
+    if (!val) return 'Valid for 30 Days';
+    let s = String(val).trim();
+    s = s.replace(/^valid\s+for\s+/i, '');
+    s = s.replace(/^expires\s+in\s+/i, '');
+    s = s.replace(/^expires\s+/i, '');
+    if (!s.toLowerCase().includes('day') && !s.toLowerCase().includes('month') && !s.toLowerCase().includes('year')) {
+      s = `${s} Days`;
+    }
+    return `Valid for ${s}`;
+  };
+
+  const getCleanOfferDescription = (item, badgeData) => {
+    if (item?.description && item.description.trim() && !item.description.toLowerCase().startsWith('collect ')) {
+      return item.description.trim();
+    }
+    return `Get ${badgeData.top} off on your next purchase. Thank you for being our loyal customer!`;
+  };
+
   const handleResetOrNewOffer = () => {
     // Reset fields completely empty for a clean new offer without auto-fill
     setOfferTitle('');
@@ -745,7 +784,7 @@ export default function MerchantDashboard() {
       return;
     }
     const finalTitle = offerTitle.trim();
-    const finalDesc = (offerDescription && offerDescription.trim()) ? offerDescription.trim() : `Collect ${offerStampsRequired || 5} Aurex Coins • Valid for ${offerValidity}`;
+    const finalDesc = (offerDescription && offerDescription.trim()) ? offerDescription.trim() : `Get ${finalTitle.match(/\d+%/)?.[0] || 'discount'} on your next purchase. Thank you for being our loyal customer!`;
     const resolvedStamps = parseInt(offerStampsRequired, 10) || 5;
     const resolvedDays = offerValidityMode === 'Custom' 
       ? (customValidityDays || parseInt(offerValidity, 10) || 30)
@@ -755,9 +794,9 @@ export default function MerchantDashboard() {
       id: editingOfferId || ('rw_' + Date.now()),
       title: finalTitle,
       description: finalDesc,
-      condition: `Collect ${resolvedStamps} Aurex Coins • Valid for ${offerValidity}`,
+      condition: `Collect ${resolvedStamps} Aurex Coins • Valid for ${resolvedDays} Days`,
       stampsRequired: resolvedStamps,
-      validity: offerValidity || '30 Days',
+      validity: `${resolvedDays} Days`,
       validityDays: resolvedDays,
       banner: offerBanner || '',
       discountType: 'PERCENTAGE',
@@ -769,10 +808,29 @@ export default function MerchantDashboard() {
       createdAt: new Date().toISOString()
     };
 
+    let updatedRewards = [];
     if (editingOfferId) {
-      setRewards(prev => prev.map(r => (r.id === editingOfferId ? { ...r, ...newProg } : r)));
+      setRewards(prev => {
+        updatedRewards = prev.map(r => (r.id === editingOfferId ? { ...r, ...newProg } : r));
+        try {
+          localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updatedRewards));
+          const ch = new BroadcastChannel('beaurex_merchant_offers');
+          ch.postMessage({ type: 'OFFERS_UPDATED', offers: updatedRewards });
+          setTimeout(() => { try { ch.close(); } catch (_) {} }, 1000);
+        } catch (_) {}
+        return updatedRewards;
+      });
     } else {
-      setRewards(prev => [newProg, ...prev]);
+      setRewards(prev => {
+        updatedRewards = [newProg, ...prev];
+        try {
+          localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updatedRewards));
+          const ch = new BroadcastChannel('beaurex_merchant_offers');
+          ch.postMessage({ type: 'OFFERS_UPDATED', offers: updatedRewards });
+          setTimeout(() => { try { ch.close(); } catch (_) {} }, 1000);
+        } catch (_) {}
+        return updatedRewards;
+      });
     }
 
     setActiveProgram({
@@ -811,47 +869,56 @@ export default function MerchantDashboard() {
 
   // Pillar 3: Rewards State
   const [rewardsSubTab, setRewardsSubTab] = useState('rules');
-  const [rewards, setRewards] = useState([
-    { 
-      id: 'r1', 
-      title: '30% OFF on Next Purchase', 
-      description: 'Get 30% off on your next purchase. Thank you for being our loyal customer!', 
-      condition: 'Collect 5 Aurex Coins to unlock • Valid 30 days', 
-      stampsRequired: 5,
-      validity: '30 Days',
-      discountType: 'PERCENTAGE', 
-      discountValue: 30, 
-      minBillAmount: 0, 
-      tag: '30% OFF', 
-      isActive: true 
-    },
-    { 
-      id: 'r2', 
-      title: '₹150 Flat Discount Voucher', 
-      description: 'Collect 8 Aurex Coins to enjoy ₹150 flat discount on your next visit.', 
-      condition: 'Collect 8 Aurex Coins to unlock • Valid 10 days', 
-      stampsRequired: 8,
-      validity: '10 Days',
-      discountType: 'FLAT_AMOUNT', 
-      discountValue: 150, 
-      minBillAmount: 600, 
-      tag: 'High Value', 
-      isActive: true 
-    },
-    { 
-      id: 'r3', 
-      title: 'Free Signature Dessert or Beverage', 
-      description: 'Collect 10 Aurex Coins to get a free signature delicacy on us!', 
-      condition: 'Collect 10 Aurex Coins to unlock • Valid 14 days', 
-      stampsRequired: 10,
-      validity: '14 Days',
-      discountType: 'FREE_ITEM', 
-      discountValue: 100, 
-      minBillAmount: 0, 
-      tag: 'Jackpot', 
-      isActive: true 
-    }
-  ]);
+  const [rewards, setRewards] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_merchant_rewards');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [
+      { 
+        id: 'r1', 
+        title: '30% OFF on Next Purchase', 
+        description: 'Get 30% off on your next purchase. Thank you for being our loyal customer!', 
+        condition: 'Collect 5 Aurex Coins • Valid for 30 Days', 
+        stampsRequired: 5,
+        validity: '30 Days',
+        discountType: 'PERCENTAGE', 
+        discountValue: 30, 
+        minBillAmount: 0, 
+        tag: '30% OFF', 
+        isActive: true 
+      },
+      { 
+        id: 'r2', 
+        title: '50% discount', 
+        description: 'Get 50% discount on your next visit. Thank you for being our loyal customer!', 
+        condition: 'Collect 5 Aurex Coins • Valid for 30 Days', 
+        stampsRequired: 5,
+        validity: '30 Days',
+        discountType: 'PERCENTAGE', 
+        discountValue: 50, 
+        minBillAmount: 0, 
+        tag: '50% OFF', 
+        isActive: true 
+      },
+      { 
+        id: 'r3', 
+        title: 'Free Coffee', 
+        description: 'Get a free coffee on your next order. Thank you for being our loyal customer!', 
+        condition: 'Collect 3 Aurex Coins • Valid for 30 Days', 
+        stampsRequired: 3,
+        validity: '30 Days',
+        discountType: 'FREE_ITEM', 
+        discountValue: 100, 
+        minBillAmount: 0, 
+        tag: 'Free Coffee', 
+        isActive: true 
+      }
+    ];
+  });
   const [newRewardModalOpen, setNewRewardModalOpen] = useState(false);
   const [newRewardForm, setNewRewardForm] = useState({
     title: '',
@@ -4203,89 +4270,90 @@ export default function MerchantDashboard() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      {rewards.map((r, i) => (
-                        <div 
-                          key={r.id || i}
-                          className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-[#8B0000]/30 hover:shadow-md transition flex flex-col justify-between space-y-3.5 group"
-                        >
-                          {/* Main Offer Info Matching Image 1 */}
-                          <div className="flex items-start space-x-3.5 sm:space-x-4">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white shrink-0 flex flex-col items-center justify-center text-center p-2 shadow-xs border border-red-950/20 relative">
-                              {r.banner ? (
-                                <img src={r.banner} alt={r.title} className="w-full h-full object-cover rounded-xl" />
-                              ) : (
-                                <>
-                                  <span className="text-2xl sm:text-3xl font-black leading-none font-sans">
-                                    {r.title?.match(/\d+%/)?.[0] || (r.discountValue ? `${r.discountValue}%` : '30%')}
-                                  </span>
-                                  <span className="text-xs sm:text-sm font-black leading-tight text-rose-100 font-sans mt-0.5">OFF</span>
-                                  <span className="text-[7px] sm:text-[7.5px] font-bold text-amber-300 mt-1 uppercase tracking-wider">LIMITED TIME</span>
-                                </>
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <h4 className="font-black text-slate-900 text-sm sm:text-base leading-snug line-clamp-1">
-                                  {r.title}
-                                </h4>
-                                <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      {rewards.map((r, i) => {
+                        const badge = getOfferBadgeData(r);
+                        return (
+                          <div 
+                            key={r.id || i}
+                            onClick={() => handleEditOffer(r)}
+                            className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:border-[#8B0000]/30 hover:shadow-md transition cursor-pointer group relative"
+                            title="Click to edit offer"
+                          >
+                            <div className="flex items-start space-x-3.5 sm:space-x-4">
+                              {/* Left Voucher Badge Matching Image 1 */}
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-[#800a15] via-[#6f050f] to-[#4e0208] text-white shrink-0 flex flex-col items-center justify-center text-center p-2 shadow-xs border border-red-950/20 relative select-none">
+                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-black/30 pointer-events-none" />
+                                <span className="text-2xl sm:text-3xl font-black leading-none font-sans tracking-tight text-white drop-shadow-xs relative z-10">
+                                  {badge.top}
+                                </span>
+                                <span className="text-xs sm:text-sm font-black leading-tight text-white/95 font-sans tracking-wider mt-0.5 relative z-10">
+                                  {badge.sub}
+                                </span>
+                                <span className="text-[7px] sm:text-[8px] font-extrabold text-rose-200 mt-1 uppercase tracking-widest relative z-10">
+                                  {badge.tag}
+                                </span>
                               </div>
 
-                              <p className="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed mt-1 line-clamp-2">
-                                {r.description || r.condition || 'Get 30% off on your next purchase. Thank you for being our loyal customer!'}
-                              </p>
-
-                              {/* Badges: Coins & Validity */}
-                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 pt-2 text-xs text-slate-600 font-semibold border-t border-slate-100/80">
-                                <div className="flex items-center space-x-1.5">
-                                  <span className="text-amber-500 font-bold text-sm">🪙</span>
-                                  <span>{r.stampsRequired || 5} {Number(r.stampsRequired) === 1 ? 'Coin' : 'Coins'} Required</span>
+                              {/* Right Content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-1 group-hover:text-[#8B0000] transition-colors">
+                                    {r.title}
+                                  </h4>
+                                  <div className="flex items-center space-x-1 shrink-0 mt-0.5">
+                                    {/* Action buttons revealed on hover so default card appearance is 100% identical to preview */}
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1.5 mr-1">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleToggleOfferActive(r.id);
+                                        }}
+                                        className={`text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1 cursor-pointer transition ${
+                                          r.isActive !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                        }`}
+                                        title="Click to toggle Active/Paused"
+                                      >
+                                        <span className={`w-1.5 h-1.5 rounded-full ${r.isActive !== false ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                                        <span>{r.isActive !== false ? 'Active' : 'Paused'}</span>
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setDeleteRewardModal({ isOpen: true, reward: r });
+                                        }}
+                                        className="p-1 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                                        title="Delete Offer"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                    <ChevronRight className="w-5 h-5 text-slate-400 stroke-[2.5] group-hover:text-slate-700 group-hover:translate-x-0.5 transition" />
+                                  </div>
                                 </div>
 
-                                <div className="flex items-center space-x-1.5">
-                                  <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                  <span>Valid for {r.validity || '30 Days'}</span>
+                                <p className="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed mt-1 line-clamp-2">
+                                  {getCleanOfferDescription(r, badge)}
+                                </p>
+
+                                {/* Badges: Aurex Coins & Validity on single row Matching Image 1 */}
+                                <div className="flex items-center gap-x-5 mt-3 pt-2 text-xs text-slate-700 font-semibold border-t border-slate-100/90 whitespace-nowrap overflow-hidden">
+                                  <div className="flex items-center space-x-1.5 shrink-0">
+                                    <User className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
+                                    <span>{r.stampsRequired || 5} Aurex Coins</span>
+                                  </div>
+
+                                  <div className="flex items-center space-x-1.5 shrink-0">
+                                    <Calendar className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
+                                    <span>{getCleanValidityText(r.validity || `${r.validityDays || 30} Days`)}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
-
-                          {/* Footer: Status Toggle & Action Buttons */}
-                          <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleOfferActive(r.id)}
-                              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 cursor-pointer transition ${
-                                r.isActive !== false ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'
-                              }`}
-                              title="Click to toggle Active/Paused"
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${r.isActive !== false ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                              <span>{r.isActive !== false ? 'Active' : 'Paused'}</span>
-                            </button>
-
-                            <div className="flex items-center space-x-1">
-                              <button
-                                type="button"
-                                onClick={() => handleEditOffer(r)}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                                title="Edit Offer"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setDeleteRewardModal({ isOpen: true, reward: r })}
-                                className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer"
-                                title="Delete Offer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -4528,8 +4596,25 @@ export default function MerchantDashboard() {
                         onClick={handleSaveOfferProgram}
                         className="w-full bg-[#8B0000] hover:bg-[#720000] text-white font-bold py-3.5 px-4 rounded-xl text-sm flex items-center justify-center space-x-2 transition cursor-pointer shadow-md shadow-[#8B0000]/20"
                       >
-                        <span>Save Offer Program</span>
+                        <span>{editingOfferId ? 'Update Offer Program' : 'Save Offer Program'}</span>
                       </button>
+
+                      {/* Delete button when editing */}
+                      {editingOfferId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentEditingReward = rewards.find(r => r.id === editingOfferId);
+                            if (currentEditingReward) {
+                              setDeleteRewardModal({ isOpen: true, reward: currentEditingReward });
+                            }
+                          }}
+                          className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Delete This Offer</span>
+                        </button>
+                      )}
 
                       {/* Button: Preview */}
                       <div>
@@ -4550,66 +4635,68 @@ export default function MerchantDashboard() {
                   </div>
 
                   {/* 7. Customer View Card Matching Image 1 Design */}
-                  {showOfferPreview && (
-                    <div className="space-y-2 pt-2 animate-in fade-in duration-200">
-                      <div className="flex items-center justify-between px-1">
-                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center space-x-1.5">
-                          <Eye className="w-3.5 h-3.5 text-[#8B0000]" />
-                          <span>Live Customer Preview</span>
-                        </span>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                          Live Sync
-                        </span>
-                      </div>
+                  {showOfferPreview && (() => {
+                    const previewBadge = getOfferBadgeData({ title: offerTitle, discountValue: 30 });
+                    return (
+                      <div className="space-y-2 pt-2 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center space-x-1.5">
+                            <Eye className="w-3.5 h-3.5 text-[#8B0000]" />
+                            <span>Live Customer Preview</span>
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            Live Sync
+                          </span>
+                        </div>
 
-                      {/* Image 1 Card Structure */}
-                      <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:shadow-md transition">
-                        <div className="flex items-start space-x-3.5 sm:space-x-4">
-                          {/* Left Voucher Thumbnail Matching Image 1 */}
-                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-[#800d1a] to-[#45070e] text-white shrink-0 flex flex-col items-center justify-center text-center p-2 shadow-xs border border-red-950/20 relative">
-                            {offerBanner && !offerImageRemoved ? (
-                              <img src={offerBanner} alt="Offer Preview" className="w-full h-full object-cover rounded-xl" />
-                            ) : (
-                              <>
-                                <span className="text-2xl sm:text-3xl font-black leading-none font-sans">
-                                  {offerTitle.match(/\d+%/)?.[0] || '30%'}
-                                </span>
-                                <span className="text-xs sm:text-sm font-black leading-tight text-rose-100 font-sans mt-0.5">OFF</span>
-                                <span className="text-[7px] sm:text-[7.5px] font-bold text-amber-300 mt-1 uppercase tracking-wider">LIMITED TIME</span>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Right Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <h4 className="font-black text-slate-900 text-sm sm:text-base leading-snug">
-                                {offerTitle.trim() || '30% OFF on Next Purchase'}
-                              </h4>
-                              <ChevronRight className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                        {/* Image 1 Card Structure */}
+                        <div className="bg-white border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs hover:shadow-md transition">
+                          <div className="flex items-start space-x-3.5 sm:space-x-4">
+                            {/* Left Voucher Thumbnail Matching Image 1 */}
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-[#800a15] via-[#6f050f] to-[#4e0208] text-white shrink-0 flex flex-col items-center justify-center text-center p-2 shadow-xs border border-red-950/20 relative select-none">
+                              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-black/30 pointer-events-none" />
+                              <span className="text-2xl sm:text-3xl font-black leading-none font-sans tracking-tight text-white drop-shadow-xs relative z-10">
+                                {previewBadge.top}
+                              </span>
+                              <span className="text-xs sm:text-sm font-black leading-tight text-white/95 font-sans tracking-wider mt-0.5 relative z-10">
+                                {previewBadge.sub}
+                              </span>
+                              <span className="text-[7px] sm:text-[8px] font-extrabold text-rose-200 mt-1 uppercase tracking-widest relative z-10">
+                                {previewBadge.tag}
+                              </span>
                             </div>
 
-                            <p className="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed mt-1">
-                              {offerDescription.trim() || 'Get 30% off on your next purchase. Thank you for being our loyal customer!'}
-                            </p>
-
-                            {/* Metadata Row: 🪙 Coins Required (replacing Stamps) & Calendar Expiry */}
-                            <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-3 pt-2 text-xs text-slate-600 font-semibold border-t border-slate-100/90">
-                              <div className="flex items-center space-x-1.5">
-                                <span className="text-amber-500 font-bold text-sm">🪙</span>
-                                <span>{offerStampsRequired || 1} {Number(offerStampsRequired) === 1 ? 'Coin' : 'Coins'} Required</span>
+                            {/* Right Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">
+                                  {offerTitle.trim() || '30% OFF on Next Purchase'}
+                                </h4>
+                                <ChevronRight className="w-5 h-5 text-slate-400 stroke-[2.5] shrink-0 mt-0.5" />
                               </div>
 
-                              <div className="flex items-center space-x-1.5">
-                                <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                                <span>Valid for {offerValidity || '30 Days'}</span>
+                              <p className="text-xs sm:text-[13px] text-slate-600 font-normal leading-relaxed mt-1">
+                                {offerDescription.trim() || `Get ${previewBadge.top} off on your next purchase. Thank you for being our loyal customer!`}
+                              </p>
+
+                              {/* Metadata Row: Aurex Coins & Calendar Expiry */}
+                              <div className="flex items-center gap-x-5 mt-3 pt-2 text-xs text-slate-700 font-semibold border-t border-slate-100/90 whitespace-nowrap overflow-hidden">
+                                <div className="flex items-center space-x-1.5 shrink-0">
+                                  <User className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
+                                  <span>{offerStampsRequired || 5} Aurex Coins</span>
+                                </div>
+
+                                <div className="flex items-center space-x-1.5 shrink-0">
+                                  <Calendar className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
+                                  <span>{getCleanValidityText(offerValidity || '30 Days')}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                 </div>
               )}

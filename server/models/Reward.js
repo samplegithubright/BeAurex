@@ -31,6 +31,18 @@ const rewardSchema = new mongoose.Schema({
     type: Number,
     default: 7
   },
+  stampsRequired: {
+    type: Number,
+    default: 5
+  },
+  banner: {
+    type: String,
+    default: ''
+  },
+  description: {
+    type: String,
+    default: ''
+  },
   isActive: {
     type: Boolean,
     default: true

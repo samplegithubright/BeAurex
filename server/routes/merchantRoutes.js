@@ -249,20 +249,24 @@ router.get('/rewards', async (req, res) => {
     } catch (_) {}
 
     const defaultRewards = [
-      { id: 'r1', title: '15% OFF On Next Dine-In Bill', condition: 'Min. order ₹400 • Valid for 7 days', discountType: 'PERCENTAGE', discountValue: 15, minBillAmount: 400, probability: '70% Chance', tag: 'High Volume', isActive: true },
-      { id: 'r2', title: '₹150 Flat Discount Voucher', condition: 'Min. order ₹600 • Valid for 10 days', discountType: 'FLAT_AMOUNT', discountValue: 150, minBillAmount: 600, probability: '25% Chance', tag: 'High Value', isActive: true },
-      { id: 'r3', title: 'Free Signature Dessert or Beverage', condition: 'Any billing • Valid for 14 days', discountType: 'FREE_ITEM', discountValue: 100, minBillAmount: 0, probability: '5% Jackpot', tag: 'Jackpot', isActive: true }
+      { id: 'r1', title: '30% off on next purchase', condition: 'Collect 2 Aurex Coins to unlock', discountType: 'PERCENTAGE', discountValue: 30, minBillAmount: 0, stampsRequired: 2, validity: 'Expires 7/30/2026', banner: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', tag: 'ACHIEVED', isActive: true },
+      { id: 'r2', title: '50% discount', condition: 'Collect 5 Aurex Coins to unlock', discountType: 'PERCENTAGE', discountValue: 50, minBillAmount: 0, stampsRequired: 5, validity: 'Expires 7/30/2026', banner: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80', tag: 'ACHIEVED', isActive: true },
+      { id: 'r3', title: 'Free Coffee', condition: 'Collect 3 Aurex Coins to unlock', discountType: 'FREE_ITEM', discountValue: 100, minBillAmount: 0, stampsRequired: 3, validity: 'Expires 7/30/2026', banner: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80', tag: 'ACHIEVED', isActive: true }
     ];
 
     const rewards = dbRewards.length > 0 ? dbRewards.map(r => ({
       id: r._id.toString(),
       title: r.title,
-      condition: `Min. order ₹${r.minBillAmount || 0} • Valid for ${r.validityDays || 7} days`,
+      description: r.description || `Collect ${r.stampsRequired || 5} Aurex Coins • Valid for ${r.validityDays || 30} days`,
+      condition: `Collect ${r.stampsRequired || 5} Aurex Coins • Valid for ${r.validityDays || 30} days`,
       discountType: r.discountType,
       discountValue: r.discountValue,
       minBillAmount: r.minBillAmount,
+      stampsRequired: r.stampsRequired || 5,
+      validity: `Expires in ${r.validityDays || 30} days`,
+      banner: r.banner || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
       probability: `${r.probabilityWeight || 50}% Chance`,
-      tag: (r.probabilityWeight || 50) >= 50 ? 'High Volume' : (r.probabilityWeight || 50) >= 20 ? 'High Value' : 'Jackpot',
+      tag: (r.stampsRequired || 5) <= 3 ? 'Popular' : 'Special Reward',
       isActive: r.isActive
     })) : defaultRewards;
 
@@ -277,7 +281,7 @@ router.get('/rewards', async (req, res) => {
 
 router.post('/rewards', async (req, res) => {
   try {
-    const { merchantId, title, discountType = 'PERCENTAGE', discountValue = 10, minBillAmount = 0, validityDays = 7, probabilityWeight = 50 } = req.body;
+    const { merchantId, title, description = '', discountType = 'PERCENTAGE', discountValue = 10, minBillAmount = 0, validityDays = 30, stampsRequired = 5, banner = '', probabilityWeight = 50 } = req.body;
     if (!title) return res.status(400).json({ success: false, message: 'Reward title is required.' });
 
     let mId = merchantId;
@@ -289,10 +293,13 @@ router.post('/rewards', async (req, res) => {
     const newReward = await Reward.create({
       merchantId: mId,
       title: title.trim(),
+      description: description.trim(),
       discountType,
       discountValue: Number(discountValue),
       minBillAmount: Number(minBillAmount),
       validityDays: Number(validityDays),
+      stampsRequired: Number(stampsRequired),
+      banner: banner || '',
       probabilityWeight: Number(probabilityWeight),
       isActive: true
     });
