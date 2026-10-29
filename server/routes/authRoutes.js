@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const Merchant = require('../models/Merchant');
 const smsService = require('../services/smsService');
 const emailService = require('../services/emailService');
+const { formatBusinessName } = require('../services/nameUtils');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'loyalqr_super_secret_jwt_key_2026';
 
@@ -146,7 +147,7 @@ router.post('/login', async (req, res) => {
       token,
       merchant: {
         id: merchantId,
-        businessName: merchant.businessName,
+        businessName: formatBusinessName(merchant.businessName),
         ownerName: merchant.ownerName || '',
         logo: merchant.logo || '',
         email: merchant.email,
@@ -319,7 +320,7 @@ router.post('/login-otp', async (req, res) => {
       token,
       merchant: {
         id: merchantId,
-        businessName: merchant.businessName,
+        businessName: formatBusinessName(merchant.businessName),
         ownerName: merchant.ownerName || '',
         logo: merchant.logo || '',
         email: merchant.email,
@@ -587,19 +588,21 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please enter a valid 10-digit mobile number or leave blank.' });
     }
 
+    const formattedBizName = formatBusinessName(businessName);
+    const cleanSlugBase = formattedBizName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 30) || 'store';
+
     if (mongoose.connection.readyState !== 1) {
       const merchantId = 'mem_' + Math.random().toString(36).substring(2, 9);
       const token = jwt.sign({ id: merchantId, role: 'MERCHANT' }, JWT_SECRET, { expiresIn: '24h' });
-      const cleanSlugBase = businessName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 30);
-      const qrSlug = cleanSlugBase + '-' + Math.floor(1000 + Math.random() * 9000);
+      const qrSlug = cleanSlugBase;
       return res.status(201).json({
         success: true,
         message: 'Business account created successfully! 3-Day Free Trial activated.',
         token,
         merchant: {
           id: merchantId,
-          businessName: businessName.trim(),
-          ownerName: ownerName || businessName.trim(),
+          businessName: formattedBizName,
+          ownerName: ownerName || formattedBizName,
           logo: logo || '',
           email: cleanEmail,
           mobile: cleanMobile || undefined,
@@ -621,7 +624,7 @@ router.post('/register', async (req, res) => {
           onboardingStep: 1,
           branches: [
             {
-              branchName: `${businessName.trim()} - Main Outlet`,
+              branchName: `${formattedBizName} - Main Outlet`,
               address: resolvedAddress,
               city: city || 'Delhi NCR',
               pincode: resolvedPin || '110001',
@@ -650,14 +653,17 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Generate unique slug
-    const cleanSlugBase = businessName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').slice(0, 30);
-    const qrSlug = cleanSlugBase + '-' + Math.floor(1000 + Math.random() * 9000);
+    // Generate unique slug - use cleanSlugBase without numbers if available
+    let qrSlug = cleanSlugBase;
+    const existingSlug = await Merchant.findOne({ qrSlug: cleanSlugBase });
+    if (existingSlug) {
+      qrSlug = `${cleanSlugBase}-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
 
     // Save directly to MongoDB Merchant collection
     const newMerchant = await Merchant.create({
-      ownerName: ownerName || '',
-      businessName: businessName.trim(),
+      ownerName: ownerName || formattedBizName,
+      businessName: formattedBizName,
       logo: logo || '',
       category: category || 'Cafe & Restaurant',
       addressLine1: addressLine1 || '',
@@ -680,7 +686,7 @@ router.post('/register', async (req, res) => {
       onboardingStep: 1,
       branches: [
         {
-          branchName: `${businessName.trim()} - Main Outlet`,
+          branchName: `${formattedBizName} - Main Outlet`,
           address: resolvedAddress,
           city: city || 'Delhi NCR',
           pincode: resolvedPin || '110001',

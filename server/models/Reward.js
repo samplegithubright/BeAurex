@@ -29,7 +29,15 @@ const rewardSchema = new mongoose.Schema({
   },
   validityDays: {
     type: Number,
-    default: 7
+    default: 30
+  },
+  expiryDate: {
+    type: String,
+    default: ''
+  },
+  validity: {
+    type: String,
+    default: ''
   },
   stampsRequired: {
     type: Number,

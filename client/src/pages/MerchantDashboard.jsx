@@ -13,6 +13,7 @@ import {
 import ActionConfirmModal from '../components/ActionConfirmModal';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 import QRCode from 'qrcode';
+import { formatBusinessName } from '../utils/nameUtils';
 
 export default function MerchantDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -43,10 +44,59 @@ export default function MerchantDashboard() {
 
   // Navigation tabs: 'home' (Screen 8), 'rewards' (Screen 9, 10, 11), 'create_offer' (Screen 12), 'profile' (Screen 6, 13), etc.
   const [activeTab, setActiveTab] = useState('home');
-  const [storeName, setStoreName] = useState('Ka-feen Café');
-  const [storeSlug, setStoreSlug] = useState('kafeen-cafe');
+  const [storeName, setStoreName] = useState(() => {
+    try {
+      const savedBiz = sessionStorage.getItem('loyalqr_biz') || localStorage.getItem('loyalqr_biz');
+      if (savedBiz && savedBiz !== 'undefined') return formatBusinessName(savedBiz);
+      const mRaw = sessionStorage.getItem('loyalqr_merchant') || localStorage.getItem('loyalqr_merchant');
+      if (mRaw) {
+        const m = JSON.parse(mRaw);
+        if (m?.businessName) return formatBusinessName(m.businessName);
+      }
+    } catch (_) {}
+    return 'Royal Sweets & Cafe';
+  });
+
+  const [storeSlug, setStoreSlug] = useState(() => {
+    try {
+      const mRaw = sessionStorage.getItem('loyalqr_merchant') || localStorage.getItem('loyalqr_merchant');
+      if (mRaw) {
+        const m = JSON.parse(mRaw);
+        if (m?.qrSlug) return m.qrSlug;
+        if (m?.businessName) return m.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      }
+    } catch (_) {}
+    return 'kafeen-cafe';
+  });
+
+  const [merchantId, setMerchantId] = useState(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryMid = searchParams.get('merchantId');
+      if (queryMid) return queryMid;
+      const mRaw = sessionStorage.getItem('loyalqr_merchant') || localStorage.getItem('loyalqr_merchant');
+      if (mRaw) {
+        const m = JSON.parse(mRaw);
+        return m?.id || m?._id || null;
+      }
+    } catch (_) {}
+    return null;
+  });
+
   const [copiedToast, setCopiedToast] = useState(false);
+  const [referralCopied, setReferralCopied] = useState(false);
   const [merchantQrDataUrl, setMerchantQrDataUrl] = useState('');
+
+  const merchantRefCode = (storeSlug || storeName || 'MERCHANT').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+  const merchantReferralUrl = typeof window !== 'undefined' ? `${window.location.origin}/merchant/signup?ref=${merchantRefCode}` : '';
+
+  const handleCopyReferralLink = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(merchantReferralUrl);
+      setReferralCopied(true);
+      setTimeout(() => setReferralCopied(false), 2500);
+    }
+  };
 
   // Generate real dynamic QR code data URL whenever storeSlug or storeName changes
   useEffect(() => {
@@ -105,67 +155,7 @@ export default function MerchantDashboard() {
   const [rewardsViewTab, setRewardsViewTab] = useState('pending'); // 'pending' | 'approved' | 'declined'
   const [redemptionTypeFilter, setRedemptionTypeFilter] = useState('all'); // 'all' | 'reward' | 'coin'
   const [rewardSearchQuery, setRewardSearchQuery] = useState('');
-  const [pendingRedemptions, setPendingRedemptions] = useState(() => {
-    try {
-      const saved = localStorage.getItem('beaurex_pending_redemptions');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch (_) {}
-    return [
-      {
-        id: 'rem_1',
-        requestType: 'offer',
-        customerName: 'Sumit',
-        customerId: 'ID: LQR-8F4A29',
-        rewardTitle: '30% OFF on Next Purchase',
-        stamps: '5/5 Aurex Coins completed',
-        timeAgo: 'Today, 2:18 PM',
-        expiresIn: 'Expires: 30 Jul 2026',
-        voucherType: '30',
-        avatarBg: 'bg-emerald-500'
-      },
-      {
-        id: 'rem_2',
-        requestType: 'offer',
-        customerName: 'Ajeet',
-        customerId: 'ID: LQR-3K9D21',
-        rewardTitle: 'Free Coffee on Any Purchase',
-        stamps: '5/5 Aurex Coins completed',
-        timeAgo: 'Today, 12:45 PM',
-        expiresIn: 'Expires: 28 Jul 2026',
-        voucherType: 'coffee',
-        avatarBg: 'bg-indigo-500'
-      },
-      {
-        id: 'rem_3',
-        requestType: 'coin',
-        customerName: 'Rohan Sharma',
-        customerId: 'ID: BX-8F4A29',
-        rewardTitle: 'Wants to collect 1 Aurex Coin',
-        coins: 1,
-        stamps: '1 Aurex Coin Requested',
-        timeAgo: 'Today, 11:30 AM',
-        expiresIn: 'Aurex Coin Request',
-        voucherType: 'coin',
-        avatarBg: 'bg-amber-500'
-      },
-      {
-        id: 'rem_coin_2',
-        requestType: 'coin',
-        customerName: 'Priya Verma',
-        customerId: 'ID: BX-4C2D88',
-        rewardTitle: 'Wants to collect 2 Aurex Coins',
-        coins: 2,
-        stamps: '2 Aurex Coins Requested',
-        timeAgo: 'Today, 10:15 AM',
-        expiresIn: 'Aurex Coin Request',
-        voucherType: 'coin',
-        avatarBg: 'bg-amber-600'
-      }
-    ];
-  });
+  const [pendingRedemptions, setPendingRedemptions] = useState([]);
 
   const [approvedRedemptions, setApprovedRedemptions] = useState([
     {
@@ -268,30 +258,58 @@ export default function MerchantDashboard() {
   });
 
   useEffect(() => {
-    // 1. Storage sync for deals and redemptions
+    const activeMid = merchantId;
+    const activeSlug = storeSlug;
+    const storageKey = `beaurex_pending_redemptions_${activeMid || activeSlug || 'default'}`;
+
+    // 1. Storage sync for deals and redemptions (strictly scoped by this merchant)
     const handleStorage = (e) => {
       try {
         const saved = localStorage.getItem('loyalqr_platform_deals');
         if (saved) setPlatformDeals(JSON.parse(saved));
       } catch {}
-      if (e?.key === 'beaurex_pending_redemptions' && e.newValue) {
+
+      const isMyKey = e?.key === storageKey || 
+        (activeMid && e?.key === `beaurex_pending_redemptions_${activeMid}`) || 
+        (activeSlug && e?.key === `beaurex_pending_redemptions_${activeSlug}`);
+
+      if (isMyKey && e?.newValue) {
         try {
           const list = JSON.parse(e.newValue);
-          if (Array.isArray(list)) setPendingRedemptions(list);
+          if (Array.isArray(list)) {
+            // Strictly filter by this merchant's merchantId or storeSlug
+            const filtered = list.filter(item => {
+              const itemMid = item.merchantId ? String(item.merchantId).trim() : '';
+              const itemSlug = item.storeSlug ? String(item.storeSlug).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+              const cMid = activeMid ? String(activeMid).trim() : '';
+              const cSlug = activeSlug ? String(activeSlug).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+
+              if (cMid && itemMid) return cMid === itemMid;
+              if (cSlug && itemSlug && cSlug === itemSlug) {
+                return cSlug !== 'store' && cSlug !== 'default' && cSlug !== 'kafeen-cafe';
+              }
+              return false;
+            });
+            setPendingRedemptions(filtered);
+          }
         } catch {}
       }
     };
     window.addEventListener('storage', handleStorage);
 
-    // 2. Fetch latest redemptions from server
+    // 2. Fetch latest redemptions from server (strictly scoped by this merchant's merchantId or storeSlug)
     const fetchRedemptions = async () => {
       try {
-        const res = await fetch('/api/merchant/redemptions/all');
+        if (!activeMid && !activeSlug) return;
+        const queryParams = new URLSearchParams();
+        if (activeMid) queryParams.append('merchantId', activeMid);
+        if (activeSlug) queryParams.append('storeSlug', activeSlug);
+        const res = await fetch(`/api/merchant/redemptions/all?${queryParams.toString()}`);
         const data = await res.json();
         if (data.success) {
           if (Array.isArray(data.pending)) {
             setPendingRedemptions(data.pending);
-            localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(data.pending));
+            try { localStorage.setItem(storageKey, JSON.stringify(data.pending)); } catch (_) {}
           }
           if (Array.isArray(data.approved)) {
             setApprovedRedemptions(data.approved);
@@ -302,16 +320,35 @@ export default function MerchantDashboard() {
     fetchRedemptions();
     const pollInterval = setInterval(fetchRedemptions, 2000);
 
-    // 3. Listen to live claim requests via BroadcastChannel
+    // 3. Listen to live claim requests via BroadcastChannel (strictly isolated per merchant!)
     let channel;
     try {
       channel = new BroadcastChannel('beaurex_redemptions');
       channel.onmessage = (event) => {
         if ((event.data?.type === 'CLAIM_REQUEST' || event.data?.type === 'COIN_REQUEST') && event.data.claim) {
+          const incoming = event.data.claim;
+          const incomingSlug = incoming.storeSlug ? String(incoming.storeSlug).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+          const currentSlug = activeSlug ? String(activeSlug).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+          const incomingMid = incoming.merchantId ? String(incoming.merchantId).trim() : '';
+          const currentMid = activeMid ? String(activeMid).trim() : '';
+
+          // STRICT CHECK: Only process claim if it strictly targets THIS merchant!
+          if (currentMid && incomingMid) {
+            if (currentMid !== incomingMid) {
+              return; // Belongs to a different merchant account! Ignore!
+            }
+          } else if (currentSlug && incomingSlug && currentSlug === incomingSlug) {
+            // Slug match only if not a generic placeholder
+            if (currentSlug === 'store' || currentSlug === 'default' || currentSlug === 'kafeen-cafe') {
+              return;
+            }
+          } else {
+            return; // No match!
+          }
+
           setPendingRedemptions(prev => {
-            const incoming = event.data.claim;
             const updated = [incoming, ...prev.filter(p => p.id !== incoming.id)];
-            localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+            try { localStorage.setItem(storageKey, JSON.stringify(updated)); } catch (_) {}
             return updated;
           });
         }
@@ -323,7 +360,7 @@ export default function MerchantDashboard() {
       window.removeEventListener('storage', handleStorage);
       if (channel) channel.close();
     };
-  }, []);
+  }, [merchantId, storeSlug]);
 
   // Formatter for Approved on: Today, 06:13 pm | Yesterday, 04:15 pm | 20 Oct 2026, 02:05 pm
   const formatApprovedOn = (item) => {
@@ -334,21 +371,36 @@ export default function MerchantDashboard() {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
+    let itemDate = null;
+    if (item.createdAt && !isNaN(Date.parse(item.createdAt))) {
+      itemDate = new Date(item.createdAt);
+    } else if (item.approvedAt && !isNaN(Date.parse(item.approvedAt))) {
+      itemDate = new Date(item.approvedAt);
+    }
+
+    if (itemDate) {
+      const dStr = itemDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const tStr = itemDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (dStr === todayStr) return `Today, ${tStr}`;
+      if (dStr === yesterdayStr) return `Yesterday, ${tStr}`;
+      return `${dStr}, ${tStr}`;
+    }
+
     const rawTime = String(item.approvedAt || '').trim();
-    if (rawTime.includes('Today') || rawTime.includes('Yesterday') || (rawTime.includes(',') && !rawTime.startsWith(','))) {
+    const timeOnly = item.approvedTime || rawTime.replace(/^(Today|Yesterday),\s*/i, '') || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = item.approvedDate;
+
+    if (dateStr) {
+      if (dateStr === todayStr) return `Today, ${timeOnly}`;
+      if (dateStr === yesterdayStr) return `Yesterday, ${timeOnly}`;
+      return `${dateStr}, ${timeOnly}`;
+    }
+
+    if (rawTime && !rawTime.includes('Today') && !rawTime.includes('Yesterday')) {
       return rawTime;
     }
 
-    const timeOnly = rawTime || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const dateStr = item.approvedDate || todayStr;
-
-    if (dateStr === todayStr) {
-      return `Today, ${timeOnly}`;
-    } else if (dateStr === yesterdayStr) {
-      return `Yesterday, ${timeOnly}`;
-    } else {
-      return `${dateStr}, ${timeOnly}`;
-    }
+    return `Today, ${timeOnly}`;
   };
 
   const handleAcceptRedemption = async (item) => {
@@ -356,23 +408,25 @@ export default function MerchantDashboard() {
     const approvedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const approvedDate = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
     const formattedApprovedAt = `Today, ${approvedTime}`;
+    const storageKey = `beaurex_pending_redemptions_${merchantId || storeSlug || 'default'}`;
 
     setPendingRedemptions(prev => {
       const updated = prev.filter(p => p.id !== item.id);
-      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      try { localStorage.setItem(storageKey, JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
 
     const approvedItem = {
       ...item,
       status: 'APPROVED',
-      approvedAt: formattedApprovedAt,
+      approvedAt: now.toISOString(),
+      approvedTime: approvedTime,
       approvedDate: approvedDate
     };
 
     setApprovedRedemptions(prev => {
       const updated = [approvedItem, ...prev];
-      localStorage.setItem('beaurex_approved_redemptions', JSON.stringify(updated));
+      try { localStorage.setItem(`beaurex_approved_redemptions_${merchantId || storeSlug || 'default'}`, JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
 
@@ -390,15 +444,18 @@ export default function MerchantDashboard() {
       rewardTitle: item.rewardTitle,
       approvedAt: formattedApprovedAt,
       approvedDate: approvedDate,
-      storeSlug: item.storeSlug || 'store',
+      storeSlug: item.storeSlug || storeSlug || 'store',
+      merchantId: item.merchantId || merchantId || null,
       timestamp: Date.now()
     };
 
-    localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'beaurex_latest_approval',
-      newValue: JSON.stringify(payload)
-    }));
+    try {
+      localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'beaurex_latest_approval',
+        newValue: JSON.stringify(payload)
+      }));
+    } catch (_) {}
 
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
@@ -412,15 +469,16 @@ export default function MerchantDashboard() {
       await fetch('/api/merchant/redemptions/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimId: item.id, customerId: cleanCustomerId })
+        body: JSON.stringify({ claimId: item.id, customerId: cleanCustomerId, merchantId: merchantId || null })
       });
     } catch (_) {}
   };
 
   const handleDeclineRedemption = async (item) => {
+    const storageKey = `beaurex_pending_redemptions_${merchantId || storeSlug || 'default'}`;
     setPendingRedemptions(prev => {
       const updated = prev.filter(p => p.id !== item.id);
-      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
+      try { localStorage.setItem(storageKey, JSON.stringify(updated)); } catch (_) {}
       return updated;
     });
 
@@ -443,22 +501,32 @@ export default function MerchantDashboard() {
       customerId: cleanCustomerId,
       customerName: item.customerName,
       reason: 'Declined by Merchant',
+      storeSlug: item.storeSlug || storeSlug || 'store',
+      merchantId: item.merchantId || merchantId || null,
       timestamp: Date.now()
     };
 
-    localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+    try {
+      localStorage.setItem('beaurex_latest_approval', JSON.stringify(payload));
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'beaurex_latest_approval',
+        newValue: JSON.stringify(payload)
+      }));
+    } catch (_) {}
 
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
       channel.postMessage(payload);
-      channel.close();
+      setTimeout(() => {
+        try { channel.close(); } catch (_) {}
+      }, 1500);
     } catch (_) {}
 
     try {
       await fetch('/api/merchant/redemptions/decline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ claimId: item.id, customerId: cleanCustomerId })
+        body: JSON.stringify({ claimId: item.id, customerId: cleanCustomerId, merchantId: merchantId || null })
       });
     } catch (_) {}
   };
@@ -475,7 +543,7 @@ export default function MerchantDashboard() {
           {/* Gold Coin Emblem */}
           <div className="my-auto flex flex-col items-center">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-600 border-2 border-amber-200/90 shadow-md shadow-amber-500/30 flex items-center justify-center text-amber-950 font-black text-xs">
-              🪙
+              <Coins className="w-4 h-4 text-amber-950" />
             </div>
           </div>
           <span className="text-[7.5px] text-amber-300/80 font-mono tracking-widest uppercase">COLLECT</span>
@@ -559,18 +627,50 @@ export default function MerchantDashboard() {
   const [offerTitle, setOfferTitle] = useState('');
   const [offerDescription, setOfferDescription] = useState('');
   const [offerStampsRequired, setOfferStampsRequired] = useState(5);
-  const [offerValidity, setOfferValidity] = useState('30 Days');
-  const [offerValidityMode, setOfferValidityMode] = useState('30 Days');
-  const [customValidityText, setCustomValidityText] = useState('');
-  const [customExpiryDate, setCustomExpiryDate] = useState('');
-  const [customMonthsInput, setCustomMonthsInput] = useState('');
-  const [customValidityDays, setCustomValidityDays] = useState(30);
+  const [offerValidity, setOfferValidity] = useState(() => {
+    const nextM = new Date();
+    nextM.setDate(nextM.getDate() + 30);
+    return `Expires ${nextM.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+  });
+  const [offerValidityMode, setOfferValidityMode] = useState('Custom');
+  const [customExpiryDate, setCustomExpiryDate] = useState(() => {
+    const nextM = new Date();
+    nextM.setDate(nextM.getDate() + 30);
+    const yyyy = nextM.getFullYear();
+    const mm = String(nextM.getMonth() + 1).padStart(2, '0');
+    const dd = String(nextM.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  });
   const [offerImageError, setOfferImageError] = useState('');
   const [showOfferPreview, setShowOfferPreview] = useState(true);
   const [offerSuccessModalOpen, setOfferSuccessModalOpen] = useState(false);
   const [offerPageView, setOfferPageView] = useState('list'); // 'list' | 'create'
   const [editingOfferId, setEditingOfferId] = useState(null);
   const offerBannerInputRef = useRef(null);
+
+  // Expiry Date Auto-Calculation Engine (Custom Expiry Date)
+  const computeExpiryDate = (mode, customDate) => {
+    let dateStr = customDate;
+    if (!dateStr || dateStr === 'undefined') {
+      const nextM = new Date();
+      nextM.setDate(nextM.getDate() + 30);
+      const yyyy = nextM.getFullYear();
+      const mm = String(nextM.getMonth() + 1).padStart(2, '0');
+      const dd = String(nextM.getDate()).padStart(2, '0');
+      dateStr = `${yyyy}-${mm}-${dd}`;
+    }
+    const targetDate = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T23:59:59');
+    const now = new Date();
+    const diffTime = targetDate.getTime() - now.getTime();
+    const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const formatted = !isNaN(targetDate.getTime()) ? targetDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : dateStr;
+    return {
+      formatted,
+      display: `Expires ${formatted}`,
+      isoDate: dateStr,
+      days: diffDays
+    };
+  };
 
   // Aurex Coins Handlers
   const handleDecreaseCoins = () => {
@@ -599,58 +699,35 @@ export default function MerchantDashboard() {
     }
   };
 
-  // Custom Expiry Date Handlers (Auto-calculates Months & Target Date)
+  // Expiry Preset and Custom Date Handlers
+  const handleExpiryPresetChange = (preset) => {
+    setOfferValidityMode(preset);
+    if (preset !== 'custom') {
+      const daysMap = {
+        '7_days': 7,
+        '15_days': 15,
+        '30_days': 30,
+        '60_days': 60,
+        '90_days': 90,
+        '180_days': 180,
+        '365_days': 365
+      };
+      const days = daysMap[preset] || 30;
+      const target = new Date();
+      target.setDate(target.getDate() + days);
+      const yyyy = target.getFullYear();
+      const mm = String(target.getMonth() + 1).padStart(2, '0');
+      const dd = String(target.getDate()).padStart(2, '0');
+      const dStr = `${yyyy}-${mm}-${dd}`;
+      setCustomExpiryDate(dStr);
+      setOfferValidity(computeExpiryDate(preset, dStr).display);
+    }
+  };
+
   const handleCustomDateChange = (e) => {
     const dateStr = e.target.value;
     setCustomExpiryDate(dateStr);
-    if (!dateStr) return;
-
-    const targetDate = new Date(dateStr + 'T23:59:59');
-    const now = new Date();
-    const diffTime = targetDate.getTime() - now.getTime();
-    const diffDays = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-
-    const monthsDiff = Math.max(0, (targetDate.getFullYear() - now.getFullYear()) * 12 + (targetDate.getMonth() - now.getMonth()));
-    const approxMonths = Math.max(1, Math.round(diffDays / 30.4375));
-    const finalMonths = monthsDiff > 0 ? monthsDiff : approxMonths;
-
-    setCustomMonthsInput(String(finalMonths));
-    setCustomValidityDays(diffDays);
-
-    const formattedDate = targetDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const calculatedText = finalMonths >= 1
-      ? `${finalMonths} Month${finalMonths > 1 ? 's' : ''} (${diffDays} Days) • Valid till ${formattedDate}`
-      : `${diffDays} Days • Valid till ${formattedDate}`;
-
-    setCustomValidityText(calculatedText);
-    setOfferValidity(calculatedText);
-  };
-
-  const handleCustomMonthsChange = (e) => {
-    const val = e.target.value;
-    setCustomMonthsInput(val);
-    const numMonths = parseInt(val, 10);
-    if (!numMonths || numMonths < 1) {
-      return;
-    }
-    const now = new Date();
-    const targetDate = new Date();
-    targetDate.setMonth(targetDate.getMonth() + numMonths);
-
-    const yyyy = targetDate.getFullYear();
-    const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
-    const dd = String(targetDate.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}-${mm}-${dd}`;
-    setCustomExpiryDate(dateStr);
-
-    const diffDays = Math.max(1, Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-    setCustomValidityDays(diffDays);
-
-    const formattedDate = targetDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    const calculatedText = `${numMonths} Month${numMonths > 1 ? 's' : ''} (${diffDays} Days) • Valid till ${formattedDate}`;
-
-    setCustomValidityText(calculatedText);
-    setOfferValidity(calculatedText);
+    setOfferValidityMode('custom');
   };
 
   const handleOfferBannerUpload = (e) => {
@@ -684,31 +761,33 @@ export default function MerchantDashboard() {
 
   const handleEditOffer = (offer) => {
     if (!offer) return;
-    setEditingOfferId(offer.id);
+    setEditingOfferId(offer.id || offer._id);
     setOfferTitle(offer.title || '');
     setOfferDescription(offer.description || offer.condition || '');
     setOfferStampsRequired(Number(offer.stampsRequired) || 5);
-    const standardValidities = ['30 Days', '60 Days', '90 Days', '180 Days', '365 Days', 'No Expiry'];
-    if (standardValidities.includes(offer.validity)) {
-      setOfferValidityMode(offer.validity);
-      setCustomValidityText('');
-      setCustomExpiryDate('');
-      setCustomMonthsInput('');
-      setCustomValidityDays(30);
-      setOfferValidity(offer.validity);
+
+    setOfferValidityMode('Custom');
+    if (offer.expiryDate) {
+      const iso = offer.expiryDate.split('T')[0];
+      setCustomExpiryDate(iso);
+      setOfferValidity(computeExpiryDate('Custom', iso).display);
+    } else if (offer.validityDays) {
+      const targetD = new Date(Date.now() + Number(offer.validityDays) * 24 * 60 * 60 * 1000);
+      const yyyy = targetD.getFullYear();
+      const mm = String(targetD.getMonth() + 1).padStart(2, '0');
+      const dd = String(targetD.getDate()).padStart(2, '0');
+      const dStr = `${yyyy}-${mm}-${dd}`;
+      setCustomExpiryDate(dStr);
+      setOfferValidity(computeExpiryDate('Custom', dStr).display);
     } else {
-      setOfferValidityMode('Custom');
-      setCustomValidityText(offer.validity || '');
-      setOfferValidity(offer.validity || '30 Days');
-      if (offer.validityDays) {
-        setCustomValidityDays(offer.validityDays);
-        const targetD = new Date(Date.now() + offer.validityDays * 24 * 60 * 60 * 1000);
-        const yyyy = targetD.getFullYear();
-        const mm = String(targetD.getMonth() + 1).padStart(2, '0');
-        const dd = String(targetD.getDate()).padStart(2, '0');
-        setCustomExpiryDate(`${yyyy}-${mm}-${dd}`);
-        setCustomMonthsInput(String(Math.round(offer.validityDays / 30) || 1));
-      }
+      const nextM = new Date();
+      nextM.setDate(nextM.getDate() + 30);
+      const yyyy = nextM.getFullYear();
+      const mm = String(nextM.getMonth() + 1).padStart(2, '0');
+      const dd = String(nextM.getDate()).padStart(2, '0');
+      const dStr = `${yyyy}-${mm}-${dd}`;
+      setCustomExpiryDate(dStr);
+      setOfferValidity(computeExpiryDate('Custom', dStr).display);
     }
     setOfferBanner(offer.banner || '');
     setOfferImageRemoved(!offer.banner);
@@ -717,8 +796,22 @@ export default function MerchantDashboard() {
     setOfferPageView('create');
   };
 
-  const handleToggleOfferActive = (offerId) => {
-    setRewards(prev => prev.map(r => r.id === offerId ? { ...r, isActive: !r.isActive } : r));
+  const handleToggleOfferActive = async (offerId) => {
+    const activeMid = merchantId || '';
+    const activeSlug = storeSlug || '';
+    const storageKey = `beaurex_merchant_rewards_${activeMid || activeSlug || 'default'}`;
+    setRewards(prev => {
+      const updated = prev.map(r => (r.id === offerId || r._id === offerId) ? { ...r, isActive: !r.isActive } : r);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+        localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    try {
+      await fetch(`/api/merchant/rewards/${offerId}/toggle`, { method: 'PATCH' });
+    } catch (_) {}
   };
 
   // Image 1 Visual Match Helpers for Offer Cards
@@ -741,16 +834,65 @@ export default function MerchantDashboard() {
     return { top: '30%', sub: 'OFF', tag: 'LIMITED TIME' };
   };
 
-  const getCleanValidityText = (val) => {
-    if (!val) return 'Valid for 30 Days';
-    let s = String(val).trim();
-    s = s.replace(/^valid\s+for\s+/i, '');
-    s = s.replace(/^expires\s+in\s+/i, '');
-    s = s.replace(/^expires\s+/i, '');
-    if (!s.toLowerCase().includes('day') && !s.toLowerCase().includes('month') && !s.toLowerCase().includes('year')) {
-      s = `${s} Days`;
+  const formatDateDisplay = (dateInput) => {
+    if (!dateInput) return '';
+    try {
+      const d = new Date(String(dateInput).includes('T') ? dateInput : String(dateInput) + 'T00:00:00');
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+    } catch (_) {}
+    return String(dateInput);
+  };
+
+  const getCleanValidityText = (r) => {
+    if (!r) {
+      const def = computeExpiryDate('30 Days');
+      return def.display;
     }
-    return `Valid for ${s}`;
+
+    if (typeof r === 'object') {
+      if (r.validity && r.validity.toLowerCase() === 'no expiry') return 'No Expiry';
+      if (r.expiryDate) {
+        return `Expires ${formatDateDisplay(r.expiryDate)}`;
+      }
+      if (r.validity) {
+        const valStr = String(r.validity).trim();
+        if (valStr.toLowerCase() === 'no expiry') return 'No Expiry';
+        const dateMatch = valStr.match(/\b\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b/);
+        if (dateMatch) return `Expires ${dateMatch[0]}`;
+        const isoMatch = valStr.match(/\b\d{4}-\d{2}-\d{2}\b/);
+        if (isoMatch) return `Expires ${formatDateDisplay(isoMatch[0])}`;
+        const daysMatch = valStr.match(/(\d+)\s*days?/i);
+        if (daysMatch) {
+          const daysNum = parseInt(daysMatch[1], 10);
+          const baseTime = r.createdAt ? new Date(r.createdAt).getTime() : Date.now();
+          const target = new Date(baseTime + daysNum * 24 * 60 * 60 * 1000);
+          return `Expires ${target.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+        }
+        return valStr.startsWith('Expires') ? valStr : `Expires ${valStr}`;
+      }
+      if (r.validityDays) {
+        if (r.validityDays >= 9999) return 'No Expiry';
+        const baseTime = r.createdAt ? new Date(r.createdAt).getTime() : Date.now();
+        const target = new Date(baseTime + Number(r.validityDays) * 24 * 60 * 60 * 1000);
+        return `Expires ${target.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+      }
+    }
+
+    const s = String(r).trim();
+    if (s.toLowerCase() === 'no expiry') return 'No Expiry';
+    const dateMatch = s.match(/\b\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\b/);
+    if (dateMatch) return `Expires ${dateMatch[0]}`;
+    const isoMatch = s.match(/\b\d{4}-\d{2}-\d{2}\b/);
+    if (isoMatch) return `Expires ${formatDateDisplay(isoMatch[0])}`;
+    const daysMatch = s.match(/(\d+)\s*days?/i);
+    if (daysMatch) {
+      const daysNum = parseInt(daysMatch[1], 10);
+      const target = new Date(Date.now() + daysNum * 24 * 60 * 60 * 1000);
+      return `Expires ${target.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    }
+    return s.startsWith('Expires') ? s : `Expires ${s}`;
   };
 
   const getCleanOfferDescription = (item, badgeData) => {
@@ -765,12 +907,15 @@ export default function MerchantDashboard() {
     setOfferTitle('');
     setOfferDescription('');
     setOfferStampsRequired(5);
-    setOfferValidity('30 Days');
-    setOfferValidityMode('30 Days');
-    setCustomValidityText('');
-    setCustomExpiryDate('');
-    setCustomMonthsInput('');
-    setCustomValidityDays(30);
+    setOfferValidityMode('Custom');
+    const nextM = new Date();
+    nextM.setDate(nextM.getDate() + 30);
+    const yyyy = nextM.getFullYear();
+    const mm = String(nextM.getMonth() + 1).padStart(2, '0');
+    const dd = String(nextM.getDate()).padStart(2, '0');
+    const dStr = `${yyyy}-${mm}-${dd}`;
+    setCustomExpiryDate(dStr);
+    setOfferValidity(computeExpiryDate('Custom', dStr).display);
     setOfferBanner('');
     setOfferImageRemoved(true);
     setOfferImageError('');
@@ -779,7 +924,7 @@ export default function MerchantDashboard() {
     setOfferPageView('create');
   };
 
-  const handleSaveOfferProgram = (e) => {
+  const handleSaveOfferProgram = async (e) => {
     if (e) e.preventDefault();
     if (!offerTitle || !offerTitle.trim()) {
       alert('Please enter an Offer Title before saving.');
@@ -788,18 +933,27 @@ export default function MerchantDashboard() {
     const finalTitle = offerTitle.trim();
     const finalDesc = (offerDescription && offerDescription.trim()) ? offerDescription.trim() : `Get ${finalTitle.match(/\d+%/)?.[0] || 'discount'} on your next purchase. Thank you for being our loyal customer!`;
     const resolvedStamps = parseInt(offerStampsRequired, 10) || 5;
-    const resolvedDays = offerValidityMode === 'Custom' 
-      ? (customValidityDays || parseInt(offerValidity, 10) || 30)
-      : (parseInt(offerValidity, 10) || (offerValidity === 'No Expiry' ? 9999 : 30));
+
+    const expiryInfo = computeExpiryDate(offerValidityMode, customExpiryDate);
+    const resolvedDays = expiryInfo.days;
+    const finalExpiryDate = expiryInfo.isoDate || expiryInfo.formatted;
+    const finalValidity = expiryInfo.display;
+
+    const tempId = editingOfferId || ('rw_' + Date.now());
+    const activeMid = merchantId || '';
+    const activeSlug = storeSlug || '';
+    const storageKey = `beaurex_merchant_rewards_${activeMid || activeSlug || 'default'}`;
 
     const newProg = {
-      id: editingOfferId || ('rw_' + Date.now()),
+      id: tempId,
+      _id: tempId,
       title: finalTitle,
       description: finalDesc,
-      condition: `Collect ${resolvedStamps} Aurex Coins • Valid for ${resolvedDays} Days`,
+      condition: `Collect ${resolvedStamps} Aurex Coins • ${finalValidity}`,
       stampsRequired: resolvedStamps,
-      validity: `${resolvedDays} Days`,
+      validity: finalValidity,
       validityDays: resolvedDays,
+      expiryDate: finalExpiryDate,
       banner: offerBanner || '',
       discountType: 'PERCENTAGE',
       discountValue: parseInt(finalTitle.match(/\d+/)?.[0], 10) || 30,
@@ -813,8 +967,9 @@ export default function MerchantDashboard() {
     let updatedRewards = [];
     if (editingOfferId) {
       setRewards(prev => {
-        updatedRewards = prev.map(r => (r.id === editingOfferId ? { ...r, ...newProg } : r));
+        updatedRewards = prev.map(r => (r.id === editingOfferId || r._id === editingOfferId ? { ...r, ...newProg, id: editingOfferId, _id: editingOfferId } : r));
         try {
+          localStorage.setItem(storageKey, JSON.stringify(updatedRewards));
           localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updatedRewards));
           const ch = new BroadcastChannel('beaurex_merchant_offers');
           ch.postMessage({ type: 'OFFERS_UPDATED', offers: updatedRewards });
@@ -826,6 +981,7 @@ export default function MerchantDashboard() {
       setRewards(prev => {
         updatedRewards = [newProg, ...prev];
         try {
+          localStorage.setItem(storageKey, JSON.stringify(updatedRewards));
           localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updatedRewards));
           const ch = new BroadcastChannel('beaurex_merchant_offers');
           ch.postMessage({ type: 'OFFERS_UPDATED', offers: updatedRewards });
@@ -839,38 +995,48 @@ export default function MerchantDashboard() {
       title: finalTitle,
       stampsRequired: resolvedStamps,
       rewardTitle: finalTitle,
-      validityDays: resolvedDays
+      validityDays: resolvedDays,
+      validity: finalValidity,
+      expiryDate: finalExpiryDate
     });
 
-    // Save to backend
-    fetch('/api/merchant/rewards', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        merchantId,
-        title: finalTitle,
-        description: finalDesc,
-        stampsRequired: resolvedStamps,
-        validityDays: resolvedDays,
-        discountType: 'PERCENTAGE',
-        discountValue: 30,
-        banner: offerBanner
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && data.reward && data.reward._id) {
-          const serverId = data.reward._id.toString();
-          setRewards(prev => {
-            const updated = prev.map(r => (r.id === newProg.id ? { ...r, id: serverId, _id: serverId } : r));
-            try {
-              localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updated));
-            } catch (_) {}
-            return updated;
-          });
-        }
-      })
-      .catch(() => {});
+    // Save to backend MongoDB: PUT if editing existing, POST if creating new
+    try {
+      const endpoint = editingOfferId 
+        ? `/api/merchant/rewards/${editingOfferId}` 
+        : '/api/merchant/rewards';
+      const method = editingOfferId ? 'PUT' : 'POST';
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: activeMid,
+          storeSlug: activeSlug,
+          title: finalTitle,
+          description: finalDesc,
+          stampsRequired: resolvedStamps,
+          validityDays: resolvedDays,
+          expiryDate: finalExpiryDate,
+          validity: finalValidity,
+          discountType: 'PERCENTAGE',
+          discountValue: parseInt(finalTitle.match(/\d+/)?.[0], 10) || 30,
+          banner: offerBanner
+        })
+      });
+      const data = await res.json();
+      if (data && data.success && data.reward && data.reward._id) {
+        const serverId = data.reward._id.toString();
+        setRewards(prev => {
+          const updated = prev.map(r => (r.id === tempId || r.id === newProg.id ? { ...r, id: serverId, _id: serverId } : r));
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(updated));
+            localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updated));
+          } catch (_) {}
+          return updated;
+        });
+      }
+    } catch (_) {}
 
     setOfferSuccessModalOpen(true);
     setOfferPageView('list');
@@ -883,57 +1049,32 @@ export default function MerchantDashboard() {
   const [scansTodayCount, setScansTodayCount] = useState(24);
   const [scansSearch, setScansSearch] = useState('');
 
-  // Pillar 3: Rewards State
+  // Pillar 3: Rewards State (Strictly dynamic from MongoDB)
   const [rewardsSubTab, setRewardsSubTab] = useState('rules');
   const [rewards, setRewards] = useState(() => {
     try {
-      const saved = localStorage.getItem('beaurex_merchant_rewards');
+      const searchParams = new URLSearchParams(window.location.search);
+      const qMid = searchParams.get('merchantId');
+      const savedMerchantRaw = sessionStorage.getItem('loyalqr_merchant') || localStorage.getItem('loyalqr_merchant');
+      let mSlug = '';
+      let mId = qMid || '';
+      if (savedMerchantRaw) {
+        try {
+          const m = JSON.parse(savedMerchantRaw);
+          if (m) {
+            mId = mId || m.id || m._id || '';
+            mSlug = m.qrSlug || '';
+          }
+        } catch (_) {}
+      }
+      const storageKey = `beaurex_merchant_rewards_${mId || mSlug || 'default'}`;
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (_) {}
-    return [
-      { 
-        id: 'r1', 
-        title: '30% OFF on Next Purchase', 
-        description: 'Get 30% off on your next purchase. Thank you for being our loyal customer!', 
-        condition: 'Collect 5 Aurex Coins • Valid for 30 Days', 
-        stampsRequired: 5,
-        validity: '30 Days',
-        discountType: 'PERCENTAGE', 
-        discountValue: 30, 
-        minBillAmount: 0, 
-        tag: '30% OFF', 
-        isActive: true 
-      },
-      { 
-        id: 'r2', 
-        title: '50% discount', 
-        description: 'Get 50% discount on your next visit. Thank you for being our loyal customer!', 
-        condition: 'Collect 5 Aurex Coins • Valid for 30 Days', 
-        stampsRequired: 5,
-        validity: '30 Days',
-        discountType: 'PERCENTAGE', 
-        discountValue: 50, 
-        minBillAmount: 0, 
-        tag: '50% OFF', 
-        isActive: true 
-      },
-      { 
-        id: 'r3', 
-        title: 'Free Coffee', 
-        description: 'Get a free coffee on your next order. Thank you for being our loyal customer!', 
-        condition: 'Collect 3 Aurex Coins • Valid for 30 Days', 
-        stampsRequired: 3,
-        validity: '30 Days',
-        discountType: 'FREE_ITEM', 
-        discountValue: 100, 
-        minBillAmount: 0, 
-        tag: 'Free Coffee', 
-        isActive: true 
-      }
-    ];
+    return [];
   });
   const [newRewardModalOpen, setNewRewardModalOpen] = useState(false);
   const [newRewardForm, setNewRewardForm] = useState({
@@ -1248,7 +1389,6 @@ export default function MerchantDashboard() {
     daysRemaining: 2,
     expiresAt: null
   });
-  const [merchantId, setMerchantId] = useState(null);
   const [isSuperAdminImpersonation, setIsSuperAdminImpersonation] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
   const [subSuccessMsg, setSubSuccessMsg] = useState('');
@@ -1326,12 +1466,34 @@ export default function MerchantDashboard() {
       .catch(() => {});
   };
 
+  const fetchRewards = (mid = merchantId, slug = storeSlug) => {
+    const activeMid = mid || merchantId;
+    const activeSlug = slug || storeSlug;
+    const query = new URLSearchParams();
+    if (activeMid) query.append('merchantId', activeMid);
+    if (activeSlug) query.append('storeSlug', activeSlug);
+    fetch(`/api/merchant/rewards?${query.toString()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && Array.isArray(data.rewards)) {
+          setRewards(data.rewards);
+          const storageKey = `beaurex_merchant_rewards_${activeMid || activeSlug || 'default'}`;
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(data.rewards));
+            localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(data.rewards));
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
+  };
+
   // Real-time synchronization & 3s auto-polling so merchant screen stays dynamically updated
   useEffect(() => {
     fetchCustomers(customerSearch, customerFilter, merchantId);
     fetchWinners(winnerSearch, winnerTabType, merchantId);
     fetchScans(merchantId);
     fetchHome(merchantId);
+    fetchRewards(merchantId, storeSlug);
 
     const pollTimer = setInterval(() => {
       fetchCustomers(customerSearch, customerFilter, merchantId);
@@ -1341,7 +1503,7 @@ export default function MerchantDashboard() {
     }, 4000);
 
     return () => clearInterval(pollTimer);
-  }, [customerSearch, customerFilter, winnerSearch, winnerTabType, activeTab, merchantId]);
+  }, [customerSearch, customerFilter, winnerSearch, winnerTabType, activeTab, merchantId, storeSlug]);
 
   // Initial load
   useEffect(() => {
@@ -1362,7 +1524,7 @@ export default function MerchantDashboard() {
         .then(d => {
           if (d && d.success && d.merchant) {
             const m = d.merchant;
-            setStoreName(m.businessName);
+            setStoreName(formatBusinessName(m.businessName));
             setStoreSlug(m.qrSlug);
             if (m.category) setStoreCategory(m.category);
             if (m.mobile) {
@@ -1411,7 +1573,7 @@ export default function MerchantDashboard() {
 
       const savedBiz = sessionStorage.getItem('loyalqr_biz') || localStorage.getItem('loyalqr_biz');
       if (savedBiz && typeof savedBiz === 'string' && savedBiz.trim() && savedBiz !== 'undefined' && savedBiz !== 'null') {
-        setStoreName(savedBiz.trim());
+        setStoreName(formatBusinessName(savedBiz));
         setStoreSlug(savedBiz.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
       } else {
         setStoreName('Royal Sweets & Cafe');
@@ -1426,7 +1588,7 @@ export default function MerchantDashboard() {
             currentMid = m.id || m._id;
             if (currentMid) setMerchantId(currentMid);
             if (m.businessName) {
-              setStoreName(m.businessName);
+              setStoreName(formatBusinessName(m.businessName));
               setStoreSlug(m.qrSlug || m.businessName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
             } else if (m.qrSlug) {
               setStoreSlug(m.qrSlug);
@@ -1471,6 +1633,7 @@ export default function MerchantDashboard() {
       fetchCustomers(customerSearch, customerFilter, currentMid);
       fetchWinners(winnerSearch, winnerTabType, currentMid);
       fetchHome(currentMid);
+      fetchRewards(currentMid, storeSlug);
     }
 
     // Check if redirected due to expired trial/subscription or onboarding
@@ -1492,15 +1655,8 @@ export default function MerchantDashboard() {
       })
       .catch(() => {});
 
-    // Fetch live rewards
-    fetch('/api/merchant/rewards')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.success && data.rewards) {
-          setRewards(data.rewards);
-        }
-      })
-      .catch(() => {});
+    // Fetch live rewards scoped by current merchant
+    fetchRewards(currentMid || merchantId, storeSlug);
 
     // Fetch live home metrics & subscription status
     const midToFetch = currentMid || merchantId;
@@ -1698,10 +1854,10 @@ export default function MerchantDashboard() {
     }
   };
 
-  // Copy scan link (copies the standee template link so opening it renders the proper standee template)
+  // Copy direct customer QR scan link
   const handleCopyLink = () => {
     const slug = String(storeSlug || storeName || 'kafeen-cafe').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const link = `${window.location.origin}/standee/${slug}`;
+    const link = `${window.location.origin}/scan/${slug || 'store'}`;
     navigator.clipboard.writeText(link);
     setCopiedToast(true);
     setTimeout(() => setCopiedToast(false), 2500);
@@ -2535,17 +2691,21 @@ export default function MerchantDashboard() {
     if (!targetReward) return;
     const targetId = targetReward.id || targetReward._id;
     const targetTitle = String(targetReward.title || '').trim();
+    const activeMid = merchantId || '';
+    const activeSlug = storeSlug || '';
+    const storageKey = `beaurex_merchant_rewards_${activeMid || activeSlug || 'default'}`;
 
-    // 1. Remove from React state, update localStorage, and notify BroadcastChannel
+    // 1. Remove from React state, update scoped localStorage, and notify BroadcastChannel
     let updatedRewards = [];
     setRewards(prev => {
       updatedRewards = prev.filter(r => {
         const rId = r.id || r._id;
-        if (targetId && rId && rId === targetId) return false;
-        if (targetTitle && String(r.title || '').trim().toLowerCase() === targetTitle.toLowerCase() && (Number(r.stampsRequired) === Number(targetReward.stampsRequired) || r.condition === targetReward.condition)) return false;
+        if (targetId && rId && (rId === targetId || rId === targetReward._id || rId === targetReward.id)) return false;
+        if (targetTitle && String(r.title || '').trim().toLowerCase() === targetTitle.toLowerCase()) return false;
         return true;
       });
       try {
+        localStorage.setItem(storageKey, JSON.stringify(updatedRewards));
         localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(updatedRewards));
         const ch = new BroadcastChannel('beaurex_merchant_offers');
         ch.postMessage({ type: 'OFFERS_UPDATED', offers: updatedRewards });
@@ -2561,14 +2721,20 @@ export default function MerchantDashboard() {
       handleResetOrNewOffer();
     }
 
-    // 3. Delete from backend MongoDB via DELETE /api/merchant/rewards/:id?title=...
+    // 3. Delete permanently from backend MongoDB via DELETE /api/merchant/rewards/:id?title=...
     try {
+      const queryParams = new URLSearchParams();
+      if (activeMid) queryParams.append('merchantId', activeMid);
+      if (activeSlug) queryParams.append('storeSlug', activeSlug);
+      if (targetTitle) queryParams.append('title', targetTitle);
+
       const deleteUrl = targetId 
-        ? `/api/merchant/rewards/${targetId}?title=${encodeURIComponent(targetTitle)}`
-        : `/api/merchant/rewards/by-title?title=${encodeURIComponent(targetTitle)}`;
+        ? `/api/merchant/rewards/${targetId}?${queryParams.toString()}`
+        : `/api/merchant/rewards/by-title?${queryParams.toString()}`;
       await fetch(deleteUrl, { method: 'DELETE' });
+
       if (targetReward._id && targetReward._id !== targetId) {
-        await fetch(`/api/merchant/rewards/${targetReward._id}?title=${encodeURIComponent(targetTitle)}`, { method: 'DELETE' });
+        await fetch(`/api/merchant/rewards/${targetReward._id}?${queryParams.toString()}`, { method: 'DELETE' });
       }
     } catch (_) {}
   };
@@ -2717,7 +2883,7 @@ export default function MerchantDashboard() {
             {/* Store Name & Portal Title */}
             <div className="min-w-0">
               <h1 className="text-base font-black text-white tracking-tight truncate leading-tight">
-                {storeName || 'Ka-feen Café'}
+                {formatBusinessName(storeName) || 'Royal Sweets & Cafe'}
               </h1>
               <span className="text-[9px] font-bold text-red-200 uppercase tracking-wider block mt-0.5">
                 Store Owner Portal
@@ -2755,7 +2921,7 @@ export default function MerchantDashboard() {
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-xl sm:text-2xl font-black tracking-tight leading-none text-white">
-                  {storeName || 'Royal Sweets & Cafe'}
+                  {formatBusinessName(storeName) || 'Royal Sweets & Cafe'}
                 </span>
                 <span className="text-[10px] font-bold text-red-200 uppercase tracking-widest mt-1">
                   Store Owner Portal
@@ -2884,7 +3050,7 @@ export default function MerchantDashboard() {
                     className="bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-300 transition flex items-center space-x-2 shadow-xs cursor-pointer"
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copy QR Link</span>
+                    <span>{copiedToast ? 'Link Copied!' : 'Copy Link'}</span>
                   </button>
                 </div>
               </div>
@@ -3130,7 +3296,7 @@ export default function MerchantDashboard() {
                           : 'bg-white border border-slate-200 text-slate-700 hover:bg-amber-50/50 hover:text-amber-700'
                       }`}
                     >
-                      <span>🪙</span>
+                      <Coins className={`w-3.5 h-3.5 ${redemptionTypeFilter === 'coin' ? 'text-white' : 'text-amber-500'}`} />
                       <span>Coin</span>
                       <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
                         redemptionTypeFilter === 'coin' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
@@ -3194,7 +3360,8 @@ export default function MerchantDashboard() {
                                 <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
                                 {isCoinReq ? (
                                   <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 flex items-center space-x-1">
-                                    <span>🪙 Coin</span>
+                                    <Coins className="w-3 h-3 text-amber-600 shrink-0" />
+                                    <span>Coin</span>
                                   </span>
                                 ) : (
                                   <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 flex items-center space-x-1">
@@ -3213,7 +3380,8 @@ export default function MerchantDashboard() {
                               </div>
                               {isCoinReq ? (
                                 <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-700 mt-1">
-                                  <span>🪙 +{item.coins || 1} Aurex Coin to customer upon Accept</span>
+                                  <Coins className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                  <span>+{item.coins || 1} Aurex Coin to customer upon Accept</span>
                                 </div>
                               ) : (
                                 <div className="flex items-center space-x-1.5 text-xs font-bold text-amber-700 mt-1">
@@ -3283,8 +3451,9 @@ export default function MerchantDashboard() {
                               <div className="flex items-center justify-between gap-1.5">
                                 <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
                                 {isCoinReq ? (
-                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
-                                    🪙 Coin
+                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 flex items-center space-x-1">
+                                    <Coins className="w-3 h-3 text-amber-600 shrink-0" />
+                                    <span>Coin</span>
                                   </span>
                                 ) : (
                                   <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
@@ -3353,8 +3522,9 @@ export default function MerchantDashboard() {
                               <div className="flex items-center justify-between gap-1.5">
                                 <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">{item.customerName}</h4>
                                 {isCoinReq ? (
-                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
-                                    🪙 Coin
+                                  <span className="bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 flex items-center space-x-1">
+                                    <Coins className="w-3 h-3 text-amber-600 shrink-0" />
+                                    <span>Coin</span>
                                   </span>
                                 ) : (
                                   <span className="bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">
@@ -3822,7 +3992,7 @@ export default function MerchantDashboard() {
                           className="text-slate-400 hover:text-[#8B0000] text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
-                          <span>{copiedToast ? 'Copied Scan Link!' : 'Copy Counter Scan Link'}</span>
+                          <span>{copiedToast ? 'Link Copied!' : 'Copy Link'}</span>
                         </button>
                       </div>
                     </div>
@@ -4040,7 +4210,7 @@ export default function MerchantDashboard() {
                       className="bg-[#8B0000] hover:bg-[#720000] text-white text-xs font-extrabold px-5 py-2.5 rounded-xl shadow-xs transition cursor-pointer inline-flex items-center space-x-2"
                     >
                       <Copy className="w-3.5 h-3.5" />
-                      <span>Copy Customer QR Link</span>
+                      <span>{copiedToast ? 'Link Copied!' : 'Copy Link'}</span>
                     </button>
                   </div>
                 </div>
@@ -4389,13 +4559,13 @@ export default function MerchantDashboard() {
                                 {/* Badges: Aurex Coins & Validity on single row Matching Image 1 */}
                                 <div className="flex items-center gap-x-5 mt-3 pt-2 text-xs text-slate-700 font-semibold border-t border-slate-100/90 whitespace-nowrap overflow-hidden">
                                   <div className="flex items-center space-x-1.5 shrink-0">
-                                    <User className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
+                                    <Coins className="w-3.5 h-3.5 text-amber-600 stroke-[2] shrink-0" />
                                     <span>{r.stampsRequired || 5} Aurex Coins</span>
                                   </div>
 
                                   <div className="flex items-center space-x-1.5 shrink-0">
                                     <Calendar className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
-                                    <span>{getCleanValidityText(r.validity || `${r.validityDays || 30} Days`)}</span>
+                                    <span>{getCleanValidityText(r)}</span>
                                   </div>
                                 </div>
                               </div>
@@ -4504,10 +4674,10 @@ export default function MerchantDashboard() {
 
                     {/* 4. Two Columns: Required Stamps & Expiry */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {/* Left: Required Stamps with Centered + and - Buttons */}
+                      {/* Left: Required Stamps with Symmetric Centered + and - Stepper Buttons */}
                       <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
                         <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
-                          <User className="w-4 h-4 text-[#8B0000]" />
+                          <Coins className="w-4 h-4 text-[#8B0000]" />
                           <span>Required Aurex Coins</span>
                         </div>
                         <div className="flex items-center justify-center space-x-3 my-2">
@@ -4515,10 +4685,10 @@ export default function MerchantDashboard() {
                             type="button"
                             onClick={handleDecreaseCoins}
                             disabled={Number(offerStampsRequired) <= 1}
-                            className="w-9 h-9 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition cursor-pointer shadow-2xs flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-9 h-9 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 transition cursor-pointer shadow-2xs flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Decrease Coins"
                           >
-                            <Minus className="w-4 h-4 stroke-[2.5] text-slate-700" />
+                            <Minus className="w-4 h-4 stroke-[2.5]" />
                           </button>
                           <input
                             type="number"
@@ -4534,10 +4704,10 @@ export default function MerchantDashboard() {
                             type="button"
                             onClick={handleIncreaseCoins}
                             disabled={Number(offerStampsRequired) >= 1000}
-                            className="w-9 h-9 rounded-full bg-[#8B0000] hover:bg-[#720000] text-white transition cursor-pointer shadow-xs flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-9 h-9 rounded-xl border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 transition cursor-pointer shadow-2xs flex items-center justify-center shrink-0 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Increase Coins"
                           >
-                            <Plus className="w-4 h-4 stroke-[2.5] text-white" />
+                            <Plus className="w-4 h-4 stroke-[2.5]" />
                           </button>
                         </div>
                         <p className="text-[11px] text-slate-500 leading-tight mt-1 text-center">
@@ -4545,7 +4715,7 @@ export default function MerchantDashboard() {
                         </p>
                       </div>
 
-                      {/* Right: Expiry with Custom Date / Month Auto-Calculator */}
+                      {/* Right: Expiry with Preset Dropdown & Date Picker */}
                       <div className="border border-slate-200 rounded-2xl p-3.5 sm:p-4 bg-white flex flex-col justify-between">
                         <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800 mb-2">
                           <Calendar className="w-4 h-4 text-[#8B0000]" />
@@ -4555,83 +4725,41 @@ export default function MerchantDashboard() {
                           <div className="relative">
                             <select
                               value={offerValidityMode}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setOfferValidityMode(val);
-                                if (val === 'Custom') {
-                                  // Default to 1 month from now if not already set
-                                  if (!customExpiryDate) {
-                                    const nextM = new Date();
-                                    nextM.setMonth(nextM.getMonth() + 1);
-                                    const yyyy = nextM.getFullYear();
-                                    const mm = String(nextM.getMonth() + 1).padStart(2, '0');
-                                    const dd = String(nextM.getDate()).padStart(2, '0');
-                                    const dStr = `${yyyy}-${mm}-${dd}`;
-                                    setCustomExpiryDate(dStr);
-                                    setCustomMonthsInput('1');
-                                    setCustomValidityDays(30);
-                                    const formatted = nextM.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-                                    const calc = `1 Month (30 Days) • Valid till ${formatted}`;
-                                    setCustomValidityText(calc);
-                                    setOfferValidity(calc);
-                                  } else {
-                                    setOfferValidity(customValidityText || 'Custom Expiry');
-                                  }
-                                } else {
-                                  setOfferValidity(val);
-                                }
-                              }}
+                              onChange={(e) => handleExpiryPresetChange(e.target.value)}
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 appearance-none focus:outline-none focus:border-[#8B0000] cursor-pointer pr-8"
                             >
-                              <option value="30 Days">30 Days</option>
-                              <option value="60 Days">60 Days</option>
-                              <option value="90 Days">90 Days</option>
-                              <option value="180 Days">6 Months</option>
-                              <option value="365 Days">1 Year</option>
-                              <option value="No Expiry">No Expiry</option>
-                              <option value="Custom">Custom Expiry Date</option>
+                              <option value="7_days">7 Days</option>
+                              <option value="15_days">15 Days</option>
+                              <option value="30_days">30 Days (1 Month)</option>
+                              <option value="60_days">60 Days (2 Months)</option>
+                              <option value="90_days">90 Days (3 Months)</option>
+                              <option value="180_days">6 Months</option>
+                              <option value="365_days">1 Year</option>
+                              <option value="custom">Custom Date</option>
                             </select>
                             <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
                           </div>
 
-                          {offerValidityMode === 'Custom' && (
-                            <div className="space-y-2 animate-in fade-in duration-150 pt-1">
-                              <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                  Select Expiry Date (Auto-calculates Months)
-                                </label>
-                                <input
-                                  type="date"
-                                  min={new Date().toISOString().split('T')[0]}
-                                  value={customExpiryDate}
-                                  onChange={handleCustomDateChange}
-                                  className="w-full bg-slate-50 border border-[#8B0000]/40 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]/20 transition"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-                                  Or Enter Months Directly
-                                </label>
-                                <div className="relative">
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    max="60"
-                                    value={customMonthsInput}
-                                    onChange={handleCustomMonthsChange}
-                                    placeholder="e.g. 2"
-                                    className="w-full bg-slate-50 border border-slate-200 focus:border-[#8B0000] rounded-xl px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#8B0000]/20 transition pr-16"
-                                  />
-                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 pointer-events-none">
-                                    Months
-                                  </span>
-                                </div>
-                              </div>
+                          {offerValidityMode === 'custom' && (
+                            <div className="space-y-1.5 pt-1 animate-in fade-in duration-150">
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                Select Expiry Date
+                              </label>
+                              <input
+                                type="date"
+                                min={new Date().toISOString().split('T')[0]}
+                                value={customExpiryDate}
+                                onChange={handleCustomDateChange}
+                                className="w-full bg-white border border-[#8B0000]/40 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:border-[#8B0000] focus:ring-1 focus:ring-[#8B0000]/20 transition cursor-pointer"
+                              />
                             </div>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-500 leading-tight mt-1">
-                          Offer will expire after {offerValidity} from creation
+                        <p className="text-[11px] text-slate-500 leading-tight mt-1 flex items-center space-x-1">
+                          <span className="font-semibold text-slate-700">Expiry Date:</span>
+                          <span className="text-[#8B0000] font-bold">
+                            {computeExpiryDate(offerValidityMode, customExpiryDate).formatted}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -4740,7 +4868,7 @@ export default function MerchantDashboard() {
 
                                 <div className="flex items-center space-x-1.5 shrink-0">
                                   <Calendar className="w-3.5 h-3.5 text-slate-700 stroke-[2] shrink-0" />
-                                  <span>{getCleanValidityText(offerValidity || '30 Days')}</span>
+                                  <span>{computeExpiryDate(offerValidityMode, customExpiryDate).display}</span>
                                 </div>
                               </div>
                             </div>
@@ -4804,6 +4932,26 @@ export default function MerchantDashboard() {
                   <Edit3 className="w-3.5 h-3.5 text-slate-500" />
                   <span>Edit</span>
                 </button>
+              </div>
+
+              {/* REFER & EARN PROMO CARD */}
+              <div 
+                onClick={() => setActiveTab('refer_earn')}
+                className="bg-gradient-to-r from-amber-50 via-rose-50 to-amber-50 border border-amber-200 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-amber-300 transition cursor-pointer group"
+              >
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Gift className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h4 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-[#8B0000] transition-colors">Refer & Earn</h4>
+                      <span className="bg-[#8B0000] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">Free Month</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 font-medium">Invite fellow store owners & earn 1 month free subscription</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
               </div>
 
               {/* 2. OWNER ACCOUNT (Positioned above Location & Hours) */}
@@ -5076,6 +5224,164 @@ export default function MerchantDashboard() {
                   <LogOut className="w-4 h-4" />
                   <span>Logout</span>
                 </button>
+              </div>
+
+            </div>
+          )}
+
+          {/* ============================================================= */}
+          {/* VIEW: REFER & EARN (Merchant Referral Program) */}
+          {/* ============================================================= */}
+          {activeTab === 'refer_earn' && (
+            <div className="space-y-5 pb-20 animate-in fade-in duration-200 max-w-4xl mx-auto pt-2 sm:pt-4">
+              
+              {/* Header Hero Banner */}
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#8B0000] via-[#720000] to-[#590104] rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+                <div className="relative z-10 max-w-2xl">
+                  <div className="inline-flex items-center space-x-2 bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-amber-300 border border-white/20 mb-3">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>BeAurex Merchant Partner Program</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                    Refer Merchants. <br className="hidden sm:inline" />Earn 1 Month Free Subscription!
+                  </h2>
+                  <p className="text-xs sm:text-sm text-rose-100 font-normal leading-relaxed mt-2 max-w-xl">
+                    Invite retail shops, cafes, clinics, and restaurants to BeAurex. When they activate their tabletop QR standee, both of you receive 1 Month of Free Platform Subscription automatically!
+                  </p>
+                </div>
+              </div>
+
+              {/* Referral Code & Share Link Box */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-7 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900">Your Merchant Referral Link</h3>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">Share this link directly or invite via WhatsApp</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-bold text-slate-400">Referral Code:</span>
+                    <span className="font-mono text-xs sm:text-sm font-black bg-rose-50 text-[#8B0000] border border-rose-200 px-3 py-1 rounded-xl">
+                      {merchantRefCode}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 font-mono text-xs text-slate-700 truncate select-all">
+                    {merchantReferralUrl}
+                  </div>
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleCopyReferralLink}
+                      className="flex-1 sm:flex-none bg-[#8B0000] hover:bg-[#720000] text-white font-extrabold text-xs px-5 py-3 rounded-2xl transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer active:scale-95"
+                    >
+                      <Copy className="w-4 h-4" />
+                      <span>{referralCopied ? 'Copied Link!' : 'Copy Link'}</span>
+                    </button>
+                    <a
+                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Hey! Boost repeat sales and customer loyalty at your store with BeAurex QR. Join using my referral link and get 1 Month Free Subscription: ${merchantReferralUrl}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-5 py-3 rounded-2xl transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer active:scale-95"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span>WhatsApp</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Steps: How it works */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-start space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] font-black text-sm flex items-center justify-center shrink-0 border border-rose-200/60">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Share Your Link</h4>
+                    <p className="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                      Send your link to store owners, vendors, or business friends in your network.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-start space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 font-black text-sm flex items-center justify-center shrink-0 border border-amber-200/60">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Merchant Signs Up</h4>
+                    <p className="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                      They register on BeAurex, setup their store profile, and place their tabletop QR standee.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex items-start space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 font-black text-sm flex items-center justify-center shrink-0 border border-emerald-200/60">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">Earn 1 Month Free</h4>
+                    <p className="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                      Both stores get 30 days of complimentary platform access added to their active plan!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Referral Performance Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Referred</div>
+                  <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">3</div>
+                  <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Local Businesses</div>
+                </div>
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                  <div className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Active Standees</div>
+                  <div className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">2</div>
+                  <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Activated &amp; Scanning</div>
+                </div>
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                  <div className="text-xs font-bold text-[#8B0000] uppercase tracking-wider">Months Earned</div>
+                  <div className="text-2xl sm:text-3xl font-black text-[#8B0000] mt-1">2 Months</div>
+                  <div className="text-[11px] font-semibold text-slate-500 mt-0.5">Free Subscription Credit</div>
+                </div>
+              </div>
+
+              {/* Referral Activity List */}
+              <div className="bg-white border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-xs space-y-3">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">Referred Stores History</h3>
+                <div className="divide-y divide-slate-100">
+                  <div className="py-3 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">The Belgian Waffle Co</h4>
+                      <p className="text-xs text-slate-400">Joined 18 Oct 2026 • Standee Live</p>
+                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                      1 Month Added
+                    </span>
+                  </div>
+                  <div className="py-3 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">Urban Chai Tapri</h4>
+                      <p className="text-xs text-slate-400">Joined 22 Oct 2026 • Standee Live</p>
+                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                      1 Month Added
+                    </span>
+                  </div>
+                  <div className="py-3 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">Saffron Sweets &amp; Bakery</h4>
+                      <p className="text-xs text-slate-400">Joined 26 Oct 2026 • QR Kit Delivery</p>
+                    </div>
+                    <span className="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">
+                      Activation Pending
+                    </span>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -7419,12 +7725,12 @@ export default function MerchantDashboard() {
                     {offerTitle || '30% OFF on Next Purchase'}
                   </h5>
                   <div className="flex items-center space-x-1.5 text-[11px] text-slate-600 font-semibold">
-                    <span className="text-amber-500 font-bold text-xs">🪙</span>
+                    <Coins className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>{offerStampsRequired || 1} {Number(offerStampsRequired) === 1 ? 'Coin' : 'Coins'} Required</span>
                   </div>
                   <div className="flex items-center space-x-1.5 text-[11px] text-slate-500 font-medium">
                     <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>Valid for {offerValidity || '30 Days'}</span>
+                    <span>{computeExpiryDate(offerValidityMode, customExpiryDate).display}</span>
                   </div>
                 </div>
               </div>

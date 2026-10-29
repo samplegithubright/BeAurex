@@ -126,7 +126,7 @@ const customerSchema = new mongoose.Schema({
   },
   activeCardsCount: {
     type: Number,
-    default: 1
+    default: 0
   },
   rewardsRedeemedCount: {
     type: Number,
@@ -134,8 +134,10 @@ const customerSchema = new mongoose.Schema({
   },
   storeProgress: [
     {
+      merchantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Merchant' },
       storeSlug: { type: String, default: '' },
       storeName: { type: String, default: '' },
+      category: { type: String, default: 'Retail' },
       stampsCollected: { type: Number, default: 0 },
       totalStamps: { type: Number, default: 5 },
       lastVisit: { type: Date, default: Date.now }

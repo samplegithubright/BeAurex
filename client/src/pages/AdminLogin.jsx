@@ -391,7 +391,9 @@ export default function AdminLogin({ initialMode = 'signin' }) {
         localStorage.setItem('loyalqr_merchant', JSON.stringify(merchant));
         localStorage.setItem('loyalqr_biz', bizName);
 
-        navigate('/merchant/dashboard');
+        const targetMid = merchant._id || merchant.id || '';
+        const targetSlug = merchant.qrSlug || '';
+        navigate(`/merchant/dashboard?merchantId=${encodeURIComponent(targetMid)}&storeSlug=${encodeURIComponent(targetSlug)}`);
       } else {
         // Fallback for demo code
         if (entered === devOtpHint || entered === '123456' || cleanEmail.includes('royal')) {
@@ -415,7 +417,9 @@ export default function AdminLogin({ initialMode = 'signin' }) {
           localStorage.setItem('loyalqr_merchant', JSON.stringify(demoMerchant));
           localStorage.setItem('loyalqr_biz', demoMerchant.businessName);
 
-          navigate('/merchant/dashboard');
+          const targetMid = merchant._id || merchant.id || '';
+        const targetSlug = merchant.qrSlug || '';
+        navigate(`/merchant/dashboard?merchantId=${encodeURIComponent(targetMid)}&storeSlug=${encodeURIComponent(targetSlug)}`);
           return;
         }
 
@@ -443,7 +447,9 @@ export default function AdminLogin({ initialMode = 'signin' }) {
         localStorage.setItem('loyalqr_merchant', JSON.stringify(demoMerchant));
         localStorage.setItem('loyalqr_biz', demoMerchant.businessName);
 
-        navigate('/merchant/dashboard');
+        const targetMid = merchant._id || merchant.id || '';
+        const targetSlug = merchant.qrSlug || '';
+        navigate(`/merchant/dashboard?merchantId=${encodeURIComponent(targetMid)}&storeSlug=${encodeURIComponent(targetSlug)}`);
       } else {
         setError('Authentication server error. Please try again.');
       }
@@ -520,7 +526,9 @@ export default function AdminLogin({ initialMode = 'signin' }) {
         localStorage.setItem('loyalqr_merchant', JSON.stringify(merchant));
         localStorage.setItem('loyalqr_biz', bizName);
 
-        navigate('/merchant/dashboard');
+        const targetMid = merchant._id || merchant.id || '';
+        const targetSlug = merchant.qrSlug || '';
+        navigate(`/merchant/dashboard?merchantId=${encodeURIComponent(targetMid)}&storeSlug=${encodeURIComponent(targetSlug)}`);
       } else {
         // Fallback check for demo credentials
         if (email === 'owner@royalsweets.com' || password === 'LoyalQR@2026' || password === 'BeAurex@2026') {
@@ -544,7 +552,9 @@ export default function AdminLogin({ initialMode = 'signin' }) {
           localStorage.setItem('loyalqr_merchant', JSON.stringify(demoMerchant));
           localStorage.setItem('loyalqr_biz', demoMerchant.businessName);
 
-          navigate('/merchant/dashboard');
+          const targetMid = merchant._id || merchant.id || '';
+        const targetSlug = merchant.qrSlug || '';
+        navigate(`/merchant/dashboard?merchantId=${encodeURIComponent(targetMid)}&storeSlug=${encodeURIComponent(targetSlug)}`);
           return;
         }
 
@@ -573,7 +583,9 @@ export default function AdminLogin({ initialMode = 'signin' }) {
         localStorage.setItem('loyalqr_merchant', JSON.stringify(demoMerchant));
         localStorage.setItem('loyalqr_biz', demoMerchant.businessName);
 
-        navigate('/merchant/dashboard');
+        const targetMid = merchant._id || merchant.id || '';
+        const targetSlug = merchant.qrSlug || '';
+        navigate(`/merchant/dashboard?merchantId=${encodeURIComponent(targetMid)}&storeSlug=${encodeURIComponent(targetSlug)}`);
       } else {
         setError('Network error connecting to auth server. Please check your connection.');
       }
@@ -941,8 +953,6 @@ export default function AdminLogin({ initialMode = 'signin' }) {
               {/* Envelope + Checkmark Illustration */}
               <div className="relative w-20 h-20 mx-auto mb-2.5 flex items-center justify-center">
                 <div className="absolute inset-0 rounded-full bg-rose-50/80 border border-rose-100 flex items-center justify-center shadow-xs" />
-                <span className="absolute top-1.5 left-3 text-rose-400 text-xs font-bold">✦</span>
-                <span className="absolute top-2 right-4 text-rose-400 text-xs font-bold">✦</span>
 
                 <div className="relative z-10 w-13 h-10 bg-gradient-to-br from-red-600 via-[#8B0000] to-[#590104] rounded-lg shadow-md flex items-center justify-center">
                   <div className="absolute -top-2.5 w-10 h-5 bg-white rounded-t-md shadow-xs border-t border-x border-slate-200 flex flex-col items-center justify-center space-y-0.5 pt-0.5">
@@ -1045,9 +1055,6 @@ export default function AdminLogin({ initialMode = 'signin' }) {
               {/* Padlock + Checkmark Badge Illustration */}
               <div className="relative w-28 h-28 mx-auto mb-2 flex items-center justify-center">
                 <div className="w-24 h-24 rounded-full bg-rose-100/70 border border-rose-200/50 flex items-center justify-center relative shadow-inner">
-                  <span className="absolute -top-1 right-2 text-rose-300 text-xs">✦</span>
-                  <span className="absolute bottom-2 -left-1 text-rose-300 text-xs">✦</span>
-
                   {/* Red Padlock */}
                   <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#e03144] to-[#b3192b] text-white flex flex-col items-center justify-center shadow-md relative">
                     <div className="w-6 h-5 border-3 border-white rounded-t-full absolute -top-4.5 bg-transparent" />
@@ -1150,10 +1157,8 @@ export default function AdminLogin({ initialMode = 'signin' }) {
             /* ========================================================= */
             <div className="animate-in fade-in duration-150">
               
-              {/* Soft Pink Wave Header with QR Corner Watermarks (Image 1) */}
+              {/* Soft Pink Wave Header without decorative watermarks */}
               <div className="relative -mt-5 -mx-5 sm:-mt-6 sm:-mx-6 md:-mt-7 md:-mx-7 mb-4 pt-7 pb-4 px-6 rounded-t-3xl overflow-hidden bg-gradient-to-b from-rose-100/70 via-rose-50/40 to-transparent">
-                <QrCode className="w-12 h-12 text-rose-300/40 absolute -top-1 left-4 stroke-[1.5]" />
-                <QrCode className="w-12 h-12 text-rose-300/40 absolute -top-1 right-4 stroke-[1.5]" />
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight text-center relative z-10">
                   Welcome Back!
                 </h3>
@@ -1275,8 +1280,6 @@ export default function AdminLogin({ initialMode = 'signin' }) {
                   {/* Illustration Badge: Clipboard + Storefront */}
                   <div className="relative w-32 h-32 mx-auto mb-2 flex items-center justify-center">
                     <div className="w-28 h-28 rounded-full bg-rose-50/80 border border-rose-100 flex items-center justify-center relative shadow-inner">
-                      <span className="absolute -top-1 right-3 text-rose-300 text-xs">✦</span>
-                      <span className="absolute bottom-2 -left-1 text-rose-300 text-xs">✦</span>
 
                       {/* SVG: Clipboard with Profile Avatar + Overlapping Red Shop */}
                       <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1498,8 +1501,6 @@ export default function AdminLogin({ initialMode = 'signin' }) {
                   {/* Circular Illustration Badge: Red Awning Shop (Image 1) */}
                   <div className="relative w-32 h-32 mx-auto mb-2 flex items-center justify-center">
                     <div className="w-28 h-28 rounded-full bg-rose-50/80 border border-rose-100 flex items-center justify-center relative shadow-inner">
-                      <span className="absolute -top-1 right-3 text-rose-300 text-xs">✦</span>
-                      <span className="absolute bottom-2 -left-1 text-rose-300 text-xs">✦</span>
 
                       {/* Cute Storefront Illustration matching Image 1 */}
                       <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1669,8 +1670,6 @@ export default function AdminLogin({ initialMode = 'signin' }) {
                   {/* Circular Illustration Badge: Map Pin & Envelope (Image 2) */}
                   <div className="relative w-32 h-32 mx-auto mb-2 flex items-center justify-center">
                     <div className="w-28 h-28 rounded-full bg-rose-50/80 border border-rose-100 flex items-center justify-center relative shadow-inner">
-                      <span className="absolute -top-1 right-3 text-rose-300 text-xs">✦</span>
-                      <span className="absolute bottom-2 -left-1 text-rose-300 text-xs">✦</span>
 
                       {/* Map Pin on Map/Envelope Illustration matching Image 2 */}
                       <svg className="w-20 h-20" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">

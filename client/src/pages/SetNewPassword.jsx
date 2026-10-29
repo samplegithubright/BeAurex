@@ -74,9 +74,6 @@ export default function SetNewPassword() {
           {/* Padlock + Checkmark Badge Illustration */}
           <div className="relative w-28 h-28 mx-auto mb-2 flex items-center justify-center">
             <div className="w-24 h-24 rounded-full bg-rose-100/70 border border-rose-200/50 flex items-center justify-center relative shadow-inner">
-              <span className="absolute -top-1 right-2 text-rose-300 text-xs">✦</span>
-              <span className="absolute bottom-2 -left-1 text-rose-300 text-xs">✦</span>
-
               {/* Red Padlock */}
               <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#8B0000] via-[#981b2a] to-[#720000] text-white flex flex-col items-center justify-center shadow-md relative">
                 <div className="w-6 h-5 border-3 border-white rounded-t-full absolute -top-4.5 bg-transparent" />

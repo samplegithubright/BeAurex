@@ -54,9 +54,6 @@ export default function ForgotPassword() {
     >
       {/* Left Brand Panel */}
       <div className="md:w-5/12 bg-gradient-to-br from-red-600 via-red-700 to-rose-950 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl">
-        {/* Subtle dot pattern background overlay */}
-        <div className="absolute inset-0 hero-dot-pattern opacity-30 pointer-events-none" />
-
         <div className="relative z-10">
           <div className="flex items-center space-x-2.5 mb-8">
             <img 

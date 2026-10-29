@@ -5,69 +5,36 @@ const path = require('path');
 const DATA_DIR = path.join(__dirname, '../data');
 const REDEMPTIONS_FILE = path.join(DATA_DIR, 'redemptions.json');
 
-// Initial pending redemptions matching demo state (Both Aurex Coin requests and Offer claims)
-const defaultPending = [
-  {
-    id: 'rem_1',
-    requestType: 'offer',
-    customerName: 'Sumit',
-    customerId: 'ID: LQR-8F4A29',
-    rewardTitle: '30% OFF on Next Purchase',
-    stamps: '5/5 Aurex Coins completed',
-    timeAgo: 'Today, 2:18 PM',
-    expiresIn: 'Expires: 30 Jul 2026',
-    voucherType: '30',
-    avatarBg: 'bg-emerald-500',
-    status: 'PENDING',
-    storeSlug: 'ka-feen'
-  },
-  {
-    id: 'rem_2',
-    requestType: 'offer',
-    customerName: 'Ajeet',
-    customerId: 'ID: LQR-3K9D21',
-    rewardTitle: 'Free Coffee on Any Purchase',
-    stamps: '5/5 Aurex Coins completed',
-    timeAgo: 'Today, 12:45 PM',
-    expiresIn: 'Expires: 28 Jul 2026',
-    voucherType: 'coffee',
-    avatarBg: 'bg-indigo-500',
-    status: 'PENDING',
-    storeSlug: 'ka-feen'
-  },
-  {
-    id: 'rem_3',
-    requestType: 'coin',
-    customerName: 'Rohan Sharma',
-    customerId: 'ID: BX-8F4A29',
-    rewardTitle: 'Wants to collect 1 Aurex Coin',
-    coins: 1,
-    stamps: '1 Aurex Coin Requested',
-    timeAgo: 'Today, 11:30 AM',
-    expiresIn: 'Aurex Coin Request',
-    voucherType: 'coin',
-    avatarBg: 'bg-amber-500',
-    status: 'PENDING',
-    storeSlug: 'ka-feen'
-  }
-];
-
-let pendingList = [...defaultPending];
-let approvedList = [
-  {
-    id: 'rem_4',
-    requestType: 'offer',
-    customerName: 'Rohit',
-    customerId: 'ID: LQR-1A2B34',
-    rewardTitle: 'Free Coffee on Any Purchase',
-    approvedAt: '11:20 AM',
-    approvedDate: '20 May 2026',
-    voucherType: 'coffee',
-    avatarBg: 'bg-purple-500',
-    status: 'APPROVED'
-  }
-];
+// Clean initial pending list (no hardcoded mock claims leaking into merchant dashboards)
+let pendingList = [];
+let approvedList = [];
 let declinedList = [];
+
+// Helper to filter items strictly by merchantId or storeSlug (strict isolation per merchant)
+function filterByMerchant(list, merchantId, storeSlug) {
+  if (!merchantId && !storeSlug) return [];
+  const cleanTargetSlug = storeSlug ? String(storeSlug).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+  const cleanMid = merchantId ? String(merchantId).trim() : '';
+
+  return list.filter(item => {
+    const itemMid = item.merchantId ? String(item.merchantId).trim() : '';
+    const itemSlug = item.storeSlug ? String(item.storeSlug).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+
+    // 1. If both merchantIds exist, strict ID comparison is mandatory!
+    if (cleanMid && itemMid) {
+      return cleanMid === itemMid;
+    }
+
+    // 2. If one side is missing merchantId, match by storeSlug (excluding generic fallback slugs)
+    if (cleanTargetSlug && itemSlug && cleanTargetSlug === itemSlug) {
+      if (cleanTargetSlug !== 'store' && cleanTargetSlug !== 'default' && cleanTargetSlug !== 'kafeen-cafe') {
+        return true;
+      }
+    }
+
+    return false;
+  });
+}
 
 // Persistence
 function saveToFile() {
@@ -83,8 +50,13 @@ function loadFromFile() {
   try {
     if (fs.existsSync(REDEMPTIONS_FILE)) {
       const data = JSON.parse(fs.readFileSync(REDEMPTIONS_FILE, 'utf8'));
-      if (Array.isArray(data.pending)) pendingList = data.pending;
-      if (Array.isArray(data.approved)) approvedList = data.approved;
+      // Filter out any legacy dummy records from previous testing
+      if (Array.isArray(data.pending)) {
+        pendingList = data.pending.filter(p => p.id !== 'rem_1' && p.id !== 'rem_2' && p.id !== 'rem_3');
+      }
+      if (Array.isArray(data.approved)) {
+        approvedList = data.approved.filter(a => a.id !== 'rem_4');
+      }
       if (Array.isArray(data.declined)) declinedList = data.declined;
     }
   } catch (err) {
@@ -94,16 +66,16 @@ function loadFromFile() {
 
 loadFromFile();
 
-function getPending() {
-  return pendingList;
+function getPending(merchantId, storeSlug) {
+  return filterByMerchant(pendingList, merchantId, storeSlug);
 }
 
-function getApproved() {
-  return approvedList;
+function getApproved(merchantId, storeSlug) {
+  return filterByMerchant(approvedList, merchantId, storeSlug);
 }
 
-function getDeclined() {
-  return declinedList;
+function getDeclined(merchantId, storeSlug) {
+  return filterByMerchant(declinedList, merchantId, storeSlug);
 }
 
 function addPendingClaim(claim) {
@@ -141,7 +113,10 @@ function addPendingClaim(claim) {
     voucherType: claim.voucherType || (claim.coins ? 'coin' : '30'),
     avatarBg: claim.avatarBg || (claim.coins ? 'bg-amber-500' : 'bg-emerald-500'),
     status: 'PENDING',
-    storeSlug: claim.storeSlug || 'ka-feen'
+    storeSlug: claim.storeSlug || '',
+    merchantId: claim.merchantId || null,
+    storeName: claim.storeName || '',
+    category: claim.category || ''
   };
 
   if (existingIdx >= 0) {

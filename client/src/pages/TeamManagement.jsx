@@ -43,11 +43,19 @@ export default function TeamManagement() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Dynamic Agent Profile (Loaded from logged-in session or Super Admin created profile)
-  const format10CharTeamId = (rawId, rawCode = '1700') => {
+  const format8DigitUserId = (rawId, rawCode = '10284759') => {
+    const digits = String(rawId || rawCode || '').replace(/\D/g, '');
+    if (digits.length === 8) return digits;
+    if (digits.length > 8) return digits.slice(-8);
+    if (digits.length > 0) return digits.padStart(8, '0');
+    return '10284759';
+  };
+
+  const formatTeamId = (rawId, rawCode = '10284759') => {
     const str = String(rawId || '').trim();
-    if (/^[A-Za-z]{4}\d{6}$/.test(str)) return str.toUpperCase();
-    const digits = String(rawId || rawCode).replace(/\D/g, '');
-    return `TEAM${(digits.length < 6 ? digits.padStart(6, '0') : digits.slice(-6)) || '001700'}`;
+    if (/^[A-Za-z]{4}\d{8}$/.test(str)) return str.toUpperCase();
+    const digits = format8DigitUserId(rawId, rawCode);
+    return `TEAM${digits}`;
   };
 
   const getInitialAgentProfile = () => {
@@ -55,10 +63,11 @@ export default function TeamManagement() {
       const stored = sessionStorage.getItem('beaurex_team_profile');
       if (stored) {
         const parsed = JSON.parse(stored);
-        const codeNum = parsed.userId || parsed.id || '1700';
+        const codeNum = format8DigitUserId(parsed.userId || parsed.id || '10284759');
+        const cleanRefCode = parsed.referralCode ? String(parsed.referralCode).replace(/^BEAUREX-/i, '') : codeNum;
         return {
           name: parsed.name || 'Team Member',
-          id: format10CharTeamId(parsed.id, codeNum),
+          id: formatTeamId(parsed.id, codeNum),
           role: parsed.roleTitle || parsed.role || 'Authorized Field Operations Lead & Merchant Specialist',
           email: parsed.email || sessionStorage.getItem('beaurex_team_user') || 'team@beaurex.com',
           phone: parsed.mobile || parsed.phone || '+91 98112 23344',
@@ -70,8 +79,8 @@ export default function TeamManagement() {
           bloodGroup: parsed.bloodGroup || 'O+',
           issueDate: parsed.issueDate || '01 Jan 2026',
           validTill: parsed.validTill || '31 Dec 2027',
-          referralCode: parsed.referralCode || `BEAUREX-${codeNum}`,
-          userId: parsed.userId || codeNum,
+          referralCode: cleanRefCode,
+          userId: codeNum,
           mwId: parsed.mwId || '—',
           totalMwCreated: parsed.totalMwCreated ?? 0,
           totalSales: parsed.totalSales ?? '0'
@@ -90,10 +99,11 @@ export default function TeamManagement() {
           m.userId?.toString() === userKey
         );
         if (matched) {
-          const codeNum = matched.userId || '1700';
+          const codeNum = format8DigitUserId(matched.userId || '10284759');
+          const cleanRefCode = matched.referralCode ? String(matched.referralCode).replace(/^BEAUREX-/i, '') : codeNum;
           return {
             name: matched.name || 'Team Member',
-            id: format10CharTeamId(matched.id, codeNum),
+            id: formatTeamId(matched.id, codeNum),
             role: matched.role || 'Authorized Field Operations Lead & Merchant Specialist',
             email: matched.email || userKey,
             phone: matched.mobile || '—',
@@ -105,8 +115,8 @@ export default function TeamManagement() {
             bloodGroup: 'O+',
             issueDate: '01 Jan 2026',
             validTill: '31 Dec 2027',
-            referralCode: matched.referralCode || `BEAUREX-${codeNum}`,
-            userId: matched.userId || codeNum,
+            referralCode: cleanRefCode,
+            userId: codeNum,
             mwId: matched.mwId || '—',
             totalMwCreated: matched.totalMwCreated ?? 0,
             totalSales: matched.totalSales ?? '0'
@@ -117,7 +127,7 @@ export default function TeamManagement() {
 
     return {
       name: 'Team Member',
-      id: 'TEAM001700',
+      id: 'TEAM10284759',
       role: 'Authorized Field Operations Lead & Merchant Specialist',
       email: 'team@beaurex.com',
       phone: '+91 98112 23344',
@@ -127,8 +137,8 @@ export default function TeamManagement() {
       bloodGroup: 'O+',
       issueDate: '01 Jan 2026',
       validTill: '31 Dec 2027',
-      referralCode: 'BEAUREX-1700',
-      userId: '1700',
+      referralCode: '10284759',
+      userId: '10284759',
       mwId: '—',
       totalMwCreated: 0,
       totalSales: '0'
@@ -2169,8 +2179,8 @@ export default function TeamManagement() {
                           </div>
                           <button
                             onClick={() => {
-                              const code = agentProfile?.referralCode || 'BEAUREX-1704';
-                              navigate(`/customer?ref=${encodeURIComponent(code)}`);
+                              const code = agentProfile?.referralCode || '10284759';
+                              navigate(`/merchant/signup?ref=${encodeURIComponent(code)}`);
                             }}
                             className="bg-[#8B0000] hover:bg-[#8B0000] text-white text-xs font-black px-4 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0 shadow-sm cursor-pointer"
                           >
@@ -2757,7 +2767,7 @@ export default function TeamManagement() {
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[180px]">Customer Name</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[190px]">Company Name</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Phone Number</th>
-                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Approached For</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[160px]">Plan</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Follow-up Method</th>
                           <th className="py-3.5 px-4 whitespace-nowrap text-center min-w-[170px]">Status</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">Source</th>
@@ -2817,10 +2827,10 @@ export default function TeamManagement() {
                                 </div>
                               </td>
 
-                              {/* 4. Approached For */}
+                              {/* 4. Plan */}
                               <td className="py-3.5 px-4 whitespace-nowrap">
-                                <span className="font-bold text-slate-800 text-xs whitespace-nowrap">
-                                  {c.approachedFor || 'BeAurex Loyalty'}
+                                <span className="font-bold text-[#8B0000] bg-rose-50 border border-rose-200/80 px-2.5 py-1 rounded-full text-xs whitespace-nowrap">
+                                  {c.approachedFor || c.plan || 'Starter'}
                                 </span>
                               </td>
 
@@ -3069,18 +3079,18 @@ export default function TeamManagement() {
                             )}
                           </div>
 
-                          {/* Approached For */}
+                          {/* Plan Dropdown */}
                           <div>
-                            <label className="block text-slate-700 mb-1">Approached For</label>
+                            <label className="block text-slate-700 mb-1">Plan</label>
                             <select
-                              value={quickCustomerForm.approachedFor}
-                              onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, approachedFor: e.target.value })}
+                              value={quickCustomerForm.approachedFor || 'Starter'}
+                              onChange={(e) => setQuickCustomerForm({ ...quickCustomerForm, approachedFor: e.target.value, plan: e.target.value })}
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-red-600"
                             >
-                              <option value="BeAurex Loyalty">BeAurex Loyalty</option>
-                              <option value="Standee Setup">Standee Setup</option>
-                              <option value="Digital Menu QR">Digital Menu QR</option>
-                              <option value="Custom Plan">Custom Plan</option>
+                              <option value="Starter">Starter Plan</option>
+                              <option value="Growth">Growth Plan</option>
+                              <option value="Enterprise">Enterprise Plan</option>
+                              <option value="Annual Premium">Annual Premium</option>
                             </select>
                           </div>
 
@@ -3344,19 +3354,19 @@ export default function TeamManagement() {
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-slate-700 mb-1">Approached For</label>
+                            <label className="block text-slate-700 mb-1">Plan</label>
                             <select
-                              value={editCustomerModal.form.approachedFor}
+                              value={editCustomerModal.form.approachedFor || 'Starter'}
                               onChange={(e) => setEditCustomerModal({
                                 ...editCustomerModal,
-                                form: { ...editCustomerModal.form, approachedFor: e.target.value }
+                                form: { ...editCustomerModal.form, approachedFor: e.target.value, plan: e.target.value }
                               })}
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-[#8B0000] focus:ring-2 focus:ring-[#8B0000]/15 focus:bg-white transition"
                             >
-                              <option value="BeAurex Loyalty">BeAurex Loyalty</option>
-                              <option value="Standee Setup">Standee Setup</option>
-                              <option value="Digital Menu QR">Digital Menu QR</option>
-                              <option value="Custom Plan">Custom Plan</option>
+                              <option value="Starter">Starter Plan</option>
+                              <option value="Growth">Growth Plan</option>
+                              <option value="Enterprise">Enterprise Plan</option>
+                              <option value="Annual Premium">Annual Premium</option>
                             </select>
                           </div>
                           <div>

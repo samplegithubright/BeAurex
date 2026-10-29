@@ -5,7 +5,8 @@ import {
   Smartphone, Lock, AlertTriangle, ChevronDown, 
   CheckCircle2, Mail, MapPin, Zap, Star, Shield, Eye, Menu,
   QrCode, Phone, Bell, Sliders, Layers, Users, Clock, BarChart3,
-  HelpCircle, CreditCard, Award, Flame, Calendar, ShoppingCart, TrendingDown
+  HelpCircle, CreditCard, Award, Flame, Calendar, ShoppingCart, TrendingDown,
+  UserX
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 
@@ -97,7 +98,7 @@ function PlanCardButton({ plan, isDark }) {
 
   return (
     <Link
-      to="/merchant/login"
+      to="/merchant/signup"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -539,9 +540,6 @@ export default function LandingPage() {
       {/* ========================================================= */}
       {/* 3. HERO SECTION */}
       {/* ========================================================= */}
-      {/* ========================================================= */}
-      {/* 4. HERO SECTION */}
-      {/* ========================================================= */}
       <header className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-10 lg:pb-12 relative">
         <div className="grid items-center grid-cols-1 gap-7 lg:grid-cols-12 lg:gap-10">
           
@@ -564,7 +562,7 @@ export default function LandingPage() {
             {/* Action CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-1">
               <Link
-                to="/merchant/login"
+                to="/merchant/signup"
                 className="bg-gradient-to-r from-[#8B0000] to-[#a30d0d] hover:from-[#720000] hover:to-[#8B0000] text-white font-extrabold px-8 py-3.5 rounded-2xl text-base shadow-xl shadow-red-950/20 transition-all duration-200 hover:-translate-y-0.5 text-center cursor-pointer inline-flex items-center justify-center gap-2"
               >
                 <span>Claim Your 2-Day Free Trial</span>
@@ -629,7 +627,7 @@ export default function LandingPage() {
               {/* Pristine Cleaned Graphic (Retailer Smiling + Tabletop QR Standee) with Soft Theme Pearl Shadow */}
               <div className="relative overflow-hidden bg-white border shadow-xl rounded-2xl border-rose-100/90 ring-1 ring-slate-900/5 max-h-[460px] sm:max-h-[500px] flex items-center justify-center">
                 <img 
-                  src="/beaurex-hero-banner.jpg" 
+                  src="/hero-qr-standee.jpg" 
                   alt="BeAurex Tabletop QR Standee with Smiling Retailer" 
                   className="w-full h-auto max-h-[500px] object-cover rounded-2xl transition-transform duration-700 group-hover:scale-[1.01]"
                   loading="eager"
@@ -855,7 +853,7 @@ export default function LandingPage() {
                   <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 sm:p-4.5 border border-white/80 shadow-xs hover:shadow-md hover:bg-white/95 hover:border-rose-200 transition-all duration-200">
                     <div className="flex items-start space-x-3.5">
                       <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100/80 border border-rose-200 text-[#8B0000] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                        <ShoppingCart className="w-5 h-5 text-[#8B0000]" />
+                        <UserX className="w-5 h-5 text-[#8B0000]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -877,7 +875,7 @@ export default function LandingPage() {
                   <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 sm:p-4.5 border border-white/80 shadow-xs hover:shadow-md hover:bg-white/95 hover:border-rose-200 transition-all duration-200">
                     <div className="flex items-start space-x-3.5">
                       <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100/80 border border-rose-200 text-[#8B0000] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                        <TrendingDown className="w-5 h-5 text-[#8B0000]" />
+                        <Flame className="w-5 h-5 text-[#8B0000]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -899,7 +897,7 @@ export default function LandingPage() {
                   <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 sm:p-4.5 border border-white/80 shadow-xs hover:shadow-md hover:bg-white/95 hover:border-rose-200 transition-all duration-200">
                     <div className="flex items-start space-x-3.5">
                       <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100/80 border border-rose-200 text-[#8B0000] flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
-                        <Users className="w-5 h-5 text-[#8B0000]" />
+                        <Smartphone className="w-5 h-5 text-[#8B0000]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -983,7 +981,7 @@ export default function LandingPage() {
                   <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 sm:p-4.5 border border-white/80 shadow-xs hover:shadow-md hover:bg-white/95 hover:border-emerald-200 transition-all duration-200">
                     <div className="flex items-start space-x-3.5">
                       <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                        <Gift className="w-5 h-5 text-white" />
+                        <Sparkles className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -1005,7 +1003,7 @@ export default function LandingPage() {
                   <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 sm:p-4.5 border border-white/80 shadow-xs hover:shadow-md hover:bg-white/95 hover:border-emerald-200 transition-all duration-200">
                     <div className="flex items-start space-x-3.5">
                       <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                        <ShieldCheck className="w-5 h-5 text-white" />
+                        <Lock className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
@@ -1149,12 +1147,12 @@ export default function LandingPage() {
                     {/* Price Block: Strikethrough + Save Badge + Sized-Down Price with Custom Color */}
                     <div className={`mt-5 mb-5 pb-5 border-b ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
                       {p.originalPrice > 0 && (
-                        <div className="flex items-center gap-2 mb-1.5">
+                        <div className="flex items-center flex-wrap gap-2 mb-1.5">
                           <span className={`text-xs sm:text-sm font-semibold line-through ${isDark ? 'text-slate-400' : 'text-slate-400'}`}>
                             ₹{Number(p.originalPrice).toLocaleString('en-IN')}
                           </span>
                           {discountPct && (
-                            <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md tracking-wider">
+                            <span className="text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md tracking-wider whitespace-nowrap">
                               SAVE {discountPct}%
                             </span>
                           )}
@@ -1164,7 +1162,7 @@ export default function LandingPage() {
                       <div className="flex items-baseline gap-1.5">
                         <span
                           style={{ color: p.priceColor || undefined }}
-                          className={`text-2xl sm:text-[28px] font-black tracking-tight transition-colors ${
+                          className={`text-xl sm:text-2xl font-black tracking-tight transition-colors ${
                             !p.priceColor ? (isDark ? 'text-white' : 'text-slate-900') : ''
                           }`}
                         >
@@ -1369,10 +1367,11 @@ export default function LandingPage() {
               <input
                 type="tel"
                 placeholder="Phone Number *"
+                maxLength={10}
                 required
                 disabled={contactSubmitting}
                 value={contactForm.phone}
-                onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:border-red-600 transition-colors disabled:opacity-50"
               />
             </div>

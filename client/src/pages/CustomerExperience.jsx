@@ -9,10 +9,11 @@ import {
   ShieldCheck, AlertCircle, Phone, Mail, Lock, Eye, EyeOff, 
   ArrowRight, User, Hourglass, CheckCheck, TrendingUp, Trophy, Users,
   RefreshCw, SlidersHorizontal, Image as ImageIcon, KeyRound, WifiOff, FileText, ChevronLeft,
-  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3, ChevronDown, Coins
+  Crown, CreditCard, LogIn, Share2, MessageCircle, Calendar, Edit3, ChevronDown, Coins, Trash2
 } from 'lucide-react';
 import LegalPolicyModal from '../components/LegalPolicyModal';
 import { validatePassword } from '../utils/passwordValidator';
+import { formatBusinessName } from '../utils/nameUtils';
 
 // Official BeAurex Coin Indicator (Crisp Aurex Coin with dynamic brand theme & optional custom coin image)
 function BeAurexStamp({ stamped = true, size = 'md', coinImage }) {
@@ -74,8 +75,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Filter out legacy dummy demo items (rh-1, rh-2, rh-3, rh-4)
-          const clean = parsed.filter(item => !['rh-1', 'rh-2', 'rh-3', 'rh-4'].includes(item.id));
+          // Filter out legacy dummy demo items and sanitize store names & titles
+          const clean = parsed
+            .filter(item => !['rh-1', 'rh-2', 'rh-3', 'rh-4'].includes(item.id))
+            .map(item => ({
+              ...item,
+              storeName: formatBusinessName(item.storeName || ''),
+              title: formatBusinessName(item.title)
+            }));
+          try { localStorage.setItem('beaurex_reward_history', JSON.stringify(clean)); } catch (_) {}
           return clean;
         }
       }
@@ -90,8 +98,18 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          // Filter out legacy dummy demo item cr-1
-          const clean = parsed.filter(item => item.id !== 'cr-1');
+          // Filter out legacy dummy demo item cr-1 and sanitize store names & titles
+          const clean = parsed
+            .filter(item => item.id !== 'cr-1')
+            .map(item => {
+              const cleanStore = formatBusinessName(item.storeName || item.title || '');
+              return {
+                ...item,
+                storeName: cleanStore || 'Store',
+                title: formatBusinessName(item.title)
+              };
+            });
+          try { localStorage.setItem('beaurex_claimable_rewards', JSON.stringify(clean)); } catch (_) {}
           return clean;
         }
       }
@@ -142,84 +160,45 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const [loyaltyCardsList, setLoyaltyCardsList] = useState(() => {
     const target = getInitialTargetCoins();
     try {
-      const saved = localStorage.getItem('beaurex_customer_cards');
+      const savedUser = localStorage.getItem('beaurex_customer_user');
+      let scopedKey = 'beaurex_customer_cards';
+      if (savedUser) {
+        const u = JSON.parse(savedUser);
+        const cId = u.customerId || u.id;
+        if (cId) scopedKey = `beaurex_customer_cards_${String(cId).replace(/^ID:\s*/, '').trim()}`;
+      }
+      const saved = localStorage.getItem(scopedKey) || localStorage.getItem('beaurex_customer_cards');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(c => ({
-            ...c,
-            Icon: resolveStoreIcon(c.iconName || c.category),
-            totalStamps: c.totalStamps || target
-          }));
+          // Strictly filter out any legacy dummy/mock ka-feen cards
+          return parsed
+            .filter(c => c.slug !== 'ka-feen' && c.slug !== 'kafeen-coffee' && c.name !== 'Ka-feen Coffee Shop')
+            .map(c => ({
+              ...c,
+              Icon: resolveStoreIcon(c.iconName || c.category),
+              totalStamps: c.totalStamps || target
+            }));
         }
       }
     } catch (_) {}
-    return [
-      {
-        id: 'card-adobe-1865',
-        name: 'Adobe 1865',
-        category: 'Retail & Loyalty',
-        slug: 'adobe-1865',
-        stamps: 0,
-        totalStamps: 5,
-        badgeText: '5 more Aurex Coins',
-        badgeClass: 'bg-rose-50 text-rose-700 border-rose-100',
-        statusText: '0 of 5 Aurex Coins',
-        Icon: resolveStoreIcon('Coffee')
-      }
-    ];
+    return [];
   });
   const [splashLoading, setSplashLoading] = useState(false);
   const [legalModalOpen, setLegalModalOpen] = useState(false);
   const [legalModalTab, setLegalModalTab] = useState('privacy'); // 'privacy' | 'terms'
 
-  // Dynamic Merchant Offers (offers created by merchant, matching Image 1: 30% off, 50% discount, Free Coffee, etc.)
+  // Dynamic Merchant Offers (offers created dynamically by merchant in MongoDB)
   const [merchantOffers, setMerchantOffers] = useState(() => {
     try {
-      const saved = localStorage.getItem('beaurex_merchant_rewards');
+      const activeSlug = slug || '';
+      const saved = localStorage.getItem(`beaurex_merchant_rewards_${activeSlug}`) || localStorage.getItem('beaurex_merchant_rewards');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch (_) {}
-    return [
-      {
-        id: 'reward-30-off',
-        title: '30% off on next purchase',
-        subtitle: 'on next purchase',
-        discount: '30% OFF',
-        stampsRequired: 2,
-        validTill: '7/30/2026',
-        banner: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-        image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-        voucherType: '30',
-        isActive: true
-      },
-      {
-        id: 'reward-50-off',
-        title: '50% discount',
-        subtitle: 'on next purchase',
-        discount: '50% OFF',
-        stampsRequired: 5,
-        validTill: '7/30/2026',
-        banner: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-        voucherType: '50',
-        isActive: true
-      },
-      {
-        id: 'reward-free-coffee',
-        title: 'Free Coffee',
-        subtitle: 'with any breakfast order',
-        discount: 'Free Coffee',
-        stampsRequired: 3,
-        validTill: '7/30/2026',
-        banner: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80',
-        image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80',
-        voucherType: 'coffee',
-        isActive: true
-      }
-    ];
+    return [];
   });
 
   // Customer Profile State
@@ -305,9 +284,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
   // Store information
   const [storeInfo, setStoreInfo] = useState({
-    storeName: slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Adobe 1865',
+    storeName: formatBusinessName(slug || 'Store'),
     categoryName: 'Retail & Loyalty',
-    qrSlug: slug || 'adobe-1865',
+    qrSlug: slug || '',
     stampsCollected: 0,
     totalStamps: 5,
     expiresIn: '30 Jul 2026'
@@ -319,7 +298,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     title: '30% off on next purchase',
     discount: '30% OFF',
     subtitle: 'on next purchase',
-    storeName: 'Adobe 1865',
+    storeName: 'Store',
     category: 'Retail & Loyalty',
     requiresStamps: 2,
     validTill: '30 Jul 2026',
@@ -340,6 +319,85 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const processedApprovalsRef = useRef(new Set());
   const lastScannedSlugRef = useRef('');
   const lastScanTimeRef = useRef(0);
+
+  // Helper to sync customer profile & MongoDB storeProgress into component state
+  const applyCustomerData = (customerData) => {
+    if (!customerData) return;
+    setCustomerUser(prev => ({
+      ...prev,
+      ...customerData
+    }));
+    try {
+      localStorage.setItem('beaurex_customer_user', JSON.stringify(customerData));
+    } catch (_) {}
+
+    const cleanCustId = String(customerData.customerId || customerData.id || 'default').replace(/^ID:\s*/, '').trim();
+    if (Array.isArray(customerData.storeProgress)) {
+      // Exclude legacy mock ka-feen entries
+      const validCards = customerData.storeProgress.filter(p => {
+        const s = String(p.storeSlug || p.slug || '').toLowerCase();
+        return s !== 'ka-feen' && s !== 'kafeen-coffee';
+      });
+
+      const mapped = validCards.map(p => {
+        const cleanSlug = String(p.storeSlug || p.slug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const target = Number(p.totalStamps) || 5;
+        const currentStamps = Number(p.stampsCollected ?? p.stamps) || 0;
+        const isReady = currentStamps >= target;
+        const displayName = formatBusinessName(p.storeName || p.name || cleanSlug || 'Store');
+        const displayCategory = p.category || 'Retail & Store';
+
+        return {
+          id: p.id || `card-${cleanSlug}`,
+          name: displayName,
+          category: displayCategory,
+          slug: cleanSlug,
+          logo: p.logo || '',
+          merchantId: p.merchantId || null,
+          stamps: currentStamps,
+          totalStamps: target,
+          badgeText: isReady ? 'Reward Ready 🎉' : `${Math.max(0, target - currentStamps)} more Aurex Coin${target - currentStamps === 1 ? '' : 's'}`,
+          badgeClass: isReady ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+          statusText: `${currentStamps} of ${target} Aurex Coins`,
+          Icon: resolveStoreIcon(displayCategory || displayName)
+        };
+      });
+      setLoyaltyCardsList(mapped);
+      try {
+        localStorage.setItem(`beaurex_customer_cards_${cleanCustId}`, JSON.stringify(mapped.map(c => ({ ...c, Icon: undefined }))));
+        localStorage.setItem('beaurex_customer_cards', JSON.stringify(mapped.map(c => ({ ...c, Icon: undefined }))));
+      } catch (_) {}
+    } else {
+      setLoyaltyCardsList([]);
+      try {
+        localStorage.setItem(`beaurex_customer_cards_${cleanCustId}`, '[]');
+        localStorage.setItem('beaurex_customer_cards', '[]');
+      } catch (_) {}
+    }
+  };
+
+  // Dynamic Customer Profile & Cards Sync from MongoDB
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const cleanEmail = customerUser?.email;
+    const cleanMobile = customerUser?.mobile || customerUser?.phone;
+    const cleanCustId = customerUser?.customerId || customerUser?.id;
+    if (!cleanEmail && !cleanMobile && !cleanCustId) return;
+
+    const query = new URLSearchParams();
+    if (cleanCustId) query.append('customerId', cleanCustId);
+    if (cleanEmail) query.append('email', cleanEmail);
+    if (cleanMobile) query.append('mobile', cleanMobile);
+
+    fetch(`/api/customer/profile?${query.toString()}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.success && d.customer) {
+          applyCustomerData(d.customer);
+        }
+      })
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   // Camera & Scanner State (Screen 6)
   const videoRef = useRef(null);
@@ -465,13 +523,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     };
   }, []);
 
-  // Synchronize Dynamic Merchant Offers (offers created by merchant like 2, 3, 5, 6 coins)
+  // Synchronize Dynamic Merchant Offers (offers created dynamically by merchant in MongoDB)
   useEffect(() => {
+    const activeSlug = slug || storeInfo?.qrSlug || '';
+    const storageKey = `beaurex_merchant_rewards_${activeSlug}`;
+
     const handleStorageOffers = (e) => {
-      if (e.key === 'beaurex_merchant_rewards' && e.newValue) {
+      if ((e.key === storageKey || e.key === 'beaurex_merchant_rewards') && e.newValue) {
         try {
           const parsed = JSON.parse(e.newValue);
-          if (Array.isArray(parsed) && parsed.length > 0) setMerchantOffers(parsed);
+          if (Array.isArray(parsed)) setMerchantOffers(parsed);
         } catch (_) {}
       }
     };
@@ -487,14 +548,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       };
     } catch (_) {}
 
-    // Initial fetch from backend
-    const activeSlug = slug || storeInfo?.qrSlug || '';
+    // Initial fetch from backend MongoDB
     fetch(`/api/customer/merchant-offers/${activeSlug}`)
       .then(r => r.json())
       .then(d => {
-        if (d?.success && Array.isArray(d.offers) && d.offers.length > 0) {
+        if (d?.success && Array.isArray(d.offers)) {
           setMerchantOffers(d.offers);
-          try { localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(d.offers)); } catch (_) {}
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(d.offers));
+            localStorage.setItem('beaurex_merchant_rewards', JSON.stringify(d.offers));
+          } catch (_) {}
         }
       })
       .catch(() => {});
@@ -580,23 +643,92 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     };
   }, []);
 
-  // Helper to open specific store loyalty card
+  // Helper to open specific store loyalty card dynamically
   const handleOpenStoreCard = (card) => {
+    if (!card) return;
     const cardSlug = card.slug || card.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const coins = typeof card.stamps === 'number' ? card.stamps : 0;
     setStoreInfo({
       storeName: card.name,
-      categoryName: card.category,
+      categoryName: card.category || 'Retail & Store',
       qrSlug: cardSlug,
+      merchantId: card.merchantId || null,
+      logo: card.logo || '',
       stampsCollected: coins,
-      totalStamps: card.totalStamps || getInitialTargetCoins(),
+      totalStamps: card.totalStamps || 5,
       expiresIn: '30 Jul 2026'
     });
     setCustomerUser(prev => ({
       ...prev,
       stamps: coins
     }));
+
+    // Dynamically fetch and load that store's rewards/offers from MongoDB
+    fetch(`/api/customer/merchant-offers/${encodeURIComponent(cardSlug)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.success && Array.isArray(d.offers)) {
+          setMerchantOffers(d.offers);
+          try {
+            localStorage.setItem(`beaurex_merchant_rewards_${cardSlug}`, JSON.stringify(d.offers));
+          } catch (_) {}
+        }
+      })
+      .catch(() => {});
+
     setCurrentScreen('after_scan');
+  };
+
+  // Helper to permanently delete a loyalty card from wallet & MongoDB
+  const handleDeleteCard = async (e, card) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (!card) return;
+
+    const cardSlug = card.slug || card.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const confirmDelete = window.confirm(`Remove ${card.name} loyalty card from your wallet?`);
+    if (!confirmDelete) return;
+
+    // Immediately remove from UI
+    setLoyaltyCardsList(prev => prev.filter(c => c.slug !== cardSlug && c.id !== card.id));
+
+    // Remove from localStorage
+    try {
+      const cleanCustId = String(customerUser?.customerId || customerUser?.id || '').replace(/^ID:\s*/, '').trim();
+      const scopedKey = cleanCustId ? `beaurex_customer_cards_${cleanCustId}` : 'beaurex_customer_cards';
+      const raw = localStorage.getItem(scopedKey);
+      if (raw) {
+        const list = JSON.parse(raw);
+        const filtered = list.filter(c => c.slug !== cardSlug && c.id !== card.id);
+        localStorage.setItem(scopedKey, JSON.stringify(filtered));
+        localStorage.setItem('beaurex_customer_cards', JSON.stringify(filtered));
+      }
+    } catch (_) {}
+
+    // Call backend API to permanently delete from MongoDB so it never returns on refresh
+    try {
+      const cleanCustId = customerUser?.customerId || customerUser?.id;
+      const cleanMobile = customerUser?.mobile || customerUser?.phone;
+      const cleanEmail = customerUser?.email;
+
+      const q = new URLSearchParams();
+      if (cleanCustId) q.append('customerId', cleanCustId);
+      if (cleanMobile) q.append('mobile', cleanMobile);
+      if (cleanEmail) q.append('email', cleanEmail);
+
+      const res = await fetch(`/api/customer/cards/${encodeURIComponent(cardSlug)}?${q.toString()}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.cards)) {
+        applyCustomerData({
+          ...customerUser,
+          storeProgress: data.cards,
+          activeCardsCount: data.cards.length
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to delete card on server:', err);
+    }
   };
 
   // Dynamically sync completed loyalty cards into claimable rewards
@@ -612,16 +744,17 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       let updated = prev.filter(r => r.id !== 'cr-1');
 
       completedCards.forEach(card => {
+        const cleanStoreName = formatBusinessName(card.name || card.slug || 'Store');
         const rewardId = `cr-${card.slug || card.id}`;
-        const alreadyInClaimable = updated.some(r => r.id === rewardId || r.storeName === card.name);
-        const alreadyClaimed = rewardHistory.some(h => h.storeName === card.name && h.status === 'Active');
+        const alreadyInClaimable = updated.some(r => r.id === rewardId || formatBusinessName(r.storeName) === cleanStoreName);
+        const alreadyClaimed = rewardHistory.some(h => formatBusinessName(h.storeName) === cleanStoreName && h.status === 'Active');
 
         if (!alreadyInClaimable && !alreadyClaimed) {
           updated.push({
             id: rewardId,
-            title: `${card.name} Reward Voucher`,
+            title: `${cleanStoreName} Reward Voucher`,
             subtitle: 'Ready to Redeem',
-            storeName: card.name,
+            storeName: cleanStoreName,
             requiresStamps: card.totalStamps || 5,
             stampsCollected: card.stamps || 5,
             validTill: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -665,7 +798,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const registerScannedStoreCard = (cleanSlug, storeName, category, explicitStamps) => {
     if (!cleanSlug) return;
     const target = getInitialTargetCoins();
-    const resolvedName = storeName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const resolvedName = formatBusinessName(storeName || cleanSlug || 'Store');
     const resolvedCategory = category || 'Retail & Loyalty';
 
     setLoyaltyCardsList(prev => {
@@ -673,21 +806,23 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       let updated;
       if (existingIdx >= 0) {
         const existing = prev[existingIdx];
+        const currentTarget = Number(existing.totalStamps) || target;
         const currentCoins = typeof explicitStamps === 'number' ? explicitStamps : (typeof existing.stamps === 'number' ? existing.stamps : 0);
         const updatedCard = {
           ...existing,
           name: resolvedName,
           category: resolvedCategory,
-          totalStamps: target,
+          totalStamps: currentTarget,
           stamps: currentCoins,
-          badgeText: currentCoins >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - currentCoins)} more Aurex Coin${target - currentCoins === 1 ? '' : 's'}`,
-          badgeClass: currentCoins >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
-          statusText: `${currentCoins} of ${target} Aurex Coins`
+          badgeText: currentCoins >= currentTarget ? 'Reward Ready 🎉' : `${Math.max(0, currentTarget - currentCoins)} more Aurex Coin${currentTarget - currentCoins === 1 ? '' : 's'}`,
+          badgeClass: currentCoins >= currentTarget ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+          statusText: `${currentCoins} of ${currentTarget} Aurex Coins`
         };
         updated = [...prev];
         updated[existingIdx] = updatedCard;
       } else {
         const initialStamps = typeof explicitStamps === 'number' ? explicitStamps : 0;
+        const currentTarget = Number(storeInfo?.totalStamps) || target;
         const newCard = {
           id: `lc-${cleanSlug}`,
           name: resolvedName,
@@ -698,10 +833,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           Icon: resolveStoreIcon(resolvedCategory),
           iconColor: 'text-white',
           stamps: initialStamps,
-          totalStamps: target,
-          badgeText: initialStamps >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - initialStamps)} more Aurex Coin${target - initialStamps === 1 ? '' : 's'}`,
-          badgeClass: initialStamps >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
-          statusText: `${initialStamps} of ${target} Aurex Coins`
+          totalStamps: currentTarget,
+          badgeText: initialStamps >= currentTarget ? 'Reward Ready 🎉' : `${Math.max(0, currentTarget - initialStamps)} more Aurex Coin${currentTarget - initialStamps === 1 ? '' : 's'}`,
+          badgeClass: initialStamps >= currentTarget ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+          statusText: `${initialStamps} of ${currentTarget} Aurex Coins`
         };
         updated = [newCard, ...prev];
       }
@@ -752,13 +887,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     const createdAtIso = now.toISOString();
 
+    const resolvedMerchantId = storeInfo?.merchantId || activeCard?.merchantId || null;
+    const resolvedStoreName = storeInfo?.storeName || activeCard?.name || activeStoreSlug;
+
     const coinObj = {
       id: claimId,
       claimId: claimId,
       requestType: 'coin',
       voucherType: 'coin',
       coins: 1,
-      customerName: customerUser.name || 'Rohan Sharma',
+      customerName: customerUser.name || 'Valued Customer',
       customerId: `ID: ${cleanCustomerId}`,
       rewardTitle: 'Collect 1 Aurex Coin',
       stamps: '1 Aurex Coin Requested',
@@ -770,7 +908,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       expiresIn: 'Session',
       avatarBg: 'bg-amber-500',
       status: 'PENDING',
-      storeSlug: activeStoreSlug
+      storeSlug: activeStoreSlug,
+      storeName: resolvedStoreName,
+      merchantId: resolvedMerchantId
     };
 
     setPendingClaimId(claimId);
@@ -783,15 +923,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     } catch (_) {}
 
     try {
-      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const storageKey = `beaurex_pending_redemptions_${activeStoreSlug}`;
+      const existingRaw = localStorage.getItem(storageKey);
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
-      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'beaurex_pending_redemptions',
-        newValue: JSON.stringify(updated)
-      }));
+      localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch (_) {}
+
+    if (resolvedMerchantId) {
+      try {
+        const midKey = `beaurex_pending_redemptions_${resolvedMerchantId}`;
+        const existingRaw = localStorage.getItem(midKey);
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        const updated = [coinObj, ...existing.filter(e => e.id !== claimId)];
+        localStorage.setItem(midKey, JSON.stringify(updated));
+      } catch (_) {}
+    }
 
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
@@ -808,9 +955,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         id: claimId,
         claimId: claimId,
         customerId: cleanCustomerId,
-        customerName: customerUser.name || 'Rohan Sharma',
+        customerName: customerUser.name || 'Valued Customer',
         coins: 1,
         storeSlug: activeStoreSlug,
+        storeName: resolvedStoreName,
+        merchantId: resolvedMerchantId,
         createdAt: createdAtIso,
         requestedAt: createdAtIso,
         createdDate,
@@ -848,11 +997,14 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     const createdAtIso = now.toISOString();
 
+    const resolvedMerchantId = storeInfo?.merchantId || activeCard?.merchantId || null;
+    const resolvedStoreName = storeInfo?.storeName || activeCard?.name || activeStoreSlug;
+
     const claimObj = {
       id: claimId,
       claimId: claimId,
       requestType: 'offer',
-      customerName: customerUser.name || 'Rohan Sharma',
+      customerName: customerUser.name || 'Valued Customer',
       customerId: `ID: ${cleanCustomerId}`,
       rewardTitle: selectedReward?.title ? `${selectedReward.title} ${selectedReward.subtitle || ''}`.trim() : 'Reward Offer',
       coinsRequired: reqCoins,
@@ -867,7 +1019,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       voucherType: selectedReward?.title?.includes('Coffee') ? 'coffee' : '30',
       avatarBg: 'bg-emerald-500',
       status: 'PENDING',
-      storeSlug: activeStoreSlug
+      storeSlug: activeStoreSlug,
+      storeName: resolvedStoreName,
+      merchantId: resolvedMerchantId
     };
 
     setPendingClaimId(claimId);
@@ -880,15 +1034,22 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     } catch (_) {}
 
     try {
-      const existingRaw = localStorage.getItem('beaurex_pending_redemptions');
+      const storageKey = `beaurex_pending_redemptions_${activeStoreSlug}`;
+      const existingRaw = localStorage.getItem(storageKey);
       const existing = existingRaw ? JSON.parse(existingRaw) : [];
       const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
-      localStorage.setItem('beaurex_pending_redemptions', JSON.stringify(updated));
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'beaurex_pending_redemptions',
-        newValue: JSON.stringify(updated)
-      }));
+      localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch (_) {}
+
+    if (resolvedMerchantId) {
+      try {
+        const midKey = `beaurex_pending_redemptions_${resolvedMerchantId}`;
+        const existingRaw = localStorage.getItem(midKey);
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        const updated = [claimObj, ...existing.filter(e => e.id !== claimId)];
+        localStorage.setItem(midKey, JSON.stringify(updated));
+      } catch (_) {}
+    }
 
     try {
       const channel = new BroadcastChannel('beaurex_redemptions');
@@ -905,9 +1066,11 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         id: claimId,
         claimId: claimId,
         customerId: cleanCustomerId,
-        customerName: customerUser.name || 'Rohan Sharma',
+        customerName: customerUser.name || 'Valued Customer',
         rewardTitle: claimObj.rewardTitle,
         storeSlug: activeStoreSlug,
+        storeName: resolvedStoreName,
+        merchantId: resolvedMerchantId,
         coinsRequired: reqCoins,
         stampsRequired: reqCoins,
         stamps: claimObj.stamps,
@@ -953,14 +1116,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       stopCamera();
     } catch (_) {}
 
-    const resolvedName = displayName || (cleanSlug === 'adobe-1865' ? 'Adobe 1865' : cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
-    const resolvedCategory = activeCategory || (cleanSlug === 'adobe-1865' ? 'Retail & Loyalty' : 'Coffee Shop');
+    const resolvedName = formatBusinessName(displayName || cleanSlug || 'Store');
+    const resolvedCategory = activeCategory || 'Retail & Store';
 
     setStoreInfo(prev => ({
       ...prev,
       storeName: resolvedName,
       qrSlug: cleanSlug,
-      categoryName: resolvedCategory
+      categoryName: resolvedCategory,
+      merchantId: prev.qrSlug === cleanSlug ? prev.merchantId : null
     }));
 
     // If customer is not authenticated yet, direct to login/signup screen first
@@ -992,8 +1156,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       localStorage.removeItem('beaurex_qr_daily_scans');
     } catch (_) {}
 
-    // Request strictly 1 Aurex Coin from merchant on every scan (approval goes to merchant every time)
-    handleRequestAurexCoin(cleanSlug);
+    // Open store view showing merchant info, collected coin track & available rewards
+    setCurrentScreen('after_scan');
   };
 
   // Reusable customer auth completion & redirect handler
@@ -1021,7 +1185,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
 
     const cleanSlug = String(targetSlug).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    let merchantName = formatBusinessName(cleanSlug);
     let category = 'Coffee Shop';
 
     try {
@@ -1029,7 +1193,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       if (savedMerchant) {
         const m = JSON.parse(savedMerchant);
         if (m?.qrSlug === cleanSlug || !slug) {
-          if (m.businessName) merchantName = m.businessName;
+          if (m.businessName) merchantName = formatBusinessName(m.businessName);
           if (m.category) category = m.category;
         }
       }
@@ -1056,7 +1220,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       ...prev,
       storeName: merchantName,
       qrSlug: cleanSlug,
-      categoryName: category
+      categoryName: category,
+      merchantId: matchedCard?.merchantId || prev.merchantId || null,
+      logo: matchedCard?.logo || prev.logo || ''
     }));
 
     if (slug === cleanSlug) {
@@ -1066,57 +1232,49 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
   };
 
-  // If slug is in URL on mount or change, identify store
+  // If slug is in URL on mount or change, identify store dynamically from server
   useEffect(() => {
     if (slug) {
       const cleanSlug = String(slug).toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      let prettyName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      let category = 'Retail & Loyalty';
+      let prettyName = formatBusinessName(cleanSlug);
+      let category = 'Retail & Store';
 
-      try {
-        const savedMerchant = localStorage.getItem('loyalqr_merchant') || sessionStorage.getItem('loyalqr_merchant');
-        if (savedMerchant) {
-          const m = JSON.parse(savedMerchant);
-          if (m?.qrSlug === cleanSlug || !slug) {
-            if (m.businessName) prettyName = m.businessName;
-            if (m.category) category = m.category;
+      fetch(`/api/customer/store-status?slug=${encodeURIComponent(cleanSlug)}`)
+        .then(res => res.json())
+        .then(d => {
+          const sName = formatBusinessName(d?.success && (d.storeName || d.businessName) ? (d.storeName || d.businessName) : prettyName);
+          const sCat = d?.success && d.category ? d.category : category;
+          const mId = d?.success && d.merchantId ? d.merchantId : null;
+
+          setStoreInfo(prev => ({
+            ...prev,
+            storeName: sName,
+            qrSlug: cleanSlug,
+            categoryName: sCat,
+            merchantId: mId
+          }));
+
+          if (isAuthenticated) {
+            processStoreScan(cleanSlug, sName, sCat);
+          } else {
+            try {
+              sessionStorage.setItem('beaurex_pending_scan_slug', cleanSlug);
+              sessionStorage.setItem('beaurex_pending_scan_name', sName);
+              sessionStorage.setItem('beaurex_pending_scan_cat', sCat);
+            } catch (_) {}
           }
-        }
-      } catch (_) {}
-
-      try {
-        const savedStore = localStorage.getItem('beaurex_store_profile');
-        if (savedStore) {
-          const p = JSON.parse(savedStore);
-          if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug || !p.slug)) {
-            prettyName = p.storeName;
-            if (p.category) category = p.category;
+        })
+        .catch(() => {
+          setStoreInfo(prev => ({
+            ...prev,
+            storeName: prettyName,
+            qrSlug: cleanSlug,
+            categoryName: category
+          }));
+          if (isAuthenticated) {
+            processStoreScan(cleanSlug, prettyName, category);
           }
-        }
-      } catch (_) {}
-
-      const matchedCard = loyaltyCardsList.find(c => c.slug === cleanSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === cleanSlug);
-      if (matchedCard) {
-        prettyName = matchedCard.name;
-        category = matchedCard.category;
-      }
-
-      setStoreInfo(prev => ({
-        ...prev,
-        storeName: prettyName || 'Store',
-        qrSlug: cleanSlug,
-        categoryName: category
-      }));
-
-      if (isAuthenticated) {
-        processStoreScan(cleanSlug, prettyName, category);
-      } else {
-        try {
-          sessionStorage.setItem('beaurex_pending_scan_slug', cleanSlug);
-          sessionStorage.setItem('beaurex_pending_scan_name', prettyName);
-          sessionStorage.setItem('beaurex_pending_scan_cat', category);
-        } catch (_) {}
-      }
+        });
     }
   }, [slug, isAuthenticated]);
 
@@ -1196,8 +1354,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setLoginLoading(false);
 
       if (data && data.success && data.customer) {
-        setCustomerUser(data.customer);
-        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        applyCustomerData(data.customer);
         completeCustomerAuthRedirect();
       } else if (data && data.notRegistered) {
         setLoginError('Account not found with this email. Please create an account.');
@@ -1288,8 +1445,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setLoginLoading(false);
 
       if (data && data.success && data.customer) {
-        setCustomerUser(data.customer);
-        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        applyCustomerData(data.customer);
         completeCustomerAuthRedirect();
       } else if (data && data.alreadyExists) {
         setLoginError(data.message || 'An account already exists with this email. Please sign in.');
@@ -1350,8 +1506,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       setGoogleSignInModalOpen(false);
 
       if (data && data.success && data.customer) {
-        setCustomerUser(data.customer);
-        localStorage.setItem('beaurex_customer_user', JSON.stringify(data.customer));
+        applyCustomerData(data.customer);
       } else {
         const custId = `BX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         const newCust = {
@@ -1708,6 +1863,25 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.setItem('beaurex_customer_auth', 'false');
+    localStorage.removeItem('beaurex_customer_user');
+    localStorage.removeItem('beaurex_customer_cards');
+    try {
+      const cleanCustId = String(customerUser?.customerId || '').replace(/^ID:\s*/, '').trim();
+      if (cleanCustId) {
+        localStorage.removeItem(`beaurex_customer_cards_${cleanCustId}`);
+      }
+    } catch (_) {}
+    setLoyaltyCardsList([]);
+    setCustomerUser({
+      name: 'Valued Customer',
+      customerId: '',
+      phone: '',
+      email: '',
+      tier: 'Bronze Member',
+      stamps: 0,
+      totalStamps: 5,
+      activeCardsCount: 0
+    });
     setLoginError('');
     setLoginSuccessMsg('');
     setOtpSent(false);
@@ -1742,6 +1916,29 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       videoRef.current.srcObject = null;
     }
     setCameraActive(false);
+    setFlashlightOn(false);
+  };
+
+  const toggleFlashlight = async () => {
+    const nextState = !flashlightOn;
+    setFlashlightOn(nextState);
+    try {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject;
+        const tracks = stream.getVideoTracks();
+        if (tracks.length > 0) {
+          const track = tracks[0];
+          const capabilities = typeof track.getCapabilities === 'function' ? track.getCapabilities() : {};
+          if (capabilities.torch) {
+            await track.applyConstraints({
+              advanced: [{ torch: nextState }]
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Torch constraint error:', err);
+    }
   };
 
   const scanQrCodeLoop = () => {
@@ -1774,7 +1971,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       }
 
       const cleanSlug = String(scannedSlug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      let merchantName = cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      let merchantName = formatBusinessName(cleanSlug);
       let category = 'Retail & Store';
       
       try {
@@ -1782,7 +1979,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         if (savedMerchant) {
           const m = JSON.parse(savedMerchant);
           if (m?.qrSlug === cleanSlug || !slug) {
-            if (m.businessName) merchantName = m.businessName;
+            if (m.businessName) merchantName = formatBusinessName(m.businessName);
             if (m.category) category = m.category;
           }
         }
@@ -1793,7 +1990,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         if (savedStore) {
           const p = JSON.parse(savedStore);
           if (p.storeName && (p.slug === cleanSlug || p.storeSlug === cleanSlug || !p.slug)) {
-            merchantName = p.storeName;
+            merchantName = formatBusinessName(p.storeName);
             if (p.category) category = p.category;
           }
         }
@@ -1847,7 +2044,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
     }
 
     const cleanSlug = String(activeSlug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const displayName = activeName || cleanSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const displayName = formatBusinessName(activeName || cleanSlug || 'Store');
 
     processStoreScan(cleanSlug, displayName, activeCategory);
   };
@@ -1893,25 +2090,48 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
         // Also update loyalty card in loyaltyCardsList & localStorage
         setLoyaltyCardsList(prev => {
-          const updated = prev.map(c => {
-            const isMatch = (activeSlug && (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug)) || prev.length === 1;
-            if (isMatch) {
-              const target = c.totalStamps || cardTarget || 5;
-              const newStamps = (Number(c.stamps) || 0) + addedCoins;
-              if (newStamps >= target) {
-                reachedTarget = true;
+          const matchIdx = prev.findIndex(c => activeSlug && (c.slug === activeSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug));
+          let updated;
+          if (matchIdx >= 0) {
+            updated = prev.map((c, idx) => {
+              if (idx === matchIdx) {
+                const target = c.totalStamps || cardTarget || 5;
+                const newStamps = (Number(c.stamps) || 0) + addedCoins;
+                if (newStamps >= target) {
+                  reachedTarget = true;
+                }
+                return {
+                  ...c,
+                  stamps: newStamps,
+                  badgeText: newStamps >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - newStamps)} more Aurex Coins`,
+                  badgeClass: newStamps >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+                  statusText: `${newStamps} of ${target} Aurex Coins`
+                };
               }
-              return {
-                ...c,
-                stamps: newStamps,
-                badgeText: newStamps >= target ? 'Reward Ready 🎉' : `${Math.max(0, target - newStamps)} more Aurex Coins`,
-                badgeClass: newStamps >= target ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
-                statusText: `${newStamps} of ${target} Aurex Coins`
-              };
-            }
-            return c;
-          });
+              return c;
+            });
+          } else {
+            const cleanSlug = String(activeSlug || 'store').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const sName = formatBusinessName(storeInfo.storeName || cleanSlug || 'Store');
+            const sCat = storeInfo.categoryName || 'Retail & Store';
+            const newCard = {
+              id: `lc-${cleanSlug}`,
+              name: sName,
+              category: sCat,
+              slug: cleanSlug,
+              stamps: addedCoins,
+              totalStamps: cardTarget || 5,
+              badgeText: addedCoins >= (cardTarget || 5) ? 'Reward Ready 🎉' : `${Math.max(0, (cardTarget || 5) - addedCoins)} more Aurex Coins`,
+              badgeClass: addedCoins >= (cardTarget || 5) ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100',
+              statusText: `${addedCoins} of ${cardTarget || 5} Aurex Coins`,
+              Icon: resolveStoreIcon(sCat)
+            };
+            updated = [newCard, ...prev];
+          }
+
           try {
+            const custId = String(customerUser.customerId || 'default').replace(/^ID:\s*/, '').trim();
+            localStorage.setItem(`beaurex_customer_cards_${custId}`, JSON.stringify(updated.map(c => ({ ...c, Icon: undefined }))));
             localStorage.setItem('beaurex_customer_cards', JSON.stringify(updated.map(c => ({ ...c, Icon: undefined }))));
           } catch (_) {}
           return updated;
@@ -1930,14 +2150,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
 
         // CHECK IF THIS WAS THE LAST COIN (Card Completed -> Reward Unlocked!)
         if (reachedTarget || finalStamps >= cardTarget) {
-          const rewardTitle = `${storeInfo.storeName || 'Store'} Reward Voucher`;
+          const cleanStoreName = formatBusinessName(storeInfo.storeName || slug || 'Store');
+          const rewardTitle = `${cleanStoreName} Reward Voucher`;
           const validDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
           const newRewardVoucher = {
             id: `cr-${activeSlug || 'store'}-${Date.now()}`,
             title: rewardTitle,
             subtitle: 'Ready to Redeem at Checkout!',
-            storeName: storeInfo.storeName || 'Store',
+            storeName: cleanStoreName,
             requiresStamps: cardTarget,
             stampsCollected: cardTarget,
             validTill: validDate,
@@ -1965,7 +2186,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             requiresStamps: cardTarget,
             validTill: validDate,
             image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-            approvedDate: payload?.approvedDate || 'Today',
+            approvedDate: payload?.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
             approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
         } else {
@@ -1980,7 +2201,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             requiresStamps: 1,
             validTill: 'Active',
             image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-            approvedDate: payload?.approvedDate || 'Today',
+            approvedDate: payload?.approvedDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
             approvedTime: payload?.approvedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
         }
@@ -2019,7 +2240,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       // Subtract spent coins from loyalty card
       setLoyaltyCardsList(prev => {
         const updated = prev.map(c => {
-          const isMatch = (activeSlug && (c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug)) || prev.length === 1;
+          const isMatch = Boolean(activeSlug && (c.slug === activeSlug || c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug));
           if (isMatch) {
             const current = Number(c.stamps) || 0;
             const newStamps = Math.max(0, current - coinsSpent);
@@ -2035,6 +2256,8 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           return c;
         });
         try {
+          const custId = String(customerUser.customerId || 'default').replace(/^ID:\s*/, '').trim();
+          localStorage.setItem(`beaurex_customer_cards_${custId}`, JSON.stringify(updated.map(c => ({ ...c, Icon: undefined }))));
           localStorage.setItem('beaurex_customer_cards', JSON.stringify(updated.map(c => ({ ...c, Icon: undefined }))));
         } catch (_) {}
         return updated;
@@ -2050,7 +2273,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const nextItem = {
           id: `rh-${Date.now()}`,
           title: selectedReward?.title || 'Reward Voucher',
-          storeName: selectedReward?.storeName || storeInfo.storeName || 'Adobe 1865',
+          storeName: selectedReward?.storeName || storeInfo.storeName || 'Store',
           category: storeInfo.categoryName || 'Retail & Loyalty',
           status: 'Active',
           claimedDate: todayFormatted,
@@ -2093,7 +2316,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           myCust.slice(-6) === dCust.slice(-6) ||
           myCust.replace(/^(BX|LQR)-/, '') === dCust.replace(/^(BX|LQR)-/, '')
         ));
-        const matchesClaim = (pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId))) || matchesCustomer;
+        const targetScanSlug = (storeInfo.qrSlug || slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const itemSlug = String(d.storeSlug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const slugMatch = !targetScanSlug || !itemSlug || itemSlug === targetScanSlug || targetScanSlug.includes(itemSlug) || itemSlug.includes(targetScanSlug);
+        const matchesClaim = slugMatch && ((pendingClaimId && (String(d.claimId) === String(pendingClaimId) || String(d.id) === String(pendingClaimId))) || matchesCustomer);
 
         if (matchesClaim) {
           if (d.type === 'REWARD_APPROVED' || d.type === 'COIN_COLLECT_APPROVED') {
@@ -2117,7 +2343,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             myCust.slice(-6) === dCust.slice(-6) ||
             myCust.replace(/^(BX|LQR)-/, '') === dCust.replace(/^(BX|LQR)-/, '')
           ));
-          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer;
+          const targetScanSlug = (storeInfo.qrSlug || slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const itemSlug = String(payload.storeSlug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const slugMatch = !targetScanSlug || !itemSlug || itemSlug === targetScanSlug || targetScanSlug.includes(itemSlug) || itemSlug.includes(targetScanSlug);
+          const matchesClaim = slugMatch && ((pendingClaimId && (String(payload.claimId) === String(payload.claimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer);
 
           if (matchesClaim) {
             if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
@@ -2145,7 +2374,10 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             myCust.slice(-6) === dCust.slice(-6) ||
             myCust.replace(/^(BX|LQR)-/, '') === dCust.replace(/^(BX|LQR)-/, '')
           ));
-          const matchesClaim = (pendingClaimId && (String(payload.claimId) === String(pendingClaimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer;
+          const targetScanSlug = (storeInfo.qrSlug || slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const itemSlug = String(payload.storeSlug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const slugMatch = !targetScanSlug || !itemSlug || itemSlug === targetScanSlug || targetScanSlug.includes(itemSlug) || itemSlug.includes(targetScanSlug);
+          const matchesClaim = slugMatch && ((pendingClaimId && (String(payload.claimId) === String(payload.claimId) || String(payload.id) === String(pendingClaimId))) || matchesCustomer);
 
           if (matchesClaim) {
             if (payload.type === 'REWARD_APPROVED' || payload.type === 'COIN_COLLECT_APPROVED') {
@@ -2327,7 +2559,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
         const nextItem = {
           id: `rh-${Date.now()}`,
           title: selectedReward?.title || '30% off on next purchase',
-          storeName: selectedReward?.storeName || storeInfo.storeName || 'Adobe 1865',
+          storeName: selectedReward?.storeName || storeInfo.storeName || 'Store',
           category: storeInfo.categoryName || 'Retail & Loyalty',
           status: 'Active',
           claimedDate: todayFormatted,
@@ -3085,7 +3317,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               }`}
             >
               <Gift className="w-4 h-4" />
-              <span>My Rewards</span>
+              <span>Rewards</span>
               <span className="bg-white text-[#8B0000] text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                 {rewardHistory.length}
               </span>
@@ -3231,7 +3463,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                     )}
                   </div>
 
-                  {/* Loyalty Cards Grid (Matching Reference Image 2 - Normal display card, no navigation on click) */}
+                  {/* Loyalty Cards Grid (Fully dynamic, interactive & linked to MongoDB) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {loyaltyCardsList.slice(0, 4).map((card) => {
                       const CardIcon = card.Icon || resolveStoreIcon(card.iconName || card.category);
@@ -3241,20 +3473,29 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       return (
                         <div 
                           key={card.id}
-                          className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-sm transition select-none"
+                          onClick={() => handleOpenStoreCard(card)}
+                          className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-rose-300 hover:shadow-md transition-all active:scale-[0.99] cursor-pointer group select-none relative"
                         >
-                          {/* Top Row: Store Icon + Title & Subtitle + Top-Right Soft Pink Badge */}
+                          {/* Top Row: Store Icon/Logo + Title & Category + Badge & Delete button */}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center space-x-3 min-w-0 flex-1">
-                              <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
-                                <CardIcon className="w-6 h-6 text-white" />
-                              </div>
+                              {card.logo ? (
+                                <img
+                                  src={card.logo}
+                                  alt={formatBusinessName(card.name)}
+                                  className="w-12 h-12 rounded-2xl object-cover shrink-0 border border-slate-100 shadow-xs"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                                  <CardIcon className="w-6 h-6 text-white" />
+                                </div>
+                              )}
                               <div className="min-w-0 flex-1">
-                                <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
-                                  {card.name}
+                                <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate group-hover:text-[#8B0000] transition-colors">
+                                  {formatBusinessName(card.name)}
                                 </h4>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
-                                  {card.category || 'Coffee Shop'}
+                                <p className="text-xs text-slate-500 font-medium mt-0.5 truncate capitalize">
+                                  {card.category || 'Retail & Store'}
                                 </p>
                               </div>
                             </div>
@@ -3327,7 +3568,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             </button>
             <h2 className="text-sm font-bold text-white tracking-wide">Scan QR Code</h2>
             <button
-              onClick={() => setFlashlightOn(!flashlightOn)}
+              onClick={toggleFlashlight}
               className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition ${
                 flashlightOn ? 'bg-amber-400 text-slate-950' : 'bg-white/20 text-white hover:bg-white/30'
               }`}
@@ -3379,7 +3620,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 7: AFTER SCAN (Matching Uploaded Reference Image) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'after_scan' && (() => {
-        const activeSlug = storeInfo.qrSlug || slug || 'adobe-1865';
+        const activeSlug = storeInfo.qrSlug || slug || '';
         const activeCard = loyaltyCardsList.find(c => c.slug === activeSlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === activeSlug);
         const currentStamps = activeCard?.stamps ?? (typeof customerUser.stamps === 'number' ? customerUser.stamps : 0);
         let offers = merchantOffers;
@@ -3410,7 +3651,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-base font-black text-slate-900 leading-tight truncate">
-                  {storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Adobe 1865')}
+                  {formatBusinessName(storeInfo.storeName || slug || 'Store')}
                 </h2>
                 <p className="text-xs text-slate-500 font-medium">
                   {storeInfo.categoryName || 'Retail & Loyalty'}
@@ -3513,13 +3754,34 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                 </div>
               </div>
 
-
+              {/* Action Button: Collect 1 Aurex Coin or View Active Approval */}
+              <div className="pt-2">
+                {!waitingApprovalActive ? (
+                  <button
+                    type="button"
+                    onClick={() => handleRequestAurexCoin(activeSlug)}
+                    className="w-full bg-[#8B0000] hover:bg-[#6e0000] text-white font-black py-3 px-4 rounded-2xl shadow-sm hover:shadow transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 text-xs sm:text-sm"
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>Collect 1 Aurex Coin (Ask Cashier)</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentScreen('waiting_approval')}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-black py-3 px-4 rounded-2xl shadow-sm hover:shadow transition flex items-center justify-center space-x-2 cursor-pointer active:scale-98 animate-pulse text-xs sm:text-sm"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>View Approval Request ({approvalType === 'coin' ? '1 Aurex Coin' : 'Reward'})</span>
+                  </button>
+                )}
+              </div>
 
               {/* Waiting Status Banner (if waiting approval active) */}
               {waitingApprovalActive && (
                 <div 
                   onClick={() => setCurrentScreen('waiting_approval')}
-                  className="pt-2 cursor-pointer"
+                  className="pt-1 cursor-pointer"
                 >
                   <div className="bg-amber-50 border border-amber-200/90 rounded-2xl p-2.5 flex items-center justify-between text-amber-900 text-xs font-bold animate-pulse hover:bg-amber-100/70 transition">
                     <div className="flex items-center space-x-2">
@@ -3561,7 +3823,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           title: offer.title,
                           discount: offer.discount || 'Special Offer',
                           subtitle: offer.subtitle || 'on next purchase',
-                          storeName: storeInfo.storeName || 'Adobe 1865',
+                          storeName: storeInfo.storeName || 'Store',
                           category: storeInfo.categoryName || 'Retail & Loyalty',
                           requiresStamps: reqCoins,
                           validTill: offer.validTill || '30 Jul 2026',
@@ -3623,7 +3885,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                                   title: offer.title,
                                   discount: offer.discount || 'Special Offer',
                                   subtitle: offer.subtitle || 'on next purchase',
-                                  storeName: storeInfo.storeName || 'Adobe 1865',
+                                  storeName: storeInfo.storeName || 'Store',
                                   category: storeInfo.categoryName || 'Retail & Loyalty',
                                   requiresStamps: reqCoins,
                                   validTill: offer.validTill || '30 Jul 2026',
@@ -3765,20 +4027,29 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                       return (
                         <div 
                           key={`all-tab-${card.id}`}
-                          className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-slate-300 hover:shadow-sm transition select-none"
+                          onClick={() => handleOpenStoreCard(card)}
+                          className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3.5 hover:border-rose-300 hover:shadow-md transition-all active:scale-[0.99] cursor-pointer group select-none relative"
                         >
-                          {/* Top Row: Store Icon + Title & Subtitle + Top-Right Soft Pink Badge */}
+                          {/* Top Row: Store Icon/Logo + Title & Category + Badge & Delete button */}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center space-x-3 min-w-0 flex-1">
-                              <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0">
-                                <CardIcon className="w-6 h-6 text-white" />
-                              </div>
+                              {card.logo ? (
+                                <img
+                                  src={card.logo}
+                                  alt={formatBusinessName(card.name)}
+                                  className="w-12 h-12 rounded-2xl object-cover shrink-0 border border-slate-100 shadow-xs"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-xs shrink-0 group-hover:scale-105 transition-transform">
+                                  <CardIcon className="w-6 h-6 text-white" />
+                                </div>
+                              )}
                               <div className="min-w-0 flex-1">
-                                <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
-                                  {card.name}
+                                <h4 className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate group-hover:text-[#8B0000] transition-colors">
+                                  {formatBusinessName(card.name)}
                                 </h4>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5 truncate">
-                                  {card.category || 'Coffee Shop'}
+                                <p className="text-xs text-slate-500 font-medium mt-0.5 truncate capitalize">
+                                  {card.category || 'Retail & Store'}
                                 </p>
                               </div>
                             </div>
@@ -3869,15 +4140,15 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                             <div className="flex items-center space-x-3">
                               <img
                                 src={reward.image}
-                                alt={reward.storeName}
+                                alt={formatBusinessName(reward.storeName)}
                                 className="w-12 h-12 rounded-2xl object-cover shadow-xs"
                               />
                               <div>
                                 <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
                                   Ready Now 🎉
                                 </span>
-                                <h4 className="text-sm font-black text-slate-900 mt-1">{reward.title}</h4>
-                                <p className="text-xs text-slate-500 font-medium">{reward.storeName}</p>
+                                <h4 className="text-sm font-black text-slate-900 mt-1">{formatBusinessName(reward.title)}</h4>
+                                <p className="text-xs text-slate-500 font-medium">{formatBusinessName(reward.storeName)}</p>
                               </div>
                             </div>
                           </div>
@@ -3893,9 +4164,9 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           onClick={() => {
                             setSelectedReward({
                               id: reward.id,
-                              title: reward.title,
+                              title: formatBusinessName(reward.title),
                               subtitle: reward.subtitle || '',
-                              storeName: reward.storeName,
+                              storeName: formatBusinessName(reward.storeName),
                               requiresStamps: reward.requiresStamps || 5,
                               validTill: reward.validTill || '15 Aug 2026',
                               image: reward.image,
@@ -3971,7 +4242,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
                               <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                                {item.title}
+                                {formatBusinessName(item.title)}
                               </h4>
                               <span className={`text-xs font-bold px-2.5 py-0.5 rounded-lg shrink-0 ${
                                 item.status === 'Used'
@@ -3984,7 +4255,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
                               </span>
                             </div>
                             <p className="text-xs font-semibold text-slate-700 mt-1">
-                              {item.storeName}
+                              {formatBusinessName(item.storeName)}
                             </p>
                           </div>
                         </div>
@@ -4021,7 +4292,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 10: REWARD DETAILS / CLAIM NOW (Matching Image 2) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_details' && (() => {
-        const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
+        const activeStoreName = formatBusinessName(storeInfo.storeName || slug || 'Store');
         const activeCategory = storeInfo.categoryName || 'Coffee Shop';
         const reqStamps = Number(selectedReward?.requiresStamps) || 2;
         const progressStamps = typeof customerUser.stamps === 'number' ? customerUser.stamps : 0;
@@ -4057,16 +4328,24 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             <div className="bg-white border border-slate-100 rounded-3xl p-4 sm:p-5 shadow-xs flex items-center space-x-4 text-left">
               <img
                 src={selectedReward?.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-                alt={selectedReward?.title || '30% OFF'}
+                alt={formatBusinessName(selectedReward?.storeName || selectedReward?.title || 'Reward')}
                 className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shrink-0 shadow-xs"
               />
               <div className="min-w-0 flex-1 space-y-2">
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none">
-                    {selectedReward?.discount || selectedReward?.title || '30% OFF'}
+                    {selectedReward?.discount 
+                      ? selectedReward.discount 
+                      : (selectedReward?.storeName 
+                          ? formatBusinessName(selectedReward.storeName) 
+                          : formatBusinessName(selectedReward?.title?.replace(/Reward Voucher/i, '')) || 'Reward Voucher')}
                   </h2>
                   <p className="text-xs sm:text-sm font-bold text-slate-800 mt-1">
-                    {selectedReward?.subtitle || 'on next purchase'}
+                    {selectedReward?.subtitle 
+                      ? (selectedReward.subtitle.toLowerCase().includes('ready') && !selectedReward.subtitle.toLowerCase().includes('voucher') 
+                          ? `Reward Voucher • ${selectedReward.subtitle}` 
+                          : selectedReward.subtitle) 
+                      : 'Reward Voucher • Ready to Redeem'}
                   </p>
                 </div>
                 <div>
@@ -4160,7 +4439,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'waiting_approval' && (() => {
         const cleanCustomerId = (customerUser.customerId || 'LQR-8F4A29').replace(/^ID:\s*/, '').trim();
-        const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
+        const activeStoreName = formatBusinessName(storeInfo.storeName || slug || 'Store');
         const activeCategory = storeInfo.categoryName || 'Coffee Shop';
 
         return (
@@ -4280,7 +4559,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
       {/* SCREEN 13: REWARD CLAIMED (Matching Image 3) */}
       {/* ------------------------------------------------------------------- */}
       {currentScreen === 'reward_congrats' && (() => {
-        const activeStoreName = storeInfo.storeName || (slug ? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Ka-feen');
+        const activeStoreName = formatBusinessName(storeInfo.storeName || slug || 'Store');
         const activeCategory = storeInfo.categoryName || 'Coffee Shop';
 
         return (
@@ -4354,13 +4633,13 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               ) : (
                 <img
                   src={selectedReward.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80'}
-                  alt={selectedReward.title || '30% OFF'}
+                  alt={formatBusinessName(selectedReward.title || '30% OFF')}
                   className="w-20 h-20 rounded-2xl object-cover shrink-0 shadow-xs"
                 />
               )}
               <div className="min-w-0 flex-1">
                 <h3 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
-                  {selectedReward.title || (selectedReward?.isCoin ? '1st Aurex Coin' : '30% OFF')}
+                  {formatBusinessName(selectedReward.title) || (selectedReward?.isCoin ? '1st Aurex Coin' : '30% OFF')}
                 </h3>
                 <p className="text-xs sm:text-sm font-semibold text-slate-800 mt-0.5">
                   {selectedReward.subtitle || (selectedReward?.isCoin ? 'Collected on your loyalty card' : 'on next purchase')}
@@ -4405,26 +4684,16 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
             {/* 1. User Profile Card */}
             <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between hover:border-slate-300 transition">
               <div className="flex items-center space-x-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#8B0000] to-[#981b2a] text-white font-black text-lg flex items-center justify-center shrink-0 shadow-md shadow-[#8B0000]/25 ring-2 ring-rose-200">
-                  {customerUser.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                <div className="w-14 h-14 rounded-2xl bg-[#8B0000] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#8B0000]/25">
+                  <User className="w-7 h-7 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-base sm:text-lg font-black text-slate-900 leading-tight truncate">
                     {customerUser.name}
                   </h3>
-                  <div className="flex items-center space-x-2 mt-1 text-xs text-slate-500 font-mono">
-                    <span className="bg-slate-50 border border-slate-200/80 px-2.5 py-0.5 rounded-lg text-slate-700 font-bold">
-                      ID: {customerUser.customerId}
-                    </span>
-                    <button
-                      onClick={() => handleCopyCustomer(customerUser.customerId)}
-                      className="p-1 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-                      title="Copy Customer ID"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                    {copiedId && <span className="text-[10px] text-emerald-600 font-sans font-bold">Copied!</span>}
-                  </div>
+                  <p className="mt-1 text-xs text-slate-500 font-medium">
+                    ID: {customerUser.customerId}
+                  </p>
                 </div>
               </div>
               <button
@@ -4470,33 +4739,26 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               <Edit3 className="w-4 h-4 text-slate-400 hover:text-slate-700 shrink-0" />
             </div>
 
-            {/* 3. Invite & Refer Button Below Email Address */}
+            {/* 3. Invite & Refer Friends Card (Clean Theme Matching Profile Style) */}
             <div>
-              <button
-                type="button"
+              <div 
                 onClick={handleShareReferral}
-                className="w-full bg-gradient-to-r from-[#690005] via-[#8B0000] to-[#590104] hover:from-[#590104] hover:to-[#400002] text-white font-black p-4 rounded-2xl text-xs sm:text-sm transition-all duration-200 shadow-lg shadow-[#8B0000]/25 flex items-center justify-between cursor-pointer group transform hover:-translate-y-0.5 active:translate-y-0"
+                className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex items-center justify-between hover:border-slate-300 transition cursor-pointer group"
               >
                 <div className="flex items-center space-x-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
-                    <Share2 className="w-5 h-5 text-amber-300 stroke-[2.5]" />
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#8B0000] flex items-center justify-center shrink-0 border border-rose-100">
+                    <Share2 className="w-5 h-5 text-[#8B0000]" />
                   </div>
-                  <div className="text-left">
-                    <span className="block text-xs sm:text-sm font-black text-white leading-tight">
-                      Invite &amp; Refer Friends
-                    </span>
-                    <span className="block text-[11px] font-semibold text-rose-200/90 mt-0.5">
-                      Share your referral link to earn bonus rewards
-                    </span>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 group-hover:text-[#8B0000] transition-colors">Invite &amp; Refer Friends</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">Share your referral link to earn bonus rewards</p>
                   </div>
                 </div>
-
-                <div className="flex items-center space-x-1.5 bg-white/15 px-3 py-1.5 rounded-xl border border-white/20 text-amber-300 font-bold text-xs group-hover:bg-white/25 transition shrink-0 ml-2">
-                  <Gift className="w-3.5 h-3.5 text-amber-300" />
+                <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-500">
                   <span>Refer</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-0.5 transition" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
                 </div>
-              </button>
+              </div>
               {copiedReferral && (
                 <p className="text-center text-xs text-emerald-600 font-bold mt-2">
                   ✓ Referral link copied to clipboard!
@@ -4570,7 +4832,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
           <button
             onClick={() => setCurrentScreen('home')}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 ${
-              currentScreen === 'home' ? 'text-slate-900 font-extrabold' : 'text-slate-400 hover:text-slate-600 font-medium'
+              currentScreen === 'home' ? 'text-[#8B0000] font-black' : 'text-slate-400 hover:text-slate-600 font-medium'
             }`}
           >
             <Home className="w-6 h-6 stroke-[2]" />
@@ -4595,7 +4857,7 @@ export default function CustomerExperience({ initialAuthMode = 'signin' }) {
               setCurrentScreen('rewards');
             }}
             className={`flex flex-col items-center justify-center py-1 transition cursor-pointer flex-1 relative ${
-              currentScreen === 'rewards' ? 'text-slate-900 font-extrabold' : 'text-slate-400 hover:text-slate-600 font-medium'
+              currentScreen === 'rewards' ? 'text-[#8B0000] font-black' : 'text-slate-400 hover:text-slate-600 font-medium'
             }`}
           >
             <div className="relative">

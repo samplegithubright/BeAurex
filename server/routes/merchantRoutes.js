@@ -7,6 +7,7 @@ const Reward = require('../models/Reward');
 const Merchant = require('../models/Merchant');
 const Scan = require('../models/Scan');
 const Customer = require('../models/Customer');
+const { formatBusinessName } = require('../services/nameUtils');
 
 // Get Merchant Dashboard Configured Features
 router.get('/features', async (req, res) => {
@@ -56,7 +57,7 @@ router.get('/standee', async (req, res) => {
       merchant = await Merchant.findOne();
     }
 
-    const storeName = merchant?.businessName || req.query.store || 'Royal Sweets & Cafe';
+    const storeName = formatBusinessName(merchant?.businessName || req.query.store || 'Royal Sweets & Cafe');
     const storeSlug = merchant?.qrSlug || req.query.slug || 'royal-sweets-delhi';
     const primaryBranch = merchant?.branches?.find(b => b.isPrimary) || merchant?.branches?.[0] || {
       branchName: 'Main Outlet',
@@ -239,36 +240,57 @@ router.get('/scans', async (req, res) => {
 // =========================================================================
 router.get('/rewards', async (req, res) => {
   try {
-    const { merchantId } = req.query;
+    const { merchantId, storeSlug, slug } = req.query;
+    const mongoose = require('mongoose');
+    let mId = null;
+
+    if (merchantId && mongoose.Types.ObjectId.isValid(merchantId)) {
+      mId = merchantId;
+    } else if (storeSlug || slug) {
+      const targetSlug = String(storeSlug || slug).trim();
+      const m = await Merchant.findOne({
+        $or: [
+          { qrSlug: targetSlug },
+          { customSlug: targetSlug },
+          { businessName: { $regex: new RegExp(`^${targetSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+        ]
+      });
+      if (m) mId = m._id;
+    }
+
     let query = {};
-    if (merchantId) query.merchantId = merchantId;
+    if (mId) {
+      query.merchantId = mId;
+    } else if (merchantId) {
+      query.merchantId = merchantId;
+    }
 
     let dbRewards = [];
     try {
       dbRewards = await Reward.find(query).sort({ createdAt: -1 });
     } catch (_) {}
 
-    const defaultRewards = [
-      { id: 'r1', title: '30% off on next purchase', condition: 'Collect 2 Aurex Coins to unlock', discountType: 'PERCENTAGE', discountValue: 30, minBillAmount: 0, stampsRequired: 2, validity: 'Expires 7/30/2026', banner: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', tag: 'ACHIEVED', isActive: true },
-      { id: 'r2', title: '50% discount', condition: 'Collect 5 Aurex Coins to unlock', discountType: 'PERCENTAGE', discountValue: 50, minBillAmount: 0, stampsRequired: 5, validity: 'Expires 7/30/2026', banner: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80', tag: 'ACHIEVED', isActive: true },
-      { id: 'r3', title: 'Free Coffee', condition: 'Collect 3 Aurex Coins to unlock', discountType: 'FREE_ITEM', discountValue: 100, minBillAmount: 0, stampsRequired: 3, validity: 'Expires 7/30/2026', banner: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80', tag: 'ACHIEVED', isActive: true }
-    ];
-
-    const rewards = dbRewards.length > 0 ? dbRewards.map(r => ({
+    // Strictly dynamic from MongoDB - No fake hardcoded default fallback
+    const rewards = dbRewards.map(r => ({
       id: r._id.toString(),
+      _id: r._id.toString(),
+      merchantId: r.merchantId ? r.merchantId.toString() : null,
       title: r.title,
-      description: r.description || `Collect ${r.stampsRequired || 5} Aurex Coins • Valid for ${r.validityDays || 30} days`,
-      condition: `Collect ${r.stampsRequired || 5} Aurex Coins • Valid for ${r.validityDays || 30} days`,
-      discountType: r.discountType,
-      discountValue: r.discountValue,
-      minBillAmount: r.minBillAmount,
+      description: r.description || `Collect ${r.stampsRequired || 5} Aurex Coins • ${r.validity || `Expires in ${r.validityDays || 30} days`}`,
+      condition: r.validity ? `Collect ${r.stampsRequired || 5} Aurex Coins • ${r.validity}` : `Collect ${r.stampsRequired || 5} Aurex Coins • Valid for ${r.validityDays || 30} days`,
+      discountType: r.discountType || 'PERCENTAGE',
+      discountValue: r.discountValue || 0,
+      minBillAmount: r.minBillAmount || 0,
       stampsRequired: r.stampsRequired || 5,
-      validity: `Expires in ${r.validityDays || 30} days`,
-      banner: r.banner || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      validity: r.validity || `${r.validityDays || 30} Days`,
+      validityDays: r.validityDays || 30,
+      expiryDate: r.expiryDate || '',
+      banner: r.banner || '',
       probability: `${r.probabilityWeight || 50}% Chance`,
       tag: (r.stampsRequired || 5) <= 3 ? 'Popular' : 'Special Reward',
-      isActive: r.isActive
-    })) : defaultRewards;
+      isActive: r.isActive !== false,
+      createdAt: r.createdAt
+    }));
 
     res.json({
       success: true,
@@ -281,10 +303,41 @@ router.get('/rewards', async (req, res) => {
 
 router.post('/rewards', async (req, res) => {
   try {
-    const { merchantId, title, description = '', discountType = 'PERCENTAGE', discountValue = 10, minBillAmount = 0, validityDays = 30, stampsRequired = 5, banner = '', probabilityWeight = 50 } = req.body;
-    if (!title) return res.status(400).json({ success: false, message: 'Reward title is required.' });
+    const { 
+      merchantId, 
+      storeSlug, 
+      title, 
+      description = '', 
+      discountType = 'PERCENTAGE', 
+      discountValue = 10, 
+      minBillAmount = 0, 
+      validityDays = 30, 
+      stampsRequired = 5, 
+      expiryDate = '',
+      validity = '',
+      banner = '', 
+      probabilityWeight = 50 
+    } = req.body;
 
-    let mId = merchantId;
+    if (!title || !title.trim()) {
+      return res.status(400).json({ success: false, message: 'Reward title is required.' });
+    }
+
+    const mongoose = require('mongoose');
+    let mId = null;
+
+    if (merchantId && mongoose.Types.ObjectId.isValid(merchantId)) {
+      mId = merchantId;
+    } else if (storeSlug) {
+      const m = await Merchant.findOne({
+        $or: [
+          { qrSlug: storeSlug },
+          { customSlug: storeSlug }
+        ]
+      });
+      if (m) mId = m._id;
+    }
+
     if (!mId) {
       const m = await Merchant.findOne();
       mId = m?._id;
@@ -295,42 +348,183 @@ router.post('/rewards', async (req, res) => {
       title: title.trim(),
       description: description.trim(),
       discountType,
-      discountValue: Number(discountValue),
-      minBillAmount: Number(minBillAmount),
-      validityDays: Number(validityDays),
-      stampsRequired: Number(stampsRequired),
+      discountValue: Number(discountValue) || 10,
+      minBillAmount: Number(minBillAmount) || 0,
+      validityDays: Number(validityDays) || 30,
+      stampsRequired: Number(stampsRequired) || 5,
+      expiryDate: expiryDate || '',
+      validity: validity || (validityDays ? `${validityDays} Days` : ''),
       banner: banner || '',
-      probabilityWeight: Number(probabilityWeight),
+      probabilityWeight: Number(probabilityWeight) || 50,
       isActive: true
     });
 
     res.json({
       success: true,
       message: 'New reward offer rule created successfully!',
-      reward: newReward
+      reward: {
+        id: newReward._id.toString(),
+        _id: newReward._id.toString(),
+        merchantId: newReward.merchantId ? newReward.merchantId.toString() : null,
+        title: newReward.title,
+        description: newReward.description,
+        condition: newReward.validity ? `Collect ${newReward.stampsRequired} Aurex Coins • ${newReward.validity}` : `Collect ${newReward.stampsRequired} Aurex Coins • Valid for ${newReward.validityDays} Days`,
+        discountType: newReward.discountType,
+        discountValue: newReward.discountValue,
+        minBillAmount: newReward.minBillAmount,
+        stampsRequired: newReward.stampsRequired,
+        validity: newReward.validity || `${newReward.validityDays} Days`,
+        validityDays: newReward.validityDays,
+        expiryDate: newReward.expiryDate || '',
+        banner: newReward.banner,
+        isActive: newReward.isActive !== false,
+        createdAt: newReward.createdAt
+      }
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
+// PUT /rewards/:id - Update existing reward offer in MongoDB (prevents duplicates)
+router.put('/rewards/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      merchantId, 
+      storeSlug, 
+      title, 
+      description, 
+      discountType, 
+      discountValue, 
+      minBillAmount, 
+      validityDays, 
+      stampsRequired, 
+      expiryDate,
+      validity,
+      banner, 
+      probabilityWeight, 
+      isActive 
+    } = req.body;
+
+    const mongoose = require('mongoose');
+    let reward = null;
+
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      reward = await Reward.findById(id);
+    }
+
+    if (!reward && title) {
+      let mId = null;
+      if (merchantId && mongoose.Types.ObjectId.isValid(merchantId)) {
+        mId = merchantId;
+      } else if (storeSlug) {
+        const m = await Merchant.findOne({ $or: [{ qrSlug: storeSlug }, { customSlug: storeSlug }] });
+        if (m) mId = m._id;
+      }
+      const q = mId ? { merchantId: mId, title: String(title).trim() } : { title: String(title).trim() };
+      reward = await Reward.findOne(q);
+    }
+
+    if (!reward) {
+      return res.status(404).json({ success: false, message: 'Reward not found to update.' });
+    }
+
+    if (title !== undefined) reward.title = String(title).trim();
+    if (description !== undefined) reward.description = String(description).trim();
+    if (discountType !== undefined) reward.discountType = discountType;
+    if (discountValue !== undefined) reward.discountValue = Number(discountValue);
+    if (minBillAmount !== undefined) reward.minBillAmount = Number(minBillAmount);
+    if (validityDays !== undefined) reward.validityDays = Number(validityDays);
+    if (stampsRequired !== undefined) reward.stampsRequired = Number(stampsRequired);
+    if (expiryDate !== undefined) reward.expiryDate = expiryDate;
+    if (validity !== undefined) reward.validity = validity;
+    if (banner !== undefined) reward.banner = banner;
+    if (probabilityWeight !== undefined) reward.probabilityWeight = Number(probabilityWeight);
+    if (isActive !== undefined) reward.isActive = Boolean(isActive);
+
+    await reward.save();
+
+    res.json({
+      success: true,
+      message: 'Reward updated successfully!',
+      reward: {
+        id: reward._id.toString(),
+        _id: reward._id.toString(),
+        merchantId: reward.merchantId ? reward.merchantId.toString() : null,
+        title: reward.title,
+        description: reward.description,
+        condition: reward.validity ? `Collect ${reward.stampsRequired} Aurex Coins • ${reward.validity}` : `Collect ${reward.stampsRequired} Aurex Coins • Valid for ${reward.validityDays} Days`,
+        discountType: reward.discountType,
+        discountValue: reward.discountValue,
+        minBillAmount: reward.minBillAmount,
+        stampsRequired: reward.stampsRequired,
+        validity: reward.validity || `${reward.validityDays} Days`,
+        validityDays: reward.validityDays,
+        expiryDate: reward.expiryDate || '',
+        banner: reward.banner,
+        isActive: reward.isActive !== false,
+        createdAt: reward.createdAt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// PATCH /rewards/:id/toggle - Toggle active/paused state in MongoDB
+router.patch('/rewards/:id/toggle', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid reward ID' });
+    }
+    const reward = await Reward.findById(id);
+    if (!reward) return res.status(404).json({ success: false, message: 'Reward not found' });
+    reward.isActive = !reward.isActive;
+    await reward.save();
+    res.json({ success: true, isActive: reward.isActive });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// DELETE /rewards/:id - Permanently remove reward and its duplicates from MongoDB
 router.delete('/rewards/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { title } = req.query;
+    const { title, merchantId, storeSlug } = req.query;
     const mongoose = require('mongoose');
 
+    let mId = null;
+    if (merchantId && mongoose.Types.ObjectId.isValid(merchantId)) {
+      mId = merchantId;
+    } else if (storeSlug) {
+      const m = await Merchant.findOne({ $or: [{ qrSlug: storeSlug }, { customSlug: storeSlug }] });
+      if (m) mId = m._id;
+    }
+
+    // 1. Delete by valid ObjectId
     if (mongoose.Types.ObjectId.isValid(id)) {
       await Reward.findByIdAndDelete(id);
     }
 
-    if (title) {
-      await Reward.deleteMany({ title: String(title).trim() });
-    } else if (!mongoose.Types.ObjectId.isValid(id)) {
-      await Reward.deleteMany({ title: id });
+    // 2. Also delete any matching title (case-insensitive) for this merchant to clean duplicate records
+    if (title && String(title).trim()) {
+      const cleanTitle = String(title).trim();
+      const escaped = cleanTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const titleQuery = { title: { $regex: new RegExp(`^${escaped}$`, 'i') } };
+      if (mId) titleQuery.merchantId = mId;
+      await Reward.deleteMany(titleQuery);
+    } else if (!mongoose.Types.ObjectId.isValid(id) && id && id !== 'undefined' && id !== 'null') {
+      const escaped = String(id).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const titleQuery = { title: { $regex: new RegExp(`^${escaped}$`, 'i') } };
+      if (mId) titleQuery.merchantId = mId;
+      await Reward.deleteMany(titleQuery);
     }
 
-    res.json({ success: true, message: 'Reward removed successfully.' });
+    res.json({ success: true, message: 'Reward permanently deleted from MongoDB.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -395,7 +589,7 @@ router.get('/profile', async (req, res) => {
       success: true,
       merchant: {
         id: merchant._id.toString(),
-        businessName: merchant.businessName,
+        businessName: formatBusinessName(merchant.businessName),
         ownerName: merchant.ownerName || '',
         logo: merchant.logo || '',
         category: merchant.category,
@@ -441,7 +635,7 @@ router.put('/profile', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Merchant not found' });
     }
 
-    if (businessName !== undefined) merchant.businessName = businessName.trim();
+    if (businessName !== undefined) merchant.businessName = formatBusinessName(businessName);
     if (ownerName !== undefined) merchant.ownerName = ownerName.trim();
     if (category !== undefined) merchant.category = category;
     if (logo !== undefined) merchant.logo = logo;
@@ -472,7 +666,7 @@ router.put('/profile', async (req, res) => {
       message: 'Profile and address updated successfully!',
       merchant: {
         id: merchant._id.toString(),
-        businessName: merchant.businessName,
+        businessName: formatBusinessName(merchant.businessName),
         ownerName: merchant.ownerName,
         logo: merchant.logo,
         category: merchant.category,
@@ -1047,7 +1241,7 @@ router.post('/give-stamp', async (req, res) => {
     if (!merchant) merchant = await Merchant.findOne({ isActive: true });
     if (!merchant) merchant = await Merchant.findOne();
 
-    const resolvedStoreName = merchant ? merchant.businessName : 'Kafeen Coffee';
+    const resolvedStoreName = formatBusinessName(merchant ? merchant.businessName : 'Kafeen Coffee');
     const resolvedSlug = (merchant && merchant.qrSlug) || storeSlug || 'kafeen-4040';
 
     customer.pendingStamp = {
@@ -1482,10 +1676,12 @@ router.post('/subscribe', async (req, res) => {
 // =========================================================================
 const redemptionStore = require('../services/redemptionStore');
 
-// GET Pending Redemptions for Merchant Review
+// GET Pending Redemptions for Merchant Review (Scoped by merchantId or storeSlug)
 router.get('/redemptions/pending', (req, res) => {
   try {
-    const pending = redemptionStore.getPending();
+    const { merchantId, storeSlug, slug } = req.query;
+    const targetSlug = storeSlug || slug || '';
+    const pending = redemptionStore.getPending(merchantId, targetSlug);
     res.json({
       success: true,
       count: pending.length,
@@ -1496,14 +1692,16 @@ router.get('/redemptions/pending', (req, res) => {
   }
 });
 
-// GET All Redemptions (Pending, Approved, Declined)
+// GET All Redemptions (Pending, Approved, Declined - Scoped by merchantId or storeSlug)
 router.get('/redemptions/all', (req, res) => {
   try {
+    const { merchantId, storeSlug, slug } = req.query;
+    const targetSlug = storeSlug || slug || '';
     res.json({
       success: true,
-      pending: redemptionStore.getPending(),
-      approved: redemptionStore.getApproved(),
-      declined: redemptionStore.getDeclined()
+      pending: redemptionStore.getPending(merchantId, targetSlug),
+      approved: redemptionStore.getApproved(merchantId, targetSlug),
+      declined: redemptionStore.getDeclined(merchantId, targetSlug)
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -1521,6 +1719,7 @@ router.post('/redemptions/approve', async (req, res) => {
 
     // Persist changes to MongoDB Customer
     let customerStamps = undefined;
+    let customerStoreProgress = [];
     try {
       const cleanCustId = (approved.customerId || customerId || '').replace(/^ID:\s*/, '').trim();
       if (cleanCustId) {
@@ -1534,25 +1733,79 @@ router.post('/redemptions/approve', async (req, res) => {
         });
 
         if (customer) {
+          // Resolve merchant metadata
+          const targetSlug = approved.storeSlug || '';
+          let merchantObj = null;
+          try {
+            if (approved.merchantId || targetSlug) {
+              const queryOr = [];
+              if (approved.merchantId && mongoose.isValidObjectId(approved.merchantId)) {
+                queryOr.push({ _id: approved.merchantId });
+              }
+              if (targetSlug) {
+                queryOr.push({ qrSlug: targetSlug });
+                queryOr.push({ qrSlug: new RegExp(targetSlug, 'i') });
+              }
+              if (queryOr.length > 0) {
+                merchantObj = await Merchant.findOne({ $or: queryOr });
+              }
+            }
+          } catch (_) {}
+
+          const resolvedMerchantId = merchantObj?._id || approved.merchantId || null;
+          const resolvedStoreName = formatBusinessName(merchantObj?.businessName || approved.storeName || targetSlug || 'Store');
+          const resolvedCategory = merchantObj?.category || approved.category || 'Retail';
+
+          // Resolve dynamic reward target coins for this merchant
+          let dynamicGoal = 5;
+          if (resolvedMerchantId) {
+            try {
+              const activeReward = await Reward.findOne({ merchantId: resolvedMerchantId, isActive: { $ne: false } }).sort({ stampsRequired: 1, createdAt: -1 });
+              if (activeReward?.stampsRequired) dynamicGoal = Number(activeReward.stampsRequired);
+            } catch (_) {}
+          }
+
           if (approved.requestType === 'coin') {
             const coinsToAdd = Number(approved.coins) || 1;
             customer.stamps = (customer.stamps || 0) + coinsToAdd;
             
-            // Update store progress for this merchant
+            // Update store progress for this merchant in MongoDB
             if (!customer.storeProgress) customer.storeProgress = [];
-            const targetSlug = approved.storeSlug || 'ka-feen';
-            let prog = customer.storeProgress.find(p => p.storeSlug === targetSlug);
+            let prog = customer.storeProgress.find(p => 
+              (targetSlug && p.storeSlug && p.storeSlug.toLowerCase() === targetSlug.toLowerCase()) ||
+              (resolvedMerchantId && p.merchantId && String(p.merchantId) === String(resolvedMerchantId))
+            );
+
             if (prog) {
               prog.stampsCollected = (prog.stampsCollected || 0) + coinsToAdd;
+              prog.storeName = resolvedStoreName;
+              prog.category = resolvedCategory;
+              prog.totalStamps = dynamicGoal;
+              if (resolvedMerchantId) prog.merchantId = resolvedMerchantId;
               prog.lastVisit = new Date();
             } else {
               customer.storeProgress.push({
-                storeSlug: targetSlug,
-                storeName: approved.storeSlug || 'Store',
+                merchantId: resolvedMerchantId,
+                storeSlug: targetSlug || 'store',
+                storeName: resolvedStoreName,
+                category: resolvedCategory,
                 stampsCollected: coinsToAdd,
-                totalStamps: 5,
+                totalStamps: dynamicGoal,
                 lastVisit: new Date()
               });
+            }
+            customer.activeCardsCount = customer.storeProgress.length;
+
+            // Log scan in MongoDB
+            if (merchantObj && customer._id) {
+              try {
+                await Scan.create({
+                  merchantId: merchantObj._id,
+                  customerId: customer._id,
+                  ipAddress: req.ip || '127.0.0.1',
+                  userAgent: req.headers['user-agent'] || 'Mobile Browser'
+                });
+              } catch (_) {}
             }
           } else {
             // Reward Offer Claim: subtract spent coins
@@ -1561,16 +1814,21 @@ router.post('/redemptions/approve', async (req, res) => {
             customer.rewardsRedeemedCount = (customer.rewardsRedeemedCount || 0) + 1;
 
             if (customer.storeProgress) {
-              const targetSlug = approved.storeSlug || 'ka-feen';
-              let prog = customer.storeProgress.find(p => p.storeSlug === targetSlug);
+              let prog = customer.storeProgress.find(p => 
+                (targetSlug && p.storeSlug && p.storeSlug.toLowerCase() === targetSlug.toLowerCase()) ||
+                (resolvedMerchantId && p.merchantId && String(p.merchantId) === String(resolvedMerchantId))
+              );
               if (prog) {
                 prog.stampsCollected = Math.max(0, (prog.stampsCollected || 0) - coinsSpent);
+                prog.lastVisit = new Date();
               }
             }
           }
+
           await customer.save();
           customerStamps = customer.stamps;
-          console.log(`✅ Synced customer ${customer.name} stamps in DB: now ${customer.stamps}`);
+          customerStoreProgress = customer.storeProgress;
+          console.log(`✅ Synced customer ${customer.name} stamps in DB: now ${customer.stamps} for store [${targetSlug}]`);
         }
       }
     } catch (dbErr) {
@@ -1582,7 +1840,8 @@ router.post('/redemptions/approve', async (req, res) => {
       success: true,
       message: approved.requestType === 'coin' ? 'Aurex Coin approved!' : `Reward approved! Customer can now enjoy ${approved.rewardTitle}.`,
       claim: approved,
-      customerStamps
+      customerStamps,
+      storeProgress: customerStoreProgress
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

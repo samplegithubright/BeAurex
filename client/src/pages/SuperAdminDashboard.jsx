@@ -2676,6 +2676,246 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     form: { name: '', email: '', mobile: '', district: '', state: '', role: 'FIELD_AGENT', mwId: '', lastLogin: '' }
   });
 
+  // Marketing Kits Repository State (Synced with Team Portal via beaurex_marketing_kits_data)
+  const initialMarketingKitsData = {
+    mw_sales_kit: {
+      title: 'Sales Kit',
+      folders: [
+        {
+          id: 'doc',
+          name: 'Document',
+          subCount: 0,
+          items: [
+            { id: 'd1', name: 'Merchant Agreement & Franchise Protocol Guide.pdf', type: 'file', ext: 'PDF', size: '2.4 MB', date: '15 Sep 2026', res: 'Official Document' }
+          ]
+        },
+        {
+          id: 'mykit',
+          name: 'My Kit',
+          subCount: 0,
+          items: [
+            { id: 'img1', name: '5x7 Table Standee QR Print.png', type: 'image', ext: 'PNG', size: '3.8 MB', date: '18 Sep 2026', res: '300 DPI High-Res' },
+            { id: 'img2', name: 'Window & Door Scan To Win Vinyl Sticker.png', type: 'image', ext: 'PNG', size: '1.9 MB', date: '18 Sep 2026', res: 'Round Vinyl' },
+            { id: 'img3', name: 'Table Tent Counter Flyer A5.png', type: 'image', ext: 'PNG', size: '2.6 MB', date: '19 Sep 2026', res: 'Print Ready' },
+            { id: 'img4', name: 'Instagram Story Promotional Template 1.png', type: 'image', ext: 'PNG', size: '1.2 MB', date: '20 Sep 2026', res: '1080x1920' },
+            { id: 'img5', name: 'Instagram Story Promotional Template 2.png', type: 'image', ext: 'PNG', size: '1.4 MB', date: '20 Sep 2026', res: '1080x1920' },
+            { id: 'img6', name: 'WhatsApp Offer & Scratch Card Banner.png', type: 'image', ext: 'PNG', size: '890 KB', date: '22 Sep 2026', res: '1200x628' },
+            { id: 'img7', name: 'Merchant 20% Cashback Poster.png', type: 'image', ext: 'PNG', size: '2.1 MB', date: '23 Sep 2026', res: 'A4 Print' },
+            { id: 'img8', name: 'Customer Mystery Reward Mockup.png', type: 'image', ext: 'PNG', size: '1.7 MB', date: '24 Sep 2026', res: '3D Mockup' },
+            { id: 'img9', name: 'Retailer Onboarding Pitch One-Pager.png', type: 'image', ext: 'PNG', size: '1.5 MB', date: '25 Sep 2026', res: 'One-Pager' },
+            { id: 'img10', name: 'BeAurex Official Vector Brand Logo Pack.png', type: 'image', ext: 'PNG', size: '4.2 MB', date: '25 Sep 2026', res: 'Vector Asset' },
+            { id: 'img11', name: 'Store Cash Counter Decal.png', type: 'image', ext: 'PNG', size: '1.1 MB', date: '26 Sep 2026', res: 'Plexiglass' },
+            { id: 'img12', name: 'Festival Mega Rewards Banner Template.png', type: 'image', ext: 'PNG', size: '2.8 MB', date: '27 Sep 2026', res: 'Editable' },
+            { id: 'img13', name: 'VIP Customer Loyalty Card Graphic.png', type: 'image', ext: 'PNG', size: '950 KB', date: '28 Sep 2026', res: 'Wallet Card' }
+          ]
+        }
+      ]
+    },
+    creator_kit: {
+      title: 'Creator Kit',
+      folders: [
+        {
+          id: 'creator_gfx',
+          name: 'Creator Graphics',
+          subCount: 0,
+          items: [
+            { id: 'cg1', name: 'YouTube Thumbnail Brand Kit.png', type: 'image', ext: 'PNG', size: '2.1 MB', date: '20 Sep 2026', res: '1920x1080' },
+            { id: 'cg2', name: 'Reels Hook Overlay Graphics.png', type: 'image', ext: 'PNG', size: '1.5 MB', date: '21 Sep 2026', res: '1080x1920' },
+            { id: 'cg3', name: 'BeAurex Sticker Pack for Stories.png', type: 'image', ext: 'PNG', size: '1.8 MB', date: '22 Sep 2026', res: 'Transparent PNG' },
+            { id: 'cg4', name: 'Affiliate Commission Badge.png', type: 'image', ext: 'PNG', size: '820 KB', date: '23 Sep 2026', res: 'Vector' },
+            { id: 'cg5', name: 'QR Scan Callout Arrow Graphic.png', type: 'image', ext: 'PNG', size: '640 KB', date: '24 Sep 2026', res: 'Vector' },
+            { id: 'cg6', name: 'Creator Showcase Banner.png', type: 'image', ext: 'PNG', size: '2.4 MB', date: '25 Sep 2026', res: 'Full HD' },
+            { id: 'cg7', name: 'Social Proof Testimonial Card.png', type: 'image', ext: 'PNG', size: '1.1 MB', date: '26 Sep 2026', res: 'Square 1080' },
+            { id: 'cg8', name: 'End Screen Call to Action.png', type: 'image', ext: 'PNG', size: '1.3 MB', date: '27 Sep 2026', res: '16:9 HD' }
+          ]
+        },
+        {
+          id: 'creator_vid',
+          name: 'Video Assets',
+          subCount: 0,
+          items: [
+            { id: 'cv1', name: 'BeAurex 15s Story Animation Intro.mp4', type: 'video', ext: 'MP4', size: '14.2 MB', date: '28 Sep 2026', res: '1080p 60fps' }
+          ]
+        }
+      ]
+    },
+    franchise_sales_kit: {
+      title: 'Franchise Sales Kit',
+      folders: [
+        {
+          id: 'fr_legal',
+          name: 'Franchise Legal & Agreements',
+          subCount: 0,
+          items: [
+            { id: 'fl1', name: 'Master Franchise Agreement Template.pdf', type: 'file', ext: 'PDF', size: '3.5 MB', date: '10 Sep 2026', res: 'Document' },
+            { id: 'fl2', name: 'Territory Exclusivity Certificate.pdf', type: 'file', ext: 'PDF', size: '1.8 MB', date: '12 Sep 2026', res: 'Document' },
+            { id: 'fl3', name: 'Franchise Commission Structure Breakdown.pdf', type: 'file', ext: 'PDF', size: '1.2 MB', date: '15 Sep 2026', res: 'Document' },
+            { id: 'fl4', name: 'GST & Compliance Manual 2026.pdf', type: 'file', ext: 'PDF', size: '2.1 MB', date: '18 Sep 2026', res: 'Document' }
+          ]
+        },
+        {
+          id: 'fr_pitch',
+          name: 'Pitch Decks & Marketing Standees',
+          subCount: 0,
+          items: [
+            { id: 'fp1', name: 'Franchise Investor Pitch Deck 2026.pdf', type: 'file', ext: 'PDF', size: '8.4 MB', date: '20 Sep 2026', res: 'Presentation' },
+            { id: 'fp2', name: 'Roll-up Standee 6x3 Feet High Res.png', type: 'image', ext: 'PNG', size: '12.4 MB', date: '21 Sep 2026', res: 'Vector 300 DPI' },
+            { id: 'fp3', name: 'Franchise Billboard Outdoor Banner.png', type: 'image', ext: 'PNG', size: '18.1 MB', date: '22 Sep 2026', res: 'Large Format' },
+            { id: 'fp4', name: 'Newspaper Print Ad 16x20cm.png', type: 'image', ext: 'PNG', size: '6.2 MB', date: '23 Sep 2026', res: 'CMYK Print' },
+            { id: 'fp5', name: 'City Launch Invitation Card.png', type: 'image', ext: 'PNG', size: '2.8 MB', date: '24 Sep 2026', res: 'Gloss Finish' },
+            { id: 'fp6', name: 'District Partner ID Template.png', type: 'image', ext: 'PNG', size: '1.4 MB', date: '25 Sep 2026', res: 'Badge' },
+            { id: 'fp7', name: 'Partner Welcome Letterhead.png', type: 'image', ext: 'PNG', size: '1.6 MB', date: '26 Sep 2026', res: 'A4' },
+            { id: 'fp8', name: 'Franchise Expo Booth Backdrop 10x8ft.png', type: 'image', ext: 'PNG', size: '22.0 MB', date: '27 Sep 2026', res: 'Backdrop' },
+            { id: 'fp9', name: 'Merchant Referral QR Table Cards.png', type: 'image', ext: 'PNG', size: '3.1 MB', date: '28 Sep 2026', res: 'Die Cut' },
+            { id: 'fp10', name: 'Certificate of Franchise Authorization.png', type: 'image', ext: 'PNG', size: '2.9 MB', date: '29 Sep 2026', res: 'Gold Foil Ready' }
+          ]
+        },
+        {
+          id: 'fr_training',
+          name: 'Franchise Training Videos',
+          subCount: 0,
+          items: [
+            { id: 'ft1', name: 'How to Onboard 50 Retailers in Month 1.mp4', type: 'video', ext: 'MP4', size: '48.5 MB', date: '01 Oct 2026', res: '1080p Video' },
+            { id: 'ft2', name: 'BeAurex CRM Mastery for Franchisees.mp4', type: 'video', ext: 'MP4', size: '62.0 MB', date: '02 Oct 2026', res: '1080p Video' }
+          ]
+        }
+      ]
+    }
+  };
+
+  const [kitsData, setKitsData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('beaurex_marketing_kits_data');
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return initialMarketingKitsData;
+  });
+
+  const saveKitsData = (newData) => {
+    setKitsData(newData);
+    try {
+      localStorage.setItem('beaurex_marketing_kits_data', JSON.stringify(newData));
+      window.dispatchEvent(new Event('storage'));
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (!e.key || e.key === 'beaurex_marketing_kits_data') {
+        try {
+          const saved = localStorage.getItem('beaurex_marketing_kits_data');
+          if (saved) setKitsData(JSON.parse(saved));
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const [activeKitCategory, setActiveKitCategory] = useState('all');
+  const [kitSearchQuery, setKitSearchQuery] = useState('');
+  const [kitToast, setKitToast] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [newAssetForm, setNewAssetForm] = useState({
+    categoryKey: 'franchise_sales_kit',
+    folderId: 'fr_pitch',
+    name: '',
+    ext: 'PNG',
+    size: '3.5 MB',
+    res: '300 DPI High-Res',
+    type: 'image'
+  });
+
+  const salesKitCount = (kitsData.mw_sales_kit?.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0);
+  const creatorKitCount = (kitsData.creator_kit?.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0);
+  const franchiseKitCount = (kitsData.franchise_sales_kit?.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0);
+  const totalKitAssets = salesKitCount + creatorKitCount + franchiseKitCount;
+
+  const categoriesToDisplay = activeKitCategory === 'all'
+    ? Object.entries(kitsData)
+    : Object.entries(kitsData).filter(([key]) => key === activeKitCategory);
+
+  const handleAddKitAsset = (e) => {
+    e.preventDefault();
+    if (!newAssetForm.name.trim()) return;
+
+    const catKey = newAssetForm.categoryKey;
+    const fId = newAssetForm.folderId;
+    const cat = kitsData[catKey];
+    if (!cat) return;
+
+    const extClean = newAssetForm.ext.toUpperCase();
+    const cleanName = newAssetForm.name.trim().toLowerCase().endsWith('.' + extClean.toLowerCase())
+      ? newAssetForm.name.trim()
+      : `${newAssetForm.name.trim()}.${extClean.toLowerCase()}`;
+
+    const updatedFolders = (cat.folders || []).map(folder => {
+      if (folder.id === fId) {
+        const newItem = {
+          id: 'asset_' + Date.now(),
+          name: cleanName,
+          type: newAssetForm.type,
+          ext: extClean,
+          size: newAssetForm.size.trim() || '2.0 MB',
+          date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          res: newAssetForm.res.trim() || 'HQ Ready'
+        };
+        return {
+          ...folder,
+          items: [newItem, ...(folder.items || [])]
+        };
+      }
+      return folder;
+    });
+
+    const updatedData = {
+      ...kitsData,
+      [catKey]: {
+        ...cat,
+        folders: updatedFolders
+      }
+    };
+
+    saveKitsData(updatedData);
+    setShowUploadModal(false);
+    setNewAssetForm({
+      categoryKey: 'franchise_sales_kit',
+      folderId: 'fr_pitch',
+      name: '',
+      ext: 'PNG',
+      size: '3.5 MB',
+      res: '300 DPI High-Res',
+      type: 'image'
+    });
+    setKitToast('Kit asset uploaded and published to field team successfully!');
+    setTimeout(() => setKitToast(''), 4000);
+  };
+
+  const handleDeleteKitAsset = (catKey, folderId, itemId) => {
+    if (!window.confirm('Are you sure you want to delete this marketing asset from team downloads?')) return;
+    const cat = kitsData[catKey];
+    if (!cat) return;
+    const updatedFolders = (cat.folders || []).map(folder => {
+      if (folder.id === folderId) {
+        return {
+          ...folder,
+          items: (folder.items || []).filter(item => item.id !== itemId)
+        };
+      }
+      return folder;
+    });
+    const updatedData = {
+      ...kitsData,
+      [catKey]: {
+        ...cat,
+        folders: updatedFolders
+      }
+    };
+    saveKitsData(updatedData);
+    setKitToast('Asset removed from marketing kit.');
+    setTimeout(() => setKitToast(''), 3000);
+  };
+
   // Dynamic Last Login Activity Helper with relative time and live status
   const formatDynamicLastLogin = (lastLogin, lastLoginAt, userId) => {
     const isNever = !lastLogin || lastLogin === 'Never' || lastLogin === 'Never (Invite Sent)';
@@ -5417,6 +5657,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
     { id: 'referrals', label: 'Manage Referrals', icon: Share2, count: referralsList.length, badge: 'Payouts' },
     { id: 'deals_coupons', label: 'Deal & Coupons', icon: Tag, count: platformDeals.length, badge: 'Deals' },
     { id: 'contacts', label: 'Contact Inquiries', icon: Mail, count: contactsList.filter(c => c.status === 'NEW').length, badge: contactsList.filter(c => c.status === 'NEW').length > 0 ? `${contactsList.filter(c => c.status === 'NEW').length} New` : 'Inbox' },
+    { id: 'marketing_kit', label: 'Kit Management', icon: Download, badge: 'Upload' },
     { id: 'permissions', label: 'Manage', icon: Sliders, badge: 'Control' },
     { id: 'plans', label: 'Plans', icon: Layers, count: plans.length, badge: 'Landing' },
     { id: 'team', label: 'Teams Management', icon: UserCheck, count: teamMembers.length, badge: 'New' },
@@ -6217,33 +6458,18 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                             />
 
                             {/* Dynamic Data points */}
-                            {chartPoints.map((p, idx) => {
-                              const isLast = idx === chartPoints.length - 1;
-                              return (
-                                <g key={idx}>
-                                  <circle
-                                    cx={p.x}
-                                    cy={p.y}
-                                    r={isLast ? 5.5 : 4.5}
-                                    fill="#8B0000"
-                                    className={isLast ? "animate-pulse cursor-pointer" : "cursor-pointer"}
-                                  >
-                                    <title>{p.dateLabel}: ₹{p.val.toLocaleString('en-IN')}</title>
-                                  </circle>
-                                  {isLast && (
-                                    <circle
-                                      cx={p.x}
-                                      cy={p.y}
-                                      r={3}
-                                      fill="#ffffff"
-                                      stroke="#8B0000"
-                                      strokeWidth="2"
-                                      className="pointer-events-none"
-                                    />
-                                  )}
-                                </g>
-                              );
-                            })}
+                            {chartPoints.map((p, idx) => (
+                              <circle
+                                key={idx}
+                                cx={p.x}
+                                cy={p.y}
+                                r={4.5}
+                                fill="#8B0000"
+                                className="cursor-pointer"
+                              >
+                                <title>{p.dateLabel}: ₹{p.val.toLocaleString('en-IN')}</title>
+                              </circle>
+                            ))}
                           </svg>
                         </div>
 
@@ -6480,10 +6706,11 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
 
                   {/* Table with Image 1 exact columns & horizontal scrollbar */}
                   <div className="overflow-x-auto custom-scrollbar pb-3">
-                    <table className="w-full min-w-[1620px] text-left text-xs border-collapse">
+                    <table className="w-full min-w-[1770px] text-left text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-[11px] font-black tracking-wider whitespace-nowrap select-none">
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Merchant / Business</th>
+                          <th className="py-3.5 px-4 whitespace-nowrap min-w-[150px]">Owner Name</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[130px]">Total Payment</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[170px]">Date with Time</th>
                           <th className="py-3.5 px-4 whitespace-nowrap min-w-[140px]">Plan</th>
@@ -6499,7 +6726,7 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                       <tbody className="divide-y divide-slate-100">
                         {filteredMerchants.length === 0 ? (
                           <tr>
-                            <td colSpan={11} className="py-8 text-center text-xs text-slate-400 font-black">
+                            <td colSpan={12} className="py-8 text-center text-xs text-slate-400 font-black">
                               No merchants match the selected filters.
                             </td>
                           </tr>
@@ -6518,6 +6745,13 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                                 )}
                                 <div className="text-[11px] text-slate-400 font-mono font-bold mt-0.5 whitespace-nowrap">
                                   {m.mobile ? `${m.mobile} • ` : ''}{m.city || 'Delhi NCR'}
+                                </div>
+                              </td>
+
+                              {/* Owner Name */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div className="font-bold text-slate-800 text-xs whitespace-nowrap">
+                                  {m.ownerName || m.name || m.contactPerson || '—'}
                                 </div>
                               </td>
 
@@ -15256,6 +15490,398 @@ By accessing or using BeAurex, you agree to be bound by these Terms and Conditio
                   </div>
                 )}
 
+              </div>
+            )}
+
+            {/* TAB: MARKETING & FIELD KIT MANAGEMENT */}
+            {activeTab === 'marketing_kit' && (
+              <div className="space-y-6 animate-in fade-in duration-150">
+                {/* Header & Quick Stats Banner */}
+                <div className="bg-gradient-to-r from-red-950 via-[#8B0000] to-red-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+                  
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="space-y-2 max-w-2xl">
+                      <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-xs text-xs font-bold text-red-200 border border-white/10">
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Field & Franchise Distribution Kit</span>
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                        Marketing Kit Management
+                      </h2>
+                      <p className="text-red-100/90 text-sm leading-relaxed">
+                        Publish marketing collateral, standee print files, legal agreements, pitch decks, and video assets. Collaterals instantly sync to all field representatives in their Team Portal.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="bg-white hover:bg-red-50 text-[#8B0000] px-5 py-3 rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all flex items-center space-x-2 cursor-pointer shrink-0"
+                      >
+                        <Upload className="w-4 h-4 text-[#8B0000]" />
+                        <span>+ Upload New Kit Asset</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 4 Quick Stat Badges */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-white/15">
+                    <div className="bg-black/20 backdrop-blur-xs rounded-2xl p-3.5 border border-white/10">
+                      <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider block">Total Collaterals</span>
+                      <span className="text-2xl font-black text-white mt-0.5 block">{totalKitAssets}</span>
+                      <span className="text-[10px] text-red-200/80">Across all kits</span>
+                    </div>
+                    <div className="bg-black/20 backdrop-blur-xs rounded-2xl p-3.5 border border-white/10">
+                      <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider block">Sales Kit</span>
+                      <span className="text-2xl font-black text-white mt-0.5 block">{salesKitCount}</span>
+                      <span className="text-[10px] text-red-200/80">Table standees & docs</span>
+                    </div>
+                    <div className="bg-black/20 backdrop-blur-xs rounded-2xl p-3.5 border border-white/10">
+                      <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider block">Franchise Kit</span>
+                      <span className="text-2xl font-black text-white mt-0.5 block">{franchiseKitCount}</span>
+                      <span className="text-[10px] text-red-200/80">Agreements & pitch decks</span>
+                    </div>
+                    <div className="bg-black/20 backdrop-blur-xs rounded-2xl p-3.5 border border-white/10">
+                      <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider block">Creator Kit</span>
+                      <span className="text-2xl font-black text-white mt-0.5 block">{creatorKitCount}</span>
+                      <span className="text-[10px] text-red-200/80">Reels, stories & videos</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Toast message if active */}
+                {kitToast && (
+                  <div className="bg-emerald-600 text-white px-4 py-3 rounded-2xl text-xs font-bold shadow-lg flex items-center justify-between animate-in slide-in-from-top duration-200">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                      <span>{kitToast}</span>
+                    </div>
+                    <button onClick={() => setKitToast('')} className="p-1 hover:bg-emerald-700 rounded-lg">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Filters and Search Bar */}
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  {/* Category Pills */}
+                  <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+                    {[
+                      { id: 'all', label: 'All Kits', count: totalKitAssets },
+                      { id: 'franchise_sales_kit', label: 'Franchise Sales Kit', count: franchiseKitCount },
+                      { id: 'mw_sales_kit', label: 'Sales Kit (Retailer)', count: salesKitCount },
+                      { id: 'creator_kit', label: 'Creator Kit', count: creatorKitCount },
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveKitCategory(tab.id)}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 cursor-pointer shrink-0 ${
+                          activeKitCategory === tab.id
+                            ? 'bg-[#8B0000] text-white shadow-xs font-black'
+                            : 'bg-slate-100 hover:bg-slate-200/70 text-slate-600'
+                        }`}
+                      >
+                        <span>{tab.label}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                          activeKitCategory === tab.id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Search Filter */}
+                  <div className="relative w-full md:w-72">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search kit assets, standees, pdf..."
+                      value={kitSearchQuery}
+                      onChange={(e) => setKitSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-medium"
+                    />
+                  </div>
+                </div>
+
+                {/* Display Folders & Items */}
+                <div className="space-y-6">
+                  {categoriesToDisplay.map(([catKey, category]) => {
+                    const filteredFolders = (category.folders || []).map(folder => {
+                      const matchingItems = (folder.items || []).filter(item => {
+                        if (!kitSearchQuery.trim()) return true;
+                        const q = kitSearchQuery.toLowerCase();
+                        return (item.name || '').toLowerCase().includes(q) ||
+                               (item.ext || '').toLowerCase().includes(q) ||
+                               (item.res || '').toLowerCase().includes(q);
+                      });
+                      return { ...folder, items: matchingItems };
+                    }).filter(folder => folder.items.length > 0 || !kitSearchQuery.trim());
+
+                    if (filteredFolders.length === 0) return null;
+
+                    return (
+                      <div key={catKey} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Folder className="w-5 h-5 text-[#8B0000]" />
+                            <h3 className="text-base font-black text-slate-900 tracking-tight">{category.title}</h3>
+                            <span className="text-[11px] font-bold text-slate-400 px-2 py-0.5 bg-slate-100 rounded-lg">
+                              {(category.folders || []).reduce((acc, f) => acc + (f.items?.length || 0), 0)} items
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          {filteredFolders.map(folder => (
+                            <div key={folder.id} className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+                              {/* Folder Header */}
+                              <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-200/80 flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-6 h-6 rounded-lg bg-red-100 text-[#8B0000] flex items-center justify-center">
+                                    <Folder className="w-3.5 h-3.5" />
+                                  </div>
+                                  <span className="text-xs font-black text-slate-800">{folder.name}</span>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+                                  {folder.items.length} files
+                                </span>
+                              </div>
+
+                              {/* Files List in Folder */}
+                              <div className="divide-y divide-slate-100 flex-1 max-h-96 overflow-y-auto">
+                                {folder.items.length === 0 ? (
+                                  <div className="p-6 text-center text-xs text-slate-400 font-medium">
+                                    No assets in this section. Click "+ Upload New Kit Asset" above to add.
+                                  </div>
+                                ) : (
+                                  folder.items.map(item => {
+                                    const isPdf = item.ext === 'PDF';
+                                    const isVideo = item.type === 'video' || item.ext === 'MP4';
+                                    return (
+                                      <div key={item.id} className="p-3.5 hover:bg-slate-50/70 transition flex items-center justify-between gap-3 group">
+                                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-black text-[10px] ${
+                                            isPdf 
+                                              ? 'bg-rose-100 text-rose-700' 
+                                              : isVideo 
+                                              ? 'bg-purple-100 text-purple-700' 
+                                              : 'bg-emerald-100 text-emerald-700'
+                                          }`}>
+                                            {isPdf ? <FileText className="w-4 h-4" /> : isVideo ? <Play className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />}
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                            <div className="text-xs font-bold text-slate-900 truncate" title={item.name}>
+                                              {item.name}
+                                            </div>
+                                            <div className="flex items-center space-x-2 text-[10px] font-medium text-slate-400 mt-0.5">
+                                              <span className="font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded uppercase">{item.ext}</span>
+                                              <span>•</span>
+                                              <span>{item.size}</span>
+                                              <span>•</span>
+                                              <span className="text-slate-500">{item.res || item.date}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center space-x-1 shrink-0">
+                                          <button
+                                            onClick={() => {
+                                              setKitToast(`Preparing download: ${item.name}`);
+                                              setTimeout(() => setKitToast(''), 3000);
+                                            }}
+                                            title="Download Collateral"
+                                            className="p-1.5 text-slate-400 hover:text-[#8B0000] hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                          >
+                                            <Download className="w-3.5 h-3.5" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteKitAsset(catKey, folder.id, item.id)}
+                                            title="Delete Collateral"
+                                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Upload Kit Asset Modal */}
+                {showUploadModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-5">
+                      <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-red-100 text-[#8B0000] flex items-center justify-center">
+                            <Upload className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-slate-900">Upload Marketing Collateral</h3>
+                            <p className="text-[11px] font-medium text-slate-500">Add marketing assets directly for team download</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setShowUploadModal(false)}
+                          className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <form onSubmit={handleAddKitAsset} className="space-y-4">
+                        {/* Target Kit Category */}
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 block mb-1">Target Marketing Kit *</label>
+                          <select
+                            value={newAssetForm.categoryKey}
+                            onChange={(e) => {
+                              const newCatKey = e.target.value;
+                              const defaultFolder = kitsData[newCatKey]?.folders?.[0]?.id || '';
+                              setNewAssetForm(prev => ({
+                                ...prev,
+                                categoryKey: newCatKey,
+                                folderId: defaultFolder
+                              }));
+                            }}
+                            className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-bold text-slate-800"
+                          >
+                            <option value="franchise_sales_kit">Franchise Sales Kit</option>
+                            <option value="mw_sales_kit">Sales Kit (Retailer Standees & Agreements)</option>
+                            <option value="creator_kit">Creator Kit (Social & Video Assets)</option>
+                          </select>
+                        </div>
+
+                        {/* Target Section / Folder */}
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 block mb-1">Section / Folder *</label>
+                          <select
+                            value={newAssetForm.folderId}
+                            onChange={(e) => setNewAssetForm(prev => ({ ...prev, folderId: e.target.value }))}
+                            className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-bold text-slate-800"
+                          >
+                            {(kitsData[newAssetForm.categoryKey]?.folders || []).map(f => (
+                              <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Asset Name / Title */}
+                        <div>
+                          <label className="text-[11px] font-bold text-slate-600 block mb-1">Asset Name / Title *</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Roll-Up Standee 6x3 Feet High Res"
+                            value={newAssetForm.name}
+                            onChange={(e) => setNewAssetForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-medium"
+                          />
+                        </div>
+
+                        {/* Format, Size, Type in Grid */}
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-600 block mb-1">Format *</label>
+                            <select
+                              value={newAssetForm.ext}
+                              onChange={(e) => {
+                                const ext = e.target.value;
+                                const type = ext === 'PDF' ? 'file' : ext === 'MP4' ? 'video' : 'image';
+                                setNewAssetForm(prev => ({ ...prev, ext, type }));
+                              }}
+                              className="w-full px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-bold"
+                            >
+                              <option value="PNG">PNG Image</option>
+                              <option value="PDF">PDF Doc</option>
+                              <option value="JPG">JPG Image</option>
+                              <option value="MP4">MP4 Video</option>
+                              <option value="SVG">SVG Vector</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-600 block mb-1">File Size *</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. 4.2 MB"
+                              value={newAssetForm.size}
+                              onChange={(e) => setNewAssetForm(prev => ({ ...prev, size: e.target.value }))}
+                              className="w-full px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-medium"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-600 block mb-1">Resolution / Specs</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. 300 DPI High-Res"
+                              value={newAssetForm.res}
+                              onChange={(e) => setNewAssetForm(prev => ({ ...prev, res: e.target.value }))}
+                              className="w-full px-2.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:border-red-500 font-medium"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Drag and Drop mockup / local file selector */}
+                        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                          <input
+                            type="file"
+                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const ext = file.name.split('.').pop()?.toUpperCase() || 'PNG';
+                                const type = ext === 'PDF' ? 'file' : ext === 'MP4' ? 'video' : 'image';
+                                const sizeStr = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`;
+                                setNewAssetForm(prev => ({
+                                  ...prev,
+                                  name: file.name,
+                                  ext,
+                                  type,
+                                  size: sizeStr
+                                }));
+                              }
+                            }}
+                          />
+                          <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
+                          <div className="text-xs font-bold text-slate-700">Choose file or drag & drop</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">Auto-fills filename, format & size (PNG, PDF, MP4 up to 100MB)</div>
+                        </div>
+
+                        {/* Modal Action Buttons */}
+                        <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+                          <button
+                            type="button"
+                            onClick={() => setShowUploadModal(false)}
+                            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="bg-[#8B0000] hover:bg-red-800 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-md shadow-red-900/20 cursor-pointer flex items-center space-x-1.5"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Publish Asset to Team</span>
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
